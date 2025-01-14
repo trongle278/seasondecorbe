@@ -7,6 +7,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
+using Repository.Interfaces;
 
 namespace Repository.UnitOfWork
 {
@@ -23,11 +24,12 @@ namespace Repository.UnitOfWork
                 Ex:
                 AccountRepository = new AccountRepository(_context);
             */
+            AccountRepository = new AccountRepository(_context);
         }
 
-        /*
+        
             public IAccountRepository AccountRepository { get; private set; }
-        */
+        
 
         public void Dispose()
         {
