@@ -18,6 +18,7 @@ namespace Repository.UnitOfWork
         */
 
         IAccountRepository AccountRepository { get; }
+        IRoleRepository RoleRepository { get; }
 
         int Save();
         Task CommitAsync();

@@ -25,11 +25,12 @@ namespace Repository.UnitOfWork
                 AccountRepository = new AccountRepository(_context);
             */
             AccountRepository = new AccountRepository(_context);
+            RoleRepository = new RoleRepository(_context);
         }
 
         
             public IAccountRepository AccountRepository { get; private set; }
-        
+            public IRoleRepository RoleRepository { get; private set; }
 
         public void Dispose()
         {
