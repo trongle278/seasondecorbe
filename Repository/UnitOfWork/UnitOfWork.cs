@@ -18,19 +18,14 @@ namespace Repository.UnitOfWork
         public UnitOfWork(HomeDecorDBContext context, IConfiguration configuration)
         {
             _context = context;
-            /*
-                Khai báo Repository cho UnitOfWork ở đây
-                
-                Ex:
-                AccountRepository = new AccountRepository(_context);
-            */
             AccountRepository = new AccountRepository(_context);
             RoleRepository = new RoleRepository(_context);
+            DecorCategoryRepository = new DecorCategoryRepository(_context);
         }
 
-        
-            public IAccountRepository AccountRepository { get; private set; }
-            public IRoleRepository RoleRepository { get; private set; }
+        public IAccountRepository AccountRepository { get; private set; }
+        public IRoleRepository RoleRepository { get; private set; }
+        public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
 
         public void Dispose()
         {

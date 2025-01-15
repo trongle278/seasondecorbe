@@ -10,15 +10,9 @@ namespace Repository.UnitOfWork
 {
     public interface IUnitOfWork : IDisposable
     {
-        /*
-            Khai báo interfaces cho UnitOfWork ở đây
-            
-            Ex:
-            IAccountRepository AccountRepository { get; }
-        */
-
         IAccountRepository AccountRepository { get; }
         IRoleRepository RoleRepository { get; }
+        IDecorCategoryRepository DecorCategoryRepository { get; }
 
         int Save();
         Task CommitAsync();

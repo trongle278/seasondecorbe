@@ -12,36 +12,10 @@ namespace BusinessLogicLayer.ObjectMapper
 {
     public class HomeDecorAutoMapperProfile : Profile
     {
-        /*
-        public ECommerceAutoMapperProfile()
-        {
-            ProductProfile();
-            CategoryProfile();
-            ManufacturerProfile();
-        }
-
-        private void ProductProfile()
-        {
-            CreateMap<Product, ProductResponse>().ReverseMap();
-            CreateMap<Product, ProductAddRequest>().ReverseMap();
-            CreateMap<Product, ProductUpdateRequest>().ReverseMap();
-        }
-
-        private void CategoryProfile()
-        {
-            CreateMap<DataAccessObject.Models.Category, CategoryRequest>().ReverseMap();
-            CreateMap<DataAccessObject.Models.Category, CategoryResponse>().ReverseMap();
-        }
-
-        private void ManufacturerProfile()
-        {
-            CreateMap<DataAccessObject.Models.Manufacturer, ManufacturerRequest>().ReverseMap();
-            CreateMap<DataAccessObject.Models.Manufacturer, ManufacturerResponse>().ReverseMap();
-        }
-        */
         public HomeDecorAutoMapperProfile()
         {
             AccountProfile();
+            DecorCategoryProfile();
         }
 
         private void AccountProfile()
@@ -60,6 +34,16 @@ namespace BusinessLogicLayer.ObjectMapper
 
             CreateMap<CreateAccountRequest, Account>();
             CreateMap<UpdateAccountRequest, Account>();
+        }
+
+        private void DecorCategoryProfile(){
+            CreateMap<DecorCategory, DecorCategoryDTO>()
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+
+            CreateMap<DecorCategoryRequest, DecorCategory>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
         }
     }
 }
