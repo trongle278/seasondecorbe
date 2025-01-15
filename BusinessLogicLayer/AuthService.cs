@@ -39,13 +39,22 @@ namespace BusinessLogicLayer
                 return new AuthResponse { Success = false, Errors = new List<string> { "Email already exists" } };
             }
 
+            var customerRole = await _unitOfWork.RoleRepository
+                .Query(r => r.RoleName.ToLower() == "customer")
+                .FirstOrDefaultAsync();
+            
+            if (customerRole == null)
+            {
+                return new AuthResponse { Success = false, Errors = new List<string> { "Role configuration error" } };
+            }
+
             var account = new Account
             {
                 Email = request.Email,
-                Password = "",// Password will be hashed below
+                Password = "",
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                RoleId = 3
+                RoleId = customerRole.Id
             };
 
             account.Password = HashPassword(account, request.Password);
@@ -53,18 +62,22 @@ namespace BusinessLogicLayer
             await _unitOfWork.AccountRepository.InsertAsync(account);
             await _unitOfWork.CommitAsync();
 
-            return new AuthResponse { Success = true, Token = GenerateJwtToken(account) };
+            return new AuthResponse { Success = true, Token = await GenerateJwtToken(account) };
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var account = await _unitOfWork.AccountRepository.Query(a => a.Email == request.Email).FirstOrDefaultAsync();
+            var account = await _unitOfWork.AccountRepository
+                .Query(a => a.Email == request.Email)
+                .Include(a => a.Role)
+                .FirstOrDefaultAsync();
+
             if (account == null || !VerifyPassword(account, request.Password))
             {
                 return new AuthResponse { Success = false, Errors = new List<string> { "Invalid email or password" } };
             }
 
-            return new AuthResponse { Success = true, Token = GenerateJwtToken(account) };
+            return new AuthResponse { Success = true, Token = await GenerateJwtToken(account) };
         }
 
         public async Task<AuthResponse> GoogleLoginAsync(string credential)
@@ -73,27 +86,36 @@ namespace BusinessLogicLayer
             {
                 var payload = await GoogleJsonWebSignature.ValidateAsync(credential);
 
-                // Tìm hoặc tạo user mới
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Email == payload.Email)
+                    .Include(a => a.Role)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
                 {
+                    var customerRole = await _unitOfWork.RoleRepository
+                        .Query(r => r.RoleName.ToLower() == "customer")
+                        .FirstOrDefaultAsync();
+
+                    if (customerRole == null)
+                    {
+                        return new AuthResponse { Success = false, Errors = new List<string> { "Role configuration error" } };
+                    }
+
                     account = new Account
                     {
                         Email = payload.Email,
                         FirstName = payload.GivenName,
                         LastName = payload.FamilyName,
-                        RoleId = 3,  // Role Customer
-                        Password = "" // Nếu Password không cho phép null
+                        RoleId = customerRole.Id,
+                        Password = "",
                     };
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);
                     await _unitOfWork.CommitAsync();
                 }
 
-                var token = GenerateJwtToken(account);
+                var token = await GenerateJwtToken(account);
                 return new AuthResponse { Success = true, Token = token };
             }
             catch (Exception ex)
@@ -106,19 +128,22 @@ namespace BusinessLogicLayer
             }
         }
 
-        private string GenerateJwtToken(Account account)
+        private async Task<string> GenerateJwtToken(Account account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(account.RoleId);
+            
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                new Claim(ClaimTypes.Email, account.Email),
-                new Claim(ClaimTypes.Role, account.RoleId == 1 ? "Admin" : "User")
-                //CẦN SỬA Ở ĐÂY
-
-            }),
+                    new Claim(ClaimTypes.Email, account.Email),
+                    new Claim(ClaimTypes.Role, role.RoleName),
+                    new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+                    new Claim(ClaimTypes.Name, $"{account.FirstName} {account.LastName}"),
+                }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["Jwt:Issuer"],
