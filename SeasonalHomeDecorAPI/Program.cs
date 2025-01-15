@@ -69,7 +69,7 @@ builder.Services.AddAutoMapper(typeof(HomeDecorAutoMapperProfile).Assembly);
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 var app = builder.Build();
 

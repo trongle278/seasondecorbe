@@ -56,12 +56,20 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("google-login")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
         {
-            var response = await _authService.GoogleLoginAsync(request.Credential);
-            if (!response.Success)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(response);
+                return BadRequest(ModelState);
             }
-            return Ok(response);
+
+            var result = await _authService.GoogleLoginAsync(request.Credential);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
         }
     }
 }
