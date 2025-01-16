@@ -16,6 +16,7 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             AccountProfile();
             DecorCategoryProfile();
+            RoleCategoryProfile();
         }
 
         private void AccountProfile()
@@ -44,6 +45,19 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<DecorCategoryRequest, DecorCategory>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+        }
+
+        private void RoleCategoryProfile()
+        {
+            CreateMap<Role, RoleDTO>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName));
+
+            CreateMap<CreateRoleRequest, Role>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName));
+
+            CreateMap<UpdateRoleRequest, Role>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName));
         }
     }
 }

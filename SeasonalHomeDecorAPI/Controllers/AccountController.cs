@@ -2,6 +2,7 @@
 using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SeasonalHomeDecorAPI.Controllers
@@ -29,7 +30,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(accounts);
         }
 
-        [HttpGet("get/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetAccount(int id)
         {
             if (!ModelState.IsValid)
@@ -48,6 +49,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("add")]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
         {
@@ -68,7 +70,8 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [HttpPut("update/{id})")]
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpPut("{id})")]
         public async Task<IActionResult> UpdateAccount(int accountId, [FromBody] UpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
@@ -87,6 +90,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {

@@ -130,20 +130,29 @@ namespace BusinessLogicLayer
 
         private async Task<string> GenerateJwtToken(Account account)
         {
+            // Thêm logging để debug
+            Console.WriteLine($"Generating token for account: {account.Email}");
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 
+            // Kiểm tra role
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(account.RoleId);
-            
+            if (role == null)
+            {
+                throw new Exception("Role not found");
+            }
+            Console.WriteLine($"Role found: {role.RoleName}");
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Email, account.Email),
-                    new Claim(ClaimTypes.Role, role.RoleName),
-                    new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                    new Claim(ClaimTypes.Name, $"{account.FirstName} {account.LastName}"),
-                }),
+            new Claim(ClaimTypes.Email, account.Email),
+            new Claim(ClaimTypes.Role, role.RoleName),
+            new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+            new Claim(ClaimTypes.Name, $"{account.FirstName} {account.LastName}"),
+        }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["Jwt:Issuer"],

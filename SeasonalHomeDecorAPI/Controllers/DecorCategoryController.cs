@@ -3,6 +3,7 @@ using DataAccessObject.Models;
 using Microsoft.AspNetCore.Mvc;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -27,11 +28,11 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return Ok(result);
         }
-
+       
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryById(int id)
+        public async Task<IActionResult> GetCategoryById(int categoryId)
         {
-            var result = await _decorCategoryService.GetDecorCategoryByIdAsync(id);
+            var result = await _decorCategoryService.GetDecorCategoryByIdAsync(categoryId);
             if (!result.Success)
             {
                 return NotFound(result);
@@ -39,6 +40,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "RequireDecoratorRole")]
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] DecorCategoryRequest request)
         {
@@ -55,15 +57,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "RequireDecoratorRole")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] DecorCategoryRequest request)
+        public async Task<IActionResult> UpdateCategory(int categoryId, [FromBody] DecorCategoryRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _decorCategoryService.UpdateDecorCategoryAsync(id, request);
+            var result = await _decorCategoryService.UpdateDecorCategoryAsync(categoryId, request);
             if (!result.Success)
             {
                 return BadRequest(result);
@@ -71,10 +74,11 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "RequireDecoratorRole")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteCategory(int categoryId)
         {
-            var result = await _decorCategoryService.DeleteDecorCategoryAsync(id);
+            var result = await _decorCategoryService.DeleteDecorCategoryAsync(categoryId);
             if (!result.Success)
             {
                 return BadRequest(result);

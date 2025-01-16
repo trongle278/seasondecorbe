@@ -10,6 +10,7 @@ using Repository.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using DataAccessObject.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 
 namespace BusinessLogicLayer
 {
@@ -17,11 +18,13 @@ namespace BusinessLogicLayer
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly PasswordHasher<Account> _passwordHasher;
 
         public AccountService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _passwordHasher = new PasswordHasher<Account>();
         }
 
         public async Task<AccountResponse> GetAccountByIdAsync(int accountId)
@@ -112,10 +115,11 @@ namespace BusinessLogicLayer
                     Phone = request.Phone,
                     Address = request.Address,
                     Avatar = request.Avatar,
-                    RoleId = request.RoleId,
+                    RoleId = 2,
                     IsDisable = false
                 };
 
+                account.Password = _passwordHasher.HashPassword(account, request.Password);
                 await _unitOfWork.AccountRepository.InsertAsync(account);
                 await _unitOfWork.CommitAsync();
 
