@@ -15,10 +15,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Google.Apis.Auth;
+using System.Numerics;
 
 namespace BusinessLogicLayer
 {
-    public class AuthService: IAuthService
+    public class AuthService : IAuthService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
@@ -39,13 +40,9 @@ namespace BusinessLogicLayer
                 return new AuthResponse { Success = false, Errors = new List<string> { "Email already exists" } };
             }
 
-            var customerRole = await _unitOfWork.RoleRepository
-                .Query(r => r.RoleName.ToLower() == "customer")
-                .FirstOrDefaultAsync();
-            
-            if (customerRole == null)
+            if (request.RoleId <= 0)
             {
-                return new AuthResponse { Success = false, Errors = new List<string> { "Role configuration error" } };
+                return new AuthResponse { Success = false, Errors = new List<string> { "Role must be selected" } };
             }
 
             var account = new Account
@@ -54,7 +51,10 @@ namespace BusinessLogicLayer
                 Password = "",
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                RoleId = customerRole.Id
+                Gender = request.Gender,
+                Phone = request.Phone,
+                Address = request.Address,
+                RoleId = request.RoleId
             };
 
             account.Password = HashPassword(account, request.Password);
@@ -80,7 +80,7 @@ namespace BusinessLogicLayer
             return new AuthResponse { Success = true, Token = await GenerateJwtToken(account) };
         }
 
-        public async Task<AuthResponse> GoogleLoginAsync(string credential)
+        public async Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null)
         {
             try
             {
@@ -91,36 +91,43 @@ namespace BusinessLogicLayer
                     .Include(a => a.Role)
                     .FirstOrDefaultAsync();
 
-                if (account == null)
+                // Nếu tài khoản đã tồn tại, trả về token luôn
+                if (account != null)
                 {
-                    var customerRole = await _unitOfWork.RoleRepository
-                        .Query(r => r.RoleName.ToLower() == "customer")
-                        .FirstOrDefaultAsync();
-
-                    if (customerRole == null)
-                    {
-                        return new AuthResponse { Success = false, Errors = new List<string> { "Role configuration error" } };
-                    }
-
-                    account = new Account
-                    {
-                        Email = payload.Email,
-                        FirstName = payload.GivenName,
-                        LastName = payload.FamilyName,
-                        RoleId = customerRole.Id,
-                        Password = "",
-                    };
-
-                    await _unitOfWork.AccountRepository.InsertAsync(account);
-                    await _unitOfWork.CommitAsync();
+                    var token = await GenerateJwtToken(account);
+                    return new GoogleLoginResponse { Success = true, Token = token };
                 }
 
-                var token = await GenerateJwtToken(account);
-                return new AuthResponse { Success = true, Token = token };
+                // Xử lý cho user mới (first time login)
+                if (!roleId.HasValue || roleId <= 0)
+                {
+                    return new GoogleLoginResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "First time login requires role selection" },
+                        IsFirstLogin = true
+                    };
+                }
+
+                // Tạo tài khoản mới với role đã chọn
+                account = new Account
+                {
+                    Email = payload.Email,
+                    FirstName = payload.GivenName,
+                    LastName = payload.FamilyName,
+                    RoleId = roleId.Value,
+                    Password = "",
+                };
+
+                await _unitOfWork.AccountRepository.InsertAsync(account);
+                await _unitOfWork.CommitAsync();
+
+                var newToken = await GenerateJwtToken(account);
+                return new GoogleLoginResponse { Success = true, Token = newToken };
             }
             catch (Exception ex)
             {
-                return new AuthResponse
+                return new GoogleLoginResponse
                 {
                     Success = false,
                     Errors = new List<string> { ex.Message, ex.InnerException?.Message }

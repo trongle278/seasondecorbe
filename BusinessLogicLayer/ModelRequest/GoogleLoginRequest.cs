@@ -8,6 +8,7 @@ namespace BusinessLogicLayer.ModelRequest
 {
     public class GoogleLoginRequest
     {
-        public string Credential { get; set; } = string.Empty;
+        public string Credential { get; set; }
+        public int? RoleId { get; set; }
     }
 }

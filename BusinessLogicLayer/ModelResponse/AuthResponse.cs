@@ -13,4 +13,12 @@ namespace BusinessLogicLayer.ModelResponse
         public List<string> Errors { get; set; }
 
     }
+
+    public class GoogleLoginResponse
+    {
+        public bool Success { get; set; }
+        public string Token { get; set; }
+        public List<string> Errors { get; set; }
+        public bool IsFirstLogin { get; set; }
+    }
 }

@@ -12,6 +12,6 @@ namespace BusinessLogicLayer.Interfaces
     {
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
         Task<AuthResponse> LoginAsync(LoginRequest request);
-        Task<AuthResponse> GoogleLoginAsync(string credential);
+        Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null);
     }
 }

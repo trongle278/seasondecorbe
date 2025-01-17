@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SeasonalHomeDecorAPI.Controllers
@@ -16,22 +17,27 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+        public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new AuthResponse
+                {
+                    Success = false,
+                    Errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList()
+                });
             }
 
-            var result = await _authService.RegisterAsync(registerRequest);
-            if (result.Success)
+            var response = await _authService.RegisterAsync(request);
+            if (!response.Success)
             {
-                return Ok(result);
+                return BadRequest(response);
             }
-            else
-            {
-                return BadRequest(result.Errors);
-            }
+
+            return Ok(response);
         }
 
         [HttpPost("login")]
@@ -54,14 +60,14 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("google-login")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        public async Task<ActionResult<GoogleLoginResponse>> GoogleLogin([FromBody] GoogleLoginRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _authService.GoogleLoginAsync(request.Credential);
+            var result = await _authService.GoogleLoginAsync(request.Credential, request.RoleId);
             if (result.Success)
             {
                 return Ok(result);
