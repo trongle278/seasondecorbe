@@ -11,6 +11,11 @@ namespace BusinessLogicLayer.ModelResponse
         public string Token { get; set; }
         public bool Success { get; set; }
         public List<string> Errors { get; set; }
+        public AuthResponse()
+        {
+            Errors = new List<string>();  // Khởi tạo list trong constructor
+            Token = string.Empty;         // Khởi tạo token rỗng
+        }
 
     }
 

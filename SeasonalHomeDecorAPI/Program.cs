@@ -113,7 +113,7 @@ builder.Services.AddScoped<IDecorCategoryRepository, DecorCategoryRepository>();
 builder.Services.AddScoped<IDecorCategoryService, DecorCategoryService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // 10. Build the application
 var app = builder.Build();

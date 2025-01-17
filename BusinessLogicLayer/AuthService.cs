@@ -24,12 +24,14 @@ namespace BusinessLogicLayer
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly PasswordHasher<Account> _passwordHasher;
+        private readonly IEmailService _emailService;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _passwordHasher = new PasswordHasher<Account>();
+            _emailService = emailService;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -131,6 +133,131 @@ namespace BusinessLogicLayer
                 {
                     Success = false,
                     Errors = new List<string> { ex.Message, ex.InnerException?.Message }
+                };
+            }
+        }
+
+        public async Task<AuthResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == request.Email.Trim().ToLower())  // Chuẩn hóa email
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new AuthResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "If the email exists, you will receive a password reset OTP" }  // Message an toàn hơn
+                    };
+                }
+
+                // Kiểm tra xem có OTP cũ chưa hết hạn không
+                if (account.ResetPasswordTokenExpiry != null && account.ResetPasswordTokenExpiry > DateTime.UtcNow)
+                {
+                    return new AuthResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Please wait for the current OTP to expire or use it to reset your password" }
+                    };
+                }
+
+                var otp = GenerateOTP();
+                var otpExpiry = DateTime.UtcNow.AddMinutes(15);
+
+                account.ResetPasswordToken = otp;
+                account.ResetPasswordTokenExpiry = otpExpiry;
+                await _unitOfWork.CommitAsync();
+
+                await SendResetPasswordEmail(account.Email, otp);
+
+                return new AuthResponse { Success = true };
+            }
+            catch
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "An error occurred while processing your request" }  // Message chung
+                };
+            }
+        }
+
+        private string GenerateOTP()
+        {
+            using var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
+            var bytes = new byte[4];
+            rng.GetBytes(bytes);
+            return (BitConverter.ToUInt32(bytes, 0) % 900000 + 100000).ToString();  // Tạo OTP an toàn hơn
+        }
+
+        private async Task SendResetPasswordEmail(string email, string otp)
+        {
+            var emailBody = $@"
+        <h2>Reset Your Password</h2>
+        <p>Your OTP code is: <strong>{otp}</strong></p>
+        <p>This code will expire in 15 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <p>For security reasons, please do not share this OTP with anyone.</p>";
+
+            await _emailService.SendEmailAsync(
+                email,
+                "Reset Password OTP",
+                emailBody);
+        }
+
+        public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.ResetPasswordToken == request.OTP)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new AuthResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Invalid OTP" }
+                    };
+                }
+
+                if (account.ResetPasswordTokenExpiry < DateTime.UtcNow)
+                {
+                    return new AuthResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "OTP has expired" }
+                    };
+                }
+
+                // Kiểm tra password mới không trùng với password cũ
+                if (VerifyPassword(account, request.NewPassword))
+                {
+                    return new AuthResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "New password must be different from the current password" }
+                    };
+                }
+
+                account.Password = HashPassword(account, request.NewPassword);
+                account.ResetPasswordToken = null;
+                account.ResetPasswordTokenExpiry = null;
+
+                await _unitOfWork.CommitAsync();
+
+                return new AuthResponse { Success = true };
+            }
+            catch
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "An error occurred while resetting your password" }
                 };
             }
         }

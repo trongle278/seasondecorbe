@@ -23,6 +23,8 @@ namespace DataAccessObject.Models
         public string? Avatar { get; set; }
         public string? Status { get; set; }
         public bool IsDisable { get; set; }
+        public string? ResetPasswordToken { get; set; }
+        public DateTime? ResetPasswordTokenExpiry { get; set; }
 
         public int RoleId { get; set; }
         public Role Role { get; set; }
