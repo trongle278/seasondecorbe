@@ -25,6 +25,9 @@ namespace DataAccessObject.Models
         public bool IsDisable { get; set; }
         public string? ResetPasswordToken { get; set; }
         public DateTime? ResetPasswordTokenExpiry { get; set; }
+        public bool TwoFactorEnabled { get; set; }
+        public string? TwoFactorToken { get; set; }
+        public DateTime? TwoFactorTokenExpiry { get; set; }
 
         public int RoleId { get; set; }
         public Role Role { get; set; }

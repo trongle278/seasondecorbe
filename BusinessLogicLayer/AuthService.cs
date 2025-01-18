@@ -67,19 +67,119 @@ namespace BusinessLogicLayer
             return new AuthResponse { Success = true, Token = await GenerateJwtToken(account) };
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            var account = await _unitOfWork.AccountRepository
-                .Query(a => a.Email == request.Email)
-                .Include(a => a.Role)
-                .FirstOrDefaultAsync();
-
-            if (account == null || !VerifyPassword(account, request.Password))
+            try
             {
-                return new AuthResponse { Success = false, Errors = new List<string> { "Invalid email or password" } };
-            }
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == request.Email)
+                    .Include(a => a.Role)
+                    .FirstOrDefaultAsync();
 
-            return new AuthResponse { Success = true, Token = await GenerateJwtToken(account) };
+                if (account == null || !VerifyPassword(account, request.Password))
+                {
+                    return new LoginResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Invalid email or password" }
+                    };
+                }
+
+                // Admin không cần OTP
+                if (account.Role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    var adminToken = await GenerateJwtToken(account);
+                    return new LoginResponse { Success = true, Token = adminToken };
+                }
+
+                // User khác có bật 2FA
+                if (account.TwoFactorEnabled)
+                {
+                    var otp = GenerateOTP();
+                    account.TwoFactorToken = otp;
+                    account.TwoFactorTokenExpiry = DateTime.UtcNow.AddMinutes(5);
+                    await _unitOfWork.CommitAsync();
+
+                    await SendLoginOTPEmail(account.Email, otp);
+
+                    return new LoginResponse
+                    {
+                        Success = true,
+                        RequiresTwoFactor = true
+                    };
+                }
+
+                // User không bật 2FA
+                var token = await GenerateJwtToken(account);
+                return new LoginResponse { Success = true, Token = token };
+            }
+            catch (Exception ex)
+            {
+                return new LoginResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
+        public async Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == request.Email &&
+                               a.TwoFactorToken == request.OTP)
+                    .Include(a => a.Role)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new LoginResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Invalid OTP" }
+                    };
+                }
+
+                if (account.TwoFactorTokenExpiry < DateTime.UtcNow)
+                {
+                    return new LoginResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "OTP has expired" }
+                    };
+                }
+
+                // Xóa OTP sau khi verify thành công
+                account.TwoFactorToken = null;
+                account.TwoFactorTokenExpiry = null;
+                await _unitOfWork.CommitAsync();
+
+                var token = await GenerateJwtToken(account);
+                return new LoginResponse { Success = true, Token = token };
+            }
+            catch (Exception ex)
+            {
+                return new LoginResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+        private async Task SendLoginOTPEmail(string email, string otp)
+        {
+            var emailBody = $@"
+        <h2>Login Verification</h2>
+        <p>Your OTP code is: <strong>{otp}</strong></p>
+        <p>This code will expire in 5 minutes.</p>
+        <p>If you didn't attempt to login, please secure your account immediately.</p>";
+
+            await _emailService.SendEmailAsync(
+                email,
+                "Login OTP Verification",
+                emailBody);
         }
 
         public async Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null)
@@ -306,6 +406,38 @@ namespace BusinessLogicLayer
         {
             var result = _passwordHasher.VerifyHashedPassword(account, account.Password, providedPassword);
             return result == PasswordVerificationResult.Success;
+        }
+        public async Task<Toggle2FAResponse> Toggle2FAAsync(int userId, Toggle2FARequest request)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(userId);
+                if (account == null)
+                {
+                    return new Toggle2FAResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Account not found" }
+                    };
+                }
+
+                account.TwoFactorEnabled = request.Enable;
+                await _unitOfWork.CommitAsync();
+
+                return new Toggle2FAResponse
+                {
+                    Success = true,
+                    TwoFactorEnabled = account.TwoFactorEnabled
+                };
+            }
+            catch (Exception ex)
+            {
+                return new Toggle2FAResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { ex.Message }
+                };
+            }
         }
     }
 }
