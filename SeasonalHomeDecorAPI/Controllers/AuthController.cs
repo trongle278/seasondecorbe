@@ -4,6 +4,7 @@ using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -34,6 +35,29 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             var response = await _authService.RegisterAsync(request);
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new AuthResponse
+                {
+                    Success = false,
+                    Errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList()
+                });
+            }
+            var response = await _authService.VerifyEmailAsync(request);
             if (!response.Success)
             {
                 return BadRequest(response);

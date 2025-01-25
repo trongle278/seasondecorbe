@@ -11,5 +11,11 @@ namespace BusinessLogicLayer.ModelResponse
         public bool Success { get; set; }
         public string Message { get; set; }
         public List<string> Errors { get; set; }
+        public BaseResponse()
+        {
+            Success = false;
+            Message = string.Empty;
+            Errors = new List<string>();
+        }
     }
 }

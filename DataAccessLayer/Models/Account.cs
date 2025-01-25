@@ -23,6 +23,9 @@ namespace DataAccessObject.Models
         public string? Avatar { get; set; }
         public string? Status { get; set; }
         public bool IsDisable { get; set; }
+        public bool IsVerified { get; set; } = false;
+        public string? VerificationToken { get; set; }
+        public DateTime? VerificationTokenExpiry { get; set; }
         public string? ResetPasswordToken { get; set; }
         public DateTime? ResetPasswordTokenExpiry { get; set; }
         public bool TwoFactorEnabled { get; set; }

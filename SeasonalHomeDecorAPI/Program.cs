@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using BusinessLogicLayer.Hub;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,12 @@ var securityKey = new SymmetricSecurityKey(keyBytes);
 // 2. Basic Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+});
 
 // 3. Configure CORS
 builder.Services.AddCors(options =>
@@ -114,6 +121,9 @@ builder.Services.AddScoped<IDecorCategoryService, DecorCategoryService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
+
 
 // 10. Build the application
 var app = builder.Build();
@@ -129,6 +139,9 @@ app.UseHttpsRedirection();
 
 // CORS phải đứng trước Authentication và Authorization
 app.UseCors("AllowAll");
+
+// Map SignalR hub
+app.MapHub<ChatHub>("/chatHub");
 
 // Thứ tự này rất quan trọng
 app.UseAuthentication();    // Xác thực

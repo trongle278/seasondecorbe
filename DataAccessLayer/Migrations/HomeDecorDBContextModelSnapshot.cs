@@ -50,6 +50,9 @@ namespace DataAccessObject.Migrations
                     b.Property<bool>("IsDisable")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -80,6 +83,12 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("TwoFactorTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VerificationToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("VerificationTokenExpiry")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
@@ -145,6 +154,39 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("TimeSlotId");
 
                     b.ToTable("BookingDetails");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SentTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Chats");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Decorator", b =>
@@ -671,6 +713,25 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("TimeSlot");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Account", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Decorator", b =>

@@ -41,4 +41,14 @@ namespace BusinessLogicLayer.ModelRequest
         [Range(1, int.MaxValue, ErrorMessage = "Please select a valid role")]
         public int RoleId { get; set; }
     }
+
+    public class VerifyEmailRequest
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        public string OTP { get; set; }
+    }
 }

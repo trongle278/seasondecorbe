@@ -21,11 +21,13 @@ namespace Repository.UnitOfWork
             AccountRepository = new AccountRepository(_context);
             RoleRepository = new RoleRepository(_context);
             DecorCategoryRepository = new DecorCategoryRepository(_context);
+            ChatRepository = new ChatRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
         public IRoleRepository RoleRepository { get; private set; }
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
+        public IChatRepository ChatRepository { get; private set; }
 
         public void Dispose()
         {

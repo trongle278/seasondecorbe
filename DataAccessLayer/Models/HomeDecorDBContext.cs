@@ -12,7 +12,7 @@ namespace DataAccessObject.Models
     {
         public HomeDecorDBContext() { }
 
-        public HomeDecorDBContext(DbContextOptions<HomeDecorDBContext> options) : base(options) 
+        public HomeDecorDBContext(DbContextOptions<HomeDecorDBContext> options) : base(options)
         {
 
         }
@@ -50,6 +50,7 @@ namespace DataAccessObject.Models
         public DbSet<Support> Supports { get; set; }
         public DbSet<TicketType> TicketTypes { get; set; }
         public DbSet<TicketReply> TicketReplies { get; set; }
+        public DbSet<Chat> Chats { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -202,6 +203,18 @@ namespace DataAccessObject.Models
                 .WithMany(b => b.Payments)
                 .HasForeignKey(p => p.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Chat>()
+        .HasOne(c => c.Sender)
+        .WithMany()
+        .HasForeignKey(c => c.SenderId)
+        .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+
+            modelBuilder.Entity<Chat>()
+                .HasOne(c => c.Receiver)
+                .WithMany()
+                .HasForeignKey(c => c.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
         }
     }
 }

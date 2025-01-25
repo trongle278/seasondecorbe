@@ -10,7 +10,8 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResponse> RegisterAsync(RegisterRequest request);
+        Task<BaseResponse> RegisterAsync(RegisterRequest request);
+        Task<BaseResponse> VerifyEmailAsync(VerifyEmailRequest request);
         Task<LoginResponse> LoginAsync(LoginRequest request);
         Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request);
         Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null);

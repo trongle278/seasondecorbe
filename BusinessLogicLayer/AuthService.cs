@@ -34,37 +34,128 @@ namespace BusinessLogicLayer
             _emailService = emailService;
         }
 
-        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+        public async Task<BaseResponse> RegisterAsync(RegisterRequest request)
         {
-            var existingAccount = await _unitOfWork.AccountRepository.Query(a => a.Email == request.Email).FirstOrDefaultAsync();
-            if (existingAccount != null)
+            try
             {
-                return new AuthResponse { Success = false, Errors = new List<string> { "Email already exists" } };
+                var existingAccount = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == request.Email)
+                    .FirstOrDefaultAsync();
+
+                if (existingAccount != null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Email already exists" }
+                    };
+                }
+
+                // Generate OTP
+                var otp = GenerateOTP();
+
+                // Create account
+                var account = new Account
+                {
+                    Email = request.Email,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Gender = request.Gender,
+                    Phone = request.Phone,
+                    Address = request.Address,
+                    RoleId = request.RoleId,
+                    IsVerified = false,
+                    VerificationToken = otp,
+                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15)
+                };
+
+                account.Password = HashPassword(account, request.Password);
+
+                await _unitOfWork.AccountRepository.InsertAsync(account);
+                await _unitOfWork.CommitAsync();
+
+                // Send OTP email
+                await SendVerificationEmail(account.Email, otp);
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Please check your email for verification code"
+                };
             }
-
-            if (request.RoleId <= 0)
+            catch (Exception ex)
             {
-                return new AuthResponse { Success = false, Errors = new List<string> { "Role must be selected" } };
+                return new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Registration failed" }
+                };
             }
+        }
 
-            var account = new Account
+        public async Task<BaseResponse> VerifyEmailAsync(VerifyEmailRequest request)
+        {
+            try
             {
-                Email = request.Email,
-                Password = "",
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Gender = request.Gender,
-                Phone = request.Phone,
-                Address = request.Address,
-                RoleId = request.RoleId
-            };
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == request.Email &&
+                               a.VerificationToken == request.OTP &&
+                               !a.IsVerified)
+                    .FirstOrDefaultAsync();
 
-            account.Password = HashPassword(account, request.Password);
+                if (account == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Invalid verification code" }
+                    };
+                }
 
-            await _unitOfWork.AccountRepository.InsertAsync(account);
-            await _unitOfWork.CommitAsync();
+                if (account.VerificationTokenExpiry < DateTime.UtcNow)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Verification code expired" }
+                    };
+                }
 
-            return new AuthResponse { Success = true, Token = await GenerateJwtToken(account) };
+                // Verify account
+                account.IsVerified = true;
+                account.VerificationToken = null;
+                account.VerificationTokenExpiry = null;
+
+                await _unitOfWork.CommitAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Email verified successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Verification failed" }
+                };
+            }
+        }
+
+        private async Task SendVerificationEmail(string email, string otp)
+        {
+            var emailBody = $@"
+        <h2>Verify Your Email</h2>
+        <p>Your verification code is: <strong>{otp}</strong></p>
+        <p>This code will expire in 15 minutes.</p>
+        <p>If you didn't create an account, please ignore this email.</p>";
+
+            await _emailService.SendEmailAsync(
+                email,
+                "Email Verification",
+                emailBody);
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
