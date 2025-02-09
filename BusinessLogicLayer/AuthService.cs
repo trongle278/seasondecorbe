@@ -59,8 +59,6 @@ namespace BusinessLogicLayer
                     LastName = request.LastName,
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
-                    Phone = request.Phone,
-                    Address = request.Address,
                     RoleId = 2, // Decorator role
                     IsVerified = false,
                     VerificationToken = otp,
@@ -115,8 +113,6 @@ namespace BusinessLogicLayer
                     LastName = request.LastName,
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
-                    Phone = request.Phone,
-                    Address = request.Address,
                     RoleId = 3, // Customer role
                     IsVerified = false,
                     VerificationToken = otp,
