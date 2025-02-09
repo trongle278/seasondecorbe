@@ -49,7 +49,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [Authorize(Policy = "RequireAdminRole")]
         [HttpPost("add")]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
         {
@@ -70,7 +69,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [Authorize(Policy = "RequireAdminRole")]
         [HttpPut("{id})")]
         public async Task<IActionResult> UpdateAccount(int accountId, [FromBody] UpdateAccountRequest request)
         {
@@ -90,7 +88,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [Authorize(Policy = "RequireAdminRole")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {

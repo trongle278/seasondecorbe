@@ -111,11 +111,12 @@ namespace BusinessLogicLayer
                     Password = request.Password, // Consider hashing password
                     FirstName = request.FirstName,
                     LastName = request.LastName,
+                    DateOfBirth =request.DateOfBirth,
                     Gender = request.Gender,
                     Phone = request.Phone,
                     Address = request.Address,
                     Avatar = request.Avatar,
-                    RoleId = 2,
+                    RoleId = 2, //Customer
                     IsDisable = false
                 };
 
@@ -161,6 +162,7 @@ namespace BusinessLogicLayer
                 // Update properties
                 account.FirstName = request.FirstName;
                 account.LastName = request.LastName;
+                account.DateOfBirth = request.DateOfBirth;
                 account.Gender = request.Gender;
                 account.Phone = request.Phone;
                 account.Address = request.Address;
