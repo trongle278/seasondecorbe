@@ -22,6 +22,7 @@ namespace Repository.UnitOfWork
             RoleRepository = new RoleRepository(_context);
             DecorCategoryRepository = new DecorCategoryRepository(_context);
             ChatRepository = new ChatRepository(_context);
+            DecoratorRepository = new DecoratorRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }

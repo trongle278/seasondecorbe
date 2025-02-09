@@ -74,11 +74,13 @@ namespace BusinessLogicLayer
             }
         }
 
-        public async Task<BaseResponse> UpdateDecoratorStatusAsync(int decoratorId, DecoratorApplicationStatus newStatus)
+        public async Task<BaseResponse> UpdateDecoratorStatusAsync(int accountId, DecoratorApplicationStatus newStatus)
         {
             try
             {
-                var decorator = await _unitOfWork.DecoratorRepository.GetByIdAsync(decoratorId);
+                var decorator = await _unitOfWork.DecoratorRepository
+                                                 .Query(d => d.AccountId == accountId)
+                                                 .FirstOrDefaultAsync();
                 if (decorator == null)
                 {
                     return new BaseResponse
