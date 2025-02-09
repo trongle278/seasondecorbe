@@ -34,7 +34,7 @@ namespace BusinessLogicLayer
             _emailService = emailService;
         }
 
-        public async Task<BaseResponse> RegisterAsync(RegisterRequest request)
+        public async Task<BaseResponse> RegisterDecoratorAsync(RegisterRequest request)
         {
             try
             {
@@ -51,19 +51,17 @@ namespace BusinessLogicLayer
                     };
                 }
 
-                // Generate OTP
                 var otp = GenerateOTP();
-
-                // Create account
                 var account = new Account
                 {
                     Email = request.Email,
                     FirstName = request.FirstName,
                     LastName = request.LastName,
+                    DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
                     Phone = request.Phone,
                     Address = request.Address,
-                    RoleId = request.RoleId,
+                    RoleId = 2, // Decorator role
                     IsVerified = false,
                     VerificationToken = otp,
                     VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15)
@@ -74,9 +72,64 @@ namespace BusinessLogicLayer
                 await _unitOfWork.AccountRepository.InsertAsync(account);
                 await _unitOfWork.CommitAsync();
 
-                // Send OTP email
-                await SendVerificationEmail(account.Email, otp);
 
+                await SendVerificationEmail(account.Email, otp);
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Please check your email for verification code"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Registration failed" }
+                };
+            }
+        }
+
+        public async Task<BaseResponse> RegisterCustomerAsync(RegisterRequest request)
+        {
+            try
+            {
+                var existingAccount = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == request.Email)
+                    .FirstOrDefaultAsync();
+
+                if (existingAccount != null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Email already exists" }
+                    };
+                }
+
+                var otp = GenerateOTP();
+                var account = new Account
+                {
+                    Email = request.Email,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    DateOfBirth = request.DateOfBirth,
+                    Gender = request.Gender,
+                    Phone = request.Phone,
+                    Address = request.Address,
+                    RoleId = 3, // Customer role
+                    IsVerified = false,
+                    VerificationToken = otp,
+                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15)
+                };
+
+                account.Password = HashPassword(account, request.Password);
+
+                await _unitOfWork.AccountRepository.InsertAsync(account);
+                await _unitOfWork.CommitAsync();
+
+
+                await SendVerificationEmail(account.Email, otp);
                 return new BaseResponse
                 {
                     Success = true,
@@ -174,7 +227,7 @@ namespace BusinessLogicLayer
                         Success = false,
                         Errors = new List<string> { "Invalid email or password" }
                     };
-                }
+                }     
 
                 // Admin không cần OTP
                 if (account.Role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
@@ -328,30 +381,41 @@ namespace BusinessLogicLayer
             }
         }
 
-        public async Task<AuthResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
+        public async Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
         {
             try
             {
+                // Validate email format
+                if (string.IsNullOrWhiteSpace(request.Email))
+                {
+                    return new ForgotPasswordResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Email is required" }
+                    };
+                }
+
                 var account = await _unitOfWork.AccountRepository
-                    .Query(a => a.Email == request.Email.Trim().ToLower())  // Chuẩn hóa email
+                    .Query(a => a.Email == request.Email.Trim().ToLower())
                     .FirstOrDefaultAsync();
 
                 if (account == null)
                 {
-                    return new AuthResponse
+                    return new ForgotPasswordResponse
                     {
                         Success = false,
-                        Errors = new List<string> { "If the email exists, you will receive a password reset OTP" }  // Message an toàn hơn
+                        Message = "If your email exists in our system, you will receive a password reset OTP"
                     };
                 }
 
                 // Kiểm tra xem có OTP cũ chưa hết hạn không
                 if (account.ResetPasswordTokenExpiry != null && account.ResetPasswordTokenExpiry > DateTime.UtcNow)
                 {
-                    return new AuthResponse
+                    var remainingMinutes = Math.Ceiling(((DateTime)account.ResetPasswordTokenExpiry - DateTime.UtcNow).TotalMinutes);
+                    return new ForgotPasswordResponse
                     {
                         Success = false,
-                        Errors = new List<string> { "Please wait for the current OTP to expire or use it to reset your password" }
+                        Message = $"An OTP has already been sent. Please wait {remainingMinutes} minutes before requesting a new one"
                     };
                 }
 
@@ -364,14 +428,18 @@ namespace BusinessLogicLayer
 
                 await SendResetPasswordEmail(account.Email, otp);
 
-                return new AuthResponse { Success = true };
+                return new ForgotPasswordResponse
+                {
+                    Success = true,
+                    Message = "Password reset OTP has been sent to your email. Please check your inbox"
+                };
             }
-            catch
+            catch (Exception ex)
             {
-                return new AuthResponse
+                return new ForgotPasswordResponse
                 {
                     Success = false,
-                    Errors = new List<string> { "An error occurred while processing your request" }  // Message chung
+                    Errors = new List<string> { "An error occurred while processing your request. Please try again later" }
                 };
             }
         }
@@ -441,7 +509,11 @@ namespace BusinessLogicLayer
 
                 await _unitOfWork.CommitAsync();
 
-                return new AuthResponse { Success = true };
+                return new AuthResponse
+                {
+                    Success = true,
+                    Errors = new List<string> { "Your password has been reset successfully" }
+                };
             }
             catch
             {

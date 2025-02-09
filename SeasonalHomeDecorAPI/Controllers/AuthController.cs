@@ -19,8 +19,8 @@ namespace SeasonalHomeDecorAPI.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+        [HttpPost("register-customer")]
+        public async Task<ActionResult<AuthResponse>> RegisterCustomer([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -33,8 +33,34 @@ namespace SeasonalHomeDecorAPI.Controllers
                         .ToList()
                 });
             }
+            // Tự động set RoleId = 3 (Customer)
+            request.RoleId = 3;
+            var response = await _authService.RegisterCustomerAsync(request);
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
 
-            var response = await _authService.RegisterAsync(request);
+            return Ok(response);
+        }
+
+        [HttpPost("register-decorator")]
+        public async Task<ActionResult<AuthResponse>> RegisterDecorator([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new AuthResponse
+                {
+                    Success = false,
+                    Errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList()
+                });
+            }
+            // Tự động set RoleId = 2 (Decorator)
+            request.RoleId = 2;
+            var response = await _authService.RegisterDecoratorAsync(request);
             if (!response.Success)
             {
                 return BadRequest(response);
@@ -134,11 +160,11 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<ActionResult<AuthResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        public async Task<ActionResult<ForgotPasswordResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new AuthResponse
+                return BadRequest(new ForgotPasswordResponse
                 {
                     Success = false,
                     Errors = ModelState.Values

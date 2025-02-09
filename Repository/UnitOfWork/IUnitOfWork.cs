@@ -11,6 +11,7 @@ namespace Repository.UnitOfWork
     public interface IUnitOfWork : IDisposable
     {
         IAccountRepository AccountRepository { get; }
+        IDecoratorRepository DecoratorRepository { get; }
         IRoleRepository RoleRepository { get; }
         IDecorCategoryRepository DecorCategoryRepository { get; }
         IChatRepository ChatRepository { get; }

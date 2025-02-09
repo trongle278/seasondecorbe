@@ -25,6 +25,7 @@ namespace Repository.UnitOfWork
         }
 
         public IAccountRepository AccountRepository { get; private set; }
+        public IDecoratorRepository DecoratorRepository { get; private set; }
         public IRoleRepository RoleRepository { get; private set; }
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
         public IChatRepository ChatRepository { get; private set; }

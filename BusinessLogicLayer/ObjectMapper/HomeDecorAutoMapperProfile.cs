@@ -17,6 +17,7 @@ namespace BusinessLogicLayer.ObjectMapper
             AccountProfile();
             DecorCategoryProfile();
             RoleCategoryProfile();
+            DecoratorProfile();
         }
 
         private void AccountProfile()
@@ -26,6 +27,7 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
@@ -58,6 +60,23 @@ namespace BusinessLogicLayer.ObjectMapper
 
             CreateMap<UpdateRoleRequest, Role>()
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName));
+        }
+
+        private void DecoratorProfile()
+        {
+            CreateMap<BecomeDecoratorRequest, Decorator>()
+                .ForMember(dest => dest.Nickname, opt => opt.MapFrom(src => src.Nickname))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
+                .ForMember(dest => dest.YearsOfExperience, opt => opt.MapFrom(src => src.YearsOfExperience))
+                .ForMember(dest => dest.SeasonalSpecialties, opt => opt.MapFrom(src => src.SeasonalSpecialties))
+                .ForMember(dest => dest.PortfolioURL, opt => opt.MapFrom(src => src.PortfolioURL))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Common.Enums.DecoratorApplicationStatus.Pending));
+
+            CreateMap<Decorator, DecoratorResponse>()
+                .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.Success, opt => opt.Ignore())
+                .ForMember(dest => dest.Message, opt => opt.Ignore())
+                .ForMember(dest => dest.Errors, opt => opt.Ignore());
         }
     }
 }

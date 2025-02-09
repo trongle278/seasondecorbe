@@ -10,12 +10,13 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IAuthService
     {
-        Task<BaseResponse> RegisterAsync(RegisterRequest request);
+        Task<BaseResponse> RegisterDecoratorAsync(RegisterRequest request);
+        Task<BaseResponse> RegisterCustomerAsync(RegisterRequest request);
         Task<BaseResponse> VerifyEmailAsync(VerifyEmailRequest request);
         Task<LoginResponse> LoginAsync(LoginRequest request);
         Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request);
         Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null);
-        Task<AuthResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
+        Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
         Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request);
         Task<Toggle2FAResponse> Toggle2FAAsync(int userId, Toggle2FARequest request);
     }

@@ -123,6 +123,8 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IDecoratorRepository, DecoratorRepository>();
+builder.Services.AddScoped<IDecoratorService, DecoratorService>();
 
 
 // 10. Build the application

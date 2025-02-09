@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeasonalHomeDecorAPI", "SeasonalHomeDecorAPI\SeasonalHomeDecorAPI.csproj", "{5CFC025B-C046-42F0-B199-523261EB5D73}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccessObject", "DataAccessLayer\DataAccessObject.csproj", "{01EEE438-9607-46DA-81F6-CCB4100C13AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{D0DACA56-B918-4CCF-9399-A166B034C6C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{BC4947A7-A6BF-41BA-9BE0-33627F9966D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{D0DACA56-B918-4CCF-9399-A166B034C6C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0DACA56-B918-4CCF-9399-A166B034C6C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0DACA56-B918-4CCF-9399-A166B034C6C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC4947A7-A6BF-41BA-9BE0-33627F9966D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC4947A7-A6BF-41BA-9BE0-33627F9966D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC4947A7-A6BF-41BA-9BE0-33627F9966D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC4947A7-A6BF-41BA-9BE0-33627F9966D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
