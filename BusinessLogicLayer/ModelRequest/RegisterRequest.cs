@@ -43,17 +43,6 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "Gender is required")]
         public bool Gender { get; set; }
-
-        [Required(ErrorMessage = "Phone number is required")]
-        [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Phone number must start with 0 and have 10 digits")]
-        [DefaultValue("0123456789")]
-        public string Phone { get; set; }
-
-        [Required(ErrorMessage = "Address is required")]
-        [RegularExpression(@"^[a-zA-Z0-9\s,.-]*$", ErrorMessage = "Address contains invalid characters")]
-        [StringLength(200, ErrorMessage = "Address cannot exceed 200 characters")]
-        [DefaultValue("123 Main Street")]
-        public string Address { get; set; }
     }
 
     public class VerifyEmailRequest

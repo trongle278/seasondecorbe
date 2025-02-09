@@ -19,6 +19,27 @@ namespace SeasonalHomeDecorAPI.Controllers
             _decoratorService = decoratorService;
         }
 
+        [HttpPost("send-invitation")]
+        public async Task<ActionResult<BaseResponse>> SendInvitation([FromBody] string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest(new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Email is required" }
+                });
+            }
+
+            var response = await _decoratorService.SendDecoratorInvitationEmailAsync(email);
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
         [Authorize]
         [HttpPost("profile")]
         public async Task<ActionResult<BaseResponse>> CreateProfile([FromBody] BecomeDecoratorRequest request)

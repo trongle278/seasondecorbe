@@ -11,6 +11,7 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IDecoratorService
     {
+        Task<BaseResponse> SendDecoratorInvitationEmailAsync(string email);
         Task<BaseResponse> CreateDecoratorProfileAsync(int accountId, BecomeDecoratorRequest request);
         Task<BaseResponse> UpdateDecoratorStatusAsync(int decoratorId, DecoratorApplicationStatus newStatus);
         Task<DecoratorResponse> GetDecoratorProfileAsync(int accountId);
