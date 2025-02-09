@@ -33,8 +33,6 @@ namespace SeasonalHomeDecorAPI.Controllers
                         .ToList()
                 });
             }
-            // Tự động set RoleId = 3 (Customer)
-            request.RoleId = 3;
             var response = await _authService.RegisterCustomerAsync(request);
             if (!response.Success)
             {
@@ -58,8 +56,6 @@ namespace SeasonalHomeDecorAPI.Controllers
                         .ToList()
                 });
             }
-            // Tự động set RoleId = 2 (Decorator)
-            request.RoleId = 2;
             var response = await _authService.RegisterDecoratorAsync(request);
             if (!response.Success)
             {
@@ -141,21 +137,33 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("google-login")]
-        public async Task<ActionResult<GoogleLoginResponse>> GoogleLogin([FromBody] GoogleLoginRequest request)
+        public async Task<ActionResult<LoginResponse>> GoogleLogin([FromBody] GoogleLoginRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new GoogleLoginResponse
+                {
+                    Success = false,
+                    Errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList()
+                });
             }
 
-            var result = await _authService.GoogleLoginAsync(request.Credential, request.RoleId);
+            // Call the service without passing RoleId
+            var result = await _authService.GoogleLoginAsync(request.IdToken);
             if (result.Success)
             {
                 return Ok(result);
             }
             else
             {
-                return BadRequest(result.Errors);
+                return BadRequest(new GoogleLoginResponse
+                {
+                    Success = false,
+                    Errors = result.Errors
+                });
             }
         }
 

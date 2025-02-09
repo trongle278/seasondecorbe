@@ -15,7 +15,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> VerifyEmailAsync(VerifyEmailRequest request);
         Task<LoginResponse> LoginAsync(LoginRequest request);
         Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request);
-        Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null);
+        Task<GoogleLoginResponse> GoogleLoginAsync(string idToken);
         Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
         Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request);
         Task<Toggle2FAResponse> Toggle2FAAsync(int userId, Toggle2FARequest request);

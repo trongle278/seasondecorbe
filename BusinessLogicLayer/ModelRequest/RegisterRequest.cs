@@ -54,8 +54,6 @@ namespace BusinessLogicLayer.ModelRequest
         [StringLength(200, ErrorMessage = "Address cannot exceed 200 characters")]
         [DefaultValue("123 Main Street")]
         public string Address { get; set; }
-
-        public int RoleId { get; set; }
     }
 
     public class VerifyEmailRequest

@@ -326,57 +326,52 @@ namespace BusinessLogicLayer
                 emailBody);
         }
 
-        public async Task<GoogleLoginResponse> GoogleLoginAsync(string credential, int? roleId = null)
+        public async Task<GoogleLoginResponse> GoogleLoginAsync(string idToken)
         {
             try
             {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(credential);
+                // Validate the ID token
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings());
 
+                // Extract email and name
+                var email = payload.Email;
+                var firstName = payload.GivenName;
+                var lastName = payload.FamilyName;
+                var avatar = payload.Picture;
+
+                // Check if the user already exists in your database
                 var account = await _unitOfWork.AccountRepository
-                    .Query(a => a.Email == payload.Email)
-                    .Include(a => a.Role)
-                    .FirstOrDefaultAsync();
+                    .Query(a => a.Email == email)
+                    .FirstOrDefaultAsync(); // Removed role inclusion
 
-                // Nếu tài khoản đã tồn tại, trả về token luôn
-                if (account != null)
+                if (account == null)
                 {
-                    var token = await GenerateJwtToken(account);
-                    return new GoogleLoginResponse { Success = true, Token = token };
-                }
-
-                // Xử lý cho user mới (first time login)
-                if (!roleId.HasValue || roleId <= 0)
-                {
-                    return new GoogleLoginResponse
+                    // If the user does not exist, create a new account
+                    account = new Account
                     {
-                        Success = false,
-                        Errors = new List<string> { "First time login requires role selection" },
-                        IsFirstLogin = true
+                        Email = email,
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Password = "",
+                        Avatar = avatar,
+                        IsVerified = true, // Assume Google accounts are verified
+                        RoleId = 3 // Default role set to Customer
                     };
+
+                    await _unitOfWork.AccountRepository.InsertAsync(account);
+                    await _unitOfWork.CommitAsync();
                 }
 
-                // Tạo tài khoản mới với role đã chọn
-                account = new Account
-                {
-                    Email = payload.Email,
-                    FirstName = payload.GivenName,
-                    LastName = payload.FamilyName,
-                    RoleId = roleId.Value,
-                    Password = "",
-                };
-
-                await _unitOfWork.AccountRepository.InsertAsync(account);
-                await _unitOfWork.CommitAsync();
-
-                var newToken = await GenerateJwtToken(account);
-                return new GoogleLoginResponse { Success = true, Token = newToken };
+                // Generate JWT token for the user
+                var token = await GenerateJwtToken(account);
+                return new GoogleLoginResponse { Success = true, Token = token };
             }
             catch (Exception ex)
             {
                 return new GoogleLoginResponse
                 {
                     Success = false,
-                    Errors = new List<string> { ex.Message, ex.InnerException?.Message }
+                    Errors = new List<string> { "Google login failed", ex.Message }
                 };
             }
         }
