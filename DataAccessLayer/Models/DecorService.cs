@@ -19,15 +19,14 @@ namespace DataAccessObject.Models
         public string Province { get; set; }
         public DateTime CreateAt { get; set; }
 
-        public int DecoratorId { get; set; }
-        public Decorator Decorator { get; set; }
+        public int ProviderId { get; set; }
+        public Provider Provider { get; set; }
 
         public int DecorCategoryId { get; set; }
         public DecorCategory DecorCategory { get; set; }
 
-        public virtual Booking Booking { get; set; }
+        public Booking Booking { get; set; }
 
         public virtual ICollection<DecorImage> DecorImages { get; set; }
-        public virtual ICollection<ServicePromote> ServicePromotes { get; set; }
     }
 }

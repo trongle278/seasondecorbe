@@ -36,14 +36,18 @@ namespace DataAccessObject.Models
         public int RoleId { get; set; }
         public Role Role { get; set; }
 
-        public virtual Decorator Decorator { get; set; }
+        public int SubcriptionId { get; set; }
+        public Subscription Subscription { get; set; }
 
+        public Provider Provider { get; set; }
+        public Cart Cart { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }
         public virtual ICollection<Follower> Followers { get; set; }
         public virtual ICollection<Support> Supports { get; set; }
         public virtual ICollection<TicketReply> TicketReplies { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<Booking> Bookings { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
     }
 }

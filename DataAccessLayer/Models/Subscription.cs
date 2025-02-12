@@ -8,27 +8,22 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class TicketReply
+    public class Subscription
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string Subject { get; set; }
+        public string Name { get; set; }
         public string Description { get; set; }
-        public DateTime CreateAt { get; set; }
+        public double Price { get; set; }
+        public int Duration { get; set; }
         public enum Status
         {
-            Pending,
-            Closed,
-            Cancelled
+            Subcribed,
+            Unsubcribed
         }
 
-        public int SupportId { get; set; }
-        public Support Support { get; set; }
-
-        public int AccountId { get; set; }
-        public Account Account { get; set; }
-
-        public virtual ICollection<TicketAttachment> TicketAttachments { get; set; }
+        public virtual ICollection<Account> Accounts { get; set; }
+        public virtual ICollection<Provider> Providers { get; set; }
     }
 }

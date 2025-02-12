@@ -64,15 +64,12 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void DecoratorProfile()
         {
-            CreateMap<BecomeDecoratorRequest, Decorator>()
-                .ForMember(dest => dest.Nickname, opt => opt.MapFrom(src => src.Nickname))
+            CreateMap<BecomeDecoratorRequest, Provider>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Nickname))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
-                .ForMember(dest => dest.YearsOfExperience, opt => opt.MapFrom(src => src.YearsOfExperience))
-                .ForMember(dest => dest.SeasonalSpecialties, opt => opt.MapFrom(src => src.SeasonalSpecialties))
-                .ForMember(dest => dest.PortfolioURL, opt => opt.MapFrom(src => src.PortfolioURL))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Common.Enums.DecoratorApplicationStatus.Pending));
 
-            CreateMap<Decorator, DecoratorResponse>()
+            CreateMap<Provider, DecoratorResponse>()
                 .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.Success, opt => opt.Ignore())
                 .ForMember(dest => dest.Message, opt => opt.Ignore())

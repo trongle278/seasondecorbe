@@ -9,6 +9,6 @@ namespace BusinessLogicLayer.ModelResponse
 {
     public class DecoratorResponse : BaseResponse
     {
-        public Decorator Data { get; set; }
+        public Provider Data { get; set; }
     }
 }

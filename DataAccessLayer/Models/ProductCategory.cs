@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class ServicePromote
+    public class ProductCategory
     {
-        public int DecorServiceId { get; set; }
-        public DecorService DecorService { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+        public string CategoryName { get; set; }
 
-        public int PromotionId { get; set; }
-        public Promotion Promotion { get; set; }
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

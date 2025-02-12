@@ -15,8 +15,13 @@ namespace DataAccessObject.Models
         public int Id { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }
-        public string Status { get; set; }
         public DateTime CreateAt { get; set; }
+        public enum Status
+        {
+            Pending,
+            Closed,
+            Cancelled
+        }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
@@ -25,5 +30,6 @@ namespace DataAccessObject.Models
         public TicketType TicketType { get; set; }
 
         public virtual ICollection<TicketReply> TicketReplies { get; set; }
+        public virtual ICollection<TicketAttachment> TicketAttachments { get; set; }
     }
 }
