@@ -79,7 +79,8 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SubcriptionId")
+                    b.Property<int?>("SubscriptionId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -101,7 +102,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.HasIndex("SubcriptionId");
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("Accounts");
                 });
@@ -597,10 +598,7 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SubcriptionId")
+                    b.Property<int>("SubscriptionId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -608,7 +606,7 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AccountId")
                         .IsUnique();
 
-                    b.HasIndex("SubcriptionId");
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("Providers");
                 });
@@ -871,7 +869,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
                         .WithMany("Accounts")
-                        .HasForeignKey("SubcriptionId")
+                        .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -1104,15 +1102,15 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.Subscription", "Subcription")
+                    b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
                         .WithMany("Providers")
-                        .HasForeignKey("SubcriptionId")
+                        .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Account");
 
-                    b.Navigation("Subcription");
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>

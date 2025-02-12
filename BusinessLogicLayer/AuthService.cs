@@ -116,7 +116,8 @@ namespace BusinessLogicLayer
                     RoleId = 3, // Customer role
                     IsVerified = false,
                     VerificationToken = otp,
-                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15)
+                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15),
+                    SubscriptionId = 1
                 };
 
                 account.Password = HashPassword(account, request.Password);
@@ -351,8 +352,9 @@ namespace BusinessLogicLayer
                         LastName = lastName,
                         Password = "",
                         Avatar = avatar,
-                        IsVerified = true, // Assume Google accounts are verified
-                        RoleId = 3 // Default role set to Customer
+                        IsVerified = true,
+                        RoleId = 3,
+                        SubscriptionId = 1
                     };
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);

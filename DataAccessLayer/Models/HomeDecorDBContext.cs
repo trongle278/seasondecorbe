@@ -261,14 +261,14 @@ namespace DataAccessObject.Models
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Subscription)
                 .WithMany(sb => sb.Accounts)
-                .HasForeignKey(a => a.SubcriptionId)
+                .HasForeignKey(a => a.SubscriptionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Subscription and Provider
             modelBuilder.Entity<Provider>()
-                .HasOne(p => p.Subcription)
+                .HasOne(p => p.Subscription)
                 .WithMany(sb => sb.Providers)
-                .HasForeignKey(a => a.SubcriptionId)
+                .HasForeignKey(a => a.SubscriptionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Chat>()

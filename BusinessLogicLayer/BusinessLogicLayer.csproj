@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\DataAccessLayer\DataAccessObject.csproj" />
     <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>

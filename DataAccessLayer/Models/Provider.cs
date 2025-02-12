@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Common.Enums;
 
 namespace DataAccessObject.Models
 {
@@ -19,15 +18,11 @@ namespace DataAccessObject.Models
         public string? Avatar { get; set; }
         public DateTime JoinedDate { get; set; }
         public bool IsProvider { get; set; }
-
-        [Required]
-        public DecoratorApplicationStatus Status { get; set; } = DecoratorApplicationStatus.Pending;
-
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
-        public int SubcriptionId { get; set; }
-        public Subscription Subcription { get; set; }
+        public int SubscriptionId { get; set; }
+        public Subscription Subscription { get; set; }
 
         public virtual ICollection<DecorService> DecorServices { get; set; }
     }

@@ -9,9 +9,9 @@ using Repository.Interfaces;
 
 namespace Repository
 {
-    public class DecoratorRepository : GenericRepository<Provider>, IDecoratorRepository
+    public class ProviderRepository : GenericRepository<Provider>, IProviderRepository
     {
-        public DecoratorRepository(HomeDecorDBContext context) : base(context)
+        public ProviderRepository(HomeDecorDBContext context) : base(context)
         {
         }
     }

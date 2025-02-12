@@ -17,7 +17,7 @@ namespace BusinessLogicLayer.ObjectMapper
             AccountProfile();
             DecorCategoryProfile();
             RoleCategoryProfile();
-            DecoratorProfile();
+            ProviderProfile();
         }
 
         private void AccountProfile()
@@ -62,18 +62,20 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName));
         }
 
-        private void DecoratorProfile()
+        private void ProviderProfile() // Add this method
         {
-            CreateMap<BecomeDecoratorRequest, Provider>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Nickname))
+            CreateMap<BecomeProviderRequest, Provider>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Common.Enums.DecoratorApplicationStatus.Pending));
-
-            CreateMap<Provider, DecoratorResponse>()
-                .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src))
-                .ForMember(dest => dest.Success, opt => opt.Ignore())
-                .ForMember(dest => dest.Message, opt => opt.Ignore())
-                .ForMember(dest => dest.Errors, opt => opt.Ignore());
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
+                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate))
+                .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => src.IsProvider))
+                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1))// Set a default value
+                .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
+                {
+                    Phone = src.Phone,
+                    Address = src.Address
+                }));
         }
     }
 }

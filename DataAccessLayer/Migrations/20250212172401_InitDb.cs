@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessObject.Migrations
 {
-    public partial class InitDB : Migration
+    public partial class InitDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -161,7 +161,7 @@ namespace DataAccessObject.Migrations
                     TwoFactorToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TwoFactorTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RoleId = table.Column<int>(type: "int", nullable: false),
-                    SubcriptionId = table.Column<int>(type: "int", nullable: false)
+                    SubscriptionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,8 +173,8 @@ namespace DataAccessObject.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Accounts_Subscriptions_SubcriptionId",
-                        column: x => x.SubcriptionId,
+                        name: "FK_Accounts_Subscriptions_SubscriptionId",
+                        column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "Id");
                 });
@@ -324,9 +324,8 @@ namespace DataAccessObject.Migrations
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsProvider = table.Column<bool>(type: "bit", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
-                    SubcriptionId = table.Column<int>(type: "int", nullable: false)
+                    SubscriptionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -338,8 +337,8 @@ namespace DataAccessObject.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Providers_Subscriptions_SubcriptionId",
-                        column: x => x.SubcriptionId,
+                        name: "FK_Providers_Subscriptions_SubscriptionId",
+                        column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "Id");
                 });
@@ -653,9 +652,9 @@ namespace DataAccessObject.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Accounts_SubcriptionId",
+                name: "IX_Accounts_SubscriptionId",
                 table: "Accounts",
-                column: "SubcriptionId");
+                column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_AccountId",
@@ -776,9 +775,9 @@ namespace DataAccessObject.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Providers_SubcriptionId",
+                name: "IX_Providers_SubscriptionId",
                 table: "Providers",
-                column: "SubcriptionId");
+                column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_AccountId",
