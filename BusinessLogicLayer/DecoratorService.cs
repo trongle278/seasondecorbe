@@ -11,6 +11,7 @@ using Common.Enums;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
+using System.IO;
 
 namespace BusinessLogicLayer
 {
@@ -34,24 +35,13 @@ namespace BusinessLogicLayer
                 const string subject = "Welcome to Seasonal Home Decor - Become a Decorator!";
                 string registrationLink = "https://example.com/become-decorator"; // FE link
 
-                string body = @$"
-                <html>
-                <body>
-                    <h2>Welcome to Seasonal Home Decor!</h2>
-                    <p>Thank you for your interest in becoming a decorator on our platform.</p>
-                    <p>As a decorator, you'll have the opportunity to:</p>
-                    <ul>
-                        <li>Showcase your decoration skills</li>
-                        <li>Connect with potential clients</li>
-                        <li>Build your professional portfolio</li>
-                        <li>Earn money doing what you love</li>
-                    </ul>
-                    <p>To complete your registration as a decorator, please click the link below:</p>
-                    <p><a href='{registrationLink}'>Complete Decorator Registration</a></p>
-                    <p>If you have any questions, feel free to contact our admin.</p>
-                    <p>Best regards,<br>Seasonal Home Decor Team</p>
-                </body>
-                </html>";
+                // Sử dụng đường dẫn tương đối
+                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "DecoratorInvitationTemplate.html");
+                string body = File.ReadAllText(templatePath);
+
+                // Thay thế các placeholder
+                body = body.Replace("{registrationLink}", registrationLink)
+                           .Replace("{email}", email);
 
                 await _emailService.SendEmailAsync(email, subject, body);
 

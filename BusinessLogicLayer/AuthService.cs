@@ -338,7 +338,8 @@ namespace BusinessLogicLayer
                 // Check if the user already exists in your database
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Email == email)
-                    .FirstOrDefaultAsync(); // Removed role inclusion
+                    .Include(a => a.Role) // Ensure role is included
+                    .FirstOrDefaultAsync();
 
                 if (account == null)
                 {
@@ -356,11 +357,22 @@ namespace BusinessLogicLayer
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);
                     await _unitOfWork.CommitAsync();
+
+                    // Reload account to include role
+                    account = await _unitOfWork.AccountRepository
+                        .Query(a => a.Email == email)
+                        .Include(a => a.Role)
+                        .FirstOrDefaultAsync();
                 }
 
                 // Generate JWT token for the user
                 var token = await GenerateJwtToken(account);
-                return new GoogleLoginResponse { Success = true, Token = token };
+                return new GoogleLoginResponse
+                {
+                    Success = true,
+                    Token = token,
+                    RoleId = account.RoleId // Return RoleId
+                };
             }
             catch (Exception ex)
             {

@@ -24,4 +24,13 @@
     <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Update="BusinessLogicLayer/Templates/DecoratorInvitationTemplate.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Templates\DecoratorInvitationTemplate.html">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 </Project>
