@@ -17,8 +17,17 @@ namespace DataAccessObject.Models
         public string OfferCode { get; set; }
         public int Quantity { get; set; }
         public int Discount { get; set; }
-        public string Status { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public enum Status
+        {
+            Valid,
+            Invalid,
+            Expired
+        }
 
         public virtual ICollection<Booking> Bookings { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Cart> Carts { get; set; }
     }
 }

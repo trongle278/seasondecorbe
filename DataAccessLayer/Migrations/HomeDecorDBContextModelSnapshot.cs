@@ -79,6 +79,9 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("SubcriptionId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -97,6 +100,8 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("SubcriptionId");
 
                     b.ToTable("Accounts");
                 });
@@ -122,10 +127,6 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("DecorServiceId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
 
@@ -144,19 +145,71 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.BookingDetail", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
                 {
-                    b.Property<int>("BookingId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("TimeSlotId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.HasKey("BookingId", "TimeSlotId");
+                    b.Property<int>("TotalItem")
+                        .HasColumnType("int");
 
-                    b.HasIndex("TimeSlotId");
+                    b.Property<double>("TotalPrice")
+                        .HasColumnType("float");
 
-                    b.ToTable("BookingDetails");
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.HasIndex("VoucherId");
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("CartId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<double>("UnitPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
@@ -190,43 +243,6 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("Chats");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.Decorator", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Bio")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nickname")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PortfolioURL")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeasonalSpecialties")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("YearsOfExperience")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.ToTable("Decorators");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorCategory", b =>
@@ -289,12 +305,12 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("DecorCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DecoratorId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Province")
                         .IsRequired()
@@ -308,7 +324,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("DecorCategoryId");
 
-                    b.HasIndex("DecoratorId");
+                    b.HasIndex("ProviderId");
 
                     b.ToTable("DecorServices");
                 });
@@ -379,6 +395,51 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeliverAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("TotalPrice")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("VoucherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("VoucherId");
+
+                    b.ToTable("Orders");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -400,11 +461,10 @@ namespace DataAccessObject.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -417,10 +477,12 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("BookingId");
 
+                    b.HasIndex("OrderId");
+
                     b.ToTable("Payments");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Promotion", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -428,26 +490,127 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<DateTime>("EndAt")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductImg")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("ProductPrice")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ProductCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProductCategories");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ProductOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Promote")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("PromotionName")
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StartAt")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("UnitPrice")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Promotions");
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductOrders");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Provider", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Avatar")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsProvider")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("JoinedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubcriptionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.HasIndex("SubcriptionId");
+
+                    b.ToTable("Providers");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>
@@ -475,10 +638,10 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Rating")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ServiceId")
+                    b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdateAt")
@@ -490,6 +653,8 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("BookingId")
                         .IsUnique();
+
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Reviews");
                 });
@@ -511,19 +676,31 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.ServicePromote", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
                 {
-                    b.Property<int>("DecorServiceId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("PromotionId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Duration")
                         .HasColumnType("int");
 
-                    b.HasKey("DecorServiceId", "PromotionId");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("PromotionId");
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
 
-                    b.ToTable("ServicePromotes");
+                    b.HasKey("Id");
+
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>
@@ -544,10 +721,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -562,6 +735,46 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("TicketTypeId");
 
                     b.ToTable("Supports");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.TicketAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<long>("FileData")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SupportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketReplyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UploadTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupportId");
+
+                    b.HasIndex("TicketReplyId");
+
+                    b.ToTable("TicketAttachments");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TicketReply", b =>
@@ -579,10 +792,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -619,29 +828,6 @@ namespace DataAccessObject.Migrations
                     b.ToTable("TicketTypes");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TimeSlots");
-                });
-
             modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
                 {
                     b.Property<int>("Id")
@@ -653,6 +839,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Discount")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("OfferCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -660,9 +849,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("VoucherName")
                         .IsRequired()
@@ -681,7 +869,15 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
+                        .WithMany("Accounts")
+                        .HasForeignKey("SubcriptionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.Navigation("Role");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
@@ -711,23 +907,42 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Voucher");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.BookingDetail", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
                 {
-                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
-                        .WithMany("BookingDetails")
-                        .HasForeignKey("BookingId")
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithOne("Cart")
+                        .HasForeignKey("DataAccessObject.Models.Cart", "AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.TimeSlot", "TimeSlot")
-                        .WithMany("BookingDetails")
-                        .HasForeignKey("TimeSlotId")
+                    b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
+                        .WithMany("Carts")
+                        .HasForeignKey("VoucherId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Booking");
+                    b.Navigation("Account");
 
-                    b.Navigation("TimeSlot");
+                    b.Navigation("Voucher");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.CartItem", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Cart", "Cart")
+                        .WithMany("CartItems")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Product", "Product")
+                        .WithMany("CartItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
@@ -749,17 +964,6 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Sender");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Decorator", b =>
-                {
-                    b.HasOne("DataAccessObject.Models.Account", "Account")
-                        .WithOne("Decorator")
-                        .HasForeignKey("DataAccessObject.Models.Decorator", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
             modelBuilder.Entity("DataAccessObject.Models.DecorImage", b =>
                 {
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
@@ -779,15 +983,15 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.Decorator", "Decorator")
+                    b.HasOne("DataAccessObject.Models.Provider", "Provider")
                         .WithMany("DecorServices")
-                        .HasForeignKey("DecoratorId")
+                        .HasForeignKey("ProviderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("DecorCategory");
 
-                    b.Navigation("Decorator");
+                    b.Navigation("Provider");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Follower", b =>
@@ -820,6 +1024,21 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Order", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("Orders")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Voucher", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("VoucherId");
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Payment", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -834,9 +1053,66 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.Navigation("Account");
 
                     b.Navigation("Booking");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Product", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.ProductCategory", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ProductOrder", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Order", "Order")
+                        .WithMany("ProductOrders")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Product", "Product")
+                        .WithMany("ProductOrders")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Provider", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithOne("Provider")
+                        .HasForeignKey("DataAccessObject.Models.Provider", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Subscription", "Subcription")
+                        .WithMany("Providers")
+                        .HasForeignKey("SubcriptionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Subcription");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>
@@ -853,28 +1129,17 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Order", "Order")
+                        .WithMany("Reviews")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.Navigation("Account");
 
                     b.Navigation("Booking");
-                });
 
-            modelBuilder.Entity("DataAccessObject.Models.ServicePromote", b =>
-                {
-                    b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
-                        .WithMany("ServicePromotes")
-                        .HasForeignKey("DecorServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataAccessObject.Models.Promotion", "Promotion")
-                        .WithMany("ServicePromotes")
-                        .HasForeignKey("PromotionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DecorService");
-
-                    b.Navigation("Promotion");
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>
@@ -894,6 +1159,25 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("TicketType");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.TicketAttachment", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Support", "Support")
+                        .WithMany("TicketAttachments")
+                        .HasForeignKey("SupportId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.TicketReply", "TicketReply")
+                        .WithMany("TicketAttachments")
+                        .HasForeignKey("TicketReplyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Support");
+
+                    b.Navigation("TicketReply");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TicketReply", b =>
@@ -919,14 +1203,19 @@ namespace DataAccessObject.Migrations
                 {
                     b.Navigation("Bookings");
 
-                    b.Navigation("Decorator")
+                    b.Navigation("Cart")
                         .IsRequired();
 
                     b.Navigation("Followers");
 
                     b.Navigation("Notifications");
 
+                    b.Navigation("Orders");
+
                     b.Navigation("Payments");
+
+                    b.Navigation("Provider")
+                        .IsRequired();
 
                     b.Navigation("Reviews");
 
@@ -937,17 +1226,15 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
                 {
-                    b.Navigation("BookingDetails");
-
                     b.Navigation("Payments");
 
                     b.Navigation("Review")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Decorator", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
                 {
-                    b.Navigation("DecorServices");
+                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorCategory", b =>
@@ -961,8 +1248,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("DecorImages");
-
-                    b.Navigation("ServicePromotes");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.FollowerActivity", b =>
@@ -970,9 +1255,30 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Followers");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Promotion", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Order", b =>
                 {
-                    b.Navigation("ServicePromotes");
+                    b.Navigation("Payments");
+
+                    b.Navigation("ProductOrders");
+
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Product", b =>
+                {
+                    b.Navigation("CartItems");
+
+                    b.Navigation("ProductOrders");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ProductCategory", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Provider", b =>
+                {
+                    b.Navigation("DecorServices");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Role", b =>
@@ -980,9 +1286,23 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Accounts");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
+                {
+                    b.Navigation("Accounts");
+
+                    b.Navigation("Providers");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>
                 {
+                    b.Navigation("TicketAttachments");
+
                     b.Navigation("TicketReplies");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.TicketReply", b =>
+                {
+                    b.Navigation("TicketAttachments");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TicketType", b =>
@@ -990,14 +1310,13 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Supports");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
-                {
-                    b.Navigation("BookingDetails");
-                });
-
             modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("Carts");
+
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

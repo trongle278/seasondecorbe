@@ -8,27 +8,22 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class TicketReply
+    public class TicketAttachment
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string Subject { get; set; }
-        public string Description { get; set; }
-        public DateTime CreateAt { get; set; }
-        public enum Status
-        {
-            Pending,
-            Closed,
-            Cancelled
-        }
+
+        public string FileName { get; set; }
+        public string FileType { get; set; }
+        public long FileSize { get; set; }
+        public long FileData {  get; set; }
+        public DateTime UploadTime { get; set; }
 
         public int SupportId { get; set; }
         public Support Support { get; set; }
 
-        public int AccountId { get; set; }
-        public Account Account { get; set; }
-
-        public virtual ICollection<TicketAttachment> TicketAttachments { get; set; }
+        public int TicketReplyId { get; set; }
+        public TicketReply TicketReply { get; set; }
     }
 }

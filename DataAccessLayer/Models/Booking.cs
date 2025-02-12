@@ -14,9 +14,18 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string BookingCode { get; set; }
-        public string Status { get; set; }
         public double TotalPrice { get; set; }
         public DateTime CreateAt { get; set; }
+        public enum Status
+        {
+            Surveying,
+            Pending,
+            Confirmed,
+            Procuring,
+            Progressing,
+            Completed,
+            Cancelled
+        }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
@@ -27,9 +36,7 @@ namespace DataAccessObject.Models
         public int VoucherId { get; set; }
         public Voucher Voucher { get; set; }
 
-        public virtual Review Review { get; set; }
-
-        public virtual ICollection<BookingDetail> BookingDetails { get; set; }
+        public Review Review { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
     }
 }

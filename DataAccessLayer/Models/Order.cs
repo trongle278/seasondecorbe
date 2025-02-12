@@ -1,39 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class Payment
+    public class Order
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string Code { get; set; }
+        public string DeliverAddress { get; set; }
+        public string Phone { get; set; }
+        public string FullName { get; set; }
         public string PaymentMethod { get; set; }
-        public DateTime Date { get; set; }
-        public double Total { get; set; }
+        public DateTime OrderDate { get; set; }
+        public double TotalPrice { get; set; }
         public enum Status
         {
             Pending,
+            Shipping,
             Completed,
-            Failed,
-            Refunded,
-            Cancelled,
-            Expired
+            Cancelled
         }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
-        public int BookingId { get; set; }
-        public Booking Booking { get; set; }
-
-        public int OrderId { get; set; }
-        public Order Order { get; set; }
+        public virtual ICollection<Review> Reviews { get; set; }
+        public virtual ICollection<ProductOrder> ProductOrders { get; set; }
+        public virtual ICollection<Payment> Payments { get; set; }
     }
 }

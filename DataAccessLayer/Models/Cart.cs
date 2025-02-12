@@ -5,30 +5,24 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DataAccessObject.Models
 {
-    public class TicketReply
+    public class Cart
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string Subject { get; set; }
-        public string Description { get; set; }
-        public DateTime CreateAt { get; set; }
-        public enum Status
-        {
-            Pending,
-            Closed,
-            Cancelled
-        }
-
-        public int SupportId { get; set; }
-        public Support Support { get; set; }
+        public int TotalItem { get; set; }
+        public double TotalPrice { get; set; }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
-        public virtual ICollection<TicketAttachment> TicketAttachments { get; set; }
+        public int VoucherId { get; set; }
+        public Voucher Voucher { get; set; }
+
+        public virtual ICollection<CartItem> CartItems { get; set; }
     }
 }

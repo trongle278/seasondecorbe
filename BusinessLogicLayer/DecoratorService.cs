@@ -98,7 +98,7 @@ namespace BusinessLogicLayer
                     };
                 }
 
-                var decorator = _mapper.Map<Decorator>(request);
+                var decorator = _mapper.Map<Provider>(request);
                 decorator.AccountId = accountId;
 
                 await _unitOfWork.DecoratorRepository.InsertAsync(decorator);
