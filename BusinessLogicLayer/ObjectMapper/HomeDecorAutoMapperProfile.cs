@@ -18,7 +18,6 @@ namespace BusinessLogicLayer.ObjectMapper
             DecorCategoryProfile();
             RoleCategoryProfile();
             ProviderProfile();
-            CartProfile();
         }
 
         private void AccountProfile()
@@ -77,14 +76,6 @@ namespace BusinessLogicLayer.ObjectMapper
                     Phone = src.Phone,
                     Address = src.Address
                 }));
-        }
-        private void CartProfile()
-        {
-            CreateMap<Cart, CartResponse>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
-                .ForMember(dest => dest.TotalItem, opt => opt.MapFrom(src => src.TotalItem))
-                .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice));
         }
     }
 }

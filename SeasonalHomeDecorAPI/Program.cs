@@ -46,9 +46,9 @@ builder.Services.AddSwaggerGen(options =>
     {
         In = ParameterLocation.Header,
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,        // Thay đổi từ ApiKey sang Http
-        Scheme = "bearer",                     // Thêm scheme
-        BearerFormat = "JWT",                  // Thêm format
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
         Description = "Enter your Bearer token in this format: Bearer {token}"
     });
     options.OperationFilter<SecurityRequirementsOperationFilter>();
@@ -69,7 +69,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = securityKey
         };
 
-        // Thêm logging để debug
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -111,7 +110,19 @@ builder.Services.AddDbContext<HomeDecorDBContext>(options =>
 // 8. Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(HomeDecorAutoMapperProfile).Assembly);
 
-// 9. Configure Dependency Injection
+// 9. Configure Cloudinary
+builder.Services.AddScoped<ICloudinaryService>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var cloudinaryConfig = configuration.GetSection("Cloudinary");
+    return new CloudinaryService(
+        cloudinaryConfig["CloudName"],
+        cloudinaryConfig["ApiKey"],
+        cloudinaryConfig["ApiSecret"]
+    );
+});
+
+// 10. Configure Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -127,11 +138,12 @@ builder.Services.AddScoped<IProviderRepository, ProviderRepository>();
 builder.Services.AddScoped<IProviderService, ProviderService>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
 
-// 10. Build the application
+// 11. Build the application
 var app = builder.Build();
 
-// 11. Configure the HTTP request pipeline
+// 12. Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -140,15 +152,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// CORS phải đứng trước Authentication và Authorization
+// CORS must be configured before Authentication and Authorization
 app.UseCors("AllowAll");
 
 // Map SignalR hub
 app.MapHub<ChatHub>("/chatHub");
 
-// Thứ tự này rất quan trọng
-app.UseAuthentication();    // Xác thực
-app.UseAuthorization();    // Phân quyền
+// The order here is important
+app.UseAuthentication();    // Authentication
+app.UseAuthorization();     // Authorization
 
 app.MapControllers();
 
