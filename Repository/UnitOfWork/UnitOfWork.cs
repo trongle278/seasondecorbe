@@ -23,6 +23,7 @@ namespace Repository.UnitOfWork
             DecorCategoryRepository = new DecorCategoryRepository(_context);
             ChatRepository = new ChatRepository(_context);
             ProviderRepository = new ProviderRepository(_context);
+            CartRepository = new CartRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -30,6 +31,7 @@ namespace Repository.UnitOfWork
         public IRoleRepository RoleRepository { get; private set; }
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
         public IChatRepository ChatRepository { get; private set; }
+        public ICartRepository CartRepository { get; private set; }
 
         public void Dispose()
         {

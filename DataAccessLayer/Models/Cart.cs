@@ -20,7 +20,7 @@ namespace DataAccessObject.Models
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
-        public int VoucherId { get; set; }
+        public int? VoucherId { get; set; }
         public Voucher Voucher { get; set; }
 
         public virtual ICollection<CartItem> CartItems { get; set; }

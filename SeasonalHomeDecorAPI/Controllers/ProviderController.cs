@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -59,6 +60,51 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(response);
             }
 
+            return BadRequest(response);
+        }
+
+
+        [HttpPut("update-profile/{accountId}")]
+        public async Task<IActionResult> UpdateProviderProfile(int accountId, [FromBody] UpdateProviderRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Invalid request data" }
+                });
+            }
+
+            var response = await _providerService.UpdateProviderProfileByAccountIdAsync(accountId, request);
+
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest(response);
+            }
+        }
+
+        [HttpPut("change-status")]
+        public async Task<IActionResult> ChangeProviderStatus([FromBody] bool isProvider)
+        {
+            // Extract accountId from JWT token claims
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+            {
+                return Unauthorized("Account ID not found in token.");
+            }
+
+            int accountId = int.Parse(accountIdClaim.Value);
+
+            var response = await _providerService.ChangeProviderStatusByAccountIdAsync(accountId, isProvider);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
             return BadRequest(response);
         }
     }

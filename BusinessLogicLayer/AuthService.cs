@@ -16,6 +16,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Google.Apis.Auth;
 using System.Numerics;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace BusinessLogicLayer
 {
@@ -25,67 +26,15 @@ namespace BusinessLogicLayer
         private readonly IConfiguration _configuration;
         private readonly PasswordHasher<Account> _passwordHasher;
         private readonly IEmailService _emailService;
+        private readonly ICartService _cartService;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService, ICartService cartService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _passwordHasher = new PasswordHasher<Account>();
             _emailService = emailService;
-        }
-
-        public async Task<BaseResponse> RegisterDecoratorAsync(RegisterRequest request)
-        {
-            try
-            {
-                var existingAccount = await _unitOfWork.AccountRepository
-                    .Query(a => a.Email == request.Email)
-                    .FirstOrDefaultAsync();
-
-                if (existingAccount != null)
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Errors = new List<string> { "Email already exists" }
-                    };
-                }
-
-                var otp = GenerateOTP();
-                var account = new Account
-                {
-                    Email = request.Email,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    DateOfBirth = request.DateOfBirth,
-                    Gender = request.Gender,
-                    RoleId = 2, // Decorator role
-                    IsVerified = false,
-                    VerificationToken = otp,
-                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15)
-                };
-
-                account.Password = HashPassword(account, request.Password);
-
-                await _unitOfWork.AccountRepository.InsertAsync(account);
-                await _unitOfWork.CommitAsync();
-
-
-                await SendVerificationEmail(account.Email, otp);
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Please check your email for verification code"
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Errors = new List<string> { "Registration failed" }
-                };
-            }
+            _cartService = cartService;
         }
 
         public async Task<BaseResponse> RegisterCustomerAsync(RegisterRequest request)
@@ -125,6 +74,16 @@ namespace BusinessLogicLayer
                 await _unitOfWork.AccountRepository.InsertAsync(account);
                 await _unitOfWork.CommitAsync();
 
+                // Use CartService to create a cart
+                var cartResponse = await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
+                if (!cartResponse.Success)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "User registered, but failed to create cart." }
+                    };
+                }
 
                 await SendVerificationEmail(account.Email, otp);
                 return new BaseResponse
@@ -342,6 +301,7 @@ namespace BusinessLogicLayer
                     .Include(a => a.Role) // Ensure role is included
                     .FirstOrDefaultAsync();
 
+                bool isNewUser = false;
                 if (account == null)
                 {
                     // If the user does not exist, create a new account
@@ -359,12 +319,27 @@ namespace BusinessLogicLayer
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);
                     await _unitOfWork.CommitAsync();
+                    isNewUser = true;
 
                     // Reload account to include role
                     account = await _unitOfWork.AccountRepository
                         .Query(a => a.Email == email)
                         .Include(a => a.Role)
                         .FirstOrDefaultAsync();
+                }
+
+                // Use CartService to create a cart if the user is new
+                if (isNewUser)
+                {
+                    var cartResponse = await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
+                    if (!cartResponse.Success)
+                    {
+                        return new GoogleLoginResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { "Google login succeeded, but failed to create cart." }
+                        };
+                    }
                 }
 
                 // Generate JWT token for the user

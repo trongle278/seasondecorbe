@@ -10,7 +10,6 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IAuthService
     {
-        Task<BaseResponse> RegisterDecoratorAsync(RegisterRequest request);
         Task<BaseResponse> RegisterCustomerAsync(RegisterRequest request);
         Task<BaseResponse> VerifyEmailAsync(VerifyEmailRequest request);
         Task<LoginResponse> LoginAsync(LoginRequest request);

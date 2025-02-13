@@ -16,6 +16,5 @@ namespace BusinessLogicLayer.ModelRequest
         public string? Phone { get; set; }
         public string? Address { get; set; }
         public DateTime JoinedDate { get; set; }
-        public bool IsProvider { get; set; }
     }
 }

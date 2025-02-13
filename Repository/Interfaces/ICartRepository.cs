@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccessObject.Models;
+using Repository.GenericRepository;
 
-namespace BusinessLogicLayer.ModelResponse
+namespace Repository.Interfaces
 {
-    public class DecoratorResponse : BaseResponse
+    public interface ICartRepository : IGenericRepository<Cart>
     {
-        public Provider Data { get; set; }
     }
 }

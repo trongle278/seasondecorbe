@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250212172401_InitDb")]
+    [Migration("20250213102740_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -81,8 +81,7 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SubscriptionId")
-                        .IsRequired()
+                    b.Property<int>("SubscriptionId")
                         .HasColumnType("int");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -165,7 +164,8 @@ namespace DataAccessObject.Migrations
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
 
-                    b.Property<int>("VoucherId")
+                    b.Property<int?>("VoucherId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");

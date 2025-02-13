@@ -42,29 +42,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(response);
         }
 
-        [HttpPost("register-decorator")]
-        public async Task<ActionResult<AuthResponse>> RegisterDecorator([FromBody] RegisterRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new AuthResponse
-                {
-                    Success = false,
-                    Errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList()
-                });
-            }
-            var response = await _authService.RegisterDecoratorAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
-        }
-
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
         {

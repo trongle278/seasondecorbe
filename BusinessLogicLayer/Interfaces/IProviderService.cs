@@ -12,5 +12,7 @@ namespace BusinessLogicLayer.Interfaces
     {
         Task<BaseResponse> SendProviderInvitationEmailAsync(string email);
         Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request);
+        Task<BaseResponse> UpdateProviderProfileByAccountIdAsync(int accountId, UpdateProviderRequest request);
+        Task<BaseResponse> ChangeProviderStatusByAccountIdAsync(int accountId, bool isProvider);
     }
 }

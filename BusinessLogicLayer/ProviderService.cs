@@ -92,7 +92,6 @@ namespace BusinessLogicLayer
 
                 var provider = _mapper.Map<Provider>(request);
                 provider.AccountId = accountId;
-                provider.SubscriptionId = 1; // Set a default SubscriptionId
 
                 // Use the existing account
                 provider.Account = account;
@@ -114,6 +113,90 @@ namespace BusinessLogicLayer
                 {
                     Success = false,
                     Errors = new List<string> { "Failed to create provider profile", ex.Message }
+                };
+            }
+        }
+
+
+        public async Task<BaseResponse> UpdateProviderProfileByAccountIdAsync(int accountId, UpdateProviderRequest request)
+        {
+            try
+            {
+                var provider = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == accountId)
+                    .Include(p => p.Account) // Include related account information
+                    .FirstOrDefaultAsync();
+
+                if (provider == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Provider not found for the given account" }
+                    };
+                }
+
+                // Update provider details
+                provider.Name = request.Name;
+                provider.Bio = request.Bio;
+                provider.Avatar = request.Avatar;
+                provider.Account.Phone = request.Phone;
+                provider.Account.Address = request.Address;
+
+                _unitOfWork.ProviderRepository.Update(provider);
+                await _unitOfWork.CommitAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Provider profile updated successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Failed to update provider profile", ex.Message }
+                };
+            }
+        }
+
+        //Dùng để Đổi trang Customer <=> Provider
+        public async Task<BaseResponse> ChangeProviderStatusByAccountIdAsync(int accountId, bool isProvider)
+        {
+            try
+            {
+                var provider = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == accountId)
+                    .FirstOrDefaultAsync();
+
+                if (provider == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Provider not found for the given account" }
+                    };
+                }
+
+                provider.IsProvider = isProvider;
+
+                _unitOfWork.ProviderRepository.Update(provider);
+                await _unitOfWork.CommitAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Provider status updated successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Failed to update provider status", ex.Message }
                 };
             }
         }

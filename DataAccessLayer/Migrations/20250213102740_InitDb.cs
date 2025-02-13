@@ -64,6 +64,16 @@ namespace DataAccessObject.Migrations
                     table.PrimaryKey("PK_Roles", x => x.Id);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "RoleName" },
+                values: new object[,]
+                {
+                    { 1, "Admin" },
+                    { 2, "Decorator" },
+                    { 3, "Customer" }
+                });
+
             migrationBuilder.CreateTable(
                 name: "Subscriptions",
                 columns: table => new
@@ -78,6 +88,14 @@ namespace DataAccessObject.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Subscriptions", x => x.Id);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Subscriptions",
+                columns: new[] { "Id", "Name", "Description", "Price", "Duration" },
+                values: new object[,]
+                {
+                    { 1, "Basic", "Normal Package", 0, 999 }
                 });
 
             migrationBuilder.CreateTable(
