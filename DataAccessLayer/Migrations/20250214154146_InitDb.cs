@@ -65,14 +65,14 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Roles",
-                columns: new[] { "Id", "RoleName" },
-                values: new object[,]
-                {
-                    { 1, "Admin" },
-                    { 2, "Decorator" },
-                    { 3, "Customer" }
-                });
+            table: "Roles",
+            columns: new[] { "Id", "RoleName" },
+            values: new object[,]
+            {
+                { 1, "Admin" },
+                { 2, "Decorator" },
+                { 3, "Customer" }
+            });
 
             migrationBuilder.CreateTable(
                 name: "Subscriptions",
@@ -91,12 +91,12 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Subscriptions",
-                columns: new[] { "Id", "Name", "Description", "Price", "Duration" },
-                values: new object[,]
-                {
-                    { 1, "Basic", "Normal Package", 0, 999 }
-                });
+            table: "Subscriptions",
+            columns: new[] { "Id", "Name", "Description", "Price", "Duration" },
+            values: new object[,]
+            {
+                { 1, "Basic", "Normal Package", 0, 999 }
+            });
 
             migrationBuilder.CreateTable(
                 name: "TicketTypes",
@@ -421,6 +421,28 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ChatFile",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ChatId = table.Column<int>(type: "int", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatFile", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatFile_Chats_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Chats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductOrders",
                 columns: table => new
                 {
@@ -712,6 +734,11 @@ namespace DataAccessObject.Migrations
                 column: "VoucherId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChatFile_ChatId",
+                table: "ChatFile",
+                column: "ChatId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Chats_ReceiverId",
                 table: "Chats",
                 column: "ReceiverId");
@@ -850,7 +877,7 @@ namespace DataAccessObject.Migrations
                 name: "CartItems");
 
             migrationBuilder.DropTable(
-                name: "Chats");
+                name: "ChatFile");
 
             migrationBuilder.DropTable(
                 name: "DecorImages");
@@ -875,6 +902,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Carts");
+
+            migrationBuilder.DropTable(
+                name: "Chats");
 
             migrationBuilder.DropTable(
                 name: "FollowerActivities");

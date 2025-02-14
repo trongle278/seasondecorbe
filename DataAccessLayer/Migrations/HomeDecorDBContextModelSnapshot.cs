@@ -246,6 +246,35 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Chats");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.ChatFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("ChatId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.ToTable("ChatFile");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.DecorCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -962,6 +991,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.ChatFile", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Chat", "Chat")
+                        .WithMany("ChatFiles")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.DecorImage", b =>
                 {
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
@@ -1233,6 +1273,11 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
                 {
                     b.Navigation("CartItems");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
+                {
+                    b.Navigation("ChatFiles");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorCategory", b =>
