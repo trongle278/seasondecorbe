@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.ModelRequest;
 using DataAccessObject.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId);
         Task<Chat> SendMessageAsync(int senderId, ChatMessageRequest request);
         Task MarkMessagesAsReadAsync(int receiverId, int senderId);
+        Task<Chat> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> files);
     }
 }

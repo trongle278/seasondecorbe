@@ -48,6 +48,21 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
+        [HttpPost("send-with-files")]
+        public async Task<IActionResult> SendMessageWithFiles([FromForm] ChatMessageRequest request, [FromForm] List<IFormFile> files)
+        {
+            try
+            {
+                var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var chat = await _chatService.SendMessageWithFilesAsync(senderId, request, files);
+                return Ok(chat);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("mark-as-read/{senderId}")]
         public async Task<IActionResult> MarkAsRead(int senderId)
         {
