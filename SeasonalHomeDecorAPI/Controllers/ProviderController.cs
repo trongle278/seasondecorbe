@@ -107,5 +107,38 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return BadRequest(response);
         }
+
+        [HttpPut("upload-provider-avatar")]
+        public async Task<IActionResult> UploadAvatar(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            // Retrieve the user ID from the claims
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            if (!int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            using (var stream = file.OpenReadStream())
+            {
+                var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+                var response = await _providerService.UploadProviderAvatarAsync(userId, stream, fileName);
+
+                if (response.Success)
+                {
+                    return Ok(new { Message = response.Message, AvatarUrl = response.Data });
+                }
+                return BadRequest(response.Message);
+            }
+        }
     }
 }

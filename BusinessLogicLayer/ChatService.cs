@@ -1,6 +1,7 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using DataAccessObject.Models;
+using Microsoft.AspNetCore.Http;
 using Repository.UnitOfWork;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,12 @@ namespace BusinessLogicLayer
     public class ChatService : IChatService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ChatService(IUnitOfWork unitOfWork)
+        public ChatService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId)
@@ -54,5 +57,37 @@ namespace BusinessLogicLayer
             await _unitOfWork.CommitAsync();
         }
 
+        public async Task<Chat> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> files)
+        {
+            var chat = new Chat
+            {
+                SenderId = senderId,
+                ReceiverId = request.ReceiverId,
+                Message = request.Message,
+                SentTime = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            foreach (var file in files)
+            {
+                using var stream = file.OpenReadStream();
+                var fileName = file.FileName;
+                // Implement file upload logic here
+                var fileUrl = await _cloudinaryService.UploadFileAsync(stream, fileName);
+
+                var chatFile = new ChatFile
+                {
+                    FileName = fileName,
+                    FileUrl = fileUrl
+                };
+
+                chat.ChatFiles.Add(chatFile);
+            }
+
+            await _unitOfWork.ChatRepository.InsertAsync(chat);
+            await _unitOfWork.CommitAsync();
+
+            return chat;
+        }
     }
 }

@@ -18,12 +18,14 @@ namespace BusinessLogicLayer
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly ICloudinaryService _cloudinaryService; // Use CloudinaryService
 
-        public ProviderService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService)
+        public ProviderService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _emailService = emailService;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<BaseResponse> SendProviderInvitationEmailAsync(string email)
@@ -197,6 +199,47 @@ namespace BusinessLogicLayer
                 {
                     Success = false,
                     Errors = new List<string> { "Failed to update provider status", ex.Message }
+                };
+            }
+
+        }
+
+        public async Task<BaseResponse> UploadProviderAvatarAsync(int accountId, Stream fileStream, string fileName)
+        {
+            try
+            {
+                var provider = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == accountId)
+                    .FirstOrDefaultAsync();
+
+                if (provider == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Provider not found for the given account" }
+                    };
+                }
+
+                var avatarUrl = await _cloudinaryService.UploadAvatarAsync(fileStream, fileName);
+                provider.Avatar = avatarUrl;
+
+                _unitOfWork.ProviderRepository.Update(provider);
+                await _unitOfWork.CommitAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Avatar uploaded successfully",
+                    Data = avatarUrl
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Failed to upload avatar", ex.Message }
                 };
             }
         }

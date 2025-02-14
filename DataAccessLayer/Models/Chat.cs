@@ -21,5 +21,8 @@ namespace DataAccessObject.Models
 
         [ForeignKey("ReceiverId")]
         public virtual Account Receiver { get; set; }
+
+        //test
+        public virtual ICollection<ChatFile> ChatFiles { get; set; } = new List<ChatFile>();
     }
 }

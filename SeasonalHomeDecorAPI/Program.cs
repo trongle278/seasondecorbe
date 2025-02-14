@@ -21,7 +21,12 @@ var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 var securityKey = new SymmetricSecurityKey(keyBytes);
 
 // 2. Basic Services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+       .AddJsonOptions(options =>
+       {
+           options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+       });
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSignalR(options =>

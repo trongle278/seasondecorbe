@@ -38,5 +38,17 @@ namespace BusinessLogicLayer
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
             return uploadResult.SecureUrl.ToString();
         }
+
+        public async Task<string> UploadFileAsync(Stream fileStream, string fileName)
+        {
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(fileName, fileStream),
+                PublicId = fileName
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            return uploadResult.SecureUrl.ToString();
+        }
     }
 }

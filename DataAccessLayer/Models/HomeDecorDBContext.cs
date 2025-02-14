@@ -282,6 +282,13 @@ namespace DataAccessObject.Models
                 .WithMany()
                 .HasForeignKey(c => c.ReceiverId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+
+            // Configure 1-N relationship between Chat and ChatFile
+            modelBuilder.Entity<ChatFile>()
+                .HasOne(cf => cf.Chat)
+                .WithMany(c => c.ChatFiles)
+                .HasForeignKey(cf => cf.ChatId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
