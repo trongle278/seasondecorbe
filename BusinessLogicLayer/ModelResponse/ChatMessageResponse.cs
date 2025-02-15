@@ -16,5 +16,16 @@ namespace BusinessLogicLayer.ModelResponse
         public string Message { get; set; }
         public DateTime SentTime { get; set; }
         public bool IsRead { get; set; }
+
+        // Mở rộng: danh sách file đính kèm
+        public List<ChatFileResponse> Files { get; set; } = new List<ChatFileResponse>();
+    }
+
+    public class ChatFileResponse
+    {
+        public int FileId { get; set; }
+        public string FileName { get; set; }
+        public string FileUrl { get; set; }
+        public DateTime UploadedAt { get; set; }
     }
 }

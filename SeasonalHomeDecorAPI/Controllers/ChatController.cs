@@ -18,14 +18,17 @@ namespace SeasonalHomeDecorAPI.Controllers
             _chatService = chatService;
         }
 
+        // Lấy lịch sử giữa senderId (lấy từ token) và receiverId
         [HttpGet("history/{receiverId}")]
         public async Task<IActionResult> GetChatHistory(int receiverId)
         {
             try
             {
                 var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                var chatHistory = await _chatService.GetChatHistoryAsync(senderId, receiverId);
-                return Ok(chatHistory);
+
+                // Giờ hàm trả về List<ChatMessageResponse>
+                var history = await _chatService.GetChatHistoryAsync(senderId, receiverId);
+                return Ok(history);
             }
             catch (Exception ex)
             {
@@ -33,29 +36,18 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [HttpPost("send")]
-        public async Task<IActionResult> SendMessage([FromBody] ChatMessageRequest request)
-        {
-            try
-            {
-                var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                var chat = await _chatService.SendMessageAsync(senderId, request);
-                return Ok(chat);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
+        // Gửi tin nhắn kèm file (qua multipart/form-data)
         [HttpPost("send-with-files")]
-        public async Task<IActionResult> SendMessageWithFiles([FromForm] ChatMessageRequest request, [FromForm] List<IFormFile> files)
+        public async Task<IActionResult> SendMessageWithFiles([FromForm] ChatMessageRequest request,
+                                                              [FromForm] List<IFormFile> files)
         {
             try
             {
                 var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                var chat = await _chatService.SendMessageWithFilesAsync(senderId, request, files);
-                return Ok(chat);
+
+                // Hàm này trả về ChatMessageResponse
+                var response = await _chatService.SendMessageWithFilesAsync(senderId, request, files);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -63,6 +55,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
+        // Đánh dấu tin nhắn đã đọc
         [HttpPost("mark-as-read/{senderId}")]
         public async Task<IActionResult> MarkAsRead(int senderId)
         {
@@ -77,6 +70,5 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
     }
 }

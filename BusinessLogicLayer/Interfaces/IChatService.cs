@@ -1,4 +1,5 @@
 ﻿using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -11,9 +12,8 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IChatService
     {
-        Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId);
-        Task<Chat> SendMessageAsync(int senderId, ChatMessageRequest request);
+        Task<List<ChatMessageResponse>> GetChatHistoryAsync(int senderId, int receiverId);
         Task MarkMessagesAsReadAsync(int receiverId, int senderId);
-        Task<Chat> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> files);
+        Task<ChatMessageResponse> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles);
     }
 }

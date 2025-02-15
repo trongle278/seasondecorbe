@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Http;
 using Repository.UnitOfWork;
@@ -22,13 +23,35 @@ namespace BusinessLogicLayer
             _cloudinaryService = cloudinaryService;
         }
 
-        public async Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId)
+        public async Task<List<ChatMessageResponse>> GetChatHistoryAsync(int senderId, int receiverId)
         {
-            return await _unitOfWork.ChatRepository.GetChatHistoryAsync(senderId, receiverId);
+            // Lấy danh sách Chat entity
+            var chats = await _unitOfWork.ChatRepository.GetChatHistoryAsync(senderId, receiverId);
+
+            // Map sang List<ChatMessageResponse>
+            var response = chats.Select(chat => new ChatMessageResponse
+            {
+                Id = chat.Id,
+                SenderId = chat.SenderId,
+                ReceiverId = chat.ReceiverId,
+                Message = chat.Message,
+                SentTime = chat.SentTime,
+                IsRead = chat.IsRead,
+                Files = chat.ChatFiles.Select(cf => new ChatFileResponse
+                {
+                    FileId = cf.Id,
+                    FileName = cf.FileName,
+                    FileUrl = cf.FileUrl,
+                    UploadedAt = cf.UploadedAt
+                }).ToList()
+            }).ToList();
+
+            return response;
         }
 
-        public async Task<Chat> SendMessageAsync(int senderId, ChatMessageRequest request)
+        public async Task<ChatMessageResponse> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles)
         {
+            // Tạo entity Chat
             var chat = new Chat
             {
                 SenderId = senderId,
@@ -38,10 +61,44 @@ namespace BusinessLogicLayer
                 IsRead = false
             };
 
+            // Upload và thêm ChatFile
+            foreach (var formFile in formFiles)
+            {
+                using var stream = formFile.OpenReadStream();
+                var fileUrl = await _cloudinaryService.UploadFileAsync(stream, formFile.FileName);
+
+                var chatFile = new ChatFile
+                {
+                    FileName = formFile.FileName,
+                    FileUrl = fileUrl
+                };
+                chat.ChatFiles.Add(chatFile);
+            }
+
+            // Lưu DB
             await _unitOfWork.ChatRepository.InsertAsync(chat);
             await _unitOfWork.CommitAsync();
 
-            return chat;
+            // Map sang response
+            var response = new ChatMessageResponse
+            {
+                Id = chat.Id,
+                SenderId = chat.SenderId,
+                // SenderName = "Load từ DB user (tuỳ bạn)"
+                ReceiverId = chat.ReceiverId,
+                // ReceiverName = "Load từ DB user (tuỳ bạn)",
+                Message = chat.Message,
+                SentTime = chat.SentTime,
+                IsRead = chat.IsRead,
+                Files = chat.ChatFiles.Select(cf => new ChatFileResponse
+                {
+                    FileId = cf.Id,
+                    FileName = cf.FileName,
+                    FileUrl = cf.FileUrl,
+                    UploadedAt = cf.UploadedAt
+                }).ToList()
+            };
+            return response;
         }
 
         public async Task MarkMessagesAsReadAsync(int receiverId, int senderId)
@@ -51,43 +108,9 @@ namespace BusinessLogicLayer
             foreach (var message in unreadMessages)
             {
                 message.IsRead = true;
-                _unitOfWork.ChatRepository.Update(message);  // Bỏ await vì Update không phải async
+                _unitOfWork.ChatRepository.Update(message); // Update ko async => ko await
             }
-
             await _unitOfWork.CommitAsync();
-        }
-
-        public async Task<Chat> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> files)
-        {
-            var chat = new Chat
-            {
-                SenderId = senderId,
-                ReceiverId = request.ReceiverId,
-                Message = request.Message,
-                SentTime = DateTime.UtcNow,
-                IsRead = false
-            };
-
-            foreach (var file in files)
-            {
-                using var stream = file.OpenReadStream();
-                var fileName = file.FileName;
-                // Implement file upload logic here
-                var fileUrl = await _cloudinaryService.UploadFileAsync(stream, fileName);
-
-                var chatFile = new ChatFile
-                {
-                    FileName = fileName,
-                    FileUrl = fileUrl
-                };
-
-                chat.ChatFiles.Add(chatFile);
-            }
-
-            await _unitOfWork.ChatRepository.InsertAsync(chat);
-            await _unitOfWork.CommitAsync();
-
-            return chat;
         }
     }
 }

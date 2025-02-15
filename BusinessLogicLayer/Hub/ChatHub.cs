@@ -1,5 +1,8 @@
 ﻿using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
 using DataAccessObject.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Repository.UnitOfWork;
 using System;
@@ -13,62 +16,75 @@ namespace BusinessLogicLayer.Hub
 {
     public class ChatHub : Microsoft.AspNetCore.SignalR.Hub
     {
-        private readonly IUnitOfWork _unitOfWork;
         private static readonly Dictionary<int, string> _userConnections = new();
         private readonly IChatService _chatService;
 
         public ChatHub(IUnitOfWork unitOfWork, IChatService chatService)
         {
-            _unitOfWork = unitOfWork;
             _chatService = chatService;
         }
 
-        public async Task ConnectUser(int userId)
+        public override async Task OnConnectedAsync()
         {
+            // Lấy userId từ token/claim
+            var userId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             _userConnections[userId] = Context.ConnectionId;
+
+            await base.OnConnectedAsync();
         }
 
-        public async Task SendMessage(int receiverId, string message)
+        public override async Task OnDisconnectedAsync(System.Exception exception)
         {
+            var userId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            _userConnections.Remove(userId, out _);
+            await base.OnDisconnectedAsync(exception);
+        }
+
+        // Gửi tin nhắn + file (base64)
+        public async Task SendMessageWithFiles(ChatMessageRequest request)
+        {
+            // request chứa {ReceiverId, Message, List<Base64FileDto> Files}
             var senderId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var chat = new Chat
+            // Chuyển Base64 -> IFormFile
+            var formFiles = new List<IFormFile>();
+            foreach (var base64File in request.Files)
             {
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                Message = message,
-                SentTime = DateTime.UtcNow
-            };
+                byte[] fileBytes = System.Convert.FromBase64String(base64File.Base64Content);
+                var stream = new MemoryStream(fileBytes);
 
-            await _unitOfWork.ChatRepository.InsertAsync(chat);
-            await _unitOfWork.CommitAsync();
-
-            if (_userConnections.TryGetValue(receiverId, out string connectionId))
-            {
-                await Clients.Client(connectionId).SendAsync("ReceiveMessage", senderId, message);
+                var formFile = new FormFile(stream, 0, fileBytes.Length, base64File.FileName, base64File.FileName)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = base64File.ContentType ?? "application/octet-stream"
+                };
+                formFiles.Add(formFile);
             }
+
+            // Gọi service lưu tin nhắn + upload file
+            ChatMessageResponse savedMsg = await _chatService.SendMessageWithFilesAsync(senderId, request, formFiles);
+
+            // Bắn realtime cho receiver
+            if (_userConnections.TryGetValue(savedMsg.ReceiverId, out var receiverConn))
+            {
+                await Clients.Client(receiverConn).SendAsync("ReceiveMessage", savedMsg);
+            }
+
+            // Optionally, trả kết quả cho chính sender (nếu muốn)
+            await Clients.Caller.SendAsync("MessageSent", savedMsg);
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
-        {
-            var userId = _userConnections.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
-            if (userId != 0)
-            {
-                _userConnections.Remove(userId);
-            }
-            return base.OnDisconnectedAsync(exception);
-        }
 
+        // Đánh dấu tin nhắn đã đọc
         public async Task MarkAsRead(int senderId)
         {
             var receiverId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
             await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
 
-            // Notify sender that messages were read
-            if (_userConnections.TryGetValue(senderId, out string connectionId))
+            // Thông báo realtime cho sender
+            if (_userConnections.TryGetValue(senderId, out var senderConn))
             {
-                await Clients.Client(connectionId).SendAsync("MessagesRead", receiverId);
+                await Clients.Client(senderConn).SendAsync("MessagesRead", receiverId);
             }
         }
     }

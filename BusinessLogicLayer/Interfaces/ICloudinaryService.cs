@@ -9,6 +9,6 @@ namespace BusinessLogicLayer.Interfaces
     public interface ICloudinaryService
     {
         Task<string> UploadAvatarAsync(Stream fileStream, string fileName);
-        Task<string> UploadFileAsync(Stream fileStream, string fileName);
+        Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType = null);
     }
 }
