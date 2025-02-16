@@ -20,14 +20,20 @@ namespace Repository
         public async Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId)
         {
             Expression<Func<Chat, bool>> filter = c =>
-                (c.SenderId == senderId && c.ReceiverId == receiverId) ||
-                (c.SenderId == receiverId && c.ReceiverId == senderId);
+                 (c.SenderId == senderId && c.ReceiverId == receiverId) ||
+                 (c.SenderId == receiverId && c.ReceiverId == senderId);
 
+            // Include ChatFiles để load file đính kèm
             return await GetAllAsync(
-                limit: 100,  // Số lượng tin nhắn muốn lấy
-                filter: filter,
-                orderBy: q => q.OrderByDescending(x => x.SentTime)
-            );
+            limit: 100,
+            filter: filter,
+            orderBy: q => q.OrderByDescending(x => x.SentTime),
+            includeProperties: new Expression<Func<Chat, object>>[]
+            {
+                c => c.ChatFiles,
+                c => c.Sender,
+                c => c.Receiver
+            });
         }
 
         public async Task<IEnumerable<Chat>> GetUnreadMessagesAsync(int receiverId, int senderId)
@@ -36,7 +42,7 @@ namespace Repository
                 c.ReceiverId == receiverId &&
                 c.SenderId == senderId &&
                 !c.IsRead;
-             
+
             return await GetAllAsync(100, filter,  // Thêm limit parameter
                 orderBy: q => q.OrderByDescending(x => x.SentTime));
         }
