@@ -90,14 +90,6 @@ namespace DataAccessObject.Migrations
                     table.PrimaryKey("PK_Subscriptions", x => x.Id);
                 });
 
-            migrationBuilder.InsertData(
-            table: "Subscriptions",
-            columns: new[] { "Id", "Name", "Description", "Price", "Duration" },
-            values: new object[,]
-            {
-                { 1, "Basic", "Normal Package", 0, 999 }
-            });
-
             migrationBuilder.CreateTable(
                 name: "TicketTypes",
                 columns: table => new
@@ -179,7 +171,7 @@ namespace DataAccessObject.Migrations
                     TwoFactorToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TwoFactorTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RoleId = table.Column<int>(type: "int", nullable: false),
-                    SubscriptionId = table.Column<int>(type: "int", nullable: false)
+                    SubscriptionId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -206,7 +198,7 @@ namespace DataAccessObject.Migrations
                     TotalItem = table.Column<int>(type: "int", nullable: false),
                     TotalPrice = table.Column<double>(type: "float", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
-                    VoucherId = table.Column<int>(type: "int", nullable: false)
+                    VoucherId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -370,6 +362,7 @@ namespace DataAccessObject.Migrations
                     Subject = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TicketStatus = table.Column<int>(type: "int", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     TicketTypeId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -509,7 +502,6 @@ namespace DataAccessObject.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Subject = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SupportId = table.Column<int>(type: "int", nullable: false),
@@ -592,13 +584,11 @@ namespace DataAccessObject.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FileType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FileSize = table.Column<long>(type: "bigint", nullable: false),
-                    FileData = table.Column<long>(type: "bigint", nullable: false),
-                    UploadTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SupportId = table.Column<int>(type: "int", nullable: false),
-                    TicketReplyId = table.Column<int>(type: "int", nullable: false)
+                    TicketReplyId = table.Column<int>(type: "int", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

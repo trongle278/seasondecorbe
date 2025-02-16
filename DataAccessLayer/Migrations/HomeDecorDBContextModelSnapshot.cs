@@ -79,7 +79,7 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SubscriptionId")
+                    b.Property<int?>("SubscriptionId")
                         .HasColumnType("int");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -163,7 +163,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("float");
 
                     b.Property<int?>("VoucherId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -752,6 +751,9 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("TicketStatus")
+                        .HasColumnType("int");
+
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("int");
 
@@ -772,27 +774,22 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<long>("FileData")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("FileSize")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("FileType")
+                    b.Property<string>("FileUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SupportId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TicketReplyId")
+                    b.Property<int?>("TicketReplyId")
+                        .IsRequired()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("UploadTime")
+                    b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
@@ -819,10 +816,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -899,8 +892,7 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
                         .WithMany("Accounts")
                         .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Role");
 
@@ -945,8 +937,7 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
                         .WithMany("Carts")
                         .HasForeignKey("VoucherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Account");
 
@@ -1145,8 +1136,7 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
                         .WithMany("Providers")
                         .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Account");
 

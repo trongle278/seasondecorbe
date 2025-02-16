@@ -169,58 +169,79 @@ namespace BusinessLogicLayer
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            try
+            // Kiểm tra đăng nhập admin dựa vào appsettings trước
+            var adminEmail = _configuration["Admin:Email"];
+            var adminPassword = _configuration["Admin:Password"];
+            if (string.Equals(request.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
             {
-                var account = await _unitOfWork.AccountRepository
-                    .Query(a => a.Email == request.Email)
-                    .Include(a => a.Role)
-                    .FirstOrDefaultAsync();
-
-                if (account == null || !VerifyPassword(account, request.Password))
+                // So sánh mật khẩu (ở đây sử dụng so sánh trực tiếp, bạn có thể bổ sung hash nếu cần)
+                if (request.Password != adminPassword)
                 {
                     return new LoginResponse
                     {
                         Success = false,
                         Errors = new List<string> { "Invalid email or password" }
                     };
-                }     
-
-                // Admin không cần OTP
-                if (account.Role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                {
-                    var adminToken = await GenerateJwtToken(account);
-                    return new LoginResponse { Success = true, Token = adminToken };
                 }
 
-                // User khác có bật 2FA
-                if (account.TwoFactorEnabled)
+                // Tạo một đối tượng Account giả cho admin.
+                // Đặt Id = 0 (hoặc một giá trị đặc biệt) để phân biệt với các tài khoản từ DB
+                var adminAccount = new Account
                 {
-                    var otp = GenerateOTP();
-                    account.TwoFactorToken = otp;
-                    account.TwoFactorTokenExpiry = DateTime.UtcNow.AddMinutes(5);
-                    await _unitOfWork.CommitAsync();
+                    Id = 0,
+                    Email = adminEmail,
+                    FirstName = "Admin",
+                    LastName = "",
+                    RoleId = 1 // Giả sử 1 ứng với Admin; bạn có thể tự điều chỉnh nếu cần
+                };
 
-                    await SendLoginOTPEmail(account.Email, otp);
-
-                    return new LoginResponse
-                    {
-                        Success = true,
-                        RequiresTwoFactor = true
-                    };
-                }
-
-                // User không bật 2FA
-                var token = await GenerateJwtToken(account);
-                return new LoginResponse { Success = true, Token = token };
+                // Sinh token JWT cho admin mà không cần truy vấn DB (vì admin không nằm trong DB)
+                var adminToken = await GenerateJwtToken(adminAccount);
+                return new LoginResponse { Success = true, Token = adminToken };
             }
-            catch (Exception ex)
+
+            // Nếu không phải admin, tiếp tục kiểm tra trong DB như cũ
+            var account = await _unitOfWork.AccountRepository
+                .Query(a => a.Email == request.Email)
+                .Include(a => a.Role)
+                .FirstOrDefaultAsync();
+
+            if (account == null || !VerifyPassword(account, request.Password))
             {
                 return new LoginResponse
                 {
                     Success = false,
-                    Errors = new List<string> { ex.Message }
+                    Errors = new List<string> { "Invalid email or password" }
                 };
             }
+
+            // Đối với admin trong DB (nếu có), không cần OTP
+            if (account.Role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = await GenerateJwtToken(account);
+                return new LoginResponse { Success = true, Token = token };
+            }
+
+            // Nếu user có bật 2FA
+            if (account.TwoFactorEnabled)
+            {
+                var otp = GenerateOTP();
+                account.TwoFactorToken = otp;
+                account.TwoFactorTokenExpiry = DateTime.UtcNow.AddMinutes(5);
+                await _unitOfWork.CommitAsync();
+
+                await SendLoginOTPEmail(account.Email, otp);
+
+                return new LoginResponse
+                {
+                    Success = true,
+                    RequiresTwoFactor = true
+                };
+            }
+
+            // User không bật 2FA
+            var userToken = await GenerateJwtToken(account);
+            return new LoginResponse { Success = true, Token = userToken };
         }
 
         public async Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request)
@@ -505,41 +526,6 @@ namespace BusinessLogicLayer
             }
         }
 
-        private async Task<string> GenerateJwtToken(Account account)
-        {
-            // Thêm logging để debug
-            Console.WriteLine($"Generating token for account: {account.Email}");
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-
-            // Kiểm tra role
-            var role = await _unitOfWork.RoleRepository.GetByIdAsync(account.RoleId);
-            if (role == null)
-            {
-                throw new Exception("Role not found");
-            }
-            Console.WriteLine($"Role found: {role.RoleName}");
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-            new Claim(ClaimTypes.Email, account.Email),
-            new Claim(ClaimTypes.Role, role.RoleName),
-            new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-            new Claim(ClaimTypes.Name, $"{account.FirstName} {account.LastName}"),
-        }),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-
         private string HashPassword(Account account, string password)
         {
             return _passwordHasher.HashPassword(account, password);
@@ -582,5 +568,50 @@ namespace BusinessLogicLayer
                 };
             }
         }
+
+        #region
+        private async Task<string> GenerateJwtToken(Account account)
+        {
+            Console.WriteLine($"Generating token for account: {account.Email}");
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+
+            string roleName;
+            // Nếu Id bằng 0, ta xem đây là admin đăng nhập từ appsettings
+            if (account.Id == 0)
+            {
+                roleName = "Admin";
+            }
+            else
+            {
+                var role = await _unitOfWork.RoleRepository.GetByIdAsync(account.RoleId);
+                if (role == null)
+                {
+                    throw new Exception("Role not found");
+                }
+                roleName = role.RoleName;
+            }
+
+            Console.WriteLine($"Role determined: {roleName}");
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+            new Claim(ClaimTypes.Email, account.Email),
+            new Claim(ClaimTypes.Role, roleName),
+            new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+            new Claim(ClaimTypes.Name, $"{account.FirstName} {account.LastName}"),
+        }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+        #endregion
     }
 }

@@ -129,27 +129,28 @@ builder.Services.AddScoped<ICloudinaryService>(provider =>
 
 // 10. Configure Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IDecorCategoryRepository, DecorCategoryRepository>();
 builder.Services.AddScoped<IDecorCategoryService, DecorCategoryService>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<IProviderRepository, ProviderRepository>();
 builder.Services.AddScoped<IProviderService, ProviderService>();
-builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
-builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
 builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
+builder.Services.AddScoped<ISupportService, SupportService>();
+builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 
 
 // 11. Build the application
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+    await seeder.SeedAdminAsync();
+}
 
 // 12. Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

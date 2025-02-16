@@ -13,16 +13,23 @@ namespace DataAccessObject.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
-        public enum Status
+
+        // Định nghĩa enum cho trạng thái ticket
+        public enum TicketStatusEnum
         {
             Pending,
             Solved,
             Cancelled
         }
 
+        // Property lưu trạng thái, đặt tên là TicketStatus
+        public TicketStatusEnum TicketStatus { get; set; }
+
+        // Khóa ngoại và các navigation property
         public int AccountId { get; set; }
         public Account Account { get; set; }
 

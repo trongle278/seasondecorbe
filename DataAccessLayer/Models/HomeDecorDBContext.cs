@@ -220,6 +220,7 @@ namespace DataAccessObject.Models
                 .HasOne(c => c.Voucher)
                 .WithMany(v => v.Carts)
                 .HasForeignKey(c => c.VoucherId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure 1-N relationship between User and Order
@@ -262,6 +263,7 @@ namespace DataAccessObject.Models
                 .HasOne(a => a.Subscription)
                 .WithMany(sb => sb.Accounts)
                 .HasForeignKey(a => a.SubscriptionId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Subscription and Provider
@@ -269,6 +271,7 @@ namespace DataAccessObject.Models
                 .HasOne(p => p.Subscription)
                 .WithMany(sb => sb.Providers)
                 .HasForeignKey(a => a.SubscriptionId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Chat>()

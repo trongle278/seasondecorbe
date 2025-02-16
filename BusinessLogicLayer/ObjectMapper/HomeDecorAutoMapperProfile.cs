@@ -19,6 +19,7 @@ namespace BusinessLogicLayer.ObjectMapper
             RoleCategoryProfile();
             ProviderProfile();
             TicketTypeProfile();
+            TicketProfile();
         }
 
         private void AccountProfile()
@@ -89,6 +90,34 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<TicketType, TicketTypeResponse>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
+        }
+
+        private void TicketProfile()
+        {
+            // Mapping từ Support (entity) sang SupportResponse (DTO)
+            CreateMap<Support, SupportResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Subject, opt => opt.MapFrom(src => src.Subject))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.CreateAt))
+                // Chuyển enum TicketStatus thành string
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.TicketStatus.ToString()))
+                .ForMember(dest => dest.TicketTypeId, opt => opt.MapFrom(src => src.TicketTypeId))
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                // Mapping cho danh sách reply (sử dụng mapping đã định nghĩa bên dưới)
+                .ForMember(dest => dest.Replies, opt => opt.MapFrom(src => src.TicketReplies))
+                // Lấy URL từ các TicketAttachment của ticket chính
+                .ForMember(dest => dest.AttachmentUrls, opt => opt.MapFrom(src => src.TicketAttachments.Select(a => a.FileUrl).ToList()));
+
+            // Mapping từ TicketReply (entity) sang SupportReplyResponse (DTO)
+            CreateMap<TicketReply, SupportReplyResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.SupportId, opt => opt.MapFrom(src => src.SupportId))
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.CreateAt))
+                // Lấy URL từ các file đính kèm của reply
+                .ForMember(dest => dest.AttachmentUrls, opt => opt.MapFrom(src => src.TicketAttachments.Select(a => a.FileUrl).ToList()));
         }
     }
 }

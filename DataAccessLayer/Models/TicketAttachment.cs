@@ -14,16 +14,16 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public string FileName { get; set; }
-        public string FileType { get; set; }
-        public long FileSize { get; set; }
-        public long FileData {  get; set; }
-        public DateTime UploadTime { get; set; }
-
+        // Liên kết với ticket (Support)
         public int SupportId { get; set; }
         public Support Support { get; set; }
 
-        public int TicketReplyId { get; set; }
+        // Nếu file đính kèm thuộc về reply thì cho phép null (nếu thuộc ticket chính)
+        public int? TicketReplyId { get; set; }
         public TicketReply TicketReply { get; set; }
+
+        public string FileName { get; set; }
+        public string FileUrl { get; set; }
+        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
     }
 }
