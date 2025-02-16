@@ -18,6 +18,7 @@ namespace BusinessLogicLayer.ObjectMapper
             DecorCategoryProfile();
             RoleCategoryProfile();
             ProviderProfile();
+            TicketTypeProfile();
         }
 
         private void AccountProfile()
@@ -76,6 +77,18 @@ namespace BusinessLogicLayer.ObjectMapper
                     Phone = src.Phone,
                     Address = src.Address
                 }));
+        }
+
+        private void TicketTypeProfile()
+        {
+            // Mapping from TicketTypeRequest to TicketType
+            CreateMap<TicketTypeRequest, TicketType>()
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
+
+            // Mapping from TicketType (entity) to TicketTypeDTO (response)
+            CreateMap<TicketType, TicketTypeResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
         }
     }
 }

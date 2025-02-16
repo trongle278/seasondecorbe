@@ -16,13 +16,6 @@ namespace DataAccessObject.Models
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
-        public enum Status
-        {
-            Pending,
-            Closed,
-            Cancelled
-        }
-
         public int SupportId { get; set; }
         public Support Support { get; set; }
 

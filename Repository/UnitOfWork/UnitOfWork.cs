@@ -24,6 +24,8 @@ namespace Repository.UnitOfWork
             ChatRepository = new ChatRepository(_context);
             ProviderRepository = new ProviderRepository(_context);
             CartRepository = new CartRepository(_context);
+            TicketTypeRepository = new TicketTypeRepository(_context);
+            SupportRepository = new SupportRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -32,6 +34,8 @@ namespace Repository.UnitOfWork
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
         public IChatRepository ChatRepository { get; private set; }
         public ICartRepository CartRepository { get; private set; }
+        public ITicketTypeRepository TicketTypeRepository { get; private set; }
+        public ISupportRepository SupportRepository { get; private set; }
 
         public void Dispose()
         {

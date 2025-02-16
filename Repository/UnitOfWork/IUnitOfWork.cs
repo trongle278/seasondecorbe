@@ -16,6 +16,8 @@ namespace Repository.UnitOfWork
         IDecorCategoryRepository DecorCategoryRepository { get; }
         IChatRepository ChatRepository { get; }
         ICartRepository CartRepository { get; }
+        ITicketTypeRepository TicketTypeRepository { get; }
+        ISupportRepository SupportRepository { get; }
 
         int Save();
         Task CommitAsync();

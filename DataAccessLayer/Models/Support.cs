@@ -19,7 +19,7 @@ namespace DataAccessObject.Models
         public enum Status
         {
             Pending,
-            Closed,
+            Solved,
             Cancelled
         }
 

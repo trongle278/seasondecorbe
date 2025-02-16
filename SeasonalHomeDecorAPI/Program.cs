@@ -144,6 +144,9 @@ builder.Services.AddScoped<IProviderService, ProviderService>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
+builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
+builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
+
 
 // 11. Build the application
 var app = builder.Build();
