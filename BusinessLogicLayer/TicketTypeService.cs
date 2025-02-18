@@ -163,7 +163,7 @@ namespace BusinessLogicLayer
                     return response;
                 }
 
-                _unitOfWork.TicketTypeRepository.Delete(ticketTypeEntity);
+                _unitOfWork.TicketTypeRepository.Delete(ticketTypeEntity.Id);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

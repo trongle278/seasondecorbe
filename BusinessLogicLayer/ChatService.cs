@@ -58,6 +58,12 @@ namespace BusinessLogicLayer
 
         public async Task<ChatMessageResponse> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles)
         {
+            // Prevent self-messaging
+            if (senderId == request.ReceiverId)
+            {
+                throw new InvalidOperationException("Cannot send a message to yourself.");
+            }
+
             // Tạo entity Chat
             var chat = new Chat
             {

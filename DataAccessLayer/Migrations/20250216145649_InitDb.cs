@@ -90,6 +90,14 @@ namespace DataAccessObject.Migrations
                     table.PrimaryKey("PK_Subscriptions", x => x.Id);
                 });
 
+            migrationBuilder.InsertData(
+            table: "Subscriptions",
+            columns: new[] { "Id", "Name", "Description", "Price", "Duration" },
+            values: new object[,]
+            {
+                { 1, "Basic", "Normal Package", 0, 999 }
+            });
+
             migrationBuilder.CreateTable(
                 name: "TicketTypes",
                 columns: table => new
