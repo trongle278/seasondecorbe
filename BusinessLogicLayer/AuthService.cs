@@ -174,7 +174,6 @@ namespace BusinessLogicLayer
             var adminPassword = _configuration["Admin:Password"];
             if (string.Equals(request.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
             {
-                // So sánh mật khẩu (ở đây sử dụng so sánh trực tiếp, bạn có thể bổ sung hash nếu cần)
                 if (request.Password != adminPassword)
                 {
                     return new LoginResponse

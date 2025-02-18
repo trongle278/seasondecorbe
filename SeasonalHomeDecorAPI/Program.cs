@@ -141,6 +141,8 @@ builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
 builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<ISupportService, SupportService>();
 builder.Services.AddScoped<IDataSeeder, DataSeeder>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
 // 11. Build the application
@@ -166,6 +168,7 @@ app.UseCors("AllowAll");
 
 // Map SignalR hub
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 // The order here is important
 app.UseAuthentication();    // Authentication

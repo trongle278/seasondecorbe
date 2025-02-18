@@ -10,7 +10,6 @@ namespace BusinessLogicLayer.ModelRequest
     {
         public int TotalItem { get; set; }
         public double TotalPrice { get; set; }
-
         public int AccountId { get; set; }
     }
 }

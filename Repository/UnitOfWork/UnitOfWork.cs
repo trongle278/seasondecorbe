@@ -26,6 +26,7 @@ namespace Repository.UnitOfWork
             CartRepository = new CartRepository(_context);
             TicketTypeRepository = new TicketTypeRepository(_context);
             SupportRepository = new SupportRepository(_context);
+            NotificationRepository = new NotificationRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -36,6 +37,7 @@ namespace Repository.UnitOfWork
         public ICartRepository CartRepository { get; private set; }
         public ITicketTypeRepository TicketTypeRepository { get; private set; }
         public ISupportRepository SupportRepository { get; private set; }
+        public INotificationRepository NotificationRepository { get; private set; }
 
         public void Dispose()
         {

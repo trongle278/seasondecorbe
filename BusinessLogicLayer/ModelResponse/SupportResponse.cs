@@ -30,4 +30,10 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime CreateAt { get; set; }
         public List<string> AttachmentUrls { get; set; }
     }
+
+    public class TicketTypeResponse
+    {
+        public int Id { get; set; }
+        public string Type { get; set; }
+    }
 }

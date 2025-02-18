@@ -17,8 +17,6 @@ namespace BusinessLogicLayer.ModelRequest
     {
         public int ReceiverId { get; set; }
         public string Message { get; set; }
-
-        // Dùng cho SignalR: 
         public List<Base64FileDto> Files { get; set; } = new List<Base64FileDto>();
     }
 }

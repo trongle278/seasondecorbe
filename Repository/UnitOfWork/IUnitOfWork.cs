@@ -18,6 +18,7 @@ namespace Repository.UnitOfWork
         ICartRepository CartRepository { get; }
         ITicketTypeRepository TicketTypeRepository { get; }
         ISupportRepository SupportRepository { get; }
+        INotificationRepository NotificationRepository { get; }
 
         int Save();
         Task CommitAsync();

@@ -15,4 +15,17 @@ namespace BusinessLogicLayer.ModelRequest
         public int TicketTypeId { get; set; }
         public IFormFile[]? Attachments { get; set; }
     }
+
+    public class AddSupportReplyRequest
+    {
+        public int SupportId { get; set; }
+        public int AccountId { get; set; }
+        public string Description { get; set; }
+        public IFormFile[] Attachments { get; set; }
+    }
+
+    public class TicketTypeRequest
+    {
+        public string Type { get; set; }
+    }
 }

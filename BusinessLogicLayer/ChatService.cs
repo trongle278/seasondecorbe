@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DataAccessObject.Models.Notification;
 
 namespace BusinessLogicLayer
 {
@@ -16,12 +17,14 @@ namespace BusinessLogicLayer
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly INotificationService _notificationService;
 
-        public ChatService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
-        {
-            _unitOfWork = unitOfWork;
-            _cloudinaryService = cloudinaryService;
-        }
+        public ChatService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, INotificationService notificationService)
+    {
+        _unitOfWork = unitOfWork;
+        _cloudinaryService = cloudinaryService;
+        _notificationService = notificationService;
+    }
 
         public async Task<List<ChatMessageResponse>> GetChatHistoryAsync(int senderId, int receiverId)
         {
@@ -58,7 +61,6 @@ namespace BusinessLogicLayer
 
         public async Task<ChatMessageResponse> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles)
         {
-            // Prevent self-messaging
             if (senderId == request.ReceiverId)
             {
                 throw new InvalidOperationException("Cannot send a message to yourself.");
@@ -88,18 +90,29 @@ namespace BusinessLogicLayer
                 chat.ChatFiles.Add(chatFile);
             }
 
-            // Lưu DB
+            // Lưu chat vào DB
             await _unitOfWork.ChatRepository.InsertAsync(chat);
             await _unitOfWork.CommitAsync();
+
+            // Tạo đối tượng Notification cho tin nhắn mới
+            var notification = new Notification
+            {
+                Title = "New Message",
+                Content = chat.Message, // Hoặc bạn có thể định dạng lại nội dung hiển thị thông báo
+                NotifiedAt = DateTime.UtcNow,
+                AccountId = chat.ReceiverId,
+                Type = NotificationType.Chat
+            };
+
+            // Gọi NotificationService để lưu và gửi realtime notification
+            await _notificationService.SendNotificationAsync(notification);
 
             // Map sang response
             var response = new ChatMessageResponse
             {
                 Id = chat.Id,
                 SenderId = chat.SenderId,
-                // SenderName = "Load từ DB user (tuỳ bạn)"
                 ReceiverId = chat.ReceiverId,
-                // ReceiverName = "Load từ DB user (tuỳ bạn)",
                 Message = chat.Message,
                 SentTime = chat.SentTime,
                 IsRead = chat.IsRead,
@@ -111,6 +124,7 @@ namespace BusinessLogicLayer
                     UploadedAt = cf.UploadedAt
                 }).ToList()
             };
+
             return response;
         }
 
