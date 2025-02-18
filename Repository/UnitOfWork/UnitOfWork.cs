@@ -23,7 +23,12 @@ namespace Repository.UnitOfWork
             DecorCategoryRepository = new DecorCategoryRepository(_context);
             ChatRepository = new ChatRepository(_context);
             ProviderRepository = new ProviderRepository(_context);
+            ProductRepository = new ProductRepository(_context);
+            ProductCategoryRepository = new ProductCategoryRepository(_context);
             CartRepository = new CartRepository(_context);
+            CartItemRepository = new CartItemRepository(_context);
+            OrderRepository = new OrderRepository(_context);
+            ProductOrderRepository = new ProductOrderRepository(_context);
             TicketTypeRepository = new TicketTypeRepository(_context);
             SupportRepository = new SupportRepository(_context);
             NotificationRepository = new NotificationRepository(_context);
@@ -34,7 +39,12 @@ namespace Repository.UnitOfWork
         public IRoleRepository RoleRepository { get; private set; }
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
         public IChatRepository ChatRepository { get; private set; }
+        public IProductRepository ProductRepository { get; private set; }
+        public IProductCategoryRepository ProductCategoryRepository { get; private set; }
         public ICartRepository CartRepository { get; private set; }
+        public ICartItemRepository CartItemRepository { get; private set; }
+        public IOrderRepository OrderRepository { get; private set; }
+        public IProductOrderRepository ProductOrderRepository { get; private set; }
         public ITicketTypeRepository TicketTypeRepository { get; private set; }
         public ISupportRepository SupportRepository { get; private set; }
         public INotificationRepository NotificationRepository { get; private set; }

@@ -1,0 +1,147 @@
+﻿using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest.Product;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace SeasonalHomeDecorAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductController : ControllerBase
+    {
+        private readonly IProductService _productService;
+
+        public ProductController(IProductService productService)
+        {
+            _productService = productService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllProduct()
+        {
+            var result = await _productService.GetAllProduct();
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var result = await _productService.GetProductById(id);
+
+            if (result.Success == false && result.Message == "Invalid product")
+            {
+                ModelState.AddModelError("", $"Product not found!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error retrieving product")
+            {
+                ModelState.AddModelError("", $"Error retrieving product!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct(ProductRequest request)
+        {
+            var result = await _productService.CreateProduct(request);
+
+            if (result.Success == false && result.Message == "Invalid product request")
+            {
+                ModelState.AddModelError("", $"Invalid product request!");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Product name is required")
+            {
+                ModelState.AddModelError("", $"Product name is required!");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Negative product price")
+            {
+                ModelState.AddModelError("", $"Product price has to be > 0.!");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Negative quantity")
+            {
+                ModelState.AddModelError("", $"Product quantity has to be > 0.");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error creating product")
+            {
+                ModelState.AddModelError("", $"Error creating product!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, ProductRequest request)
+        {
+            var result = await _productService.UpdateProduct(id, request);
+
+            if (result.Success == false && result.Message == "Invalid product")
+            {
+                ModelState.AddModelError("", $"Product not found!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Product name is required")
+            {
+                ModelState.AddModelError("", $"Product name is required!");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Negative product price")
+            {
+                ModelState.AddModelError("", $"Product price has to be > 0.!");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Negative quantity")
+            {
+                ModelState.AddModelError("", $"Product quantity has to be > 0.");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error updating product")
+            {
+                ModelState.AddModelError("", $"Error updating product!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            var result = await _productService.DeleteProduct(id);
+
+            if (result.Success == false && result.Message == "Invalid product")
+            {
+                ModelState.AddModelError("", $"Product not found!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error deleting product")
+            {
+                ModelState.AddModelError("", $"Error deleting product!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+    }
+}

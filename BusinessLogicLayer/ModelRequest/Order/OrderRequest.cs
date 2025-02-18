@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataAccessObject.Models;
 
-namespace DataAccessObject.Models
+namespace BusinessLogicLayer.ModelRequest.Order
 {
-    public class Order
+    public class OrderRequest
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
         public string DeliverAddress { get; set; }
         public string Phone { get; set; }
         public string FullName { get; set; }
@@ -22,18 +18,12 @@ namespace DataAccessObject.Models
         public enum Status
         {
             Pending,
-            Processing,
             Shipping,
             Completed,
             Cancelled
         }
         public Status OrderStatus { get; set; }
-
         public int AccountId { get; set; }
-        public Account Account { get; set; }
-
-        public virtual ICollection<Review> Reviews { get; set; }
-        public virtual ICollection<ProductOrder> ProductOrders { get; set; }
-        public virtual ICollection<Payment> Payments { get; set; }
+        public virtual ICollection<ProductOrderRequest> ProductOrders { get; set; }
     }
 }

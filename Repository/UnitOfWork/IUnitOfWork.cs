@@ -15,7 +15,12 @@ namespace Repository.UnitOfWork
         IRoleRepository RoleRepository { get; }
         IDecorCategoryRepository DecorCategoryRepository { get; }
         IChatRepository ChatRepository { get; }
+        IProductRepository ProductRepository { get; }
+        IProductCategoryRepository ProductCategoryRepository { get; }
         ICartRepository CartRepository { get; }
+        ICartItemRepository CartItemRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        IProductOrderRepository ProductOrderRepository { get; }
         ITicketTypeRepository TicketTypeRepository { get; }
         ISupportRepository SupportRepository { get; }
         INotificationRepository NotificationRepository { get; }

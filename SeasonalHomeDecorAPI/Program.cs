@@ -1,10 +1,8 @@
 ﻿using BusinessLogicLayer.Interfaces;
-using BusinessLogicLayer;
 using BusinessLogicLayer.ObjectMapper;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
-using Repository;
 using Repository.UnitOfWork;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -12,6 +10,8 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using BusinessLogicLayer.Hub;
+using BusinessLogicLayer.Services;
+using Repository.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,6 +137,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IProviderService, ProviderService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
 builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<ISupportService, SupportService>();

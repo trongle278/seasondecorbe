@@ -7,6 +7,12 @@ using AutoMapper;
 using DataAccessObject.Models;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelRequest.Cart;
+using BusinessLogicLayer.ModelRequest.Order;
+using BusinessLogicLayer.ModelRequest.Product;
+using BusinessLogicLayer.ModelResponse.Cart;
+using BusinessLogicLayer.ModelResponse.Order;
+using BusinessLogicLayer.ModelResponse.Product;
 
 namespace BusinessLogicLayer.ObjectMapper
 {
@@ -20,6 +26,10 @@ namespace BusinessLogicLayer.ObjectMapper
             ProviderProfile();
             TicketTypeProfile();
             TicketProfile();
+            CartProfile();
+            ProductProfile();
+            ProductCategoryProfile();
+            OrderProfile();
         }
 
         private void AccountProfile()
@@ -118,6 +128,30 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.CreateAt))
                 // Lấy URL từ các file đính kèm của reply
                 .ForMember(dest => dest.AttachmentUrls, opt => opt.MapFrom(src => src.TicketAttachments.Select(a => a.FileUrl).ToList()));
+        }
+
+        private void CartProfile()
+        {
+            CreateMap<CartDTORequest, Cart>();
+            CreateMap<Cart, CartResponse>();
+        }
+
+        private void ProductProfile()
+        {
+            CreateMap<ProductRequest, Product>();
+            CreateMap<Product, ProductResponse>();
+        }
+
+        private void ProductCategoryProfile()
+        {
+            CreateMap<ProductCategoryRequest, ProductCategory>();
+            CreateMap<ProductCategory, ProductCategoryResponse>();
+        }
+
+        private void OrderProfile()
+        {
+            CreateMap<OrderRequest, Order>();
+            CreateMap<Order, OrderResponse>();
         }
     }
 }
