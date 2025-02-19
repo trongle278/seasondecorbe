@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Repository.Interfaces;
+using Repository.Repositories;
 
 namespace Repository.UnitOfWork
 {
