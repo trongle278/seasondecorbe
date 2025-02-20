@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using BusinessLogicLayer.Hub;
 using BusinessLogicLayer.Services;
 using Repository.Repositories;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,10 @@ var securityKey = new SymmetricSecurityKey(keyBytes);
 builder.Services.AddControllers()
        .AddJsonOptions(options =>
        {
-           options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+           options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+           options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+           options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+           options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // Convert number to text in enum
        });
 
 builder.Services.AddEndpointsApiExplorer();

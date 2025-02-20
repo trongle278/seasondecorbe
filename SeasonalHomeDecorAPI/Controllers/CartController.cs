@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Cart;
+using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,27 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             }
             return BadRequest(result.Errors);
+        }
+
+        [HttpGet("getCart/{id}")]
+        //[Authorize(Policy = "RequireCustomerRole")]
+        public async Task<IActionResult> GetCartByAccountId(int id)
+        {
+            var result = await _cartService.GetCart(id);
+
+            if (result.Success == false && result.Message == "Invalid cart")
+            {
+                ModelState.AddModelError("", $"Cart not found!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error retrieving cart")
+            {
+                ModelState.AddModelError("", $"Error retrieving cart!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
         }
 
         [HttpPost("addToCart/{id}")]

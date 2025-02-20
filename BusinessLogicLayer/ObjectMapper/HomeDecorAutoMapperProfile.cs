@@ -133,8 +133,19 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void CartProfile()
         {
-            CreateMap<CartDTORequest, Cart>();
-            CreateMap<Cart, CartResponse>();
+            CreateMap<Cart, CartResponse>()
+            .ForMember(dest => dest.TotalItem, opt => opt.MapFrom(src => src.TotalItem))
+            .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+            .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems));
+
+            CreateMap<CartItem, CartItemResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductName))
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Image))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice));
         }
 
         private void ProductProfile()

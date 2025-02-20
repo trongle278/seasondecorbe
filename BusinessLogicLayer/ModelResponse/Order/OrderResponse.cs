@@ -16,13 +16,14 @@ namespace BusinessLogicLayer.ModelResponse.Order
         public string PaymentMethod { get; set; }
         public DateTime OrderDate { get; set; }
         public double TotalPrice { get; set; }
-        public enum Status
+        public enum OrderStatus
         {
             Pending,
             Shipping,
             Completed,
             Cancelled
         }
+        public OrderStatus Status { get; set; }
         public int AccountId { get; set; }
         public ICollection<ProductOrder> ProductOrders { get; set; }
     }

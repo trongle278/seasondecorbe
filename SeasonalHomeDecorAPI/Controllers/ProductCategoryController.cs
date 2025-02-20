@@ -17,7 +17,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             _productCategoryService = productCategoryService;
         }
 
-        [HttpGet]
+        [HttpGet("getList")]
         public async Task<IActionResult> GetAllProductCategory()
         {
             var result = await _productCategoryService.GetAllProductCategory();
@@ -29,7 +29,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetProductCategoryById(int id)
         {
             var result = await _productCategoryService.GetProductCategoryById(id);
@@ -49,7 +49,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("createProductCategory")]
         public async Task<IActionResult> CreateProductCategory(ProductCategoryRequest request)
         {
             var result = await _productCategoryService.CreateProductCategory(request);
@@ -75,7 +75,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("updateProductCategory/{id}")]
         public async Task<IActionResult> UpdateProductCategory(int id, ProductCategoryRequest request)
         {
             var result = await _productCategoryService.UpdateProductCategory(id, request);
@@ -101,7 +101,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("deleteProductCategory/{id}")]
         public async Task<IActionResult> DeleteProductCategory(int id)
         {
             var result = await _productCategoryService.DeleteProductCategory(id);

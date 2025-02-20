@@ -32,7 +32,7 @@ namespace BusinessLogicLayer.Services
             {
                 var order = await _unitOfWork.OrderRepository.GetAllAsync();
                 response.Success = true;
-                response.Message = "Order list retrieved successfully";
+                response.Message = "Order list retrieved successfully.";
                 response.Data = _mapper.Map<List<OrderResponse>>(order);
             }
             catch (Exception ex)
@@ -63,7 +63,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 response.Success = true;
-                response.Message = "Order retrieved successfully";
+                response.Message = "Order retrieved successfully.";
                 response.Data = _mapper.Map<OrderResponse>(order);
             }
             catch (Exception ex)
@@ -154,7 +154,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Order created successfully";
+                response.Message = "Order created successfully.";
                 response.Data = _mapper.Map<OrderResponse>(order);
             }
             catch (Exception ex)
@@ -201,7 +201,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Order updated succesfully";
+                response.Message = "Order updated succesfully.";
                 response.Data = _mapper.Map<OrderResponse>(order);
             }
             catch (Exception ex)
@@ -219,7 +219,10 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+                var order = await _unitOfWork.OrderRepository
+                                            .Query(o => o.Id == id)
+                                            .Include(o => o.ProductOrders)
+                                            .FirstOrDefaultAsync();
 
                 if (order == null)
                 {
@@ -253,7 +256,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Order cancelled successfully";
+                response.Message = "Order cancelled successfully.";
                 response.Data = _mapper.Map<OrderResponse>(order);
             }
             catch (Exception ex)

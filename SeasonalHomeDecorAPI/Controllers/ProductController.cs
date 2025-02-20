@@ -16,7 +16,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             _productService = productService;
         }
 
-        [HttpGet]
+        [HttpGet("getList")]
         public async Task<IActionResult> GetAllProduct()
         {
             var result = await _productService.GetAllProduct();
@@ -28,7 +28,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
             var result = await _productService.GetProductById(id);
@@ -48,7 +48,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("createProduct")]
         public async Task<IActionResult> CreateProduct(ProductRequest request)
         {
             var result = await _productService.CreateProduct(request);
@@ -86,7 +86,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("updateProduct/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, ProductRequest request)
         {
             var result = await _productService.UpdateProduct(id, request);
@@ -124,7 +124,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("deleteProduct/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var result = await _productService.DeleteProduct(id);

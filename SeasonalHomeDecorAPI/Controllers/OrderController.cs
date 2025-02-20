@@ -17,7 +17,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             _orderService = orderService;
         }
 
-        [HttpGet]
+        [HttpGet("getList")]
         public async Task<IActionResult> GetOrderList()
         {
             var result = await _orderService.GetOrderList();
@@ -29,7 +29,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {
             var result = await _orderService.GetOrderById(id);

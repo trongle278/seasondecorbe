@@ -86,7 +86,7 @@ namespace BusinessLogicLayer.Services
                 if (cart == null)
                 {
                     response.Success = false;
-                    response.Message = "Cart not found!";
+                    response.Message = "Invalid cart";
                     return response;
                 }
                 response.Success = true;
@@ -96,7 +96,7 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error retrieving cart!";
+                response.Message = "Error retrieving cart";
                 response.Errors.Add(ex.Message);
             }
 
@@ -187,8 +187,8 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Product added to cart successfully";
-                //response.Data = _mapper.Map<CartResponse>(cart);
+                response.Message = "Product added to cart successfully.";
+                response.Data = _mapper.Map<CartResponse>(cart);
             }
             catch (Exception ex)
             {
@@ -248,14 +248,19 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Update cart and cartItem
                 double unitPrice = product.ProductPrice;
 
-                cartItem.Quantity = quantity;
-                cartItem.UnitPrice = quantity * unitPrice;
+                // Save old cartItem value before update
+                int oldQuantity = cartItem.Quantity;
+                double oldUnitPrice = cartItem.UnitPrice;
 
-                cart.TotalItem += quantity - cartItem.Quantity;
-                cart.TotalPrice += (quantity - cartItem.Quantity) * unitPrice;
+                // Update cartItem
+                cartItem.Quantity = quantity;
+                cartItem.UnitPrice = quantity * product.ProductPrice;
+
+                // Update cart using old value
+                cart.TotalItem += quantity - oldQuantity;
+                cart.TotalPrice += (cartItem.UnitPrice - oldUnitPrice);
 
                 _unitOfWork.CartItemRepository.Update(cartItem);
 
@@ -264,7 +269,7 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Product in cart updated successfully.";
-                //response.Data = _mapper.Map<CartResponse>(cart);
+                response.Data = _mapper.Map<CartResponse>(cart);
             }
             catch (Exception ex)
             {
@@ -304,14 +309,14 @@ namespace BusinessLogicLayer.Services
                 cart.TotalItem -= cartItem.Quantity;
                 cart.TotalPrice -= cartItem.UnitPrice;
 
-                _unitOfWork.CartItemRepository.Delete(cartItem);
+                _unitOfWork.CartItemRepository.Delete(cartItem.Id);
                 _unitOfWork.CartRepository.Update(cart);
 
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Product in cart removed successfully";
-                //response.Data = _mapper.Map<CartResponse>(cart);
+                response.Message = "Product in cart removed successfully.";
+                response.Data = _mapper.Map<CartResponse>(cart);
             }
             catch (Exception ex)
             {
