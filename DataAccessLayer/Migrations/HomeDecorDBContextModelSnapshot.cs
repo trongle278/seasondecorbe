@@ -271,7 +271,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ChatId");
 
-                    b.ToTable("ChatFile");
+                    b.ToTable("ChatFiles");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorCategory", b =>
@@ -358,6 +358,35 @@ namespace DataAccessObject.Migrations
                     b.ToTable("DecorServices");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("DeviceTokens");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Follower", b =>
                 {
                     b.Property<int>("AccountId")
@@ -413,6 +442,9 @@ namespace DataAccessObject.Migrations
                     b.Property<DateTime>("NotifiedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("SenderId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -423,6 +455,8 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Notifications");
                 });
@@ -1026,6 +1060,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Provider");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("DeviceTokens")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Follower", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -1053,7 +1098,13 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Account", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId");
+
                     b.Navigation("Account");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>
@@ -1236,6 +1287,8 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("Cart")
                         .IsRequired();
+
+                    b.Navigation("DeviceTokens");
 
                     b.Navigation("Followers");
 

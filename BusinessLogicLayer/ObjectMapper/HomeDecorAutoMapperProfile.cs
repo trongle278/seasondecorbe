@@ -30,6 +30,7 @@ namespace BusinessLogicLayer.ObjectMapper
             ProductProfile();
             ProductCategoryProfile();
             OrderProfile();
+            NotificationProfile();
         }
 
         private void AccountProfile()
@@ -152,6 +153,22 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<OrderRequest, Order>();
             CreateMap<Order, OrderResponse>();
+        private void NotificationProfile()
+        {
+            CreateMap<Notification, NotificationResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+                .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content))
+                .ForMember(dest => dest.NotifiedAt, opt => opt.MapFrom(src => src.NotifiedAt))
+                // Dù vẫn map ReceiverId (AccountId) nếu cần, nhưng không map tên người nhận
+                .ForMember(dest => dest.ReceiverId, opt => opt.MapFrom(src => src.AccountId))
+                // Map SenderId và SenderName từ đối tượng Sender
+                .ForMember(dest => dest.SenderId, opt => opt.MapFrom(src => src.SenderId))
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src =>
+                    src.Sender != null
+                        ? $"{src.Sender.FirstName} {src.Sender.LastName}"
+                        : "System"))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
         }
     }
 }

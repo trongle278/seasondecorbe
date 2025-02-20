@@ -33,6 +33,7 @@ namespace Repository.UnitOfWork
             TicketTypeRepository = new TicketTypeRepository(_context);
             SupportRepository = new SupportRepository(_context);
             NotificationRepository = new NotificationRepository(_context);
+            DeviceTokenRepository = new DeviceTokenRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -49,6 +50,7 @@ namespace Repository.UnitOfWork
         public ITicketTypeRepository TicketTypeRepository { get; private set; }
         public ISupportRepository SupportRepository { get; private set; }
         public INotificationRepository NotificationRepository { get; private set; }
+        public IDeviceTokenRepository DeviceTokenRepository { get; private set; }
 
         public void Dispose()
         {

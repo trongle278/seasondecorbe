@@ -49,5 +49,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
+        //test
+        public ICollection<DeviceToken> DeviceTokens { get; set; }
     }
 }

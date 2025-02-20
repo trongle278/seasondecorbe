@@ -18,7 +18,8 @@ namespace DataAccessObject.Models
         public DateTime NotifiedAt { get; set; }
 
         public int AccountId { get; set; }
-        public Account Account { get; set; }
+        [ForeignKey("AccountId")]
+        public virtual Account Account { get; set; }
         public enum NotificationType
         {
             Chat,
@@ -26,5 +27,9 @@ namespace DataAccessObject.Models
             Event
         }
         public NotificationType Type { get; set; }
+
+        public int? SenderId { get; set; }
+        [ForeignKey("SenderId")]
+        public virtual Account Sender { get; set; }
     }
 }

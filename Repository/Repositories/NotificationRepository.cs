@@ -17,6 +17,8 @@ namespace Repository.Repositories
         public async Task<IEnumerable<Notification>> GetNotificationsByAccountIdAsync(int accountId)
         {
             return await _context.Set<Notification>()
+                                 .Include(n => n.Account)
+                                 .Include(n => n.Sender)
                                  .Where(n => n.AccountId == accountId)
                                  .OrderByDescending(n => n.NotifiedAt)
                                  .ToListAsync();

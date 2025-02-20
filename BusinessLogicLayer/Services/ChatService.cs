@@ -101,6 +101,7 @@ namespace BusinessLogicLayer.Services
                 Content = chat.Message, // Hoặc bạn có thể định dạng lại nội dung hiển thị thông báo
                 NotifiedAt = DateTime.UtcNow,
                 AccountId = chat.ReceiverId,
+                SenderId = chat.SenderId,
                 Type = NotificationType.Chat
             };
 
