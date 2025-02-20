@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Repository.GenericRepository;
 using Repository.Interfaces;
 
-namespace Repository
+namespace Repository.Repositories
 {
     public class DeviceTokenRepository : GenericRepository<DeviceToken>, IDeviceTokenRepository
     {

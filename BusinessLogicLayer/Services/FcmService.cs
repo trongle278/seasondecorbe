@@ -7,7 +7,7 @@ using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 
-namespace BusinessLogicLayer
+namespace BusinessLogicLayer.Services
 {
     public class FcmService
     {
@@ -15,8 +15,8 @@ namespace BusinessLogicLayer
         {
             if (FirebaseApp.DefaultInstance == null)
             {
-                var credentialPath = System.IO.Path.Combine(
-                    System.IO.Directory.GetCurrentDirectory(),
+                var credentialPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
                     "ServiceAccount",
                     "seasondecor-4a83d-firebase-adminsdk-fbsvc-2747aa752e.json"
                 );
@@ -43,6 +43,6 @@ namespace BusinessLogicLayer
             // Gửi thông báo và trả về response từ FCM
             string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
             return response;
-        }   
+        }
     }
 }
