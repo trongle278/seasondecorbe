@@ -255,6 +255,28 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DeviceTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Platform = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeviceTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DeviceTokens_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Followers",
                 columns: table => new
                 {
@@ -288,7 +310,8 @@ namespace DataAccessObject.Migrations
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NotifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false)
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    SenderId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -299,6 +322,11 @@ namespace DataAccessObject.Migrations
                         principalTable: "Accounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Accounts_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -423,7 +451,7 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ChatFile",
+                name: "ChatFiles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -435,9 +463,9 @@ namespace DataAccessObject.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChatFile", x => x.Id);
+                    table.PrimaryKey("PK_ChatFiles", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ChatFile_Chats_ChatId",
+                        name: "FK_ChatFiles_Chats_ChatId",
                         column: x => x.ChatId,
                         principalTable: "Chats",
                         principalColumn: "Id",
@@ -733,8 +761,8 @@ namespace DataAccessObject.Migrations
                 column: "VoucherId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatFile_ChatId",
-                table: "ChatFile",
+                name: "IX_ChatFiles_ChatId",
+                table: "ChatFiles",
                 column: "ChatId");
 
             migrationBuilder.CreateIndex(
@@ -763,6 +791,11 @@ namespace DataAccessObject.Migrations
                 column: "ProviderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DeviceTokens_AccountId",
+                table: "DeviceTokens",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Followers_FollowerId",
                 table: "Followers",
                 column: "FollowerId");
@@ -771,6 +804,11 @@ namespace DataAccessObject.Migrations
                 name: "IX_Notifications_AccountId",
                 table: "Notifications",
                 column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_SenderId",
+                table: "Notifications",
+                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_AccountId",
@@ -876,10 +914,13 @@ namespace DataAccessObject.Migrations
                 name: "CartItems");
 
             migrationBuilder.DropTable(
-                name: "ChatFile");
+                name: "ChatFiles");
 
             migrationBuilder.DropTable(
                 name: "DecorImages");
+
+            migrationBuilder.DropTable(
+                name: "DeviceTokens");
 
             migrationBuilder.DropTable(
                 name: "Followers");

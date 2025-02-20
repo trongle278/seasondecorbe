@@ -55,6 +55,9 @@ namespace DataAccessObject.Models
         public DbSet<TicketReply> TicketReplies { get; set; }
         public DbSet<TicketAttachment> TicketAttachments { get; set; }
         public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatFile> ChatFiles { get; set; }
+        //test
+        public DbSet<DeviceToken> DeviceTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -291,6 +294,13 @@ namespace DataAccessObject.Models
                 .HasOne(cf => cf.Chat)
                 .WithMany(c => c.ChatFiles)
                 .HasForeignKey(cf => cf.ChatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //test
+            modelBuilder.Entity<DeviceToken>()
+                .HasOne(dt => dt.Account)
+                .WithMany(a => a.DeviceTokens)
+                .HasForeignKey(dt => dt.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

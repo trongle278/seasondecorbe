@@ -24,7 +24,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         // POST: api/Support/create-ticket
         [HttpPost("create-ticket")]
-        public async Task<IActionResult> CreateTicket([FromForm] SupportRequest request)
+        public async Task<IActionResult> CreateTicket([FromForm] CreateSupportRequest request)
         {
             try
             {

@@ -143,6 +143,8 @@ builder.Services.AddScoped<ISupportService, SupportService>();
 builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<FcmService>();
+builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 
 
 // 11. Build the application
