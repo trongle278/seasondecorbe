@@ -24,21 +24,6 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FollowerActivities",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Follower = table.Column<int>(type: "int", nullable: false),
-                    Following = table.Column<int>(type: "int", nullable: false),
-                    IsNotify = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FollowerActivities", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductCategories",
                 columns: table => new
                 {
@@ -277,27 +262,31 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Followers",
+                name: "Follows",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     FollowerId = table.Column<int>(type: "int", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: false)
+                    FollowingId = table.Column<int>(type: "int", nullable: false),
+                    IsNotify = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Followers", x => new { x.AccountId, x.FollowerId });
+                    table.PrimaryKey("PK_Follows", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Followers_Accounts_AccountId",
-                        column: x => x.AccountId,
+                        name: "FK_Follows_Accounts_FollowerId",
+                        column: x => x.FollowerId,
                         principalTable: "Accounts",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Followers_FollowerActivities_FollowerId",
-                        column: x => x.FollowerId,
-                        principalTable: "FollowerActivities",
+                        name: "FK_Follows_Accounts_FollowingId",
+                        column: x => x.FollowingId,
+                        principalTable: "Accounts",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -341,6 +330,7 @@ namespace DataAccessObject.Migrations
                     PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TotalPrice = table.Column<double>(type: "float", nullable: false),
+                    OrderStatus = table.Column<int>(type: "int", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     VoucherId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -796,9 +786,14 @@ namespace DataAccessObject.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Followers_FollowerId",
-                table: "Followers",
+                name: "IX_Follows_FollowerId",
+                table: "Follows",
                 column: "FollowerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowingId",
+                table: "Follows",
+                column: "FollowingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_AccountId",
@@ -923,7 +918,7 @@ namespace DataAccessObject.Migrations
                 name: "DeviceTokens");
 
             migrationBuilder.DropTable(
-                name: "Followers");
+                name: "Follows");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
@@ -945,9 +940,6 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Chats");
-
-            migrationBuilder.DropTable(
-                name: "FollowerActivities");
 
             migrationBuilder.DropTable(
                 name: "Products");

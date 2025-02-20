@@ -42,7 +42,8 @@ namespace DataAccessObject.Models
         public Provider Provider { get; set; }
         public Cart Cart { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }
-        public virtual ICollection<Follower> Followers { get; set; }
+        public virtual ICollection<Follow> Followers { get; set; }
+        public virtual ICollection<Follow> Followings { get; set; }
         public virtual ICollection<Support> Supports { get; set; }
         public virtual ICollection<TicketReply> TicketReplies { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
