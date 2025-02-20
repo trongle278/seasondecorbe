@@ -19,12 +19,13 @@ namespace DataAccessObject.Models
         public int Discount { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public enum Status
+        public enum VoucherStatus
         {
             Valid,
             Invalid,
             Expired
         }
+        public VoucherStatus Status { get; set; }
 
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }

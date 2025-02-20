@@ -19,7 +19,7 @@ namespace DataAccessObject.Models
         public string PaymentMethod { get; set; }
         public DateTime OrderDate { get; set; }
         public double TotalPrice { get; set; }
-        public enum Status
+        public enum OrderStatus
         {
             Pending,
             Processing,
@@ -27,7 +27,7 @@ namespace DataAccessObject.Models
             Completed,
             Cancelled
         }
-        public Status OrderStatus { get; set; }
+        public OrderStatus Status { get; set; }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }

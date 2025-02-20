@@ -17,7 +17,7 @@ namespace DataAccessObject.Models
         public string PaymentMethod { get; set; }
         public DateTime Date { get; set; }
         public double Total { get; set; }
-        public enum Status
+        public enum PaymentStatus
         {
             Pending,
             Completed,
@@ -26,6 +26,7 @@ namespace DataAccessObject.Models
             Cancelled,
             Expired
         }
+        public PaymentStatus Status { get; set; }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }

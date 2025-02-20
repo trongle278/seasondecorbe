@@ -82,6 +82,7 @@ namespace Repository.GenericRepository
             Delete(entityToDelete);
         }
 
+
         protected virtual void Delete(T entityToDelete)
         {
             if (_context.Entry(entityToDelete).State == EntityState.Detached)
@@ -89,6 +90,11 @@ namespace Repository.GenericRepository
                 _context.Set<T>().Attach(entityToDelete);
             }
             _context.Set<T>().Remove(entityToDelete);
+        }
+
+        public virtual void RemoveRange(IEnumerable<T> entities)
+        {
+            _context.Set<T>().RemoveRange(entities);
         }
 
         public virtual async Task SaveAsync()

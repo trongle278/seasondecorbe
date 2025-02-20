@@ -153,6 +153,8 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<OrderRequest, Order>();
             CreateMap<Order, OrderResponse>();
+        }
+
         private void NotificationProfile()
         {
             CreateMap<Notification, NotificationResponse>()

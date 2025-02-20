@@ -16,7 +16,7 @@ namespace DataAccessObject.Models
         public string BookingCode { get; set; }
         public double TotalPrice { get; set; }
         public DateTime CreateAt { get; set; }
-        public enum Status
+        public enum BookingStatus
         {
             Surveying,
             Pending,
@@ -26,6 +26,7 @@ namespace DataAccessObject.Models
             Completed,
             Cancelled
         }
+        public BookingStatus Status { get; set; }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }

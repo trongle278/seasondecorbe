@@ -16,6 +16,7 @@ namespace Repository.GenericRepository
         Task InsertAsync(T entity);
         void Update(T entity);
         void Delete(object id);
+        void RemoveRange(IEnumerable<T> entities);
         void UpdateAndRelationStatus(T entity, Expression<Func<T, object>>[]? includeProperties = null);
         Task SaveAsync();
         Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAndFilteredAsync(

@@ -175,7 +175,7 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
 
-                    cartItem.Quantity = quantity;
+                    cartItem.Quantity += quantity;
                     cartItem.UnitPrice = quantity * unitPrice;
                 }
 
@@ -188,7 +188,7 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Product added to cart successfully";
-                response.Data = _mapper.Map<CartResponse>(cart);
+                //response.Data = _mapper.Map<CartResponse>(cart);
             }
             catch (Exception ex)
             {
@@ -251,19 +251,20 @@ namespace BusinessLogicLayer.Services
                 // Update cart and cartItem
                 double unitPrice = product.ProductPrice;
 
-                cart.TotalItem += quantity - cartItem.Quantity;
-                cart.TotalPrice += (quantity - cartItem.Quantity) * unitPrice;
                 cartItem.Quantity = quantity;
                 cartItem.UnitPrice = quantity * unitPrice;
 
-                _unitOfWork.CartItemRepository.Update(cartItem);
-                _unitOfWork.CartRepository.Update(cart);
+                cart.TotalItem += quantity - cartItem.Quantity;
+                cart.TotalPrice += (quantity - cartItem.Quantity) * unitPrice;
 
+                _unitOfWork.CartItemRepository.Update(cartItem);
+
+                _unitOfWork.CartRepository.Update(cart);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
                 response.Message = "Product in cart updated successfully.";
-                response.Data = _mapper.Map<CartResponse>(cart);
+                //response.Data = _mapper.Map<CartResponse>(cart);
             }
             catch (Exception ex)
             {
@@ -310,7 +311,7 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Product in cart removed successfully";
-                response.Data = _mapper.Map<CartResponse>(cart);
+                //response.Data = _mapper.Map<CartResponse>(cart);
             }
             catch (Exception ex)
             {

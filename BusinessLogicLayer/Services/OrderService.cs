@@ -119,20 +119,38 @@ namespace BusinessLogicLayer.Services
                     PaymentMethod = "Online Banking",
                     OrderDate = DateTime.Now,
                     TotalPrice = orderItems.Sum(item => item.UnitPrice),
-                    OrderStatus = Order.Status.Pending,
+                    Status = Order.OrderStatus.Pending,
                     ProductOrders = orderItems.Select(item => new ProductOrder
                     {
                         ProductId = item.ProductId,
                         ProductName = item.ProductName,
+                        Image = item.Image,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
+                        UnitPrice = item.UnitPrice
                     }).ToList()
                 };
 
-                _unitOfWork.CartItemRepository.Delete(cart.CartItems);
-                await _unitOfWork.CommitAsync();
-
                 await _unitOfWork.OrderRepository.InsertAsync(order);
+
+                // Update Product Quantity
+                foreach (var item in orderItems)
+                {
+                    var product = item.Product;
+                    if (product != null)
+                    {
+                        product.Quantity -= item.Quantity;
+                        _unitOfWork.ProductRepository.Update(product);
+                    }
+                }
+
+                // Remove products from cart
+                _unitOfWork.CartItemRepository.RemoveRange(cart.CartItems);
+
+                // Clear totalItem in Cart
+                cart.TotalItem = 0;
+                cart.TotalPrice = 0;
+                _unitOfWork.CartRepository.Update(cart);
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -156,27 +174,27 @@ namespace BusinessLogicLayer.Services
             {
                 var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
 
-                if (order == null || order.OrderStatus == Order.Status.Cancelled)
+                if (order == null || order.Status == Order.OrderStatus.Cancelled)
                 {
                     response.Success = false;
                     response.Message = "Invalid order";
                     return response;
                 }
 
-                switch (order.OrderStatus)
+                switch (order.Status)
                 {
-                    case Order.Status.Pending:
-                        order.OrderStatus = Order.Status.Processing;
+                    case Order.OrderStatus.Pending:
+                        order.Status = Order.OrderStatus.Processing;
                         _unitOfWork.OrderRepository.Update(order);
                         break;
 
-                    case Order.Status.Processing:
-                        order.OrderStatus = Order.Status.Shipping;
+                    case Order.OrderStatus.Processing:
+                        order.Status = Order.OrderStatus.Shipping;
                         _unitOfWork.OrderRepository.Update(order);
                         break;
 
-                    case Order.Status.Shipping:
-                        order.OrderStatus = Order.Status.Completed;
+                    case Order.OrderStatus.Shipping:
+                        order.Status = Order.OrderStatus.Completed;
                         _unitOfWork.OrderRepository.Update(order);
                         break;
                 }
@@ -210,16 +228,28 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                if (order.OrderStatus != Order.Status.Pending)
+                if (order.Status != Order.OrderStatus.Pending)
                 {
                     response.Success = false;
                     response.Message = "Invalid status";
                     return response;
                 }
 
-                order.OrderStatus = Order.Status.Cancelled;
+                order.Status = Order.OrderStatus.Cancelled;
 
                 _unitOfWork.OrderRepository.Update(order);
+
+                // Update Product quantity
+                foreach (var productOrder in order.ProductOrders)
+                {
+                    var product = await _unitOfWork.ProductRepository.GetByIdAsync(productOrder.ProductId);
+                    if (product != null)
+                    {
+                        product.Quantity += productOrder.Quantity;
+                        _unitOfWork.ProductRepository.Update(product);
+                    }
+                }
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
