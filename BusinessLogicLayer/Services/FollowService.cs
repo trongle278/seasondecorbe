@@ -16,12 +16,12 @@ namespace BusinessLogicLayer.Services
     public class FollowService : IFollowService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public FollowService(IUnitOfWork unitOfWork, IMapper mapper)
+        public FollowService(IUnitOfWork unitOfWork, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<BaseResponse> FollowAsync(int followerId, int followingId, bool isNotify = true)
@@ -47,11 +47,25 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.FollowRepository.InsertAsync(follow);
                 await _unitOfWork.CommitAsync();
 
-                // Map sang FollowResponse nếu bạn muốn trả thông tin chi tiết
-                // var followResponse = _mapper.Map<FollowResponse>(follow);
+                // Sau khi follow thành công, tạo notification gửi tới người được follow
+                var notification = new Notification
+                {
+                    Title = "New Follower",
+                    // Nội dung thông báo có thể được cải tiến để hiển thị tên của người follow.
+                    Content = "You have a new follower.",
+                    AccountId = followingId,   // Người nhận thông báo là người được follow
+                    NotifiedAt = DateTime.UtcNow,
+                    // Giả sử Notification.NotificationType được định nghĩa sẵn trong entity Notification.
+                    Type = Notification.NotificationType.System,
+                    SenderId = followerId      // Người gửi thông báo là người follow
+                };
+
+                // Gửi thông báo qua NotificationService
+                var notifResponse = await _notificationService.SendNotificationAsync(notification);
+
                 response.Success = true;
-                response.Message = "Follow successful.";
-                response.Data = follow; // hoặc followResponse
+                response.Message = "Follow successful. Notification sent.";
+                response.Data = follow; // Hoặc bạn có thể map sang DTO nếu cần
             }
             catch (Exception ex)
             {

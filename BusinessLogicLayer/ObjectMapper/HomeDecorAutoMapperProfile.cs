@@ -187,15 +187,27 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void FollowProfile()
         {
-            CreateMap<Follow, FollowResponse>()
-            .ForMember(dest => dest.FollowingId,
-                       opt => opt.MapFrom(src => src.FollowingId))
-            .ForMember(dest => dest.FollowingName,
-                       opt => opt.MapFrom(src => ((src.Following.FirstName ?? "") + " " + (src.Following.LastName ?? "")).Trim()))
-            .ForMember(dest => dest.FollowingAvatar,
-                       opt => opt.MapFrom(src => src.Following.Avatar))
-            .ForMember(dest => dest.CreatedAt,
-                       opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
+            // Map cho trường hợp GetFollowers: hiển thị thông tin của người theo dõi (follower)
+            CreateMap<Follow, FollowerResponse>()
+                .ForMember(dest => dest.FollowerId,
+                           opt => opt.MapFrom(src => src.FollowerId))
+                .ForMember(dest => dest.FollowerName,
+                           opt => opt.MapFrom(src => ((src.Follower.FirstName ?? "") + " " + (src.Follower.LastName ?? "")).Trim()))
+                .ForMember(dest => dest.FollowerAvatar,
+                           opt => opt.MapFrom(src => src.Follower.Avatar))
+                .ForMember(dest => dest.FollowedAt,
+                           opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
+
+            // Map cho trường hợp GetFollowings: hiển thị thông tin của người được theo dõi (following)
+            CreateMap<Follow, FollowingResponse>()
+                .ForMember(dest => dest.FollowingId,
+                           opt => opt.MapFrom(src => src.FollowingId))
+                .ForMember(dest => dest.FollowingName,
+                           opt => opt.MapFrom(src => ((src.Following.FirstName ?? "") + " " + (src.Following.LastName ?? "")).Trim()))
+                .ForMember(dest => dest.FollowingAvatar,
+                           opt => opt.MapFrom(src => src.Following.Avatar))
+                .ForMember(dest => dest.FollowedAt,
+                           opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
         }
     }
 }
