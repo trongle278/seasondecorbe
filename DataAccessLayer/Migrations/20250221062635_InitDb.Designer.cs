@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250220144112_InitDb")]
+    [Migration("20250221062635_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -392,22 +392,7 @@ namespace DataAccessObject.Migrations
                     b.ToTable("DeviceTokens");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Follower", b =>
-                {
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FollowerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AccountId", "FollowerId");
-
-                    b.HasIndex("FollowerId");
-
-                    b.ToTable("Followers");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.FollowerActivity", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Follow", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -415,10 +400,13 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("Follower")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FollowerId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Following")
+                    b.Property<int>("FollowingId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsNotify")
@@ -426,7 +414,11 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FollowerActivities");
+                    b.HasIndex("FollowerId");
+
+                    b.HasIndex("FollowingId");
+
+                    b.ToTable("Follows");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Notification", b =>
@@ -772,9 +764,6 @@ namespace DataAccessObject.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Subscriptions");
@@ -1088,23 +1077,23 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Follower", b =>
+            modelBuilder.Entity("DataAccessObject.Models.Follow", b =>
                 {
-                    b.HasOne("DataAccessObject.Models.Account", "Account")
-                        .WithMany("Followers")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataAccessObject.Models.FollowerActivity", "FollowerActivity")
-                        .WithMany("Followers")
+                    b.HasOne("DataAccessObject.Models.Account", "Follower")
+                        .WithMany("Followings")
                         .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Account");
+                    b.HasOne("DataAccessObject.Models.Account", "Following")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("FollowerActivity");
+                    b.Navigation("Follower");
+
+                    b.Navigation("Following");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Notification", b =>
@@ -1309,6 +1298,8 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("Followers");
 
+                    b.Navigation("Followings");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("Orders");
@@ -1354,11 +1345,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("DecorImages");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.FollowerActivity", b =>
-                {
-                    b.Navigation("Followers");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>

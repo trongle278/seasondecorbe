@@ -17,12 +17,12 @@ namespace DataAccessObject.Models
         public string Description { get; set; }
         public double Price { get; set; }
         public int Duration { get; set; }
-        public enum SubscriptionStatus
-        {
-            Subcribed,
-            Unsubcribed
-        }
-        public SubscriptionStatus Status { get; set; }
+        //public enum SubscriptionStatus
+        //{
+        //    Subcribed,
+        //    Unsubcribed
+        //}
+        //public SubscriptionStatus Status { get; set; }
 
         public virtual ICollection<Account> Accounts { get; set; }
         public virtual ICollection<Provider> Providers { get; set; }
