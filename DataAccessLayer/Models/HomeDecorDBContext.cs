@@ -32,8 +32,7 @@ namespace DataAccessObject.Models
 
         public DbSet<Role> Roles { get; set; }
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<Follower> Followers { get; set; }
-        public DbSet<FollowerActivity> FollowerActivities { get; set; }
+        public DbSet<Follow> Follows { get; set; }
         public DbSet<Provider> Providers { get; set; }
         public DbSet<DecorService> DecorServices { get; set; }
         public DbSet<DecorImage> DecorImages { get; set; }
@@ -125,20 +124,6 @@ namespace DataAccessObject.Models
                 .WithMany(tr => tr.TicketAttachments)
                 .HasForeignKey(ta => ta.TicketReplyId)
                 .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure N-N relationship between Account and FollowerActivity
-            modelBuilder.Entity<Follower>()
-                .HasKey(f => new { f.AccountId, f.FollowerId });
-
-            modelBuilder.Entity<Follower>()
-                .HasOne(f => f.Account)
-                .WithMany(a => a.Followers)
-                .HasForeignKey(f => f.AccountId);
-
-            modelBuilder.Entity<Follower>()
-                .HasOne(f => f.FollowerActivity)
-                .WithMany(fa => fa.Followers)
-                .HasForeignKey(f => f.FollowerId);
 
             // Configure 1-N relationship between Account and Booking
             modelBuilder.Entity<Booking>()
@@ -295,6 +280,19 @@ namespace DataAccessObject.Models
                 .WithMany(c => c.ChatFiles)
                 .HasForeignKey(cf => cf.ChatId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            //sửa quan hệ follow
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Follower)
+                .WithMany(a => a.Followings)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Following)
+                .WithMany(a => a.Followers)
+                .HasForeignKey(f => f.FollowingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             //test
             modelBuilder.Entity<DeviceToken>()

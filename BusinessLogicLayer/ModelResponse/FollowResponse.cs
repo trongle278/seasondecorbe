@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BusinessLogicLayer.ModelResponse
+{
+    public class FollowResponse
+    {
+        public int Id { get; set; }
+        public int FollowingId { get; set; }
+        public string FollowingName { get; set; }
+        public string FollowingAvatar { get; set; }
+        public string CreatedAt { get; set; }
+    }
+}

@@ -24,6 +24,7 @@ namespace Repository.UnitOfWork
         ITicketTypeRepository TicketTypeRepository { get; }
         ISupportRepository SupportRepository { get; }
         INotificationRepository NotificationRepository { get; }
+        IFollowRepository FollowRepository { get; }
         IDeviceTokenRepository DeviceTokenRepository { get; }
 
         int Save();

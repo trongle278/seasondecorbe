@@ -31,6 +31,7 @@ namespace BusinessLogicLayer.ObjectMapper
             ProductCategoryProfile();
             OrderProfile();
             NotificationProfile();
+            FollowProfile();
         }
 
         private void AccountProfile()
@@ -182,6 +183,19 @@ namespace BusinessLogicLayer.ObjectMapper
                         ? $"{src.Sender.FirstName} {src.Sender.LastName}"
                         : "System"))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type));
+        }
+
+        private void FollowProfile()
+        {
+            CreateMap<Follow, FollowResponse>()
+            .ForMember(dest => dest.FollowingId,
+                       opt => opt.MapFrom(src => src.FollowingId))
+            .ForMember(dest => dest.FollowingName,
+                       opt => opt.MapFrom(src => ((src.Following.FirstName ?? "") + " " + (src.Following.LastName ?? "")).Trim()))
+            .ForMember(dest => dest.FollowingAvatar,
+                       opt => opt.MapFrom(src => src.Following.Avatar))
+            .ForMember(dest => dest.CreatedAt,
+                       opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
         }
     }
 }
