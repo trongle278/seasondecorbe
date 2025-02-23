@@ -300,6 +300,16 @@ namespace DataAccessObject.Models
                 .WithMany(a => a.DeviceTokens)
                 .HasForeignKey(dt => dt.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, RoleName = "Admin" },
+                new Role { Id = 2, RoleName = "Provider" },
+                new Role { Id = 3, RoleName = "Customer" }
+            );
+
+            modelBuilder.Entity<Subscription>().HasData(
+                new Subscription { Id = 1, Name = "Basic", Description = "Normal Package", Price = 0, Duration = 999 }
+            );
         }
     }
 }

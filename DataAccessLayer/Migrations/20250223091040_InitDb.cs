@@ -688,6 +688,21 @@ namespace DataAccessObject.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "RoleName" },
+                values: new object[,]
+                {
+                    { 1, "Admin" },
+                    { 2, "Provider" },
+                    { 3, "Customer" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Subscriptions",
+                columns: new[] { "Id", "Description", "Duration", "Name", "Price" },
+                values: new object[] { 1, "Normal Package", 999, "Basic", 0.0 });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_RoleId",
                 table: "Accounts",

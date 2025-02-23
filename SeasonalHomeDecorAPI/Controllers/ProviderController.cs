@@ -19,6 +19,32 @@ namespace SeasonalHomeDecorAPI.Controllers
             _providerService = providerService;
         }
 
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProviderProfile()
+        {
+            // Lấy accountId từ JWT
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+            {
+                return Unauthorized("Account ID not found in token.");
+            }
+
+            int accountId = int.Parse(accountIdClaim.Value);
+
+            // Gọi service
+            var result = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
+
+            // Xử lý kết quả
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(result);
+            }
+        }
+
         [HttpPost("create-profile")]
         public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
         {

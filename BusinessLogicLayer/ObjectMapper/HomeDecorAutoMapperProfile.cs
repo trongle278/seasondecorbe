@@ -53,7 +53,8 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<UpdateAccountRequest, Account>();
         }
 
-        private void DecorCategoryProfile(){
+        private void DecorCategoryProfile()
+        {
             CreateMap<DecorCategory, DecorCategoryDTO>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
@@ -78,6 +79,18 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void ProviderProfile()
         {
+            CreateMap<Provider, ProviderResponse>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
+                .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => src.IsProvider))
+                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate))
+                // Lấy Phone, Address từ bảng Account
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Account.Phone))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Account.Address));
+                // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
+
             CreateMap<BecomeProviderRequest, Provider>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))

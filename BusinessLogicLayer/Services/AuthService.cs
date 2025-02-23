@@ -18,6 +18,7 @@ using Google.Apis.Auth;
 using System.Numerics;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using BusinessLogicLayer.ModelRequest.Cart;
+using AutoMapper;
 
 namespace BusinessLogicLayer.Services
 {
@@ -28,8 +29,12 @@ namespace BusinessLogicLayer.Services
         private readonly PasswordHasher<Account> _passwordHasher;
         private readonly IEmailService _emailService;
         private readonly ICartService _cartService;
+        private readonly IMapper _mapper;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService, ICartService cartService)
+        public AuthService(IUnitOfWork unitOfWork, 
+                           IConfiguration configuration, 
+                           IEmailService emailService, 
+                           ICartService cartService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
@@ -369,8 +374,9 @@ namespace BusinessLogicLayer.Services
                 {
                     Success = true,
                     Token = token,
-                    RoleId = account.RoleId, // Return RoleId
-                    AccountId = account.Id
+                    RoleId = account.RoleId,
+                    AccountId = account.Id,
+                    SubscriptionId = account.SubscriptionId
                 };
             }
             catch (Exception ex)

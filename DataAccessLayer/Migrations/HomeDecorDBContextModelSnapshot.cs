@@ -738,6 +738,23 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            RoleName = "Provider"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            RoleName = "Customer"
+                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
@@ -765,6 +782,16 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Subscriptions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Normal Package",
+                            Duration = 999,
+                            Name = "Basic",
+                            Price = 0.0
+                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>

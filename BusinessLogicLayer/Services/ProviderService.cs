@@ -27,6 +27,56 @@ namespace BusinessLogicLayer.Services
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
         }
+        public async Task<ProviderResponse> GetProviderProfileByAccountIdAsync(int accountId)
+        {
+            var response = new ProviderResponse();
+            try
+            {
+                // Lấy provider kèm thông tin Account
+                var provider = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == accountId)
+                    .Include(p => p.Account)
+                    .FirstOrDefaultAsync();
+
+                if (provider == null)
+                {
+                    response.Success = false;
+                    response.Message = "Provider not found for the given account";
+                    response.Errors.Add("Provider not found for the given account");
+                    return response;
+                }
+
+                // Tính số follower (người theo dõi)
+                int followersCount = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowingId == accountId)
+                    .CountAsync();
+
+                // Tính số following (đang theo dõi)
+                int followingsCount = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowerId == accountId)
+                    .CountAsync();
+
+                // Ánh xạ từ Provider -> ProviderResponse
+                _mapper.Map(provider, response);
+
+                // Gán thêm số follower/following
+                response.FollowersCount = followersCount;
+                response.FollowingsCount = followingsCount;
+
+                // Cập nhật trạng thái thành công
+                response.Success = true;
+                response.Message = "Provider profile retrieved successfully";
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to get provider profile";
+                response.Errors.Add(ex.Message);
+                return response;
+            }
+        }
 
         public async Task<BaseResponse> SendProviderInvitationEmailAsync(string email)
         {
@@ -118,7 +168,6 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
-
 
         public async Task<BaseResponse> UpdateProviderProfileByAccountIdAsync(int accountId, UpdateProviderRequest request)
         {
