@@ -369,7 +369,8 @@ namespace BusinessLogicLayer.Services
                 {
                     Success = true,
                     Token = token,
-                    RoleId = account.RoleId // Return RoleId
+                    RoleId = account.RoleId, // Return RoleId
+                    AccountId = account.Id
                 };
             }
             catch (Exception ex)

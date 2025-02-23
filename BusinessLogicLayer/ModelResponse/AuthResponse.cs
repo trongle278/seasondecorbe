@@ -35,6 +35,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool Success { get; set; }
         public string Token { get; set; }
         public int RoleId { get; set; }
+        public int AccountId { get; set; }
         public List<string> Errors { get; set; }
     }
     public class ForgotPasswordResponse : BaseResponse
