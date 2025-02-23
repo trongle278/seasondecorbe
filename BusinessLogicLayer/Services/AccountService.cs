@@ -115,8 +115,7 @@ namespace BusinessLogicLayer.Services
                     Gender = request.Gender,
                     Phone = request.Phone,
                     Address = request.Address,
-                    Avatar = request.Avatar,
-                    RoleId = 2, //Customer
+                    RoleId = 3, //Customer
                     IsDisable = false
                 };
 
@@ -143,49 +142,36 @@ namespace BusinessLogicLayer.Services
 
         public async Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request)
         {
-            try
-            {
-                var account = await _unitOfWork.AccountRepository
-                    .Query(x => x.Id == accountId)
-                    .FirstOrDefaultAsync();
+            var account = await _unitOfWork.AccountRepository
+                .Query(x => x.Id == accountId)
+                .FirstOrDefaultAsync();
 
-                if (account == null)
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Account not found",
-                        Errors = new List<string> { "Account not found" }
-                    };
-                }
-
-                // Update properties
-                account.FirstName = request.FirstName;
-                account.LastName = request.LastName;
-                account.DateOfBirth = request.DateOfBirth;
-                account.Gender = request.Gender;
-                account.Phone = request.Phone;
-                account.Address = request.Address;
-                account.Avatar = request.Avatar;
-
-                _unitOfWork.AccountRepository.Update(account);
-                await _unitOfWork.CommitAsync();
-
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Account updated successfully"
-                };
-            }
-            catch (Exception ex)
+            if (account == null)
             {
                 return new BaseResponse
                 {
                     Success = false,
-                    Message = "An error occurred while updating account",
-                    Errors = new List<string> { ex.Message }
+                    Message = "Account not found",
+                    Errors = new List<string> { "Account not found" }
                 };
             }
+
+            // Cập nhật các trường cần thiết
+            account.FirstName = request.FirstName;
+            account.LastName = request.LastName;
+            account.DateOfBirth = request.DateOfBirth;
+            account.Gender = request.Gender;
+            account.Phone = request.Phone;
+            account.Address = request.Address;
+
+            _unitOfWork.AccountRepository.Update(account);
+            await _unitOfWork.CommitAsync();
+
+            return new BaseResponse
+            {
+                Success = true,
+                Message = "Account updated successfully"
+            };
         }
 
         public async Task<BaseResponse> DeleteAccountAsync(int accountId)

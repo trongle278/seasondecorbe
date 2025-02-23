@@ -27,9 +27,9 @@ namespace BusinessLogicLayer.Services
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
         }
-        public async Task<ProviderResponse> GetProviderProfileByAccountIdAsync(int accountId)
+        public async Task<BaseResponse> GetProviderProfileByAccountIdAsync(int accountId)
         {
-            var response = new ProviderResponse();
+            var response = new BaseResponse();
             try
             {
                 // Lấy provider kèm thông tin Account
@@ -42,40 +42,34 @@ namespace BusinessLogicLayer.Services
                 {
                     response.Success = false;
                     response.Message = "Provider not found for the given account";
-                    response.Errors.Add("Provider not found for the given account");
                     return response;
                 }
 
-                // Tính số follower (người theo dõi)
+                // Tính số người theo dõi (followers) và đang theo dõi (followings)
                 int followersCount = await _unitOfWork.FollowRepository
                     .Query(f => f.FollowingId == accountId)
                     .CountAsync();
 
-                // Tính số following (đang theo dõi)
                 int followingsCount = await _unitOfWork.FollowRepository
                     .Query(f => f.FollowerId == accountId)
                     .CountAsync();
 
-                // Ánh xạ từ Provider -> ProviderResponse
-                _mapper.Map(provider, response);
+                // Ánh xạ từ Provider sang ProviderResponse (đã cấu hình trong AutoMapper)
+                var providerData = _mapper.Map<ProviderResponse>(provider);
+                providerData.FollowersCount = followersCount;
+                providerData.FollowingsCount = followingsCount;
 
-                // Gán thêm số follower/following
-                response.FollowersCount = followersCount;
-                response.FollowingsCount = followingsCount;
-
-                // Cập nhật trạng thái thành công
                 response.Success = true;
                 response.Message = "Provider profile retrieved successfully";
-
-                return response;
+                response.Data = providerData;
             }
             catch (Exception ex)
             {
                 response.Success = false;
                 response.Message = "Failed to get provider profile";
                 response.Errors.Add(ex.Message);
-                return response;
             }
+            return response;
         }
 
         public async Task<BaseResponse> SendProviderInvitationEmailAsync(string email)
@@ -83,7 +77,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 const string subject = "Welcome to Seasonal Home Decor - Become a Provider!";
-                string registrationLink = "https://example.com/become-decorator"; // FE link
+                string registrationLink = "http://localhost:3000/seller/registration"; // FE link
 
                 // Sử dụng đường dẫn tương đối
                 string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "DecoratorInvitationTemplate.html");
@@ -190,7 +184,6 @@ namespace BusinessLogicLayer.Services
                 // Update provider details
                 provider.Name = request.Name;
                 provider.Bio = request.Bio;
-                provider.Avatar = request.Avatar;
                 provider.Account.Phone = request.Phone;
                 provider.Account.Address = request.Address;
 

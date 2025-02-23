@@ -69,15 +69,15 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [HttpPut("{id})")]
-        public async Task<IActionResult> UpdateAccount(int accountId, [FromBody] UpdateAccountRequest request)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAccount([FromRoute] int id, [FromBody] UpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _accService.UpdateAccountAsync(accountId, request);
+            var result = await _accService.UpdateAccountAsync(id, request);
             if (result.Success)
             {
                 return Ok(result);

@@ -19,32 +19,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             _providerService = providerService;
         }
 
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProviderProfile()
-        {
-            // Lấy accountId từ JWT
-            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (accountIdClaim == null)
-            {
-                return Unauthorized("Account ID not found in token.");
-            }
-
-            int accountId = int.Parse(accountIdClaim.Value);
-
-            // Gọi service
-            var result = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
-
-            // Xử lý kết quả
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return BadRequest(result);
-            }
-        }
-
         [HttpPost("create-profile")]
         public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
         {
@@ -53,7 +27,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Extract accountId from JWT token claims
+            // Lấy accountId từ claims của token
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (accountIdClaim == null)
             {
@@ -61,16 +35,13 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             int accountId = int.Parse(accountIdClaim.Value);
-
             var response = await _providerService.CreateProviderProfileAsync(accountId, request);
             if (response.Success)
             {
                 return Ok(response);
             }
-
             return BadRequest(response);
         }
-
 
         [HttpPost("send-invitation")]
         public async Task<IActionResult> SendProviderInvitationEmail([FromQuery] string email)
@@ -85,10 +56,8 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(response);
             }
-
             return BadRequest(response);
         }
-
 
         [HttpPut("update-profile/{accountId}")]
         public async Task<IActionResult> UpdateProviderProfile(int accountId, [FromBody] UpdateProviderRequest request)
@@ -103,29 +72,22 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             var response = await _providerService.UpdateProviderProfileByAccountIdAsync(accountId, request);
-
             if (response.Success)
             {
                 return Ok(response);
             }
-            else
-            {
-                return BadRequest(response);
-            }
+            return BadRequest(response);
         }
 
         [HttpPut("change-status")]
         public async Task<IActionResult> ChangeProviderStatus([FromBody] bool isProvider)
         {
-            // Extract accountId from JWT token claims
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (accountIdClaim == null)
             {
                 return Unauthorized("Account ID not found in token.");
             }
-
             int accountId = int.Parse(accountIdClaim.Value);
-
             var response = await _providerService.ChangeProviderStatusByAccountIdAsync(accountId, isProvider);
             if (response.Success)
             {
@@ -142,13 +104,11 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return BadRequest("No file uploaded.");
             }
 
-            // Retrieve the user ID from the claims
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
                 return Unauthorized("User ID not found in token.");
             }
-
             if (!int.TryParse(userIdClaim.Value, out int userId))
             {
                 return BadRequest("Invalid user ID.");
@@ -158,13 +118,30 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 var fileName = Path.GetFileNameWithoutExtension(file.FileName);
                 var response = await _providerService.UploadProviderAvatarAsync(userId, stream, fileName);
-
                 if (response.Success)
                 {
                     return Ok(new { Message = response.Message, AvatarUrl = response.Data });
                 }
                 return BadRequest(response.Message);
             }
+        }
+
+        // Endpoint mới để lấy Provider profile theo accountId
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProviderProfile()
+        {
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+            {
+                return Unauthorized("Account ID not found in token.");
+            }
+            int accountId = int.Parse(accountIdClaim.Value);
+            var response = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
     }
 }
