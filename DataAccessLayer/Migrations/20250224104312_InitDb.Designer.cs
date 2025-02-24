@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250223091040_InitDb")]
+    [Migration("20250224104312_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,9 +31,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
@@ -106,6 +103,53 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("SubscriptionId");
 
                     b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Address", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("District")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Province")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Street")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Ward")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Address");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
@@ -330,7 +374,7 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<double>("BasePrice")
+                    b.Property<double?>("BasePrice")
                         .HasColumnType("float");
 
                     b.Property<DateTime>("CreateAt")
@@ -651,6 +695,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
 
@@ -967,6 +1014,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Address", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("Addresses")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
@@ -1316,6 +1374,8 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
+                    b.Navigation("Addresses");
+
                     b.Navigation("Bookings");
 
                     b.Navigation("Cart")

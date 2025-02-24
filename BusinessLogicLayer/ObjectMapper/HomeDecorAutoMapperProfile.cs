@@ -32,6 +32,7 @@ namespace BusinessLogicLayer.ObjectMapper
             OrderProfile();
             NotificationProfile();
             FollowProfile();
+            AddressProfile();
         }
 
         private void AccountProfile()
@@ -44,7 +45,6 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId));
@@ -84,24 +84,24 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
                 .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => src.IsProvider))
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate))
-                // Lấy Phone, Address từ bảng Account
-                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Account.Phone))
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Account.Address));
-                // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Account.Phone));
+                
+            // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 
             CreateMap<BecomeProviderRequest, Provider>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
                 .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1))
                 .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
                 {
-                    Phone = src.Phone,
-                    Address = src.Address
+                    Phone = src.Phone
                 }));
         }
 
@@ -221,6 +221,11 @@ namespace BusinessLogicLayer.ObjectMapper
                            opt => opt.MapFrom(src => src.Following.Avatar))
                 .ForMember(dest => dest.FollowedAt,
                            opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
+        }
+
+        private void AddressProfile() 
+        {
+            CreateMap<Address, AddressResponse>();
         }
     }
 }

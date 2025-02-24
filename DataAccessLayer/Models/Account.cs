@@ -20,7 +20,6 @@ namespace DataAccessObject.Models
         public DateTime? DateOfBirth { get; set; }
         public bool? Gender { get; set; }
         public string? Phone {  get; set; }
-        public string? Address { get; set; }
         public string? Avatar { get; set; }
         public string? Status { get; set; }
         public bool IsDisable { get; set; }
@@ -50,6 +49,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
+        public virtual ICollection<Address> Addresses { get; set; }= new List<Address>();
         //test
         public ICollection<DeviceToken> DeviceTokens { get; set; }
     }

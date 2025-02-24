@@ -153,7 +153,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<FcmService>();
 builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFollowService, FollowService>();
-
+builder.Services.AddScoped<IAddressService, AddressService>();
 
 // 11. Build the application
 var app = builder.Build();

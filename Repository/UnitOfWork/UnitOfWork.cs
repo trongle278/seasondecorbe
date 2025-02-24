@@ -35,6 +35,8 @@ namespace Repository.UnitOfWork
             NotificationRepository = new NotificationRepository(_context);
             FollowRepository = new FollowRepository(_context);
             DeviceTokenRepository = new DeviceTokenRepository(_context);
+            DecorServiceRepository = new DecorServiceRepository(_context);
+            AddressRepository = new AddressRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -53,7 +55,8 @@ namespace Repository.UnitOfWork
         public INotificationRepository NotificationRepository { get; private set; }
         public IFollowRepository FollowRepository { get; private set; }
         public IDeviceTokenRepository DeviceTokenRepository { get; private set; }
-
+        public IDecorServiceRepository DecorServiceRepository { get; private set; }
+        public IAddressRepository AddressRepository { get; private set; }   
         public void Dispose()
         {
             _context.Dispose();

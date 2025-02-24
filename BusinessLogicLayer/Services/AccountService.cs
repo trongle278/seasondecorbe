@@ -114,7 +114,6 @@ namespace BusinessLogicLayer.Services
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
                     Phone = request.Phone,
-                    Address = request.Address,
                     RoleId = 3, //Customer
                     IsDisable = false
                 };
@@ -162,7 +161,6 @@ namespace BusinessLogicLayer.Services
             account.DateOfBirth = request.DateOfBirth;
             account.Gender = request.Gender;
             account.Phone = request.Phone;
-            account.Address = request.Address;
 
             _unitOfWork.AccountRepository.Update(account);
             await _unitOfWork.CommitAsync();

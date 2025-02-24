@@ -142,7 +142,6 @@ namespace BusinessLogicLayer.Services
                 // Use the existing account
                 provider.Account = account;
                 provider.Account.Phone = request.Phone;
-                provider.Account.Address = request.Address;
 
                 await _unitOfWork.ProviderRepository.InsertAsync(provider);
                 await _unitOfWork.CommitAsync();
@@ -185,7 +184,7 @@ namespace BusinessLogicLayer.Services
                 provider.Name = request.Name;
                 provider.Bio = request.Bio;
                 provider.Account.Phone = request.Phone;
-                provider.Account.Address = request.Address;
+                provider.Address = request.Address;
 
                 _unitOfWork.ProviderRepository.Update(provider);
                 await _unitOfWork.CommitAsync();

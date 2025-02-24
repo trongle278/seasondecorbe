@@ -134,7 +134,6 @@ namespace DataAccessObject.Migrations
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Gender = table.Column<bool>(type: "bit", nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDisable = table.Column<bool>(type: "bit", nullable: false),
@@ -163,6 +162,34 @@ namespace DataAccessObject.Migrations
                         column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Address",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    IsDefault = table.Column<bool>(type: "bit", nullable: false),
+                    Province = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    District = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ward = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Street = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Detail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AccountId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Address", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Address_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -342,6 +369,7 @@ namespace DataAccessObject.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsProvider = table.Column<bool>(type: "bit", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
@@ -482,7 +510,7 @@ namespace DataAccessObject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Style = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    BasePrice = table.Column<double>(type: "float", nullable: false),
+                    BasePrice = table.Column<double>(type: "float", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Province = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -714,6 +742,11 @@ namespace DataAccessObject.Migrations
                 column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Address_AccountId",
+                table: "Address",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_AccountId",
                 table: "Bookings",
                 column: "AccountId");
@@ -905,6 +938,9 @@ namespace DataAccessObject.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Address");
+
             migrationBuilder.DropTable(
                 name: "CartItems");
 

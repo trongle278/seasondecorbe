@@ -14,7 +14,7 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Style { get; set; }
-        public double BasePrice { get; set; }
+        public double? BasePrice { get; set; }
         public string Description { get; set; }
         public string Province { get; set; }
         public DateTime CreateAt { get; set; }

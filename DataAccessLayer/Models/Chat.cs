@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace DataAccessObject.Models
 {
     public class Chat
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int SenderId { get; set; }
         public int ReceiverId { get; set; }
@@ -21,8 +24,6 @@ namespace DataAccessObject.Models
 
         [ForeignKey("ReceiverId")]
         public virtual Account Receiver { get; set; }
-
-        //test
         public virtual ICollection<ChatFile> ChatFiles { get; set; } = new List<ChatFile>();
     }
 }

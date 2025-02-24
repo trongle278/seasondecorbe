@@ -26,7 +26,8 @@ namespace Repository.UnitOfWork
         INotificationRepository NotificationRepository { get; }
         IFollowRepository FollowRepository { get; }
         IDeviceTokenRepository DeviceTokenRepository { get; }
-
+        IDecorServiceRepository DecorServiceRepository { get; }
+        IAddressRepository AddressRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
