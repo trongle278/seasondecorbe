@@ -11,7 +11,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public int AccountId { get; set; }
         public string FullName { get; set; }
-        public string PhoneNumber { get; set; }
+        public string Phone { get; set; }
         public string AddressType { get; set; }
         public bool IsDefault { get; set; }
         public string Province { get; set; }
