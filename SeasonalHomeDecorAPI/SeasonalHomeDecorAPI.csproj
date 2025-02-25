@@ -32,8 +32,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ServiceAccount\" />
-  </ItemGroup>
-
 </Project>

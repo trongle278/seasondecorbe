@@ -156,11 +156,11 @@ namespace DataAccessObject.Models
                 .HasForeignKey<Booking>(b => b.DecorServiceId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure 1-N relationsip between Provider and DecorService
+            // Configure 1-N relationsip between Account and DecorService
             modelBuilder.Entity<DecorService>()
-                .HasOne(ds => ds.Provider)
-                .WithMany(d => d.DecorServices)
-                .HasForeignKey(ds => ds.ProviderId);
+                .HasOne(ds => ds.Account)
+                .WithMany(a => a.DecorServices)
+                .HasForeignKey(ds => ds.AccountId);
 
             // Configure 1-N relationship between Voucher and Booking
             modelBuilder.Entity<Booking>()

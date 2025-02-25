@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250224104312_InitDb")]
+    [Migration("20250225043409_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -374,6 +374,9 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
                     b.Property<double?>("BasePrice")
                         .HasColumnType("float");
 
@@ -387,9 +390,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProviderId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Province")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -400,9 +400,9 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DecorCategoryId");
+                    b.HasIndex("AccountId");
 
-                    b.HasIndex("ProviderId");
+                    b.HasIndex("DecorCategoryId");
 
                     b.ToTable("DecorServices");
                 });
@@ -1134,21 +1134,21 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.DecorService", b =>
                 {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("DecorServices")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("DataAccessObject.Models.DecorCategory", "DecorCategory")
                         .WithMany("DecorServices")
                         .HasForeignKey("DecorCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.Provider", "Provider")
-                        .WithMany("DecorServices")
-                        .HasForeignKey("ProviderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Account");
 
                     b.Navigation("DecorCategory");
-
-                    b.Navigation("Provider");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
@@ -1381,6 +1381,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Cart")
                         .IsRequired();
 
+                    b.Navigation("DecorServices");
+
                     b.Navigation("DeviceTokens");
 
                     b.Navigation("Followers");
@@ -1453,11 +1455,6 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.ProductCategory", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.Provider", b =>
-                {
-                    b.Navigation("DecorServices");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Role", b =>

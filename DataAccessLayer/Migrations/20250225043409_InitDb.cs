@@ -250,6 +250,37 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DecorServices",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Style = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BasePrice = table.Column<double>(type: "float", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Province = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    DecorCategoryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DecorServices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DecorServices_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DecorServices_DecorCategories_DecorCategoryId",
+                        column: x => x.DecorCategoryId,
+                        principalTable: "DecorCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DeviceTokens",
                 columns: table => new
                 {
@@ -474,94 +505,6 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductOrders",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    UnitPrice = table.Column<double>(type: "float", nullable: true),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductOrders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProductOrders_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProductOrders_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DecorServices",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Style = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    BasePrice = table.Column<double>(type: "float", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Province = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ProviderId = table.Column<int>(type: "int", nullable: false),
-                    DecorCategoryId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DecorServices", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DecorServices_DecorCategories_DecorCategoryId",
-                        column: x => x.DecorCategoryId,
-                        principalTable: "DecorCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DecorServices_Providers_ProviderId",
-                        column: x => x.ProviderId,
-                        principalTable: "Providers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TicketReplies",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    SupportId = table.Column<int>(type: "int", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TicketReplies", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TicketReplies_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TicketReplies_Supports_SupportId",
-                        column: x => x.SupportId,
-                        principalTable: "Supports",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Bookings",
                 columns: table => new
                 {
@@ -618,29 +561,59 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TicketAttachments",
+                name: "ProductOrders",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    SupportId = table.Column<int>(type: "int", nullable: false),
-                    TicketReplyId = table.Column<int>(type: "int", nullable: false),
-                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<double>(type: "float", nullable: true),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TicketAttachments", x => x.Id);
+                    table.PrimaryKey("PK_ProductOrders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TicketAttachments_Supports_SupportId",
+                        name: "FK_ProductOrders_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProductOrders_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TicketReplies",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SupportId = table.Column<int>(type: "int", nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TicketReplies", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TicketReplies_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TicketReplies_Supports_SupportId",
                         column: x => x.SupportId,
                         principalTable: "Supports",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_TicketAttachments_TicketReplies_TicketReplyId",
-                        column: x => x.TicketReplyId,
-                        principalTable: "TicketReplies",
                         principalColumn: "Id");
                 });
 
@@ -713,6 +686,33 @@ namespace DataAccessObject.Migrations
                         name: "FK_Reviews_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TicketAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SupportId = table.Column<int>(type: "int", nullable: false),
+                    TicketReplyId = table.Column<int>(type: "int", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TicketAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TicketAttachments_Supports_SupportId",
+                        column: x => x.SupportId,
+                        principalTable: "Supports",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_TicketAttachments_TicketReplies_TicketReplyId",
+                        column: x => x.TicketReplyId,
+                        principalTable: "TicketReplies",
                         principalColumn: "Id");
                 });
 
@@ -804,14 +804,14 @@ namespace DataAccessObject.Migrations
                 column: "DecorServiceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DecorServices_AccountId",
+                table: "DecorServices",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DecorServices_DecorCategoryId",
                 table: "DecorServices",
                 column: "DecorCategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DecorServices_ProviderId",
-                table: "DecorServices",
-                column: "ProviderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceTokens_AccountId",
@@ -966,6 +966,9 @@ namespace DataAccessObject.Migrations
                 name: "ProductOrders");
 
             migrationBuilder.DropTable(
+                name: "Providers");
+
+            migrationBuilder.DropTable(
                 name: "Reviews");
 
             migrationBuilder.DropTable(
@@ -1005,13 +1008,10 @@ namespace DataAccessObject.Migrations
                 name: "DecorCategories");
 
             migrationBuilder.DropTable(
-                name: "Providers");
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "TicketTypes");
-
-            migrationBuilder.DropTable(
-                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "Roles");

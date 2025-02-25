@@ -1,0 +1,77 @@
+﻿using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace SeasonalHomeDecorAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class DecorServiceController : ControllerBase
+    {
+        private readonly IDecorServiceService _decorServiceService;
+
+        public DecorServiceController(IDecorServiceService decorServiceService)
+        {
+            _decorServiceService = decorServiceService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllDecorServices()
+        {
+            var result = await _decorServiceService.GetAllDecorServicesAsync();
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetDecorService(int id)
+        {
+            var result = await _decorServiceService.GetDecorServiceByIdAsync(id);
+            if (result.Success)
+                return Ok(result);
+            return NotFound(result.Message);
+        }
+
+        [HttpPost("add")]
+        public async Task<IActionResult> CreateDecorService([FromForm] CreateDecorServiceRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Lấy accountId từ token
+            int accountId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+
+            var result = await _decorServiceService.CreateDecorServiceAsync(request, accountId);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDecorService(int id, [FromBody] UpdateDecorServiceRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Lấy accountId từ token
+            int accountId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+
+            var result = await _decorServiceService.UpdateDecorServiceAsync(id, request, accountId);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDecorService(int id)
+        {
+            var result = await _decorServiceService.DeleteDecorServiceAsync(id);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
+        }
+    }
+}
