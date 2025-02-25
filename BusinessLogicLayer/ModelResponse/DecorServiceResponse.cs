@@ -1,32 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccessObject.Models
+namespace BusinessLogicLayer.ModelResponse
 {
-    public class DecorService
+    public class DecorServiceResponse : BaseResponse
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public DecorServiceDTO Data { get; set; }
+    }
+
+    public class DecorServiceListResponse : BaseResponse
+    {
+        public List<DecorServiceDTO> Data { get; set; }
+    }
+
+    public class DecorServiceDTO
+    {
         public int Id { get; set; }
         public string Style { get; set; }
         public double? BasePrice { get; set; }
         public string Description { get; set; }
         public string Province { get; set; }
         public DateTime CreateAt { get; set; }
-
         public int AccountId { get; set; }
-        public Account Account { get; set; }
-
         public int DecorCategoryId { get; set; }
-        public DecorCategory DecorCategory { get; set; }
-
-        public Booking Booking { get; set; }
-
-        public virtual ICollection<DecorImage> DecorImages { get; set; }
+        public List<string> ImageUrls { get; set; }
     }
 }

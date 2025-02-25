@@ -51,6 +51,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<Address> Addresses { get; set; }= new List<Address>();
         //test
+        public virtual ICollection<DecorService> DecorServices { get; set; }
         public ICollection<DeviceToken> DeviceTokens { get; set; }
     }
 }

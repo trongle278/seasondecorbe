@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +10,10 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IDecorServiceService
     {
+        Task<BaseResponse> CreateDecorServiceAsync(CreateDecorServiceRequest request, int accountId);
+        Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id);
+        Task<DecorServiceListResponse> GetAllDecorServicesAsync();
+        Task<BaseResponse> UpdateDecorServiceAsync(int id, UpdateDecorServiceRequest request, int accountId);
+        Task<BaseResponse> DeleteDecorServiceAsync(int id);
     }
 }
