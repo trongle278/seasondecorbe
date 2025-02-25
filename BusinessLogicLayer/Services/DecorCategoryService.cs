@@ -26,138 +26,111 @@ namespace BusinessLogicLayer.Services
 
         public async Task<DecorCategoryListResponse> GetAllDecorCategoriesAsync()
         {
+            var response = new DecorCategoryListResponse();
             try
             {
                 var categories = await _unitOfWork.DecorCategoryRepository
                     .Query(x => true)
                     .ToListAsync();
-
-                var categoriesDTO = _mapper.Map<List<DecorCategoryDTO>>(categories);
-
-                return new DecorCategoryListResponse
-                {
-                    Success = true,
-                    Data = categoriesDTO
-                };
+                response.Data = _mapper.Map<List<DecorCategoryDTO>>(categories);
+                response.Success = true;
+                response.Message = "Decoration categories retrieved successfully";
             }
             catch (Exception ex)
             {
-                return new DecorCategoryListResponse
-                {
-                    Success = false,
-                    Message = "Error retrieving decoration categories",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error retrieving decoration categories";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<DecorCategoryResponse> GetDecorCategoryByIdAsync(int categoryId)
         {
+            var response = new DecorCategoryResponse();
             try
             {
                 var category = await _unitOfWork.DecorCategoryRepository
                     .Query(x => x.Id == categoryId)
                     .FirstOrDefaultAsync();
-
                 if (category == null)
                 {
-                    return new DecorCategoryResponse
-                    {
-                        Success = false,
-                        Message = "Decoration category not found"
-                    };
+                    response.Success = false;
+                    response.Message = "Decoration category not found";
                 }
-
-                var categoryDTO = _mapper.Map<DecorCategoryDTO>(category);
-
-                return new DecorCategoryResponse
+                else
                 {
-                    Success = true,
-                    Data = categoryDTO
-                };
+                    response.Data = _mapper.Map<DecorCategoryDTO>(category);
+                    response.Success = true;
+                    response.Message = "Decoration category retrieved successfully";
+                }
             }
             catch (Exception ex)
             {
-                return new DecorCategoryResponse
-                {
-                    Success = false,
-                    Message = "Error retrieving decoration category",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error retrieving decoration category";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<BaseResponse> CreateDecorCategoryAsync(DecorCategoryRequest request)
         {
+            var response = new BaseResponse();
             try
             {
                 var existingCategory = await _unitOfWork.DecorCategoryRepository
                     .Query(x => x.CategoryName.ToLower() == request.CategoryName.ToLower())
                     .FirstOrDefaultAsync();
-
                 if (existingCategory != null)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Category name already exists",
-                        Errors = new List<string> { "A category with this name already exists" }
-                    };
+                    response.Success = false;
+                    response.Message = "Category name already exists";
+                    response.Errors.Add("A category with this name already exists");
+                    return response;
                 }
 
                 var category = _mapper.Map<DecorCategory>(request);
                 await _unitOfWork.DecorCategoryRepository.InsertAsync(category);
                 await _unitOfWork.CommitAsync();
 
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Decoration category created successfully"
-                };
+                response.Success = true;
+                response.Message = "Decoration category created successfully";
             }
             catch (Exception ex)
             {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Message = "Error creating decoration category",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error creating decoration category";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<BaseResponse> UpdateDecorCategoryAsync(int categoryId, DecorCategoryRequest request)
         {
+            var response = new BaseResponse();
             try
             {
                 var category = await _unitOfWork.DecorCategoryRepository
                     .Query(x => x.Id == categoryId)
                     .FirstOrDefaultAsync();
-
                 if (category == null)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Category not found",
-                        Errors = new List<string> { "Category not found" }
-                    };
+                    response.Success = false;
+                    response.Message = "Category not found";
+                    response.Errors.Add("Category not found");
+                    return response;
                 }
 
-                // Check for duplicate name but exclude current category
                 var existingCategory = await _unitOfWork.DecorCategoryRepository
-                    .Query(x => x.CategoryName.ToLower() == request.CategoryName.ToLower()
-                               && x.Id != categoryId)
+                    .Query(x => x.CategoryName.ToLower() == request.CategoryName.ToLower() && x.Id != categoryId)
                     .FirstOrDefaultAsync();
-
                 if (existingCategory != null)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Category name already exists",
-                        Errors = new List<string> { "A category with this name already exists" }
-                    };
+                    response.Success = false;
+                    response.Message = "Category name already exists";
+                    response.Errors.Add("A category with this name already exists");
+                    return response;
                 }
 
                 category.CategoryName = request.CategoryName.Trim();
@@ -166,71 +139,56 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.DecorCategoryRepository.Update(category);
                 await _unitOfWork.CommitAsync();
 
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Category updated successfully"
-                };
+                response.Success = true;
+                response.Message = "Category updated successfully";
             }
             catch (Exception ex)
             {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Message = "Error updating category",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error updating category";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<BaseResponse> DeleteDecorCategoryAsync(int categoryId)
         {
+            var response = new BaseResponse();
             try
             {
                 var category = await _unitOfWork.DecorCategoryRepository
                     .Query(x => x.Id == categoryId)
-                    .Include(x => x.DecorServices) // Check for related services
+                    .Include(x => x.DecorServices)
                     .FirstOrDefaultAsync();
-
                 if (category == null)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Category not found",
-                        Errors = new List<string> { "Category not found" }
-                    };
+                    response.Success = false;
+                    response.Message = "Category not found";
+                    response.Errors.Add("Category not found");
+                    return response;
                 }
 
-                // Check if category has related services
                 if (category.DecorServices?.Any() == true)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Cannot delete category with existing services",
-                        Errors = new List<string> { "This category has associated services and cannot be deleted" }
-                    };
+                    response.Success = false;
+                    response.Message = "Cannot delete category with existing services";
+                    response.Errors.Add("This category has associated services and cannot be deleted");
+                    return response;
                 }
 
                 _unitOfWork.DecorCategoryRepository.Delete(category);
                 await _unitOfWork.CommitAsync();
 
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Category deleted successfully"
-                };
+                response.Success = true;
+                response.Message = "Category deleted successfully";
             }
             catch (Exception ex)
             {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Message = "Error deleting category",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error deleting category";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
     }
 }

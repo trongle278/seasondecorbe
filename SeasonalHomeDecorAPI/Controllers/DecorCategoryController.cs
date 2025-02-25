@@ -30,9 +30,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
        
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryById(int categoryId)
+        public async Task<IActionResult> GetCategoryById(int id)
         {
-            var result = await _decorCategoryService.GetDecorCategoryByIdAsync(categoryId);
+            var result = await _decorCategoryService.GetDecorCategoryByIdAsync(id);
             if (!result.Success)
             {
                 return NotFound(result);
@@ -40,7 +40,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [Authorize(Policy = "RequireDecoratorRole")]
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] DecorCategoryRequest request)
         {
@@ -57,16 +56,15 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [Authorize(Policy = "RequireDecoratorRole")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int categoryId, [FromBody] DecorCategoryRequest request)
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] DecorCategoryRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _decorCategoryService.UpdateDecorCategoryAsync(categoryId, request);
+            var result = await _decorCategoryService.UpdateDecorCategoryAsync(id, request);
             if (!result.Success)
             {
                 return BadRequest(result);
@@ -74,11 +72,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [Authorize(Policy = "RequireDecoratorRole")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int categoryId)
+        public async Task<IActionResult> DeleteCategory(int id)
         {
-            var result = await _decorCategoryService.DeleteDecorCategoryAsync(categoryId);
+            var result = await _decorCategoryService.DeleteDecorCategoryAsync(id);
             if (!result.Success)
             {
                 return BadRequest(result);
