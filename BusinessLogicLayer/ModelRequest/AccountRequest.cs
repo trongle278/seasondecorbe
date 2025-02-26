@@ -46,9 +46,6 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "Phone is required")]
         public string? Phone { get; set; }
-
-        [Required(ErrorMessage = "Address is required")]
-        public string? Address { get; set; }
     }
 
     public class UpdateAccountRequest
@@ -74,8 +71,5 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "Phone is required")]
         public string? Phone { get; set; }
-
-        [Required(ErrorMessage = "Address is required")]
-        public string? Address { get; set; }
     }
 }

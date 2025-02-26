@@ -25,5 +25,6 @@ namespace DataAccessObject.Models
 
         public virtual ICollection<CartItem> CartItems { get; set; }
         public virtual ICollection<ProductOrder> ProductOrders { get; set; }
+        public virtual ICollection<ProductImage> ProductImages { get; set; }
     }
 }

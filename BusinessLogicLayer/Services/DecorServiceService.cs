@@ -30,6 +30,7 @@ namespace BusinessLogicLayer.Services
 
         public async Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id)
         {
+            var response = new DecorServiceResponse();
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
@@ -40,35 +41,31 @@ namespace BusinessLogicLayer.Services
 
                 if (decorService == null)
                 {
-                    return new DecorServiceResponse
-                    {
-                        Success = false,
-                        Message = "Decor service not found."
-                    };
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
                 }
-
-                var dto = _mapper.Map<DecorServiceDTO>(decorService);
-                dto.ImageUrls = decorService.DecorImages.Select(di => di.ImageURL).ToList();
-
-                return new DecorServiceResponse
+                else
                 {
-                    Success = true,
-                    Data = dto
-                };
+                    var dto = _mapper.Map<DecorServiceDTO>(decorService);
+                    dto.ImageUrls = decorService.DecorImages.Select(di => di.ImageURL).ToList();
+
+                    response.Success = true;
+                    response.Data = dto;
+                    response.Message = "Decor service retrieved successfully.";
+                }
             }
             catch (Exception ex)
             {
-                return new DecorServiceResponse
-                {
-                    Success = false,
-                    Message = "Error retrieving decor service.",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error retrieving decor service.";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<DecorServiceListResponse> GetAllDecorServicesAsync()
         {
+            var response = new DecorServiceListResponse();
             try
             {
                 var services = await _unitOfWork.DecorServiceRepository
@@ -83,21 +80,17 @@ namespace BusinessLogicLayer.Services
                     dtos[i].ImageUrls = services[i].DecorImages.Select(di => di.ImageURL).ToList();
                 }
 
-                return new DecorServiceListResponse
-                {
-                    Success = true,
-                    Data = dtos
-                };
+                response.Success = true;
+                response.Data = dtos;
+                response.Message = "Decor services retrieved successfully.";
             }
             catch (Exception ex)
             {
-                return new DecorServiceListResponse
-                {
-                    Success = false,
-                    Message = "Error retrieving decor services.",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error retrieving decor services.";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<BaseResponse> CreateDecorServiceAsync(CreateDecorServiceRequest request, int accountId)
