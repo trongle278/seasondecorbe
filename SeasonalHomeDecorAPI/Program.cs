@@ -13,6 +13,8 @@ using BusinessLogicLayer.Hub;
 using BusinessLogicLayer.Services;
 using Repository.Repositories;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore.Design;
+using Nest;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,6 +133,13 @@ builder.Services.AddScoped<ICloudinaryService>(provider =>
     );
 });
 
+builder.Services.AddSingleton<IElasticClient>(sp =>
+{
+    var settings = new ConnectionSettings(new Uri("http://localhost:9200"))
+        .DefaultIndex("decorservice_index"); // default index
+    return new ElasticClient(settings);
+});
+
 // 10. Configure Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -155,6 +164,7 @@ builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IDecorServiceService, DecorServiceService>();
+builder.Services.AddScoped<IElasticClientService, ElasticClientService>();
 
 // 11. Build the application
 var app = builder.Build();

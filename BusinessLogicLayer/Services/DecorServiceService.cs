@@ -18,12 +18,14 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IElasticClientService _elasticClientService;
 
-        public DecorServiceService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService)
+        public DecorServiceService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService, IElasticClientService elasticClientService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cloudinaryService = cloudinaryService;
+            _elasticClientService = elasticClientService;
         }
 
         public async Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id)
@@ -100,23 +102,21 @@ namespace BusinessLogicLayer.Services
 
         public async Task<BaseResponse> CreateDecorServiceAsync(CreateDecorServiceRequest request, int accountId)
         {
+            var response = new BaseResponse();
             try
             {
-                // Kiểm tra số lượng ảnh không vượt quá 5
+                // Kiểm tra số lượng ảnh
                 if (request.Images != null && request.Images.Count > 5)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Maximum 5 images are allowed."
-                    };
+                    response.Success = false;
+                    response.Message = "Maximum 5 images are allowed.";
+                    return response;
                 }
 
-                // Tạo entity DecorService mới
+                // Tạo DecorService entity
                 var decorService = new DecorService
                 {
                     Style = request.Style,
-                    //BasePrice = request.BasePrice,
                     Description = request.Description,
                     Province = request.Province,
                     AccountId = accountId,
@@ -125,42 +125,43 @@ namespace BusinessLogicLayer.Services
                     DecorImages = new List<DecorImage>()
                 };
 
-                // Nếu có ảnh, upload và thêm vào danh sách
+                // Nếu có ảnh, upload
                 if (request.Images != null && request.Images.Any())
                 {
                     foreach (var imageFile in request.Images)
                     {
-                        string imageUrl;
-                        using (var stream = imageFile.OpenReadStream())
-                        {
-                            imageUrl = await _cloudinaryService.UploadFileAsync(stream, imageFile.FileName, imageFile.ContentType);
-                        }
+                        using var stream = imageFile.OpenReadStream();
+                        var imageUrl = await _cloudinaryService.UploadFileAsync(
+                            stream,
+                            imageFile.FileName,
+                            imageFile.ContentType
+                        );
                         decorService.DecorImages.Add(new DecorImage { ImageURL = imageUrl });
                     }
                 }
 
+                // Lưu DB
                 await _unitOfWork.DecorServiceRepository.InsertAsync(decorService);
                 await _unitOfWork.CommitAsync();
 
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Decor service created successfully."
-                };
+                // *** Index lên Elasticsearch
+                await _elasticClientService.IndexDecorServiceAsync(decorService);
+
+                response.Success = true;
+                response.Message = "Decor service created successfully.";
             }
             catch (Exception ex)
             {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Message = "Error creating decor service.",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error creating decor service.";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<BaseResponse> UpdateDecorServiceAsync(int id, UpdateDecorServiceRequest request, int accountId)
         {
+            var response = new BaseResponse();
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
@@ -169,15 +170,12 @@ namespace BusinessLogicLayer.Services
 
                 if (decorService == null)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Decor service not found."
-                    };
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
+                    return response;
                 }
 
                 decorService.Style = request.Style;
-                //decorService.BasePrice = request.BasePrice;
                 decorService.Description = request.Description;
                 decorService.Province = request.Province;
                 decorService.AccountId = accountId;
@@ -186,25 +184,24 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.DecorServiceRepository.Update(decorService);
                 await _unitOfWork.CommitAsync();
 
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Decor service updated successfully."
-                };
+                // *** Cập nhật index trên Elasticsearch
+                await _elasticClientService.IndexDecorServiceAsync(decorService);
+
+                response.Success = true;
+                response.Message = "Decor service updated successfully.";
             }
             catch (Exception ex)
             {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Message = "Error updating decor service.",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error updating decor service.";
+                response.Errors.Add(ex.Message);
             }
+            return response;
         }
 
         public async Task<BaseResponse> DeleteDecorServiceAsync(int id)
         {
+            var response = new BaseResponse();
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
@@ -213,31 +210,51 @@ namespace BusinessLogicLayer.Services
 
                 if (decorService == null)
                 {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Message = "Decor service not found."
-                    };
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
+                    return response;
                 }
 
                 _unitOfWork.DecorServiceRepository.Delete(decorService);
                 await _unitOfWork.CommitAsync();
 
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Decor service deleted successfully."
-                };
+                // *** Xoá luôn trên Elasticsearch
+                await _elasticClientService.DeleteDecorServiceAsync(id);
+
+                response.Success = true;
+                response.Message = "Decor service deleted successfully.";
             }
             catch (Exception ex)
             {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Message = "Error deleting decor service.",
-                    Errors = new List<string> { ex.Message }
-                };
+                response.Success = false;
+                response.Message = "Error deleting decor service.";
+                response.Errors.Add(ex.Message);
             }
+            return response;
+        }
+
+        public async Task<DecorServiceListResponse> SearchDecorServices(string keyword)
+        {
+            var response = new DecorServiceListResponse();
+            try
+            {
+                // Gọi hàm search bên ElasticClientService
+                var results = await _elasticClientService.SearchDecorServicesAsync(keyword);
+
+                // Chuyển về DTO
+                var dtos = _mapper.Map<List<DecorServiceDTO>>(results);
+
+                response.Success = true;
+                response.Data = dtos;
+                response.Message = "Search completed successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error searching decor services.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
         }
     }
 }
