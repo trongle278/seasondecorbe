@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250225043409_InitDb")]
+    [Migration("20250226145910_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -645,6 +645,100 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProductCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryName = "Lamp"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryName = "Clock"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryName = "Bed"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryName = "Chest"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CategoryName = "Desk"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CategoryName = "Cabinet"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CategoryName = "Chair"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CategoryName = "Sofa"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CategoryName = "Bookshelf"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CategoryName = "Table"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CategoryName = "Couch"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CategoryName = "Hanger"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CategoryName = "Closet"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CategoryName = "Vanity"
+                        });
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImage");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.ProductOrder", b =>
@@ -1251,6 +1345,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.ProductImage", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.ProductOrder", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Order", "Order")
@@ -1448,6 +1553,8 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
                 {
                     b.Navigation("CartItems");
+
+                    b.Navigation("ProductImages");
 
                     b.Navigation("ProductOrders");
                 });

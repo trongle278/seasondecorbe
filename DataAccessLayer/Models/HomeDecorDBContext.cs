@@ -189,6 +189,13 @@ namespace DataAccessObject.Models
                 .HasForeignKey<Cart>(c => c.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure 1-N relationship between ProductImage and Product
+            modelBuilder.Entity<ProductImage>()
+                .HasOne(pi => pi.Product)
+                .WithMany(p => p.ProductImages)
+                .HasForeignKey(pi => pi.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configure 1-N relationship between Cart and CartItem
             modelBuilder.Entity<Cart>()
                 .HasMany(c => c.CartItems)
@@ -309,6 +316,23 @@ namespace DataAccessObject.Models
 
             modelBuilder.Entity<Subscription>().HasData(
                 new Subscription { Id = 1, Name = "Basic", Description = "Normal Package", Price = 0, Duration = 999 }
+            );
+
+            modelBuilder.Entity<ProductCategory>().HasData(
+                new ProductCategory { Id = 1, CategoryName = "Lamp"},
+                new ProductCategory { Id = 2, CategoryName = "Clock"},
+                new ProductCategory { Id = 3, CategoryName = "Bed"},
+                new ProductCategory { Id = 4, CategoryName = "Chest"},
+                new ProductCategory { Id = 5, CategoryName = "Desk"},
+                new ProductCategory { Id = 6, CategoryName = "Cabinet"},
+                new ProductCategory { Id = 7, CategoryName = "Chair"},
+                new ProductCategory { Id = 8, CategoryName = "Sofa"},
+                new ProductCategory { Id = 9, CategoryName = "Bookshelf"},
+                new ProductCategory { Id = 10, CategoryName = "Table"},
+                new ProductCategory { Id = 11, CategoryName = "Couch"},
+                new ProductCategory { Id = 12, CategoryName = "Hanger"},
+                new ProductCategory { Id = 13, CategoryName = "Closet"},
+                new ProductCategory { Id = 14, CategoryName = "Vanity"}
             );
         }
     }

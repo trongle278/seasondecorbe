@@ -165,6 +165,26 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductImage",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductImage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductImage_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Address",
                 columns: table => new
                 {
@@ -717,6 +737,27 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "ProductCategories",
+                columns: new[] { "Id", "CategoryName" },
+                values: new object[,]
+                {
+                    { 1, "Lamp" },
+                    { 2, "Clock" },
+                    { 3, "Bed" },
+                    { 4, "Chest" },
+                    { 5, "Desk" },
+                    { 6, "Cabinet" },
+                    { 7, "Chair" },
+                    { 8, "Sofa" },
+                    { 9, "Bookshelf" },
+                    { 10, "Table" },
+                    { 11, "Couch" },
+                    { 12, "Hanger" },
+                    { 13, "Closet" },
+                    { 14, "Vanity" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "RoleName" },
                 values: new object[,]
@@ -864,6 +905,11 @@ namespace DataAccessObject.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProductImage_ProductId",
+                table: "ProductImage",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductOrders_OrderId",
                 table: "ProductOrders",
                 column: "OrderId");
@@ -961,6 +1007,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "ProductImage");
 
             migrationBuilder.DropTable(
                 name: "ProductOrders");
