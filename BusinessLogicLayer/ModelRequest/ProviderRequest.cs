@@ -27,10 +27,6 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
-
-        [Required(ErrorMessage = "Joined date is required")]
-        [DataType(DataType.Date)]
-        public DateTime JoinedDate { get; set; }
     }
 
     public class UpdateProviderRequest

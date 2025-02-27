@@ -97,7 +97,7 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
                 .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate))
+                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1))
                 .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
@@ -226,7 +226,8 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void AddressProfile() 
         {
-            CreateMap<Address, AddressResponse>();
+            CreateMap<Address, AddressResponse>()
+                .ForMember(dest => dest.AddressType, opt => opt.MapFrom(src => src.Type.ToString()));
         }
 
         private void DecorServiceProfile() 
