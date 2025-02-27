@@ -73,5 +73,14 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             return BadRequest(result.Message);
         }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            var result = await _decorServiceService.SearchDecorServices(keyword);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+        }
     }
 }
