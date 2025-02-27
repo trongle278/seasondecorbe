@@ -20,6 +20,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Avatar { get; set; }
         public string? Status { get; set; }
         public int RoleId { get; set; }
+        public bool IsProvider { get; set; }
     }
 
     public class AccountResponse

@@ -87,12 +87,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Unauthorized("Account ID not found in token.");
             }
+
             int accountId = int.Parse(accountIdClaim.Value);
             var response = await _providerService.ChangeProviderStatusByAccountIdAsync(accountId, isProvider);
+
             if (response.Success)
             {
                 return Ok(response);
             }
+
+            // Directly return the response if it fails
             return BadRequest(response);
         }
 

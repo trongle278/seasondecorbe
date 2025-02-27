@@ -205,24 +205,44 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        //Dùng để Đổi trang Customer <=> Provider
+        // Switch between Customer <--> Provider
         public async Task<BaseResponse> ChangeProviderStatusByAccountIdAsync(int accountId, bool isProvider)
         {
             try
             {
+                // Tìm Provider tương ứng với accountId
                 var provider = await _unitOfWork.ProviderRepository
                     .Query(p => p.AccountId == accountId)
                     .FirstOrDefaultAsync();
 
-                if (provider == null)
+                // Nếu chưa có Provider record => chưa đăng ký
+                if (isProvider && provider == null)
                 {
                     return new BaseResponse
                     {
                         Success = false,
-                        Errors = new List<string> { "Provider not found for the given account" }
+                        Errors = new List<string>
+                {
+                    "Please apply your provider registration first!"
+                }
                     };
                 }
 
+                // Nếu isProvider = true và provider != null => Chuyển sang provider
+                // Nếu isProvider = false => Chuyển về customer (dù có provider hay chưa)
+                //   - Trường hợp provider == null mà isProvider = false => có thể coi như 
+                //     user vốn đã là customer, nên return success hoặc tuỳ ý
+                if (provider == null)
+                {
+                    // Vẫn thành công do user vốn là customer
+                    return new BaseResponse
+                    {
+                        Success = true,
+                        Message = "You remain in customer mode."
+                    };
+                }
+
+                // Tới đây là provider != null
                 provider.IsProvider = isProvider;
 
                 _unitOfWork.ProviderRepository.Update(provider);
@@ -231,7 +251,9 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = "Provider status updated successfully"
+                    Message = isProvider
+                        ? "Welcome to the Provider Dashboard!"
+                        : "Welcome back to Customer"
                 };
             }
             catch (Exception ex)
@@ -239,10 +261,13 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = false,
-                    Errors = new List<string> { "Failed to update provider status", ex.Message }
+                    Errors = new List<string>
+            {
+                "An error occurred while changing your provider status.",
+                ex.Message
+            }
                 };
             }
-
         }
 
         public async Task<BaseResponse> UploadProviderAvatarAsync(int accountId, Stream fileStream, string fileName)

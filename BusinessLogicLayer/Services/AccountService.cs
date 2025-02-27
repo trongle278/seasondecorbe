@@ -44,10 +44,20 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
+                // Lấy thông tin Provider dựa trên AccountId
+                var providerRecord = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == account.Id)
+                    .FirstOrDefaultAsync();
+                bool isProvider = providerRecord != null ? providerRecord.IsProvider : false;
+
+                // Map account sang AccountDTO và gán thêm trường isProvider
+                var accountDto = _mapper.Map<AccountDTO>(account);
+                accountDto.IsProvider = isProvider;  // Đảm bảo rằng AccountDTO có thuộc tính IsProvider
+
                 return new AccountResponse
                 {
                     Success = true,
-                    Data = _mapper.Map<AccountDTO>(account)  // Sử dụng AutoMapper
+                    Data = accountDto
                 };
             }
             catch (Exception ex)
@@ -60,6 +70,7 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
 
         public async Task<AccountListResponse> GetAllAccountsAsync()
         {
