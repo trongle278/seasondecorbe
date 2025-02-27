@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessLogicLayer.Interfaces;
@@ -137,8 +136,16 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.DecorServiceRepository.InsertAsync(decorService);
                 await _unitOfWork.CommitAsync();
 
-                // *** Index lên Elasticsearch
-                await _elasticClientService.IndexDecorServiceAsync(decorService);
+                // *** Index lên Elasticsearch (không throw exception nếu lỗi)
+                try
+                {
+                    await _elasticClientService.IndexDecorServiceAsync(decorService);
+                }
+                catch (Exception ex)
+                {
+                    // Log lỗi (nếu cần) nhưng không trả về lỗi cho client
+                    // Ví dụ: _logger.LogError(ex, "Elastic index error in CreateDecorServiceAsync");
+                }
 
                 response.Success = true;
                 response.Message = "Decor service created successfully.";
@@ -177,8 +184,15 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.DecorServiceRepository.Update(decorService);
                 await _unitOfWork.CommitAsync();
 
-                // *** Cập nhật index trên Elasticsearch
-                await _elasticClientService.IndexDecorServiceAsync(decorService);
+                // *** Cập nhật index trên Elasticsearch (không throw exception nếu lỗi)
+                try
+                {
+                    await _elasticClientService.IndexDecorServiceAsync(decorService);
+                }
+                catch (Exception ex)
+                {
+                    // Log lỗi nếu cần
+                }
 
                 response.Success = true;
                 response.Message = "Decor service updated successfully.";
@@ -211,8 +225,15 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.DecorServiceRepository.Delete(decorService);
                 await _unitOfWork.CommitAsync();
 
-                // *** Xoá luôn trên Elasticsearch
-                await _elasticClientService.DeleteDecorServiceAsync(id);
+                // *** Xoá luôn trên Elasticsearch (không throw exception nếu lỗi)
+                try
+                {
+                    await _elasticClientService.DeleteDecorServiceAsync(id);
+                }
+                catch (Exception ex)
+                {
+                    // Log lỗi nếu cần
+                }
 
                 response.Success = true;
                 response.Message = "Decor service deleted successfully.";
@@ -221,7 +242,7 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Error deleting decor service.";
-                response.Errors.Add(ex.Message);
+                response.Errors.Add(ex.ToString());
             }
             return response;
         }

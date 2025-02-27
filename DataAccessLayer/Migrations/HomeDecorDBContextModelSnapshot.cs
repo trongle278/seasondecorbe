@@ -1130,7 +1130,7 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
                         .WithOne("Booking")
                         .HasForeignKey("DataAccessObject.Models.Booking", "DecorServiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DataAccessObject.Models.Voucher", "Voucher")

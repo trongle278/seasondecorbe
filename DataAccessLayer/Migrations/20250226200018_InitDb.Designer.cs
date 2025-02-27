@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250226145910_InitDb")]
+    [Migration("20250226200018_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1132,7 +1132,7 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
                         .WithOne("Booking")
                         .HasForeignKey("DataAccessObject.Models.Booking", "DecorServiceId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
