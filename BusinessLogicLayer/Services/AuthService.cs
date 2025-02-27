@@ -368,6 +368,13 @@ namespace BusinessLogicLayer.Services
                     }
                 }
 
+                // Check if the account has a corresponding Provider record
+                var providerRecord = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == account.Id)
+                    .FirstOrDefaultAsync();
+
+                bool isProvider = providerRecord != null ? providerRecord.IsProvider : false;
+
                 // Generate JWT token for the user
                 var token = await GenerateJwtToken(account);
                 return new GoogleLoginResponse
@@ -376,7 +383,8 @@ namespace BusinessLogicLayer.Services
                     Token = token,
                     RoleId = account.RoleId,
                     AccountId = account.Id,
-                    SubscriptionId = account.SubscriptionId
+                    SubscriptionId = account.SubscriptionId,
+                    IsProvider = isProvider
                 };
             }
             catch (Exception ex)
