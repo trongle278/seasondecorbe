@@ -551,8 +551,7 @@ namespace DataAccessObject.Migrations
                         name: "FK_Bookings_DecorServices_DecorServiceId",
                         column: x => x.DecorServiceId,
                         principalTable: "DecorServices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Bookings_Vouchers_VoucherId",
                         column: x => x.VoucherId,
