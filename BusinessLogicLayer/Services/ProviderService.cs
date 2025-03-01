@@ -27,6 +27,34 @@ namespace BusinessLogicLayer.Services
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
         }
+
+        public async Task<BaseResponse> GetAllProvidersAsync()
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Truy vấn tất cả các provider, có thể include thêm Account nếu cần
+                var providers = await _unitOfWork.ProviderRepository
+                    .Query(p => true)  // Lấy tất cả provider
+                    .Include(p => p.Account)
+                    .ToListAsync();
+
+                // Ánh xạ danh sách Provider sang DTO (ProviderResponse) đã cấu hình trong AutoMapper
+                var providerList = _mapper.Map<List<ProviderResponse>>(providers);
+
+                response.Success = true;
+                response.Message = "Providers retrieved successfully.";
+                response.Data = providerList;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving providers.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
         public async Task<BaseResponse> GetProviderProfileByAccountIdAsync(int accountId)
         {
             var response = new BaseResponse();

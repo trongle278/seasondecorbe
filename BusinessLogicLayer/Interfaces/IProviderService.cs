@@ -10,6 +10,7 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IProviderService
     {
+        Task<BaseResponse> GetAllProvidersAsync();
         Task<BaseResponse> GetProviderProfileByAccountIdAsync(int accountId);
         Task<BaseResponse> SendProviderInvitationEmailAsync(string email);
         Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request);

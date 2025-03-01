@@ -60,12 +60,22 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
+                if (string.IsNullOrWhiteSpace(request.Slug))
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Slug is required" }
+                    };
+                }
+
                 var otp = GenerateOTP();
                 var account = new Account
                 {
                     Email = request.Email,
                     FirstName = request.FirstName,
                     LastName = request.LastName,
+                    Slug = request.Slug,
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
                     RoleId = 3, // Customer role
@@ -190,22 +200,28 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Tạo một đối tượng Account giả cho admin.
-                // Đặt Id = 0 (hoặc một giá trị đặc biệt) để phân biệt với các tài khoản từ DB
                 var adminAccount = new Account
                 {
-                    Id = 0,
+                    Id = 0, // hoặc giá trị đặc biệt để phân biệt admin
                     Email = adminEmail,
                     FirstName = "Admin",
                     LastName = "",
-                    RoleId = 1 // Giả sử 1 ứng với Admin; bạn có thể tự điều chỉnh nếu cần
+                    RoleId = 1, // Giả sử 1 tương ứng với Admin
+                    SubscriptionId = 0 // Nếu admin không có subscription, để mặc định là 0
                 };
 
-                // Sinh token JWT cho admin mà không cần truy vấn DB (vì admin không nằm trong DB)
                 var adminToken = await GenerateJwtToken(adminAccount);
-                return new LoginResponse { Success = true, Token = adminToken };
+                return new LoginResponse
+                {
+                    Success = true,
+                    Token = adminToken,
+                    AccountId = adminAccount.Id,
+                    SubscriptionId = adminAccount.SubscriptionId,
+                    RoleId = adminAccount.RoleId
+                };
             }
 
-            // Nếu không phải admin, tiếp tục kiểm tra trong DB như cũ
+            // Kiểm tra tài khoản user thông thường
             var account = await _unitOfWork.AccountRepository
                 .Query(a => a.Email == request.Email)
                 .Include(a => a.Role)
@@ -220,11 +236,18 @@ namespace BusinessLogicLayer.Services
                 };
             }
 
-            // Đối với admin trong DB (nếu có), không cần OTP
+            // Nếu account thuộc Admin trong DB (nếu có)
             if (account.Role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
             {
                 var token = await GenerateJwtToken(account);
-                return new LoginResponse { Success = true, Token = token };
+                return new LoginResponse
+                {
+                    Success = true,
+                    Token = token,
+                    AccountId = account.Id,
+                    SubscriptionId = account.SubscriptionId,
+                    RoleId = account.RoleId
+                };
             }
 
             // Nếu user có bật 2FA
@@ -246,8 +269,16 @@ namespace BusinessLogicLayer.Services
 
             // User không bật 2FA
             var userToken = await GenerateJwtToken(account);
-            return new LoginResponse { Success = true, Token = userToken };
+            return new LoginResponse
+            {
+                Success = true,
+                Token = userToken,
+                AccountId = account.Id,
+                SubscriptionId = account.SubscriptionId,
+                RoleId = account.RoleId
+            };
         }
+
 
         public async Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request)
         {
@@ -312,25 +343,21 @@ namespace BusinessLogicLayer.Services
         {
             try
             {
-                // Validate the ID token
                 var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings());
-
-                // Extract email and name
                 var email = payload.Email;
                 var firstName = payload.GivenName;
                 var lastName = payload.FamilyName;
                 var avatar = payload.Picture;
 
-                // Check if the user already exists in your database
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Email == email)
-                    .Include(a => a.Role) // Ensure role is included
+                    .Include(a => a.Role)
                     .FirstOrDefaultAsync();
 
                 bool isNewUser = false;
                 if (account == null)
                 {
-                    // If the user does not exist, create a new account
+                    // Nếu chưa có, tạo account mới với slug mặc định
                     account = new Account
                     {
                         Email = email,
@@ -340,21 +367,21 @@ namespace BusinessLogicLayer.Services
                         Avatar = avatar,
                         IsVerified = true,
                         RoleId = 3,
-                        SubscriptionId = 1
+                        SubscriptionId = 1,
+                        Slug = GenerateDefaultSlug() // Sinh slug mặc định
                     };
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);
                     await _unitOfWork.CommitAsync();
                     isNewUser = true;
 
-                    // Reload account to include role
+                    // Reload account để include Role
                     account = await _unitOfWork.AccountRepository
                         .Query(a => a.Email == email)
                         .Include(a => a.Role)
                         .FirstOrDefaultAsync();
                 }
 
-                // Use CartService to create a cart if the user is new
                 if (isNewUser)
                 {
                     var cartResponse = await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
@@ -368,7 +395,6 @@ namespace BusinessLogicLayer.Services
                     }
                 }
 
-                // Generate JWT token for the user
                 var token = await GenerateJwtToken(account);
                 return new GoogleLoginResponse
                 {
@@ -452,14 +478,6 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        private string GenerateOTP()
-        {
-            using var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
-            var bytes = new byte[4];
-            rng.GetBytes(bytes);
-            return (BitConverter.ToUInt32(bytes, 0) % 900000 + 100000).ToString();  // Tạo OTP an toàn hơn
-        }
-
         private async Task SendResetPasswordEmail(string email, string otp)
         {
             var emailBody = $@"
@@ -474,7 +492,6 @@ namespace BusinessLogicLayer.Services
                 "Reset Password OTP",
                 emailBody);
         }
-
         public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request)
         {
             try
@@ -618,6 +635,21 @@ namespace BusinessLogicLayer.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        private string GenerateOTP()
+        {
+            using var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
+            var bytes = new byte[4];
+            rng.GetBytes(bytes);
+            return (BitConverter.ToUInt32(bytes, 0) % 900000 + 100000).ToString();  // Tạo OTP an toàn hơn
+        }
+
+        private string GenerateDefaultSlug()
+        {
+            // Ví dụ đơn giản: tạo slug là chuỗi số 5 chữ số ngẫu nhiên.
+            var random = new Random();
+            return random.Next(10000, 99999).ToString();
         }
         #endregion
     }

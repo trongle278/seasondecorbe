@@ -19,6 +19,46 @@ namespace SeasonalHomeDecorAPI.Controllers
             _providerService = providerService;
         }
 
+        [HttpGet("getAll")]
+        public async Task<IActionResult> GetAllProviders()
+        {
+            var response = await _providerService.GetAllProvidersAsync();
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        // Endpoint mới để lấy Provider profile theo accountId
+        [HttpGet("myprofile")]
+        public async Task<IActionResult> GetMyProviderProfile()
+        {
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+            {
+                return Unauthorized("Account ID not found in token.");
+            }
+            int accountId = int.Parse(accountIdClaim.Value);
+            var response = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpGet("profile/{accountId}")]
+        public async Task<IActionResult> GetProviderProfileByAccountId(int accountId)
+        {
+            var response = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
         [HttpPost("create-profile")]
         public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
         {
@@ -128,24 +168,6 @@ namespace SeasonalHomeDecorAPI.Controllers
                 }
                 return BadRequest(response.Message);
             }
-        }
-
-        // Endpoint mới để lấy Provider profile theo accountId
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProviderProfile()
-        {
-            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (accountIdClaim == null)
-            {
-                return Unauthorized("Account ID not found in token.");
-            }
-            int accountId = int.Parse(accountIdClaim.Value);
-            var response = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
-            if (response.Success)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
+        }       
     }
 }

@@ -131,6 +131,7 @@ namespace DataAccessObject.Migrations
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Gender = table.Column<bool>(type: "bit", nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),

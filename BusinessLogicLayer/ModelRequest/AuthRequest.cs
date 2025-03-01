@@ -34,6 +34,11 @@ namespace BusinessLogicLayer.ModelRequest
         [DefaultValue("Weak")]
         public string LastName { get; set; }
 
+        [Required(ErrorMessage = "Slug is required")]
+        [RegularExpression(@"^[a-z0-9]+(?:-[a-z0-9]+)*$", ErrorMessage = "Slug can only contain letters and numbers")]
+        [DefaultValue("johndoe")]
+        public string Slug { get; set; }
+
         [Required(ErrorMessage = "Date of birth is required")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}")]

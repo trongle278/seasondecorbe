@@ -23,6 +23,9 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Token { get; set; }
         public bool Success { get; set; }
         public List<string> Errors { get; set; }
+        public int AccountId { get; set; }
+        public int? SubscriptionId { get; set; }
+        public int RoleId { get; set; }
         public bool RequiresTwoFactor { get; set; }
 
         public LoginResponse()

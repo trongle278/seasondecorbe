@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,34 @@ namespace SeasonalHomeDecorAPI.Controllers
         public AccountProfileController(IAccountProfileService accountProfileService)
         {
             _accountProfileService = accountProfileService;
+        }
+        
+        [HttpPut("slug")]
+        public async Task<IActionResult> UpdateSlug([FromBody] UpdateSlugRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Slug))
+            {
+                return BadRequest("Slug is required.");
+            }
+
+            // Retrieve the user ID from the claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            if (!int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            var response = await _accountProfileService.UpdateSlug(userId, request);
+            if (response.Success)
+            {
+                return Ok(new { Message = response.Message, Slug = response.Data });
+            }
+            return BadRequest(response.Message);
         }
 
         [HttpPut("avatar")]

@@ -72,4 +72,12 @@ namespace BusinessLogicLayer.ModelRequest
         [Required(ErrorMessage = "Phone is required")]
         public string? Phone { get; set; }
     }
+
+    public class UpdateSlugRequest
+    {
+        [Required(ErrorMessage = "Slug is required")]
+        [RegularExpression(@"^[a-z0-9]+(?:-[a-z0-9]+)*$", ErrorMessage = "Slug can only contain letters and numbers")]
+        [DefaultValue("johndoe")]
+        public string Slug { get; set; }
+    }
 }
