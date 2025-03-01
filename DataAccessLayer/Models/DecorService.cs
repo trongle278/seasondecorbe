@@ -19,6 +19,8 @@ namespace DataAccessObject.Models
         public string Province { get; set; }
         public DateTime CreateAt { get; set; }
 
+        public bool IsDeleted { get; set; } = false;
+
         public int AccountId { get; set; }
         public Account Account { get; set; }
 

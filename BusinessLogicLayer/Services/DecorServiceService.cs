@@ -6,6 +6,7 @@ using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
@@ -34,7 +35,6 @@ namespace BusinessLogicLayer.Services
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id)
-                    .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .FirstOrDefaultAsync();
 
@@ -45,8 +45,17 @@ namespace BusinessLogicLayer.Services
                 }
                 else
                 {
+                    // Map các trường cơ bản của DecorService sang DecorServiceDTO
                     var dto = _mapper.Map<DecorServiceDTO>(decorService);
-                    dto.ImageUrls = decorService.DecorImages.Select(di => di.ImageURL).ToList();
+
+                    // Thay vì ImageUrls = [...], ta map sang List<DecorImageDTO>
+                    dto.Images = decorService.DecorImages
+                        .Select(img => new DecorImageResponse
+                        {
+                            Id = img.Id,
+                            ImageURL = img.ImageURL
+                        })
+                        .ToList();
 
                     response.Success = true;
                     response.Data = dto;
@@ -68,15 +77,23 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var services = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => true)
-                    .Include(ds => ds.DecorCategory)
+                    .Query(ds => !ds.IsDeleted)
                     .Include(ds => ds.DecorImages)
                     .ToListAsync();
 
+                // Map mỗi service sang DecorServiceDTO
                 var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
+
+                // Map DecorImages -> DecorImageDTO
                 for (int i = 0; i < services.Count; i++)
                 {
-                    dtos[i].ImageUrls = services[i].DecorImages.Select(di => di.ImageURL).ToList();
+                    dtos[i].Images = services[i].DecorImages
+                        .Select(img => new DecorImageResponse
+                        {
+                            Id = img.Id,
+                            ImageURL = img.ImageURL
+                        })
+                        .ToList();
                 }
 
                 response.Success = true;
@@ -97,7 +114,17 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                // Kiểm tra số lượng ảnh
+                var provider = await _unitOfWork.ProviderRepository
+                        .Query(p => p.AccountId == accountId)
+                        .FirstOrDefaultAsync();
+
+                if (provider == null || !provider.IsProvider)
+                {
+                    response.Success = false;
+                    response.Message = "Only a Provider is allowed to create a decor service.";
+                    return response;
+                }
+
                 if (request.Images != null && request.Images.Count > 5)
                 {
                     response.Success = false;
@@ -105,7 +132,6 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Tạo DecorService entity
                 var decorService = new DecorService
                 {
                     Style = request.Style,
@@ -132,7 +158,6 @@ namespace BusinessLogicLayer.Services
                     }
                 }
 
-                // Lưu DB
                 await _unitOfWork.DecorServiceRepository.InsertAsync(decorService);
                 await _unitOfWork.CommitAsync();
 
@@ -164,6 +189,17 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
+                var provider = await _unitOfWork.ProviderRepository
+                        .Query(p => p.AccountId == accountId)
+                        .FirstOrDefaultAsync();
+
+                if (provider == null || !provider.IsProvider)
+                {
+                    response.Success = false;
+                    response.Message = "Only a Provider is allowed to update a decor service.";
+                    return response;
+                }
+
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id)
                     .FirstOrDefaultAsync();
@@ -206,11 +242,98 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> DeleteDecorServiceAsync(int id)
+        //public async Task<BaseResponse> UpdateDecorServiceAsyncWithImage(int id, UpdateDecorServiceRequest request, int accountId)
+        //{
+        //    var response = new BaseResponse();
+        //    try
+        //    {
+        //        var decorService = await _unitOfWork.DecorServiceRepository
+        //            .Query(ds => ds.Id == id)
+        //            .Include(ds => ds.DecorImages)
+        //            .FirstOrDefaultAsync();
+
+        //        if (decorService == null)
+        //        {
+        //            response.Success = false;
+        //            response.Message = "Decor service not found.";
+        //            return response;
+        //        }
+
+        //        decorService.Style = request.Style;
+        //        decorService.Description = request.Description;
+        //        decorService.Province = request.Province;
+        //        decorService.DecorCategoryId = request.DecorCategoryId;
+        //        decorService.AccountId = accountId;
+
+        //        if (request.ImageIdsToRemove != null && request.ImageIdsToRemove.Any())
+        //        {
+        //            var imagesToRemove = decorService.DecorImages
+        //                .Where(img => request.ImageIdsToRemove.Contains(img.Id))
+        //                .ToList();
+
+        //            foreach (var img in imagesToRemove)
+        //            {
+        //                decorService.DecorImages.Remove(img);
+        //            }
+        //        }
+
+        //        if (request.ImagesToAdd != null && request.ImagesToAdd.Any())
+        //        {
+        //            foreach (var imageFile in request.ImagesToAdd)
+        //            {
+        //                using var stream = imageFile.OpenReadStream();
+        //                var imageUrl = await _cloudinaryService.UploadFileAsync(
+        //                    stream,
+        //                    imageFile.FileName,
+        //                    imageFile.ContentType
+        //                );
+        //                var newImage = new DecorImage
+        //                {
+        //                    ImageURL = imageUrl
+
+        //                };
+        //                decorService.DecorImages.Add(newImage);
+        //            }
+        //        }
+
+        //        _unitOfWork.DecorServiceRepository.Update(decorService);
+        //        await _unitOfWork.CommitAsync();
+
+        //        try
+        //        {
+        //            await _elasticClientService.IndexDecorServiceAsync(decorService);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //        }
+        //        response.Success = true;
+        //        response.Message = "Decor service updated successfully.";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.Message = "Error updating decor service.";
+        //        response.Errors.Add(ex.Message);
+        //    }
+        //    return response;
+        //}
+
+        public async Task<BaseResponse> DeleteDecorServiceAsync(int id, int accountId)
         {
             var response = new BaseResponse();
             try
             {
+                var provider = await _unitOfWork.ProviderRepository
+                        .Query(p => p.AccountId == accountId)
+                        .FirstOrDefaultAsync();
+
+                if (provider == null || !provider.IsProvider)
+                {
+                    response.Success = false;
+                    response.Message = "Only a Provider is allowed to delete a decor service.";
+                    return response;
+                }
+
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id)
                     .FirstOrDefaultAsync();
@@ -222,30 +345,101 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                _unitOfWork.DecorServiceRepository.Delete(decorService);
+                // Hard-delete cũ:
+                // _unitOfWork.DecorServiceRepository.Delete(decorService);
+
+                // Thay bằng soft-delete:
+                decorService.IsDeleted = true;
+                _unitOfWork.DecorServiceRepository.Update(decorService);
+
                 await _unitOfWork.CommitAsync();
 
-                // *** Xoá luôn trên Elasticsearch (không throw exception nếu lỗi)
+                // Xoá luôn trên Elasticsearch (nếu muốn ẩn hẳn trên ES),
+                // hoặc bạn có thể update document "IsDeleted = true" tuỳ logic.
                 try
                 {
+                    // Hard-delete document trên ES
                     await _elasticClientService.DeleteDecorServiceAsync(id);
                 }
                 catch (Exception ex)
                 {
-                    // Log lỗi nếu cần
+                    // Ghi log nếu cần
                 }
 
                 response.Success = true;
-                response.Message = "Decor service deleted successfully.";
+                response.Message = "Decor service soft-deleted successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error deleting decor service.";
+                response.Message = "Error soft-deleting decor service.";
                 response.Errors.Add(ex.ToString());
             }
             return response;
         }
+
+        //option khôi phục service
+        public async Task<BaseResponse> RestoreDecorServiceAsync(int id, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var provider = await _unitOfWork.ProviderRepository
+                        .Query(p => p.AccountId == accountId)
+                        .FirstOrDefaultAsync();
+
+                if (provider == null || !provider.IsProvider)
+                {
+                    response.Success = false;
+                    response.Message = "Only a Provider is allowed to restore a decor service.";
+                    return response;
+                }
+
+                var decorService = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => ds.Id == id)
+                    .FirstOrDefaultAsync();
+
+                if (decorService == null)
+                {
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
+                    return response;
+                }
+
+                // Lật cờ IsDeleted
+                if (!decorService.IsDeleted)
+                {
+                    response.Success = false;
+                    response.Message = "Decor service is not deleted.";
+                    return response;
+                }
+
+                decorService.IsDeleted = false;
+                _unitOfWork.DecorServiceRepository.Update(decorService);
+                await _unitOfWork.CommitAsync();
+
+                // Index lại document trên ES
+                try
+                {
+                    await _elasticClientService.IndexDecorServiceAsync(decorService);
+                }
+                catch (Exception ex)
+                {
+                    // Log nếu cần
+                }
+
+                response.Success = true;
+                response.Message = "Decor service restored successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error restoring decor service.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
 
         public async Task<DecorServiceListResponse> SearchDecorServices(string keyword)
         {

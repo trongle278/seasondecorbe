@@ -27,5 +27,12 @@ namespace BusinessLogicLayer.ModelResponse
         public int AccountId { get; set; }
         public int DecorCategoryId { get; set; }
         public List<string> ImageUrls { get; set; }
+        public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
+    }
+
+    public class DecorImageResponse
+    {
+        public int Id { get; set; }
+        public string ImageURL { get; set; }
     }
 }

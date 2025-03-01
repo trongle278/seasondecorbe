@@ -233,6 +233,7 @@ namespace BusinessLogicLayer.ObjectMapper
         private void DecorServiceProfile() 
         {
             CreateMap<DecorService, DecorServiceDTO>();
+            CreateMap<DecorImage, DecorImageResponse>();
         }
     }
 }

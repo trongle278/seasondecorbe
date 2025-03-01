@@ -65,6 +65,7 @@ namespace BusinessLogicLayer.Services
                         .Fields(f => f
                             .Field(ff => ff.Style)
                             .Field(ff => ff.Description)
+                            .Fields(ff => ff.Province)
                         )
                         .Query(keyword)
                         .Fuzziness(Fuzziness.Auto)

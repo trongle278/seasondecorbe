@@ -51,24 +51,42 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDecorService(int id, [FromBody] UpdateDecorServiceRequest request)
+        public async Task<IActionResult> UpdateDecorService(int id, [FromForm] UpdateDecorServiceRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Lấy accountId từ token
+            // Lấy accountId từ token (nếu có)
             int accountId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
 
             var result = await _decorServiceService.UpdateDecorServiceAsync(id, request, accountId);
             if (result.Success)
                 return Ok(result);
+
             return BadRequest(result.Message);
         }
 
+        //[HttpPut("{id}")]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> UpdateDecorServiceWithImage(int id, [FromForm] UpdateDecorServiceRequest request)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return BadRequest(ModelState);
+
+        //    // Lấy accountId từ token (nếu có)
+        //    int accountId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+
+        //    var result = await _decorServiceService.UpdateDecorServiceAsyncWithImage(id, request, accountId);
+        //    if (result.Success)
+        //        return Ok(result);
+
+        //    return BadRequest(result.Message);
+        //}
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDecorService(int id)
+        public async Task<IActionResult> DeleteDecorService(int id, int accountId)
         {
-            var result = await _decorServiceService.DeleteDecorServiceAsync(id);
+            var result = await _decorServiceService.DeleteDecorServiceAsync(id, accountId);
             if (result.Success)
                 return Ok(result);
             return BadRequest(result.Message);
