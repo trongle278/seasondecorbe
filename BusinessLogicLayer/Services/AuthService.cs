@@ -60,22 +60,13 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                if (string.IsNullOrWhiteSpace(request.Slug))
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Errors = new List<string> { "Slug is required" }
-                    };
-                }
-
                 var otp = GenerateOTP();
                 var account = new Account
                 {
                     Email = request.Email,
                     FirstName = request.FirstName,
                     LastName = request.LastName,
-                    Slug = request.Slug,
+                    Slug = GenerateDefaultSlug(),
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
                     RoleId = 3, // Customer role
