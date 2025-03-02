@@ -18,6 +18,7 @@ namespace DataAccessObject.Models
         public string Image { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime UpdateAt { get; set; }
+        public int ProductId { get; set; }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }

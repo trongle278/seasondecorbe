@@ -15,16 +15,23 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string ProductName { get; set; }
+        [NotMapped]
+        public double Rate { get; set; }
+        [NotMapped]
+        public int TotalRate { get; set; }
+        [NotMapped]
+        public int TotalSold { get; set; }
         public string? Description { get; set; }
-        public string ProductImg { get; set; }
         public double ProductPrice { get; set; }
         public int? Quantity { get; set; }
+        public string? MadeIn { get; set; }
+        public string? ShipFrom { get; set; }
 
         public int CategoryId { get; set; }
         public ProductCategory Category { get; set; }
 
         public virtual ICollection<CartItem> CartItems { get; set; }
         public virtual ICollection<ProductOrder> ProductOrders { get; set; }
-        public virtual ICollection<ProductImage> ProductImages { get; set; }
+        public virtual ICollection<ProductImage>? ProductImages { get; set; }
     }
 }
