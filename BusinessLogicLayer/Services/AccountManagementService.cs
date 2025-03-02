@@ -24,6 +24,68 @@ namespace BusinessLogicLayer.Services
             _passwordHasher = new PasswordHasher<Account>();
         }
 
+        public async Task<BaseResponse> GetAllAccountsAsync()
+        {
+            try
+            {
+                var accounts = await _unitOfWork.AccountRepository
+                    .Query(x => !x.IsDisable)
+                    .ToListAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Accounts retrieved successfully",
+                    Data = accounts
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Error retrieving accounts",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
+        // Lấy thông tin một tài khoản theo id
+        public async Task<BaseResponse> GetAccountByIdAsync(int accountId)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(x => x.Id == accountId && !x.IsDisable)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Account not found"
+                    };
+                }
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Account retrieved successfully",
+                    Data = account
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Error retrieving account",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
         public async Task<BaseResponse> CreateAccountAsync(CreateAccountRequest request)
         {
             try
@@ -77,7 +139,52 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse> DeleteAccountAsync(int accountId)
+        public async Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(x => x.Id == accountId && !x.IsDisable)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Account not found"
+                    };
+                }
+
+                // Cập nhật các thuộc tính của tài khoản theo yêu cầu từ request, nhưng không cập nhật mật khẩu
+                account.FirstName = request.FirstName;
+                account.LastName = request.LastName;
+                account.Phone = request.Phone;
+                account.DateOfBirth = request.DateOfBirth;
+                account.Gender = request.Gender;
+                // Các thuộc tính khác cần cập nhật, nếu có, có thể được thêm vào đây
+
+                _unitOfWork.AccountRepository.Update(account);
+                await _unitOfWork.CommitAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Account updated successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Error updating account",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
+        public async Task<BaseResponse> BanAccountAsync(int accountId)
         {
             try
             {
@@ -94,7 +201,7 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                // Soft delete
+                // Đánh dấu tài khoản bị ban
                 account.IsDisable = true;
                 _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();
@@ -102,7 +209,7 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = "Account deleted successfully"
+                    Message = "Account banned successfully"
                 };
             }
             catch (Exception ex)
@@ -110,7 +217,47 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = false,
-                    Message = "Error deleting account",
+                    Message = "Error banning account",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
+        // Nếu cần mở khóa tài khoản, bạn có thể thêm phương thức này:
+        public async Task<BaseResponse> UnbanAccountAsync(int accountId)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(x => x.Id == accountId)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Account not found"
+                    };
+                }
+
+                // Mở khóa tài khoản
+                account.IsDisable = false;
+                _unitOfWork.AccountRepository.Update(account);
+                await _unitOfWork.CommitAsync();
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = "Account unbanned successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Error unbanning account",
                     Errors = new List<string> { ex.Message }
                 };
             }

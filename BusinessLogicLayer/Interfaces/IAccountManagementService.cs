@@ -10,7 +10,11 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IAccountManagementService
     {
+        Task<BaseResponse> GetAllAccountsAsync();
+        Task<BaseResponse> GetAccountByIdAsync(int accountId);
         Task<BaseResponse> CreateAccountAsync(CreateAccountRequest request);
-        Task<BaseResponse> DeleteAccountAsync(int accountId);
+        Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request);
+        Task<BaseResponse> BanAccountAsync(int accountId);
+        Task<BaseResponse> UnbanAccountAsync(int accountId);
     }
 }

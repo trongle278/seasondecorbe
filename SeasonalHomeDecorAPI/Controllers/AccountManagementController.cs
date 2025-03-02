@@ -7,18 +7,40 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
+    //[Authorize(Roles = "Admin")]
     public class AccountManagementController : ControllerBase
     {
-        private readonly IAccountManagementService _accountService;
+        private readonly IAccountManagementService _accountManagementService;
 
-        public AccountManagementController(IAccountManagementService accountService)
+        public AccountManagementController(IAccountManagementService accountManagementService)
         {
-            _accountService = accountService;
+            _accountManagementService = accountManagementService;
         }
 
-        [HttpPost("create")]
+        // Lấy danh sách tất cả các tài khoản
+        [HttpGet]
+        public async Task<IActionResult> GetAllAccounts()
+        {
+            var result = await _accountManagementService.GetAllAccountsAsync();
+            return Ok(result);
+        }
+
+        // Lấy thông tin tài khoản theo id
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAccountById(int id)
+        {
+            var result = await _accountManagementService.GetAccountByIdAsync(id);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return NotFound(result);
+        }
+
+        // Tạo tài khoản mới
+        [HttpPost]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
         {
             if (!ModelState.IsValid)
@@ -26,35 +48,53 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _accountService.CreateAccountAsync(request);
-
+            var result = await _accountManagementService.CreateAccountAsync(request);
             if (result.Success)
             {
                 return Ok(result);
             }
-            else
-            {
-                return BadRequest(result.Errors);
-            }
+            return BadRequest(result);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAccount(int id)
+        // Cập nhật thông tin tài khoản
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _accountService.DeleteAccountAsync(id);
+            var result = await _accountManagementService.UpdateAccountAsync(id, request);
             if (result.Success)
             {
                 return Ok(result);
             }
-            else
+            return BadRequest(result);
+        }
+
+        // Ban tài khoản (set isDisable = true)
+        [HttpPut("ban/{id}")]
+        public async Task<IActionResult> BanAccount(int id)
+        {
+            var result = await _accountManagementService.BanAccountAsync(id);
+            if (result.Success)
             {
-                return BadRequest(result.Errors);
+                return Ok(result);
             }
+            return BadRequest(result);
+        }
+
+        // Nếu cần mở khóa tài khoản (set isDisable = false)
+        [HttpPut("unban/{id}")]
+        public async Task<IActionResult> UnbanAccount(int id)
+        {
+            var result = await _accountManagementService.UnbanAccountAsync(id);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
     }
 }
