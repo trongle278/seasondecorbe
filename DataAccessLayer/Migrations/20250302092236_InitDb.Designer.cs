@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,18 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+    [Migration("20250226145910_InitDb")]
+========
+    [Migration("20250302084636_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302084636_InitDb.Designer.cs
+========
+    [Migration("20250302092236_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302092236_InitDb.Designer.cs
+    partial class InitDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,9 +82,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Slug")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
@@ -390,9 +397,6 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Province")
                         .IsRequired()

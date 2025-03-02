@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -9,6 +10,7 @@ using BusinessLogicLayer.ModelRequest.Product;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Product;
 using DataAccessObject.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Repository.UnitOfWork;
 
@@ -30,10 +32,48 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var product = await _unitOfWork.ProductRepository.GetAllAsync();
+                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
+                var products = await _unitOfWork.ProductRepository.GetAllAsync(includeProperties);
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get review of product
+                    var reviews = await _unitOfWork.ReviewRepository
+                                        .Query(r => r.ProductId == product.Id)
+                                        .ToListAsync();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Get total product sold
+                    var productOrder = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id 
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .ToListAsync();
+
+                    // Calculate total sold
+                    var totalSold = productOrder.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
                 response.Success = true;
                 response.Message = "Product list retrieved successfully";
-                response.Data = _mapper.Map<List<ProductResponse>>(product);
+                response.Data = productResponses;
             }
             catch (Exception ex)
             {
@@ -50,7 +90,10 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+                var product = await _unitOfWork.ProductRepository
+                                        .Query(p => p.Id == id)
+                                        .Include(p => p.ProductImages)
+                                        .FirstOrDefaultAsync();
 
                 if (product == null)
                 {
@@ -59,9 +102,45 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // Get review of product
+                var reviews = await _unitOfWork.ReviewRepository
+                                    .Query(r => r.ProductId == product.Id)
+                                    .ToListAsync();
+
+                // Calculate average rate
+                var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                // Calculate total rate
+                var totalRate = reviews.Sum(r => r.Rating);
+
+                // Get total product sold
+                var productOrder = await _unitOfWork.ProductOrderRepository
+                                        .Query(po => po.ProductId == product.Id
+                                                    && po.Order.Status == Order.OrderStatus.Completed)
+                                        .ToListAsync();
+
+                // Calculate total sold
+                var totalSold = productOrder.Sum(oi => oi.Quantity);
+
+                var productDetailResponse = new ProductDetailResponse
+                {
+                    Id = product.Id,
+                    ProductName = product.ProductName,
+                    Rate = averageRate,
+                    TotalRate = totalRate,
+                    TotalSold = totalSold,
+                    Description = product.Description,
+                    ProductPrice = product.ProductPrice,
+                    Quantity = product.Quantity,
+                    MadeIn = product.MadeIn,
+                    ShipFrom = product.ShipFrom,
+                    CategoryId = product.CategoryId,
+                    ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+                };
+
                 response.Success = true;
                 response.Message = "Product retrieved successfully";
-                response.Data = _mapper.Map<ProductResponse>(product);
+                response.Data = productDetailResponse;
             }
             catch (Exception ex)
             {
@@ -106,7 +185,24 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // CreateProduct
                 var product = _mapper.Map<Product>(request);
+                product.ProductImages = new List<ProductImage>();
+
+                // Create ProductImage
+                if (request.ImageUrls != null && request.ImageUrls.Any())
+                {
+                    foreach (var imageUrl in request.ImageUrls.Take(5)) // Limit to 5 images
+                    {
+                        var productImage = new ProductImage
+                        {
+                            ImageUrl = imageUrl,
+                            Product = product
+                        };
+                        product.ProductImages.Add(productImage);
+                    }
+                }
+
                 await _unitOfWork.ProductRepository.InsertAsync(product);
                 await _unitOfWork.CommitAsync();
 
@@ -157,13 +253,32 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+                var product = await _unitOfWork.ProductRepository
+                                        .Query(p => p.Id == id)
+                                        .Include(p => p.ProductImages)
+                                        .FirstOrDefaultAsync();
 
                 if (product == null)
                 {
                     response.Success = false;
                     response.Message = "Invalid product";
                     return response;
+                }
+
+                // Check if new imageUrl provided
+                if (request.ImageUrls != null && request.ImageUrls.Any())
+                {
+                    // Delete all old images
+                    product.ProductImages.Clear();
+
+                    // Add new images
+                    foreach (var imageUrl in request.ImageUrls)
+                    {
+                        product.ProductImages.Add(new ProductImage
+                        {
+                            ImageUrl = imageUrl
+                        });
+                    }
                 }
 
                 _mapper.Map(request, product);
@@ -189,7 +304,10 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+                var product = await _unitOfWork.ProductRepository
+                                        .Query(p => p.Id == id)
+                                        .Include(p => p.ProductImages)
+                                        .FirstOrDefaultAsync();
 
                 if (product == null)
                 {
@@ -198,7 +316,15 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // Delete ProductImages
+                if (product.ProductImages != null && product.ProductImages.Any())
+                {
+                    _unitOfWork.ProductImageRepository.RemoveRange(product.ProductImages);
+                }
+
+                // Delete Product
                 _unitOfWork.ProductRepository.Delete(product.Id);
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

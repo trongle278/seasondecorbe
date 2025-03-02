@@ -25,6 +25,7 @@ namespace Repository.UnitOfWork
             ChatRepository = new ChatRepository(_context);
             ProviderRepository = new ProviderRepository(_context);
             ProductRepository = new ProductRepository(_context);
+            ProductImageRepository = new ProductImageRepository(_context);
             ProductCategoryRepository = new ProductCategoryRepository(_context);
             CartRepository = new CartRepository(_context);
             CartItemRepository = new CartItemRepository(_context);
@@ -37,6 +38,7 @@ namespace Repository.UnitOfWork
             DeviceTokenRepository = new DeviceTokenRepository(_context);
             DecorServiceRepository = new DecorServiceRepository(_context);
             AddressRepository = new AddressRepository(_context);
+            ReviewRepository = new ReviewRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -45,6 +47,7 @@ namespace Repository.UnitOfWork
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
         public IChatRepository ChatRepository { get; private set; }
         public IProductRepository ProductRepository { get; private set; }
+        public IProductImageRepository ProductImageRepository { get; private set; }
         public IProductCategoryRepository ProductCategoryRepository { get; private set; }
         public ICartRepository CartRepository { get; private set; }
         public ICartItemRepository CartItemRepository { get; private set; }
@@ -57,6 +60,7 @@ namespace Repository.UnitOfWork
         public IDeviceTokenRepository DeviceTokenRepository { get; private set; }
         public IDecorServiceRepository DecorServiceRepository { get; private set; }
         public IAddressRepository AddressRepository { get; private set; }   
+        public IReviewRepository ReviewRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

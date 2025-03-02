@@ -161,7 +161,7 @@ namespace BusinessLogicLayer.Services
                         Quantity = quantity,
                         UnitPrice = unitPrice,
                         ProductName = product.ProductName,
-                        Image = product.ProductImg
+                        Image = product.ProductImages?.FirstOrDefault()?.ImageUrl
                     };
 
                     await _unitOfWork.CartItemRepository.InsertAsync(cartItem);
