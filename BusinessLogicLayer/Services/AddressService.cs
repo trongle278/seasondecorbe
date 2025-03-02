@@ -31,7 +31,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var addresses = await _unitOfWork.AddressRepository
-                    .Query(a => a.AccountId == userAccountId)
+                    .Query(a => a.AccountId == userAccountId && a.IsDelete == false)
                     .ToListAsync();
 
                 response.Success = true;
@@ -77,7 +77,8 @@ namespace BusinessLogicLayer.Services
                     District = request.District,
                     Ward = request.Ward,
                     Street = request.Street,
-                    Detail = request.Detail
+                    Detail = request.Detail,
+                    IsDelete = false
                 };
 
                 await _unitOfWork.AddressRepository.InsertAsync(newAddress);
@@ -132,6 +133,7 @@ namespace BusinessLogicLayer.Services
                 address.Ward = request.Ward;
                 address.Street = request.Street;
                 address.Detail = request.Detail;
+                address.IsDelete = false;
 
                 _unitOfWork.AddressRepository.Update(address);
                 await _unitOfWork.CommitAsync();
@@ -163,7 +165,8 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                _unitOfWork.AddressRepository.Delete(address.Id);
+                address.IsDelete = true;
+                _unitOfWork.AddressRepository.Update(address);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

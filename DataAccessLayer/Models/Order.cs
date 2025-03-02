@@ -13,7 +13,6 @@ namespace DataAccessObject.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string DeliverAddress { get; set; }
         public string Phone { get; set; }
         public string FullName { get; set; }
         public string PaymentMethod { get; set; }
@@ -31,6 +30,9 @@ namespace DataAccessObject.Models
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
+
+        public int AddressId { get; set; }
+        public Address Address { get; set; }
 
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<ProductOrder> ProductOrders { get; set; }

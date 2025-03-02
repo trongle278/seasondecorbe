@@ -18,5 +18,6 @@ namespace BusinessLogicLayer.ModelRequest
         public string Ward { get; set; }
         public string Street { get; set; }
         public string Detail { get; set; }
+        public bool IsDelete { get; set; }
     }
 }

@@ -127,6 +127,9 @@ namespace DataAccessObject.Migrations
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -511,9 +514,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<string>("DeliverAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("AddressId")
+                        .HasColumnType("int");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -542,6 +544,8 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("AddressId");
 
                     b.HasIndex("VoucherId");
 
@@ -1303,11 +1307,19 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Address", "Address")
+                        .WithMany("Orders")
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("DataAccessObject.Models.Voucher", null)
                         .WithMany("Orders")
                         .HasForeignKey("VoucherId");
 
                     b.Navigation("Account");
+
+                    b.Navigation("Address");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Payment", b =>
@@ -1511,6 +1523,11 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Supports");
 
                     b.Navigation("TicketReplies");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Address", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
