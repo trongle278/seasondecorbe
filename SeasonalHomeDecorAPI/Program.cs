@@ -30,7 +30,7 @@ builder.Services.AddControllers()
            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-           options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // Convert number to text in enum
+           // options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // Convert number to text in enum
        });
 
 builder.Services.AddEndpointsApiExplorer();
