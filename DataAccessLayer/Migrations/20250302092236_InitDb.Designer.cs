@@ -13,10 +13,14 @@ namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
 <<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
     [Migration("20250226145910_InitDb")]
 ========
     [Migration("20250302084636_InitDb")]
 >>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302084636_InitDb.Designer.cs
+========
+    [Migration("20250302092236_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302092236_InitDb.Designer.cs
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
