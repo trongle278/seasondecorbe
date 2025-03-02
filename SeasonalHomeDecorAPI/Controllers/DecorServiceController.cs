@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace SeasonalHomeDecorAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    [Authorize]
+    [ApiController]  
     public class DecorServiceController : ControllerBase
     {
         private readonly IDecorServiceService _decorServiceService;
@@ -36,6 +35,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("add")]
+        [Authorize]
         public async Task<IActionResult> CreateDecorService([FromForm] CreateDecorServiceRequest request)
         {
             if (!ModelState.IsValid)
@@ -51,6 +51,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateDecorService(int id, [FromForm] UpdateDecorServiceRequest request)
         {
             if (!ModelState.IsValid)
@@ -84,6 +85,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         //}
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteDecorService(int id, int accountId)
         {
             var result = await _decorServiceService.DeleteDecorServiceAsync(id, accountId);

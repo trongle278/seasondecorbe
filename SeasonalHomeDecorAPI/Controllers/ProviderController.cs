@@ -9,7 +9,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    
     public class ProviderController : ControllerBase
     {
         private readonly IProviderService _providerService;
@@ -32,6 +32,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         // Endpoint mới để lấy Provider profile theo accountId
         [HttpGet("myprofile")]
+        [Authorize]
         public async Task<IActionResult> GetMyProviderProfile()
         {
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -60,6 +61,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("create-profile")]
+        [Authorize]
         public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
         {
             if (!ModelState.IsValid)
@@ -84,6 +86,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("send-invitation")]
+        [Authorize]
         public async Task<IActionResult> SendProviderInvitationEmail([FromQuery] string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -100,6 +103,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("update-profile/{accountId}")]
+        [Authorize]
         public async Task<IActionResult> UpdateProviderProfile(int accountId, [FromBody] UpdateProviderRequest request)
         {
             if (request == null)
@@ -120,6 +124,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("change-status")]
+        [Authorize]
         public async Task<IActionResult> ChangeProviderStatus([FromBody] bool isProvider)
         {
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -141,6 +146,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("upload-provider-avatar")]
+        [Authorize]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
             if (file == null || file.Length == 0)

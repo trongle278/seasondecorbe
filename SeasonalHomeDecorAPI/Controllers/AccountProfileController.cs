@@ -9,8 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace SeasonalHomeDecorAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
-    [Authorize]
+    [ApiController]    
     public class AccountProfileController : ControllerBase
     {
         private readonly IAccountProfileService _accountProfileService;
@@ -52,6 +51,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("update-account")]
+        [Authorize]
         public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
@@ -83,6 +83,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("avatar")]
+        [Authorize]
         public async Task<IActionResult> UpdateAvatar(IFormFile file)
         {
             if (file == null || file.Length == 0)
