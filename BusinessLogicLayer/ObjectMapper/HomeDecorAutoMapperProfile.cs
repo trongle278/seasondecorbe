@@ -38,18 +38,7 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void AccountProfile()
         {
-            CreateMap<Account, AccountDTO>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
-                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
-                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
-                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
-                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
-                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Avatar))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId));
-
+            CreateMap<Account, AccountDTO>();
             CreateMap<CreateAccountRequest, Account>();
             CreateMap<UpdateAccountRequest, Account>();
         }

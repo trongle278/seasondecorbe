@@ -6,72 +6,130 @@ using System.Threading.Tasks;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
-using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
+using DataAccessObject.Models;
+using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 
 namespace BusinessLogicLayer.Services
 {
     public class AccountProfileService : IAccountProfileService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly PasswordHasher<Account> _passwordHasher;
 
-        public AccountProfileService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
+        public AccountProfileService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _passwordHasher = new PasswordHasher<Account>();
             _cloudinaryService = cloudinaryService;
         }
 
-        public async Task<BaseResponse> UpdateSlug(int accountId, UpdateSlugRequest request)
+        public async Task<AccountResponse> GetAccountByIdAsync(int accountId)
         {
-            var response = new BaseResponse();
             try
             {
-                // Validate request
-                if (request == null || string.IsNullOrWhiteSpace(request.Slug))
-                {
-                    response.Success = false;
-                    response.Message = "Slug is required";
-                    return response;
-                }
-
-                // Kiểm tra slug đã tồn tại ở tài khoản khác chưa
-                var duplicate = await _unitOfWork.AccountRepository
-                    .Query(a => a.Slug == request.Slug && a.Id != accountId)
+                var account = await _unitOfWork.AccountRepository
+                    .Query(x => x.Id == accountId)
                     .FirstOrDefaultAsync();
 
-                if (duplicate != null)
-                {
-                    response.Success = false;
-                    response.Message = "Slug already exists. Please choose a different one.";
-                    return response;
-                }
-
-                // Lấy tài khoản theo accountId
-                var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
                 if (account == null)
                 {
-                    response.Success = false;
-                    response.Message = "Account not found.";
-                    return response;
+                    return new AccountResponse
+                    {
+                        Success = false,
+                        Message = "Account not found"
+                    };
                 }
 
-                // Cập nhật slug
-                account.Slug = request.Slug;
-                _unitOfWork.AccountRepository.Update(account);
-                await _unitOfWork.CommitAsync();
+                // Lấy thông tin Provider dựa trên AccountId
+                var providerRecord = await _unitOfWork.ProviderRepository
+                    .Query(p => p.AccountId == account.Id)
+                    .FirstOrDefaultAsync();
+                bool isProvider = providerRecord != null ? providerRecord.IsProvider : false;
 
-                response.Success = true;
-                response.Message = "Slug updated successfully";
-                response.Data = account.Slug;
+                // Map account sang AccountDTO và gán thêm trường isProvider
+                var accountDto = _mapper.Map<AccountDTO>(account);
+                accountDto.IsProvider = isProvider;  // Đảm bảo rằng AccountDTO có thuộc tính IsProvider
+
+                return new AccountResponse
+                {
+                    Success = true,
+                    Data = accountDto
+                };
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.Message = "Error updating slug";
-                response.Errors.Add(ex.Message);
+                return new AccountResponse
+                {
+                    Success = false,
+                    Message = "Error retrieving account",
+                    Errors = new List<string> { ex.Message }
+                };
             }
-            return response;
+        }
+
+        public async Task<AccountListResponse> GetAllAccountsAsync()
+        {
+            try
+            {
+                var accounts = await _unitOfWork.AccountRepository
+                    .Query(x => !x.IsDisable)
+                    .ToListAsync();
+
+                return new AccountListResponse
+                {
+                    Success = true,
+                    Data = _mapper.Map<List<AccountDTO>>(accounts)  // Sử dụng AutoMapper
+                };
+            }
+            catch (Exception ex)
+            {
+                return new AccountListResponse
+                {
+                    Success = false,
+                    Message = "Error retrieving accounts",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
+        public async Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request)
+        {
+            var account = await _unitOfWork.AccountRepository
+                .Query(x => x.Id == accountId)
+                .FirstOrDefaultAsync();
+
+            if (account == null)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Account not found",
+                    Errors = new List<string> { "Account not found" }
+                };
+            }
+
+            // Cập nhật các trường cần thiết
+            account.FirstName = request.FirstName;
+            account.LastName = request.LastName;
+            account.Slug = request.Slug;
+            account.DateOfBirth = request.DateOfBirth;
+            account.Gender = request.Gender;
+            account.Phone = request.Phone;
+
+            _unitOfWork.AccountRepository.Update(account);
+            await _unitOfWork.CommitAsync();
+
+            return new BaseResponse
+            {
+                Success = true,
+                Message = "Account updated successfully"
+            };
         }
 
         public async Task<BaseResponse> UpdateAvatarAsync(int accountId, Stream fileStream, string fileName)

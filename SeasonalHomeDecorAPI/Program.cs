@@ -142,7 +142,8 @@ builder.Services.AddSingleton<IElasticClient>(sp =>
 
 // 10. Configure Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IAccountManagementService, AccountManagementService>();
+builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDecorCategoryService, DecorCategoryService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -153,7 +154,6 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IAccountProfileService, AccountProfileService>();
 builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<ISupportService, SupportService>();
 builder.Services.AddScoped<IDataSeeder, DataSeeder>();

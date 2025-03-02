@@ -2,13 +2,14 @@
 using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     [Authorize]
     public class AccountProfileController : ControllerBase
     {
@@ -18,16 +19,47 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             _accountProfileService = accountProfileService;
         }
-        
-        [HttpPut("slug")]
-        public async Task<IActionResult> UpdateSlug([FromBody] UpdateSlugRequest request)
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllAccounts()
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Slug))
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Slug is required.");
+                return BadRequest(ModelState);
             }
 
-            // Retrieve the user ID from the claims
+            var accounts = await _accountProfileService.GetAllAccountsAsync();
+            return Ok(accounts);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAccount(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _accountProfileService.GetAccountByIdAsync(id);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Lấy user id từ token (claims)
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
@@ -39,12 +71,15 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return BadRequest("Invalid user ID.");
             }
 
-            var response = await _accountProfileService.UpdateSlug(userId, request);
-            if (response.Success)
+            var result = await _accountProfileService.UpdateAccountAsync(userId, request);
+            if (result.Success)
             {
-                return Ok(new { Message = response.Message, Slug = response.Data });
+                return Ok(result);
             }
-            return BadRequest(response.Message);
+            else
+            {
+                return BadRequest(result.Errors);
+            }
         }
 
         [HttpPut("avatar")]
@@ -78,6 +113,6 @@ namespace SeasonalHomeDecorAPI.Controllers
                 }
                 return BadRequest(response.Message);
             }
-        }
+        } 
     }
 }
