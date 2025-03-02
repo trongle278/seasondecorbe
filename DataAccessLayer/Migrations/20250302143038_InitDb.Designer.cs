@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250302142519_InitDb")]
+    [Migration("20250302143038_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
