@@ -239,6 +239,13 @@ namespace DataAccessObject.Models
                 .HasForeignKey(po => po.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure 1-N relationship between Order and Address
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Address)
+                .WithMany(a => a.Orders)
+                .HasForeignKey(o => o.AddressId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             // Configure 1-N relationship between Order and Review
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.Reviews)

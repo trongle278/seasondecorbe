@@ -19,5 +19,6 @@ namespace BusinessLogicLayer.ModelResponse
         public string Ward { get; set; }
         public string Street { get; set; }
         public string Detail { get; set; } // Added property
+        public bool IsDelete { get; set; }
     }
 }

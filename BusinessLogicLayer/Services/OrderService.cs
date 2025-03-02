@@ -95,6 +95,17 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var address = await _unitOfWork.AddressRepository
+                                                .Query(a => a.Id == request.AddressId && a.AccountId == request.AccountId)
+                                                .FirstOrDefaultAsync();
+
+                if (address == null)
+                {
+                    response.Success = false;
+                    response.Message = "Invalid address";
+                    return response;
+                }
+
                 // Check available product quantity
                 foreach (var item in cart.CartItems)
                 {
@@ -113,7 +124,7 @@ namespace BusinessLogicLayer.Services
                 var order = new Order
                 {
                     AccountId = cart.Account.Id,
-                    DeliverAddress = request.DeliverAddress,
+                    AddressId = address.Id,
                     Phone = request.Phone,
                     FullName = request.FullName,
                     PaymentMethod = "Online Banking",

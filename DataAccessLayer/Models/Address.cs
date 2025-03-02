@@ -36,8 +36,11 @@ namespace DataAccessObject.Models
         public string? Ward { get; set; }        // Phường / Xã
         public string? Street { get; set; }      // Tên đường
         public string? Detail { get; set; }      // Thông tin chi tiết (số nhà, hẻm,...)
+        public bool IsDelete { get; set; }
 
         public int AccountId { get; set; }
         public virtual Account Account { get; set; }
+
+        public virtual ICollection<Order> Orders { get; set; }
     }
 }
