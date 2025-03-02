@@ -51,7 +51,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut("update-account")]
         public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
