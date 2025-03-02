@@ -16,6 +16,7 @@ namespace Repository.UnitOfWork
         IDecorCategoryRepository DecorCategoryRepository { get; }
         IChatRepository ChatRepository { get; }
         IProductRepository ProductRepository { get; }
+        IProductImageRepository ProductImageRepository { get; }
         IProductCategoryRepository ProductCategoryRepository { get; }
         ICartRepository CartRepository { get; }
         ICartItemRepository CartItemRepository { get; }
@@ -28,6 +29,7 @@ namespace Repository.UnitOfWork
         IDeviceTokenRepository DeviceTokenRepository { get; }
         IDecorServiceRepository DecorServiceRepository { get; }
         IAddressRepository AddressRepository { get; }
+        IReviewRepository ReviewRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

@@ -607,8 +607,7 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProductImg")
-                        .IsRequired()
+                    b.Property<string>("MadeIn")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProductName")
@@ -620,6 +619,9 @@ namespace DataAccessObject.Migrations
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("ShipFrom")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -844,6 +846,9 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Rating")

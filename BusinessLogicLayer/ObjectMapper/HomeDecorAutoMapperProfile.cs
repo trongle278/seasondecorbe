@@ -165,8 +165,26 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void ProductProfile()
         {
-            CreateMap<ProductRequest, Product>();
-            CreateMap<Product, ProductResponse>();
+            CreateMap<ProductRequest, Product>()
+                .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src => 
+                    src.ImageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList()));
+            CreateMap<Product, ProductResponse>()
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
+                    src.ProductImages.Select(pi => pi.ImageUrl).ToList()));
+            
+            CreateMap<ProductListRequest, Product>()
+                .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src => 
+                    src.ImageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList()));
+            CreateMap<Product, ProductListResponse>()
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
+                    src.ProductImages.Select(pi => pi.ImageUrl).ToList()));
+            
+            CreateMap<ProductDetailRequest, Product>()
+                .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src => 
+                    src.ImageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList()));
+            CreateMap<Product, ProductDetailResponse>()
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
+                    src.ProductImages.Select(pi => pi.ImageUrl).ToList()));
         }
 
         private void ProductCategoryProfile()

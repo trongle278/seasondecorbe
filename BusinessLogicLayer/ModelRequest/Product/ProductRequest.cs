@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataAccessObject.Models;
 
 namespace BusinessLogicLayer.ModelRequest.Product
 {
@@ -11,11 +13,39 @@ namespace BusinessLogicLayer.ModelRequest.Product
     {
         public string ProductName { get; set; }
         public string? Description { get; set; }
-        public string ProductImg { get; set; }
         [Range(0, double.MaxValue, ErrorMessage = "Product price cannot be negative.")]
         public double ProductPrice { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "Product quantity cannot be negative.")]
         public int? Quantity { get; set; }
+        public string? MadeIn { get; set; }
+        public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
+        public List<string>? ImageUrls { get; set; }
+    }
+
+    public class ProductListRequest
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; }
+        public double Rate { get; set; }
+        public double ProductPrice { get; set; }
+        public int TotalSold { get; set; }
+        public List<string>? ImageUrls { get; set; }
+    }
+
+    public class ProductDetailRequest
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; }
+        public double Rate { get; set; }
+        public int TotalRate { get; set; }
+        public int TotalSold { get; set; }
+        public string? Description { get; set; }
+        public double ProductPrice { get; set; }
+        public int? Quantity { get; set; }
+        public string? MadeIn { get; set; }
+        public string? ShipFrom { get; set; }
+        public int CategoryId { get; set; }
+        public List<string>? ImageUrls { get; set; }
     }
 }
