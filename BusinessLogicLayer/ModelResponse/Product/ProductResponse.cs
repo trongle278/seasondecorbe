@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccessObject.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace BusinessLogicLayer.ModelResponse.Product
 {
@@ -17,7 +18,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
-        public List<string>? ImageUrls { get; set; }
+        public List<IFormFile> Images { get; set; }
     }
 
     public class ProductListResponse

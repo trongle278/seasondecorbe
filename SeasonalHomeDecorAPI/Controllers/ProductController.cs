@@ -49,7 +49,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("createProduct")]
-        public async Task<IActionResult> CreateProduct(ProductRequest request)
+        public async Task<IActionResult> CreateProduct([FromForm] ProductRequest request)
         {
             var result = await _productService.CreateProduct(request);
 
@@ -76,6 +76,12 @@ namespace SeasonalHomeDecorAPI.Controllers
                 ModelState.AddModelError("", $"Product quantity has to be > 0.");
                 return StatusCode(403, ModelState);
             }
+            
+            if (result.Success == false && result.Message == "Maximum 5 images")
+            {
+                ModelState.AddModelError("", $"Product Images cannot exceed 5.");
+                return StatusCode(403, ModelState);
+            }
 
             if (result.Success == false && result.Message == "Error creating product")
             {
@@ -87,7 +93,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("updateProduct/{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, ProductRequest request)
+        public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductRequest request)
         {
             var result = await _productService.UpdateProduct(id, request);
 
@@ -112,6 +118,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success == false && result.Message == "Negative quantity")
             {
                 ModelState.AddModelError("", $"Product quantity has to be > 0.");
+                return StatusCode(403, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Maximum 5 images")
+            {
+                ModelState.AddModelError("", $"Product Images cannot exceed 5.");
                 return StatusCode(403, ModelState);
             }
 
