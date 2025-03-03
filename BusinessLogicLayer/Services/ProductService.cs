@@ -20,11 +20,13 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<BaseResponse> GetAllProduct()
@@ -185,21 +187,38 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // CreateProduct
-                var product = _mapper.Map<Product>(request);
-                product.ProductImages = new List<ProductImage>();
-
-                // Create ProductImage
-                if (request.ImageUrls != null && request.ImageUrls.Any())
+                if (request.Images != null && request.Images.Count > 5)
                 {
-                    foreach (var imageUrl in request.ImageUrls.Take(5)) // Limit to 5 images
+                    response.Success = false;
+                    response.Message = "Maximum 5 images";
+                    return response;
+                }
+
+                // CreateProduct
+                var product = new Product
+                {
+                    ProductName = request.ProductName,
+                    Description = request.Description,
+                    ProductPrice = request.ProductPrice,
+                    Quantity = request.Quantity,
+                    MadeIn = request.MadeIn,
+                    ShipFrom = request.ShipFrom,
+                    CategoryId = request.CategoryId,
+                    ProductImages = new List<ProductImage>()
+                };
+
+                // Upload images
+                if (request.Images != null && request.Images.Any())
+                {
+                    foreach(var imageFile in request.Images )
                     {
-                        var productImage = new ProductImage
-                        {
-                            ImageUrl = imageUrl,
-                            Product = product
-                        };
-                        product.ProductImages.Add(productImage);
+                        using var stream = imageFile.OpenReadStream();
+                        var imageUrl = await _cloudinaryService.UploadFileAsync(
+                            stream,
+                            imageFile.FileName,
+                            imageFile.ContentType
+                            );
+                        product.ProductImages.Add(new ProductImage { ImageUrl = imageUrl });
                     }
                 }
 
@@ -265,23 +284,40 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Check if new imageUrl provided
-                if (request.ImageUrls != null && request.ImageUrls.Any())
+                if (request.Images != null && request.Images.Count > 5)
                 {
-                    // Delete all old images
-                    product.ProductImages.Clear();
+                    response.Success = false;
+                    response.Message = "Maximum 5 images";
+                    return response;
+                }
 
-                    // Add new images
-                    foreach (var imageUrl in request.ImageUrls)
+                product.ProductName = request.ProductName;
+                product.Description = request.Description;
+                product.ProductPrice = request.ProductPrice;
+                product.Quantity = request.Quantity;
+                product.MadeIn = request.MadeIn;
+                product.ShipFrom = request.ShipFrom;
+                product.CategoryId = request.CategoryId;
+
+                if (request.Images != null && request.Images.Any())
+                {
+                    if (product.ProductImages.Any())
                     {
-                        product.ProductImages.Add(new ProductImage
+                        product.ProductImages.Clear();
+
+                        foreach (var imageFile in request.Images)
                         {
-                            ImageUrl = imageUrl
-                        });
+                            using var stream = imageFile.OpenReadStream();
+                            var imageUrl = await _cloudinaryService.UploadFileAsync(
+                                stream,
+                                imageFile.FileName,
+                                imageFile.ContentType
+                                );
+                            product.ProductImages.Add(new ProductImage { ImageUrl = imageUrl });
+                        }
                     }
                 }
 
-                _mapper.Map(request, product);
                 _unitOfWork.ProductRepository.Update(product);
                 await _unitOfWork.CommitAsync();
 

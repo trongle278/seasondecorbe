@@ -83,5 +83,67 @@ namespace BusinessLogicLayer.Services
                 return uploadResult.SecureUrl?.ToString();
             }
         }
+
+        //public async Task DeleteFileAsync(string publicId, bool isImage)
+        //{
+        //    if (isImage == true)
+        //    {
+        //        var deletionParams = new DeletionParams(publicId)
+        //        {
+        //            ResourceType = ResourceType.Image
+        //        };
+
+        //        var deletionResult = await _cloudinary.DestroyAsync(deletionParams);
+
+        //        if (deletionResult.Result != "ok")
+        //        {
+        //            throw new Exception("Error deleting image from Cloudinary.");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var deletionParams = new DeletionParams(publicId)
+        //        {
+        //            ResourceType = ResourceType.Raw
+        //        };
+
+        //        var deletionResult = await _cloudinary.DestroyAsync(deletionParams);
+
+        //        if (deletionResult.Result != "ok")
+        //        {
+        //            throw new Exception("Error deleting raw file from Cloudinary.");
+        //        }
+        //    }
+        //}
+
+        public async Task DeleteImageAsync(string publicId)
+        {
+            var deletionParams = new DeletionParams(publicId)
+            {
+                ResourceType = ResourceType.Image
+            };
+
+            var deletionResult = await _cloudinary.DestroyAsync(deletionParams);
+
+            if (deletionResult.Result != "ok")
+            {
+                throw new Exception("Error deleting image from Cloudinary.");
+            }
+        }
+
+        public async Task DeleteFileAsync(string publicId)
+        {
+            var deletionParams = new DeletionParams(publicId)
+            {
+                ResourceType = ResourceType.Raw
+            };
+
+            var deletionResult = await _cloudinary.DestroyAsync(deletionParams);
+
+            if (deletionResult.Result != "ok")
+            {
+                throw new Exception("Error deleting raw file from Cloudinary.");
+            }
+        }
     }
 }
