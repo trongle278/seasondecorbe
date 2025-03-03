@@ -34,6 +34,7 @@ namespace BusinessLogicLayer.ObjectMapper
             FollowProfile();
             AddressProfile();
             DecorServiceProfile();
+            BookingProfile();
         }
 
         private void AccountProfile()
@@ -231,6 +232,11 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<DecorService, DecorServiceDTO>();
             CreateMap<DecorImage, DecorImageResponse>();
+        }
+
+        private void BookingProfile()
+        {
+            
         }
     }
 }

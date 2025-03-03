@@ -30,6 +30,9 @@ namespace Repository.UnitOfWork
         IDecorServiceRepository DecorServiceRepository { get; }
         IAddressRepository AddressRepository { get; }
         IReviewRepository ReviewRepository { get; }
+        IBookingRepository BookingRepository { get; }
+        IPaymentRepository PaymentRepository { get; }
+        IPaymentPhaseRepository PaymentPhaseRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

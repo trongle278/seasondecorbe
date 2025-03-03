@@ -14,7 +14,7 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Code { get; set; }
-        public string PaymentMethod { get; set; }
+        //public string PaymentMethod { get; set; }
         public DateTime Date { get; set; }
         public double Total { get; set; }
         public enum PaymentStatus
@@ -36,5 +36,9 @@ namespace DataAccessObject.Models
 
         public int OrderId { get; set; }
         public Order Order { get; set; }
+
+        // Liên kết với bảng PaymentPhase để biết giao dịch thuộc giai đoạn nào
+        public int PaymentPhaseId { get; set; }
+        public PaymentPhase PaymentPhase { get; set; }
     }
 }
