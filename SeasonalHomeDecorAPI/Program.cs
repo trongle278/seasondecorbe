@@ -13,8 +13,17 @@ using BusinessLogicLayer.Hub;
 using BusinessLogicLayer.Services;
 using Repository.Repositories;
 using System.Text.Json.Serialization;
+<<<<<<< Updated upstream
+=======
+using Microsoft.EntityFrameworkCore.Design;
+using Nest;
+using Net.payOS;
+>>>>>>> Stashed changes
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container
+IConfiguration configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
 // 1. Configure JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -32,6 +41,11 @@ builder.Services.AddControllers()
        });
 
 builder.Services.AddEndpointsApiExplorer();
+
+PayOS payOS = new PayOS(configuration["Environment:PAYOS_CLIENT_ID"] ?? throw new Exception("Cannot find environment"),
+                    configuration["Environment:PAYOS_API_KEY"] ?? throw new Exception("Cannot find environment"),
+                    configuration["Environment:PAYOS_CHECKSUM_KEY"] ?? throw new Exception("Cannot find environment"));
+builder.Services.AddSingleton(payOS);
 
 builder.Services.AddSignalR(options =>
 {
