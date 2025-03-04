@@ -39,6 +39,7 @@ namespace Repository.UnitOfWork
             DecorServiceRepository = new DecorServiceRepository(_context);
             AddressRepository = new AddressRepository(_context);
             ReviewRepository = new ReviewRepository(_context);
+            BookingRepository = new BookingRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -61,6 +62,7 @@ namespace Repository.UnitOfWork
         public IDecorServiceRepository DecorServiceRepository { get; private set; }
         public IAddressRepository AddressRepository { get; private set; }   
         public IReviewRepository ReviewRepository { get; private set; }
+        public IBookingRepository BookingRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

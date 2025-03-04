@@ -315,6 +315,18 @@ namespace DataAccessObject.Models
                 .HasForeignKey(dt => dt.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<PaymentPhase>()
+                .HasOne(pp => pp.Booking)
+                .WithMany(b => b.PaymentPhases)
+                .HasForeignKey(pp => pp.BookingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PaymentPhase)
+                .WithMany(pp => pp.Payments)
+                .HasForeignKey(p => p.PaymentPhaseId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Provider" },

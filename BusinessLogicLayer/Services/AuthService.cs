@@ -270,10 +270,6 @@ namespace BusinessLogicLayer.Services
             };
         }
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
         public async Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request)
         {
             try

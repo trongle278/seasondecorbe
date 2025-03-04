@@ -34,10 +34,11 @@ namespace DataAccessObject.Models
         public int DecorServiceId { get; set; }
         public DecorService DecorService { get; set; }
 
-        public int VoucherId { get; set; }
+        public int? VoucherId { get; set; }
         public Voucher Voucher { get; set; }
 
         public Review Review { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
+        public virtual ICollection<PaymentPhase> PaymentPhases { get; set; }
     }
 }
