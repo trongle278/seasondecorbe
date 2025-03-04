@@ -181,38 +181,57 @@ namespace BusinessLogicLayer.Services
             var adminPassword = _configuration["Admin:Password"];
             if (string.Equals(request.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
             {
-                if (request.Password != adminPassword)
+                // Thử lấy tài khoản admin từ DB
+                var adminAccount = await _unitOfWork.AccountRepository
+                    .Query(a => a.Email == adminEmail)
+                    .FirstOrDefaultAsync();
+
+                if (adminAccount != null)
                 {
-                    return new LoginResponse
+                    // Nếu tồn tại, xác thực mật khẩu với password đã được hash trong DB
+                    if (!VerifyPassword(adminAccount, request.Password))
                     {
-                        Success = false,
-                        Errors = new List<string> { "Invalid email or password" }
+                        return new LoginResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { "Invalid email or password" }
+                        };
+                    }
+                }
+                else
+                {
+                    // Nếu chưa có admin trong DB, dựa vào cấu hình để xác thực
+                    if (request.Password != adminPassword)
+                    {
+                        return new LoginResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { "Invalid email or password" }
+                        };
+                    }
+                    // Tạo đối tượng Account ảo (có thể là fallback)
+                    adminAccount = new Account
+                    {
+                        Email = adminEmail,
+                        FirstName = "Admin",
+                        LastName = "",
+                        RoleId = 1, // Admin
+                        SubscriptionId = 0
                     };
                 }
 
-                // Tạo một đối tượng Account giả cho admin.
-                var adminAccount = new Account
-                {
-                    Id = 0, // hoặc giá trị đặc biệt để phân biệt admin
-                    Email = adminEmail,
-                    FirstName = "Admin",
-                    LastName = "",
-                    RoleId = 1, // Giả sử 1 tương ứng với Admin
-                    SubscriptionId = 0 // Nếu admin không có subscription, để mặc định là 0
-                };
-
-                var adminToken = await GenerateJwtToken(adminAccount);
+                var token = await GenerateJwtToken(adminAccount);
                 return new LoginResponse
                 {
                     Success = true,
-                    Token = adminToken,
-                    AccountId = adminAccount.Id,
+                    Token = token,
+                    AccountId = adminAccount.Id,  // Sẽ trả về 1 nếu đã được seed
                     SubscriptionId = adminAccount.SubscriptionId,
                     RoleId = adminAccount.RoleId
                 };
             }
 
-            // Kiểm tra tài khoản user thông thường
+            // Tiếp tục xử lý đăng nhập cho người dùng thường...
             var account = await _unitOfWork.AccountRepository
                 .Query(a => a.Email == request.Email)
                 .Include(a => a.Role)
@@ -241,7 +260,7 @@ namespace BusinessLogicLayer.Services
                 };
             }
 
-            // Nếu user có bật 2FA
+            // Các xử lý cho user thông thường...
             if (account.TwoFactorEnabled)
             {
                 var otp = GenerateOTP();
@@ -258,7 +277,6 @@ namespace BusinessLogicLayer.Services
                 };
             }
 
-            // User không bật 2FA
             var userToken = await GenerateJwtToken(account);
             return new LoginResponse
             {
