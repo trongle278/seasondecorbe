@@ -15,6 +15,7 @@ using Repository.Repositories;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Design;
 using Nest;
+using BusinessLogicLayer.ModelRequest;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -139,6 +140,9 @@ builder.Services.AddSingleton<IElasticClient>(sp =>
         .DefaultIndex("decorservice_index"); // default index
     return new ElasticClient(settings);
 });
+
+builder.Services.Configure<PayosSettings>(builder.Configuration.GetSection("PayosSettings"));
+
 
 // 10. Configure Dependency Injection
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -288,8 +288,6 @@ namespace BusinessLogicLayer.Services
             };
         }
 
-
-
         public async Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request)
         {
             try

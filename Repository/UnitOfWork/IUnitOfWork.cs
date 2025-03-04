@@ -33,6 +33,7 @@ namespace Repository.UnitOfWork
         IBookingRepository BookingRepository { get; }
         IPaymentRepository PaymentRepository { get; }
         IPaymentPhaseRepository PaymentPhaseRepository { get; }
+        IVoucherRepository VoucherRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

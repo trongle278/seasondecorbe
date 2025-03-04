@@ -18,7 +18,6 @@ namespace BusinessLogicLayer.ModelRequest
         public int BookingId { get; set; }
         public int PaymentPhaseId { get; set; }
         public double Amount { get; set; }
-        public int AccountId { get; set; }
         public int OrderId { get; set; }
     }
 }

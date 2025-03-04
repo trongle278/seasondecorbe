@@ -1,7 +1,9 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -10,7 +12,7 @@ namespace SeasonalHomeDecorAPI.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
-        private readonly IPayosService _payosService; // Giả lập service kết nối PayOS
+        private readonly IPayosService _payosService; // Service tích hợp PayOS
 
         public BookingController(IBookingService bookingService, IPayosService payosService)
         {
@@ -18,21 +20,36 @@ namespace SeasonalHomeDecorAPI.Controllers
             _payosService = payosService;
         }
 
+        [Authorize]
         // POST: api/Booking/create
         [HttpPost("create")]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            var result = await _bookingService.CreateBookingAsync(request);
+            // Lấy AccountId từ User Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(new BaseResponse
+                {
+                    Success = false,
+                    Message = "User is not authenticated."
+                });
+            }
+            int accountId = int.Parse(userIdClaim.Value);
+
+            var result = await _bookingService.CreateBookingAsync(request, accountId);
             if (!result.Success)
                 return BadRequest(result);
 
             return Ok(result);
         }
 
+        [Authorize]
         // POST: api/Booking/confirm
         [HttpPost("confirm")]
         public async Task<IActionResult> ConfirmBooking([FromBody] ConfirmBookingRequest request)
         {
+            // Ở đây có thể không cần AccountId vì chỉ cần BookingId và danh sách PaymentPhase
             var result = await _bookingService.ConfirmBookingAsync(request);
             if (!result.Success)
                 return BadRequest(result);
@@ -40,6 +57,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         // PUT: api/Booking/status
         [HttpPut("status")]
         public async Task<IActionResult> UpdateBookingStatus([FromBody] UpdateBookingStatusRequest request)
@@ -63,30 +81,25 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         // POST: api/Booking/payment
-        // Giả sử endpoint này để thực hiện thanh toán qua PayOS
+        // Endpoint để thực hiện thanh toán qua PayOS
         [HttpPost("payment")]
+        [Authorize]
         public async Task<IActionResult> MakePayment([FromBody] MakePaymentRequest request)
         {
-            // 1. Gọi PayOS để thanh toán (giả lập)
-            //    Tùy vào PayOS SDK / API, bạn có thể thay đổi logic
-            var payResult = await _payosService.PayViaPayOSAsync(request.Amount, request.OrderId, request.AccountId);
-
-            // Nếu thanh toán thất bại
-            if (!payResult.IsSuccess)
+            // Lấy AccountId từ User Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
             {
-                var failResponse = new BaseResponse
+                return Unauthorized(new BaseResponse
                 {
                     Success = false,
-                    Message = "PayOS payment failed",
-                    Errors = new System.Collections.Generic.List<string> { payResult.ErrorMessage }
-                };
-                return BadRequest(failResponse);
+                    Message = "User is not authenticated."
+                });
             }
+            int accountId = int.Parse(userIdClaim.Value);
 
-            // 2. Nếu thành công => Ghi nhận Payment vào BookingSystem
-            var response = await _bookingService.MakePaymentAsync(request);
-
-            // 3. Trả về kết quả
+            // Gọi BookingService để tạo Payment (trong đó bên trong đã gọi _payosService.CreatePaymentLinkAsync)
+            var response = await _bookingService.MakePaymentAsync(request, accountId);
             if (!response.Success)
                 return BadRequest(response);
 

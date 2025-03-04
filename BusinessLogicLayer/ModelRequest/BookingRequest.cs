@@ -9,7 +9,6 @@ namespace BusinessLogicLayer.ModelRequest
     public class CreateBookingRequest
     {
         public double TotalPrice { get; set; }
-        public int AccountId { get; set; }
         public int DecorServiceId { get; set; }
         public int? VoucherId { get; set; }
     }

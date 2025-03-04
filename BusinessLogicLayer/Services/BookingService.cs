@@ -14,14 +14,15 @@ namespace BusinessLogicLayer.Services
     public class BookingService : IBookingService
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public BookingService(IUnitOfWork unitOfWork)
+        private readonly IPayosService _payosService;
+        public BookingService(IUnitOfWork unitOfWork, IPayosService payosService)
         {
             _unitOfWork = unitOfWork;
+            _payosService = payosService;
         }
 
         // 1. Tạo booking
-        public async Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request)
+        public async Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId)
         {
             var response = new BaseResponse();
             try
@@ -31,8 +32,8 @@ namespace BusinessLogicLayer.Services
                     BookingCode = GenerateBookingCode(),
                     TotalPrice = request.TotalPrice,
                     CreateAt = DateTime.UtcNow,
-                    Status = Booking.BookingStatus.Pending, // hoặc Surveying
-                    AccountId = request.AccountId,
+                    Status = Booking.BookingStatus.Pending,
+                    AccountId = accountId,
                     DecorServiceId = request.DecorServiceId,
                     VoucherId = request.VoucherId
                 };
@@ -69,18 +70,15 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                if (booking.Status != Booking.BookingStatus.Pending
-                    && booking.Status != Booking.BookingStatus.Surveying)
+                if (booking.Status != Booking.BookingStatus.Pending && booking.Status != Booking.BookingStatus.Surveying)
                 {
                     response.Message = "Booking must be in Pending/Surveying status to confirm.";
                     return response;
                 }
 
-                // Chuyển sang Confirmed
                 booking.Status = Booking.BookingStatus.Confirmed;
                 _unitOfWork.BookingRepository.Update(booking);
 
-                // Tạo PaymentPhases
                 foreach (var phaseReq in request.PaymentPhases)
                 {
                     var phase = new PaymentPhase
@@ -115,9 +113,7 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var booking = await _unitOfWork.BookingRepository
-                    .GetByIdAsync(request.BookingId);
-
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(request.BookingId);
                 if (booking == null)
                 {
                     response.Message = "Booking not found.";
@@ -143,7 +139,7 @@ namespace BusinessLogicLayer.Services
         }
 
         // 4. Thanh toán 1 giai đoạn
-        public async Task<BaseResponse> MakePaymentAsync(MakePaymentRequest request)
+        public async Task<BaseResponse> MakePaymentAsync(MakePaymentRequest request, int accountId)
         {
             var response = new BaseResponse();
             try
@@ -159,61 +155,53 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var phase = booking.PaymentPhases
-                    .FirstOrDefault(p => p.Id == request.PaymentPhaseId);
+                var phase = booking.PaymentPhases.FirstOrDefault(p => p.Id == request.PaymentPhaseId);
                 if (phase == null)
                 {
                     response.Message = "Payment phase not found.";
                     return response;
                 }
 
-                // Tạo Payment record
+                // Tạo orderCode kiểu long (ví dụ: booking.Id * 1000 + phase.Id)
+                long orderCode = booking.Id * 1000 + phase.Id;
+                // Ép kiểu số tiền từ double sang int (theo SDK yêu cầu)
+                int paymentAmount = (int)request.Amount;
+
+                // Gọi PayosService tạo link thanh toán
+                var createPaymentResult = await _payosService.CreatePaymentLinkAsync(
+                    orderCode,
+                    paymentAmount,
+                    $"Thanh toán booking {booking.Id} - Phase {phase.Phase}",
+                    null // Nếu có danh sách ItemData, truyền vào đây
+                );
+
+                // Giả sử nếu PaymentLink rỗng, coi như tạo link thất bại
+                if (string.IsNullOrEmpty(createPaymentResult.paymentLinkId))
+                {
+                    response.Success = false;
+                    response.Message = "Tạo link thanh toán PayOS thất bại.";
+                    return response;
+                }
+
+                // Tạo record Payment với trạng thái Pending
                 var payment = new Payment
                 {
                     Code = GeneratePaymentCode(),
                     Date = DateTime.UtcNow,
                     Total = request.Amount,
-                    Status = Payment.PaymentStatus.Completed, // tuỳ logic
+                    Status = Payment.PaymentStatus.Pending,
                     BookingId = booking.Id,
-                    AccountId = request.AccountId,
+                    AccountId = accountId,
                     PaymentPhaseId = phase.Id,
                     OrderId = request.OrderId
                 };
 
-                // Giả sử bạn có PaymentRepository trong UnitOfWork
                 await _unitOfWork.PaymentRepository.InsertAsync(payment);
-
-                // Check tiền >= ScheduledAmount => Complete phase + chuyển booking
-                if (request.Amount >= phase.ScheduledAmount)
-                {
-                    phase.Status = PaymentPhase.PaymentPhaseStatus.Completed;
-                    phase.PaymentDate = DateTime.UtcNow;
-
-                    switch (phase.Phase)
-                    {
-                        case PaymentPhase.PaymentPhaseType.Deposit:
-                            booking.Status = Booking.BookingStatus.Procuring;
-                            break;
-                        case PaymentPhase.PaymentPhaseType.MaterialPreparation:
-                            booking.Status = Booking.BookingStatus.Progressing;
-                            break;
-                        case PaymentPhase.PaymentPhaseType.FinalPayment:
-                            booking.Status = Booking.BookingStatus.Completed;
-                            break;
-                    }
-                    _unitOfWork.PaymentPhaseRepository.Update(phase);
-                    _unitOfWork.BookingRepository.Update(booking);
-                }
-                else
-                {
-                    // Chưa trả đủ => tuỳ nghiệp vụ
-                }
-
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Payment made successfully.";
-                response.Data = payment;
+                response.Message = "Tạo link thanh toán thành công, vui lòng chuyển hướng.";
+                response.Data = new { PaymentUrl = createPaymentResult.paymentLinkId };
             }
             catch (Exception ex)
             {

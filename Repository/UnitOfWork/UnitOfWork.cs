@@ -41,6 +41,7 @@ namespace Repository.UnitOfWork
             ReviewRepository = new ReviewRepository(_context);
             BookingRepository = new BookingRepository(_context);
             PaymentRepository = new PaymentRepository(_context);
+            VoucherRepository = new VoucherRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -66,6 +67,7 @@ namespace Repository.UnitOfWork
         public IBookingRepository BookingRepository { get; private set; }
         public IPaymentRepository PaymentRepository { get; private set; }
         public IPaymentPhaseRepository PaymentPhaseRepository { get; private set; }
+        public IVoucherRepository VoucherRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

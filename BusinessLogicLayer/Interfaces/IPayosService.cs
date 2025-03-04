@@ -5,11 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using Net.payOS.Types;
 
 namespace BusinessLogicLayer.Interfaces
 {
     public interface IPayosService
     {
-        Task<PayosResult> PayViaPayOSAsync(double amount, int orderId, int accountId);
+        Task<CreatePaymentResult> CreatePaymentLinkAsync(long orderCode, int amount, string description, List<ItemData> items = null);
     }
 }
