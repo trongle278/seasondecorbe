@@ -134,10 +134,11 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request, Stream? avatarStream = null, string? avatarFileName = null)
+        public async Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request)
         {
             try
             {
+                // Retrieve the existing account
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Id == accountId)
                     .FirstOrDefaultAsync();
@@ -166,26 +167,18 @@ namespace BusinessLogicLayer.Services
 
                 var provider = _mapper.Map<Provider>(request);
                 provider.AccountId = accountId;
+
+                // Use the existing account
                 provider.Account = account;
                 provider.Account.Phone = request.Phone;
-
-                // ✅ Nếu có upload avatar mới, cập nhật vào Account
-                if (avatarStream != null && !string.IsNullOrEmpty(avatarFileName))
-                {
-                    account.Avatar = await _cloudinaryService.UploadAvatarAsync(avatarStream, avatarFileName);
-                }
 
                 await _unitOfWork.ProviderRepository.InsertAsync(provider);
                 await _unitOfWork.CommitAsync();
 
-                // ✅ Trả về ProviderResponse mà không có Avatar (Avatar nằm trong Account)
-                var providerResponse = _mapper.Map<ProviderResponse>(provider);
-
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = "Your provider profile has been created successfully",
-                    Data = providerResponse
+                    Message = "Your provider profile has been created successfully"
                 };
             }
             catch (Exception ex)
