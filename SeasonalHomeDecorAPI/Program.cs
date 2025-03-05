@@ -174,6 +174,7 @@ builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IDecorServiceService, DecorServiceService>();
 builder.Services.AddScoped<IElasticClientService, ElasticClientService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 // 11. Build the application
 var app = builder.Build();

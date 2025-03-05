@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250304141721_InitDb")]
+    [Migration("20250304181248_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -186,7 +186,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("float");
 
                     b.Property<int?>("VoucherId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1187,9 +1186,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
                         .WithMany("Bookings")
-                        .HasForeignKey("VoucherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("VoucherId");
 
                     b.Navigation("Account");
 

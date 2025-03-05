@@ -184,7 +184,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("float");
 
                     b.Property<int?>("VoucherId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1185,9 +1184,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
                         .WithMany("Bookings")
-                        .HasForeignKey("VoucherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("VoucherId");
 
                     b.Navigation("Account");
 
