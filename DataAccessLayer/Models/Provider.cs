@@ -15,7 +15,6 @@ namespace DataAccessObject.Models
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? Bio { get; set; }
-        public string? Avatar { get; set; }
         public string? Address { get; set; }
         public DateTime JoinedDate { get; set; }
         public bool IsProvider { get; set; }

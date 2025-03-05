@@ -71,7 +71,8 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<Provider, ProviderResponse>()              
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Account.Phone))
-                .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Account.Slug));
+                .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Account.Slug))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Account.Avatar));
                 
             // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 

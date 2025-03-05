@@ -16,6 +16,5 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request, Stream? avatarStream = null, string? avatarFileName = null);
         Task<BaseResponse> UpdateProviderProfileByAccountIdAsync(int accountId, UpdateProviderRequest request);
         Task<BaseResponse> ChangeProviderStatusByAccountIdAsync(int accountId, bool isProvider);
-        Task<BaseResponse> UploadProviderAvatarAsync(int accountId, Stream fileStream, string fileName);
     }
 }
