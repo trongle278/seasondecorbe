@@ -80,30 +80,22 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpPost("create-profile")]
         [Authorize]
-        public async Task<IActionResult> CreateProviderProfile([FromForm] BecomeProviderRequest request, IFormFile? avatar)
+        public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            // Lấy accountId từ claims của token
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (accountIdClaim == null)
             {
                 return Unauthorized("Account ID not found in token.");
             }
+
             int accountId = int.Parse(accountIdClaim.Value);
-
-            Stream? avatarStream = null;
-            string? avatarFileName = null;
-
-            if (avatar != null && avatar.Length > 0)
-            {
-                avatarStream = avatar.OpenReadStream();
-                avatarFileName = avatar.FileName;
-            }
-
-            var response = await _providerService.CreateProviderProfileAsync(accountId, request, avatarStream, avatarFileName);
+            var response = await _providerService.CreateProviderProfileAsync(accountId, request);
             if (response.Success)
             {
                 return Ok(response);
