@@ -17,9 +17,6 @@ namespace BusinessLogicLayer.ModelRequest
         [StringLength(500, ErrorMessage = "Bio cannot exceed 500 characters")]
         public string Bio { get; set; }
 
-        // Nếu không cần validate hoặc dùng trường này, có thể loại bỏ nếu không cần
-        public string Avatar { get; set; }
-
         [Required(ErrorMessage = "Phone is required")]
         [RegularExpression(@"^0\d{9}$", ErrorMessage = "Phone number must start with 0 and contain exactly 10 digits")]
         [DataType(DataType.PhoneNumber)]

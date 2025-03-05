@@ -164,6 +164,7 @@ namespace BusinessLogicLayer.Services
                     response.Message = "Booking not found.";
                     return response;
                 }
+
                 if (booking.Status != Booking.BookingStatus.Surveying)
                 {
                     response.Message = "Booking must be in Surveying status for deposit.";
@@ -182,30 +183,27 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // 3) Chuẩn bị orderCode (long) và ép kiểu amount (int)
-                //    depositPayment.Code có thể là string, ta parse ra long.
-                long orderCode;
-                if (!long.TryParse(depositPayment.Code, out orderCode))
-                {
-                    // fallback, sinh 1 mã tạm
-                    orderCode = DateTimeOffset.Now.ToUnixTimeSeconds();
-                }
+                // Ví dụ: nếu ngày 05/03/2025 và bookingId = 1, code sẽ là "050325001"
+                string formattedCode = DateTime.Now.ToString("ddMMyy") + bookingId.ToString("D3");
+                long orderCode = long.Parse(formattedCode);
 
-                // payOS yêu cầu amount kiểu int
+                // 4) PayOS yêu cầu amount kiểu int(ĐÂY CHÍNH LÀ SỐ TIỀN MÀ PROVIDER CẦN NHẬP SỐ TIỀN ĐẶT CỌC ĐỂ CHO CUSTOMER THANH TOÁN)
                 int depositAmount = (int)Math.Round(depositPayment.Total);
 
-                // 4) Tạo List<ItemData> cho PaymentData
+                // 5) Tạo List<ItemData> cho PaymentData
                 var items = new List<ItemData>
                 {
                     new ItemData("Đặt cọc dịch vụ trang trí", 1, depositAmount)
                 };
 
-                string description = $"DC#{bookingId}";
+                // Tạo description ngắn (không vượt quá 25 ký tự)
+                string description = $"Đặt cọc BookingID{bookingId}";
                 if (description.Length > 25)
                 {
                     description = description.Substring(0, 25);
                 }
 
-                // 5) Tạo PaymentData với đầy đủ tham số
+                // 6) Tạo PaymentData với đầy đủ tham số
                 var paymentData = new PaymentData(
                     orderCode: orderCode,
                     amount: depositAmount,
@@ -221,10 +219,10 @@ namespace BusinessLogicLayer.Services
                 // expiredAt: null
                 );
 
-                // 6) Gọi API payOS để tạo link thanh toán
+                // 7) Gọi API payOS để tạo link thanh toán
                 var payResult = await _payOS.createPaymentLink(paymentData);
 
-                // 7) (MINH HỌA) Đánh dấu thanh toán cọc là completed ngay lập tức
+                // 8) (MINH HỌA) Đánh dấu thanh toán cọc là completed ngay lập tức
                 //    Trong thực tế, bạn nên đặt Pending và chờ webhook/callback.
                 depositPayment.Status = Payment.PaymentStatus.Completed;
                 depositPayment.PaymentPhaseId = depositPhase.Id;

@@ -7,6 +7,7 @@ using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.POS;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
@@ -133,11 +134,10 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request)
+        public async Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request, Stream? avatarStream = null, string? avatarFileName = null)
         {
             try
             {
-                // Retrieve the existing account
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Id == accountId)
                     .FirstOrDefaultAsync();
@@ -166,18 +166,30 @@ namespace BusinessLogicLayer.Services
 
                 var provider = _mapper.Map<Provider>(request);
                 provider.AccountId = accountId;
-
-                // Use the existing account
                 provider.Account = account;
                 provider.Account.Phone = request.Phone;
+
+                // Xử lý avatar
+                if (avatarStream != null && !string.IsNullOrEmpty(avatarFileName))
+                {
+                    provider.Avatar = await _cloudinaryService.UploadAvatarAsync(avatarStream, avatarFileName);
+                }
+                else
+                {
+                    provider.Avatar = !string.IsNullOrEmpty(account.Avatar) ? account.Avatar : null;
+                }
 
                 await _unitOfWork.ProviderRepository.InsertAsync(provider);
                 await _unitOfWork.CommitAsync();
 
+                // Chỉ trả về thông tin cần thiết của provider
+                var providerResponse = _mapper.Map<ProviderResponse>(provider);
+
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = "Your provider profile has been created successfully"
+                    Message = "Your provider profile has been created successfully",
+                    Data = providerResponse
                 };
             }
             catch (Exception ex)
