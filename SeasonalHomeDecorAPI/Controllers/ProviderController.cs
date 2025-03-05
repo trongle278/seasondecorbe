@@ -58,32 +58,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(response);
             }
             return BadRequest(response);
-        }
-
-        [HttpPost("create-profile")]
-        [Authorize]
-        public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Lấy accountId từ claims của token
-            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (accountIdClaim == null)
-            {
-                return Unauthorized("Account ID not found in token.");
-            }
-
-            int accountId = int.Parse(accountIdClaim.Value);
-            var response = await _providerService.CreateProviderProfileAsync(accountId, request);
-            if (response.Success)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
+        }  
 
         [HttpPost("send-invitation")]
         [Authorize]
@@ -102,9 +77,42 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(response);
         }
 
-        [HttpPut("update-profile/{accountId}")]
+        [HttpPost("create-profile")]
         [Authorize]
-        public async Task<IActionResult> UpdateProviderProfile(int accountId, [FromBody] UpdateProviderRequest request)
+        public async Task<IActionResult> CreateProviderProfile([FromForm] BecomeProviderRequest request, IFormFile? avatar)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+            {
+                return Unauthorized("Account ID not found in token.");
+            }
+            int accountId = int.Parse(accountIdClaim.Value);
+
+            Stream? avatarStream = null;
+            string? avatarFileName = null;
+
+            if (avatar != null && avatar.Length > 0)
+            {
+                avatarStream = avatar.OpenReadStream();
+                avatarFileName = avatar.FileName;
+            }
+
+            var response = await _providerService.CreateProviderProfileAsync(accountId, request, avatarStream, avatarFileName);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProviderProfile([FromBody] UpdateProviderRequest request)
         {
             if (request == null)
             {
@@ -114,6 +122,13 @@ namespace SeasonalHomeDecorAPI.Controllers
                     Errors = new List<string> { "Invalid request data" }
                 });
             }
+
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+            {
+                return Unauthorized("Account ID not found in token.");
+            }
+            int accountId = int.Parse(accountIdClaim.Value);
 
             var response = await _providerService.UpdateProviderProfileByAccountIdAsync(accountId, request);
             if (response.Success)
