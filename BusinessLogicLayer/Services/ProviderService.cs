@@ -169,20 +169,16 @@ namespace BusinessLogicLayer.Services
                 provider.Account = account;
                 provider.Account.Phone = request.Phone;
 
-                // Xử lý avatar
+                // ✅ Nếu có upload avatar mới, cập nhật vào Account
                 if (avatarStream != null && !string.IsNullOrEmpty(avatarFileName))
                 {
-                    provider.Avatar = await _cloudinaryService.UploadAvatarAsync(avatarStream, avatarFileName);
-                }
-                else
-                {
-                    provider.Avatar = !string.IsNullOrEmpty(account.Avatar) ? account.Avatar : null;
+                    account.Avatar = await _cloudinaryService.UploadAvatarAsync(avatarStream, avatarFileName);
                 }
 
                 await _unitOfWork.ProviderRepository.InsertAsync(provider);
                 await _unitOfWork.CommitAsync();
 
-                // Chỉ trả về thông tin cần thiết của provider
+                // ✅ Trả về ProviderResponse mà không có Avatar (Avatar nằm trong Account)
                 var providerResponse = _mapper.Map<ProviderResponse>(provider);
 
                 return new BaseResponse
@@ -308,46 +304,6 @@ namespace BusinessLogicLayer.Services
             }
                 };
             }
-        }
-
-        public async Task<BaseResponse> UploadProviderAvatarAsync(int accountId, Stream fileStream, string fileName)
-        {
-            try
-            {
-                var provider = await _unitOfWork.ProviderRepository
-                    .Query(p => p.AccountId == accountId)
-                    .FirstOrDefaultAsync();
-
-                if (provider == null)
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Errors = new List<string> { "Provider not found for the given account" }
-                    };
-                }
-
-                var avatarUrl = await _cloudinaryService.UploadAvatarAsync(fileStream, fileName);
-                provider.Avatar = avatarUrl;
-
-                _unitOfWork.ProviderRepository.Update(provider);
-                await _unitOfWork.CommitAsync();
-
-                return new BaseResponse
-                {
-                    Success = true,
-                    Message = "Avatar uploaded successfully",
-                    Data = avatarUrl
-                };
-            }
-            catch (Exception ex)
-            {
-                return new BaseResponse
-                {
-                    Success = false,
-                    Errors = new List<string> { "Failed to upload avatar", ex.Message }
-                };
-            }
-        }
+        }    
     }
 }

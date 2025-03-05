@@ -391,7 +391,6 @@ namespace DataAccessObject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsProvider = table.Column<bool>(type: "bit", nullable: false),
