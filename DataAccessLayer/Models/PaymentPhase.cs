@@ -20,9 +20,8 @@ namespace DataAccessObject.Models
         public PaymentPhaseType Phase { get; set; }
         public enum PaymentPhaseType
         {
-            Deposit,             // Đợt đặt cọc /0
-            MaterialPreparation, // Đợt dùng tiền đặt cọc để chuẩn bị nguyên liệu /1
-            FinalPayment         // Đợt thanh toán cuối /2
+            Deposit,             // Đợt đặt cọc    0        
+            FinalPayment         // Đợt thanh toán cuối   1
         }
 
         public double ScheduledAmount { get; set; }

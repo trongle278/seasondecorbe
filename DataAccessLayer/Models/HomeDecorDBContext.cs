@@ -166,7 +166,9 @@ namespace DataAccessObject.Models
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Voucher)
                 .WithMany(v => v.Bookings)
+                .IsRequired(false)
                 .HasForeignKey(b => b.VoucherId);
+                
 
             // Configure 1-1 relationship between Booking and Review
             modelBuilder.Entity<Booking>()

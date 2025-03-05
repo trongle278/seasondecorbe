@@ -18,13 +18,13 @@ namespace DataAccessObject.Models
         public DateTime CreateAt { get; set; }
         public enum BookingStatus
         {
-            Surveying,
-            Pending,
-            Confirmed,
-            Procuring,
-            Progressing,
-            Completed,
-            Cancelled
+            Pending,     // Khi khách hàng tạo booking
+            Confirmed,   // Provider xác nhận booking
+            Surveying,   // Provider bắt đầu khảo sát (gặp trực tiếp với customer)
+            Procuring,   // Sau khảo sát, customer đặt cọc để chuẩn bị nguyên liệu
+            Progressing, // Khi thi công đang diễn ra
+            Completed,   // Khi thanh toán cuối cùng xong
+            Cancelled    // Booking bị hủy
         }
         public BookingStatus Status { get; set; }
 
