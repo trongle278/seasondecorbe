@@ -25,16 +25,18 @@ namespace DataAccessObject.Models
         }
 
         public double ScheduledAmount { get; set; }
+        public long OrderCode { get; set; }
+        public string Description { get; set; }
 
-        public DateTime DueDate { get; set; }
+        //public DateTime DueDate { get; set; }
 
-        public PaymentPhaseStatus Status { get; set; }
-        public enum PaymentPhaseStatus
-        {
-            Pending,
-            Completed,
-            Cancelled
-        }
+        //public PaymentPhaseStatus Status { get; set; }
+        //public enum PaymentPhaseStatus
+        //{
+        //    Pending,
+        //    Completed,
+        //    Cancelled
+        //}
 
         public DateTime? PaymentDate { get; set; }
 

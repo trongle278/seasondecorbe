@@ -190,8 +190,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("DecorServiceId")
-                        .IsUnique();
+                    b.HasIndex("DecorServiceId");
 
                     b.HasIndex("VoucherId");
 
@@ -615,8 +614,12 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("OrderCode")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("datetime2");
@@ -626,9 +629,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<double>("ScheduledAmount")
                         .HasColumnType("float");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1174,8 +1174,8 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
-                        .WithOne("Booking")
-                        .HasForeignKey("DataAccessObject.Models.Booking", "DecorServiceId")
+                        .WithMany("Bookings")
+                        .HasForeignKey("DecorServiceId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -1611,8 +1611,7 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.DecorService", b =>
                 {
-                    b.Navigation("Booking")
-                        .IsRequired();
+                    b.Navigation("Bookings");
 
                     b.Navigation("DecorImages");
                 });

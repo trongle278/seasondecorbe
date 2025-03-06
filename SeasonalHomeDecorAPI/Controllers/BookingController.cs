@@ -27,7 +27,6 @@ namespace SeasonalHomeDecorAPI.Controllers
         [Authorize]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            // Lấy AccountId từ token
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
             if (userIdClaim == null)
             {
@@ -35,98 +34,79 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             int accountId = int.Parse(userIdClaim.Value);
-
-            // Gọi service tạo booking, bên service bạn sẽ sử dụng accountId lấy từ token
             var response = await _bookingService.CreateBookingAsync(request, accountId);
             if (response.Success) return Ok(response);
             return BadRequest(response);
         }
 
         /// <summary>
-        /// Provider xác nhận booking: Pending -> Confirmed.
+        /// API tự động chuyển trạng thái booking sang giai đoạn tiếp theo dựa trên trạng thái hiện tại.
+        /// Chỉ cần nhập bookingId.
+        /// Ví dụ: nếu booking đang ở Surveying và Deposit đã hoàn thành, sẽ chuyển sang Procuring.
         /// </summary>
-        [HttpPut("confirm/{bookingId}")]
+        [HttpPut("advance/{bookingId}")]
         [Authorize]
-        public async Task<IActionResult> ConfirmBooking(int bookingId)
+        public async Task<IActionResult> AdvanceBookingPhase(int bookingId)
         {
-            // (Tuỳ chọn) Kiểm tra role provider, v.v.
-            var response = await _bookingService.ConfirmBookingAsync(bookingId);
-            if (response.Success) return Ok(response);
+            var response = await _bookingService.AdvanceBookingPhaseAsync(bookingId);
+            if (response.Success)
+                return Ok(response);
             return BadRequest(response);
         }
 
         /// <summary>
-        /// Provider bắt đầu khảo sát: Confirmed -> Surveying.
-        /// </summary>
-        [HttpPut("survey/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> StartSurvey(int bookingId)
-        {
-            var response = await _bookingService.StartSurveyAsync(bookingId);
-            if (response.Success) return Ok(response);
-            return BadRequest(response);
-        }
-
-        /// <summary>
-        /// Sau khảo sát, customer chốt OK và thanh toán đặt cọc (Deposit): Surveying -> Procuring.
+        /// Sau khảo sát, customer đặt cọc (Deposit): Surveying -> (Deposit phase tạo mới) -> (sau đó chuyển sang Procuring qua API riêng nếu cần).
         /// </summary>
         [HttpPost("deposit/{bookingId}")]
         [Authorize]
         public async Task<IActionResult> ApproveSurveyAndDeposit(int bookingId, [FromBody] PaymentRequest paymentRequest)
         {
-            // Map PaymentRequest -> Payment entity
-            var depositPayment = new Payment
-            {
-                Code = paymentRequest.Code,
-                Total = paymentRequest.Total
-            };
-
-            var response = await _bookingService.ApproveSurveyAndDepositAsync(bookingId, depositPayment);
+            // PaymentRequest chỉ chứa Total
+            double depositAmount = paymentRequest.Total;
+            var response = await _bookingService.ApproveSurveyAndDepositAsync(bookingId, depositAmount);
             if (response.Success) return Ok(response);
             return BadRequest(response);
         }
 
         /// <summary>
-        /// Khi bắt đầu thi công: Procuring -> Progressing.
-        /// </summary>
-        [HttpPut("progress/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> StartProgress(int bookingId)
-        {
-            var response = await _bookingService.StartProgressAsync(bookingId);
-            if (response.Success) return Ok(response);
-            return BadRequest(response);
-        }
-
-        /// <summary>
-        /// Khi thi công xong, customer thanh toán cuối (FinalPayment): Progressing -> Completed.
+        /// Khi thi công xong, customer thanh toán cuối (FinalPayment): Progressing -> (Final phase tạo mới) -> Completed.
         /// </summary>
         [HttpPost("complete/{bookingId}")]
         [Authorize]
         public async Task<IActionResult> CompleteBooking(int bookingId, [FromBody] PaymentRequest paymentRequest)
         {
-            var finalPayment = new Payment
-            {
-                Code = paymentRequest.Code,
-                Total = paymentRequest.Total
-            };
-
-            var response = await _bookingService.CompleteBookingAsync(bookingId, finalPayment);
+            double finalAmount = paymentRequest.Total;
+            var response = await _bookingService.CompleteBookingAsync(bookingId, finalAmount);
             if (response.Success) return Ok(response);
+            return BadRequest(response);
+        }        
+
+        [HttpGet("history")]
+        [Authorize]
+        public async Task<IActionResult> GetBookingHistory()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null)
+                return Unauthorized(new BaseResponse { Success = false, Message = "Invalid token." });
+
+            int accountId = int.Parse(userIdClaim.Value);
+            var response = await _bookingService.GetBookingHistoryAsync(accountId);
+            if (response.Success)
+                return Ok(response);
             return BadRequest(response);
         }
 
         /// <summary>
-        /// Hủy booking: bất kỳ trạng thái chưa Completed -> Cancelled.
+        /// Hủy booking.
         /// </summary>
         [HttpPut("cancel/{bookingId}")]
         [Authorize]
         public async Task<IActionResult> CancelBooking(int bookingId)
         {
             var response = await _bookingService.CancelBookingAsync(bookingId);
-            if (response.Success)
-                return Ok(response);
+            if (response.Success) return Ok(response);
             return BadRequest(response);
         }
+
     }
 }

@@ -11,7 +11,6 @@ namespace BusinessLogicLayer.ModelRequest
     {
         public int DecorServiceId { get; set; }
         // Các thông tin khác nếu cần, ví dụ: VoucherId, ghi chú, v.v.
-        public List<PaymentPhaseRequest> PaymentPhases { get; set; }
     }
 
     public class PaymentPhaseRequest

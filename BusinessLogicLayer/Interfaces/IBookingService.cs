@@ -12,11 +12,10 @@ namespace BusinessLogicLayer.Interfaces
     public interface IBookingService
     {
         Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountid);
-        Task<BaseResponse> ConfirmBookingAsync(int bookingId);
-        Task<BaseResponse> StartSurveyAsync(int bookingId);
-        Task<BaseResponse> ApproveSurveyAndDepositAsync(int bookingId, Payment depositPayment);
-        Task<BaseResponse> StartProgressAsync(int bookingId);
-        Task<BaseResponse> CompleteBookingAsync(int bookingId, Payment finalPayment);
+        Task<BaseResponse> AdvanceBookingPhaseAsync(int bookingId);
+        Task<BaseResponse> ApproveSurveyAndDepositAsync(int bookingId, double depositAmount);
+        Task<BaseResponse> CompleteBookingAsync(int bookingId, double finalAmount);       
+        Task<BaseResponse> GetBookingHistoryAsync(int accountId);
         Task<BaseResponse> CancelBookingAsync(int bookingId);
     }
 }
