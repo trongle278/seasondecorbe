@@ -8,7 +8,21 @@ using Microsoft.AspNetCore.Http;
 
 namespace BusinessLogicLayer.ModelResponse.Product
 {
-    public class ProductResponse
+    public class CreateProductResponse
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; }
+        public string? Description { get; set; }
+        public double ProductPrice { get; set; }
+        public int? Quantity { get; set; }
+        public string? MadeIn { get; set; }
+        public string? ShipFrom { get; set; }
+        public int CategoryId { get; set; }
+        public int ProviderId { get; set; }
+        public DateTime CreateAt { get; set; }
+        public List<IFormFile> Images { get; set; }
+    }
+    public class UpdateProductResponse
     {
         public int Id { get; set; }
         public string ProductName { get; set; }

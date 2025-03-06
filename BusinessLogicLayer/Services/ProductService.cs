@@ -154,7 +154,127 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> CreateProduct(ProductRequest request)
+        public async Task<BaseResponse> GetProductByCategoryId(int id)
+        {
+            var response = new BaseResponse();
+            try
+            {               
+                var products = await _unitOfWork.ProductRepository
+                                                .Query(p => p.CategoryId == id)
+                                                .Include(p => p.ProductImages)
+                                                .ToListAsync();
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get review of product
+                    var reviews = await _unitOfWork.ReviewRepository
+                                        .Query(r => r.ProductId == product.Id)
+                                        .ToListAsync();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Get total product sold
+                    var productOrder = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .ToListAsync();
+
+                    // Calculate total sold
+                    var totalSold = productOrder.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
+                response.Success = true;
+                response.Message = "Product list retrieved successfully";
+                response.Data = productResponses;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving product list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> GetProductByProviderId(int id)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var products = await _unitOfWork.ProductRepository
+                                                .Query(p => p.ProviderId == id)
+                                                .Include(p => p.ProductImages)
+                                                .ToListAsync();
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get review of product
+                    var reviews = await _unitOfWork.ReviewRepository
+                                        .Query(r => r.ProductId == product.Id)
+                                        .ToListAsync();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Get total product sold
+                    var productOrder = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .ToListAsync();
+
+                    // Calculate total sold
+                    var totalSold = productOrder.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
+                response.Success = true;
+                response.Message = "Product list retrieved successfully";
+                response.Data = productResponses;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving product list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> CreateProduct(CreateProductRequest request)
         {
             var response = new BaseResponse();
             try
@@ -204,6 +324,8 @@ namespace BusinessLogicLayer.Services
                     MadeIn = request.MadeIn,
                     ShipFrom = request.ShipFrom,
                     CategoryId = request.CategoryId,
+                    ProviderId = request.ProviderId,
+                    CreateAt = DateTime.UtcNow.ToLocalTime(),
                     ProductImages = new List<ProductImage>()
                 };
 
@@ -227,7 +349,7 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Product created successfully";
-                response.Data = _mapper.Map<ProductResponse>(product);
+                response.Data = _mapper.Map<CreateProductResponse>(product);
             }
             catch (Exception ex)
             {
@@ -239,7 +361,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> UpdateProduct(int id, ProductRequest request)
+        public async Task<BaseResponse> UpdateProduct(int id, UpdateProductRequest request)
         {
             var response = new BaseResponse();
             try
@@ -323,7 +445,7 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Product updated successfully";
-                response.Data = _mapper.Map<ProductResponse>(product);
+                response.Data = _mapper.Map<UpdateProductResponse>(product);
             }
             catch (Exception ex)
             {
