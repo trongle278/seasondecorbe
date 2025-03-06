@@ -139,7 +139,7 @@ namespace BusinessLogicLayer.Services
                     Province = request.Province,
                     AccountId = accountId,
                     DecorCategoryId = request.DecorCategoryId,
-                    CreateAt = DateTime.UtcNow,
+                    CreateAt = DateTime.UtcNow.ToLocalTime(),
                     DecorImages = new List<DecorImage>()
                 };
 

@@ -26,9 +26,19 @@ namespace DataAccessObject.Models
         public int? Quantity { get; set; }
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
+        public DateTime CreateAt { get; set; }
+        public enum ProductStatus
+        {
+            InStock,
+            OutOfStock
+        }
+        public ProductStatus Status { get; set; }
 
         public int CategoryId { get; set; }
         public ProductCategory Category { get; set; }
+
+        public int ProviderId { get; set; }
+        public Provider Provider { get; set; }
 
         public virtual ICollection<CartItem> CartItems { get; set; }
         public virtual ICollection<ProductOrder> ProductOrders { get; set; }

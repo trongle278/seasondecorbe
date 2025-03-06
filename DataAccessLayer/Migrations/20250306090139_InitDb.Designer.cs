@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,26 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+<<<<<<<< Updated upstream:DataAccessLayer/Migrations/20250226145910_InitDb.Designer.cs
+    [Migration("20250226145910_InitDb")]
+========
+    [Migration("20250302084636_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302084636_InitDb.Designer.cs
+========
+    [Migration("20250302092236_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302092236_InitDb.Designer.cs
+========
+    [Migration("20250302142519_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250302142519_InitDb.Designer.cs
+========
+    [Migration("20250306090139_InitDb")]
+>>>>>>>> Stashed changes:DataAccessLayer/Migrations/20250306090139_InitDb.Designer.cs
+    partial class InitDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,9 +90,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Slug")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
@@ -183,7 +198,7 @@ namespace DataAccessObject.Migrations
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
 
-                    b.Property<int?>("VoucherId")
+                    b.Property<int>("VoucherId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -394,9 +409,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Province")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -582,8 +594,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PaymentPhaseId")
-                        .HasColumnType("int");
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -599,42 +612,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("PaymentPhaseId");
-
                     b.ToTable("Payments");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.PaymentPhase", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Phase")
-                        .HasColumnType("int");
-
-                    b.Property<double>("ScheduledAmount")
-                        .HasColumnType("float");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId");
-
-                    b.ToTable("PaymentPhase");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
@@ -845,6 +823,9 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Bio")
@@ -1192,7 +1173,9 @@ namespace DataAccessObject.Migrations
 
                     b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
                         .WithMany("Bookings")
-                        .HasForeignKey("VoucherId");
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Account");
 
@@ -1388,30 +1371,11 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.PaymentPhase", "PaymentPhase")
-                        .WithMany("Payments")
-                        .HasForeignKey("PaymentPhaseId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Account");
 
                     b.Navigation("Booking");
 
                     b.Navigation("Order");
-
-                    b.Navigation("PaymentPhase");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.PaymentPhase", b =>
-                {
-                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
-                        .WithMany("PaymentPhases")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
@@ -1605,8 +1569,6 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
                 {
-                    b.Navigation("PaymentPhases");
-
                     b.Navigation("Payments");
 
                     b.Navigation("Review")
@@ -1643,11 +1605,6 @@ namespace DataAccessObject.Migrations
                     b.Navigation("ProductOrders");
 
                     b.Navigation("Reviews");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.PaymentPhase", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>

@@ -25,5 +25,6 @@ namespace DataAccessObject.Models
         public Subscription Subscription { get; set; }
 
         //public virtual ICollection<DecorService> DecorServices { get; set; }
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

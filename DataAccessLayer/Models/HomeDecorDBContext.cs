@@ -191,6 +191,13 @@ namespace DataAccessObject.Models
                 .HasForeignKey<Cart>(c => c.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure 1-N relationship between Product and Provider
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Provider)
+                .WithMany(pr => pr.Products)
+                .HasForeignKey(p => p.ProviderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configure 1-N relationship between ProductImage and Product
             modelBuilder.Entity<ProductImage>()
                 .HasOne(pi => pi.Product)
@@ -210,7 +217,7 @@ namespace DataAccessObject.Models
                 .HasOne(ci => ci.Product)
                 .WithMany(p => p.CartItems)
                 .HasForeignKey(ci => ci.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Voucher and Cart
             modelBuilder.Entity<Cart>()
@@ -239,7 +246,7 @@ namespace DataAccessObject.Models
                 .HasOne(po => po.Product)
                 .WithMany(p => p.ProductOrders)
                 .HasForeignKey(po => po.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Order and Address
             modelBuilder.Entity<Order>()

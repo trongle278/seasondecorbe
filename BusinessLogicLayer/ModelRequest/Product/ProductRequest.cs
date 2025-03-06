@@ -10,7 +10,28 @@ using Microsoft.AspNetCore.Http;
 
 namespace BusinessLogicLayer.ModelRequest.Product
 {
-    public class ProductRequest
+    public class CreateProductRequest
+    {
+        [Required]
+        public string ProductName { get; set; }
+        [Required]
+        public string? Description { get; set; }
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Product price cannot be negative.")]
+        public double ProductPrice { get; set; }
+        [Required]
+        [Range(0, int.MaxValue, ErrorMessage = "Product quantity cannot be negative.")]
+        public int? Quantity { get; set; }
+        public string? MadeIn { get; set; }
+        public string? ShipFrom { get; set; }
+        [Required]
+        public int CategoryId { get; set; }
+        [Required]
+        public int ProviderId { get; set; }
+        public List<IFormFile> Images { get; set; }
+    }
+
+    public class UpdateProductRequest
     {
         [Required]
         public string ProductName { get; set; }

@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Product;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,6 +21,30 @@ namespace SeasonalHomeDecorAPI.Controllers
         public async Task<IActionResult> GetAllProduct()
         {
             var result = await _productService.GetAllProduct();
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest();
+        }
+
+        [HttpGet("getProductByCategory/{id}")]
+        public async Task<IActionResult> GetProductByCategory(int id)
+        {
+            var result = await _productService.GetProductByCategoryId(id);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest();
+        }
+
+        [HttpGet("getProductByProvider/{id}")]
+        public async Task<IActionResult> GetProductByProvider(int id)
+        {
+            var result = await _productService.GetProductByProviderId(id);
 
             if (result.Success)
             {
@@ -49,7 +74,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("createProduct")]
-        public async Task<IActionResult> CreateProduct([FromForm] ProductRequest request)
+        public async Task<IActionResult> CreateProduct([FromForm] CreateProductRequest request)
         {
             var result = await _productService.CreateProduct(request);
 
@@ -93,7 +118,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("updateProduct/{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductRequest request)
+        public async Task<IActionResult> UpdateProduct(int id, [FromForm] UpdateProductRequest request)
         {
             var result = await _productService.UpdateProduct(id, request);
 
