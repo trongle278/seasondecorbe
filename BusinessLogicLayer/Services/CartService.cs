@@ -123,6 +123,7 @@ namespace BusinessLogicLayer.Services
 
                 var product = await _unitOfWork.ProductRepository
                                                 .Query(p => p.Id == productId)
+                                                .Include(p => p.ProductImages)
                                                 .FirstOrDefaultAsync();
 
                 if (product == null)

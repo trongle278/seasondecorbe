@@ -85,6 +85,7 @@ namespace BusinessLogicLayer.Services
                                             .Query(c => c.Id == cartId)
                                             .Include(c => c.CartItems)
                                                 .ThenInclude(ci => ci.Product)
+                                                    .ThenInclude(p => p.ProductImages)
                                             .Include(c => c.Account)
                                             .FirstOrDefaultAsync();
 
