@@ -25,6 +25,6 @@ namespace BusinessLogicLayer.ModelResponse.Order
         }
         public OrderStatus Status { get; set; }
         public int AccountId { get; set; }
-        public ICollection<ProductOrder> ProductOrders { get; set; }
+        public ICollection<ProductOrderResponse> ProductOrders { get; set; }
     }
 }

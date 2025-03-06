@@ -195,7 +195,11 @@ namespace BusinessLogicLayer.ObjectMapper
         private void OrderProfile()
         {
             CreateMap<OrderRequest, Order>();
-            CreateMap<Order, OrderResponse>();
+            CreateMap<Order, OrderResponse>()
+                .ForMember(dest => dest.ProductOrders, opt => opt.MapFrom(src => src.ProductOrders));
+
+            CreateMap<ProductOrderRequest, ProductOrder>();
+            CreateMap<ProductOrder, ProductOrderResponse>();
         }
 
         private void NotificationProfile()
