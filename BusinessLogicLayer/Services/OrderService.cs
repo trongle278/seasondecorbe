@@ -129,7 +129,7 @@ namespace BusinessLogicLayer.Services
                     Phone = request.Phone,
                     FullName = request.FullName,
                     PaymentMethod = "Online Banking",
-                    OrderDate = DateTime.Now,
+                    OrderDate = DateTime.Now.ToLocalTime(),
                     TotalPrice = orderItems.Sum(item => item.UnitPrice),
                     Status = Order.OrderStatus.Pending,
                     ProductOrders = orderItems.Select(item => new ProductOrder
