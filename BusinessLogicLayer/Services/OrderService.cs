@@ -76,7 +76,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> CreateOrder(int cartId, OrderRequest request)
+        public async Task<BaseResponse> CreateOrder(int cartId, int addressId, OrderRequest request)
         {
             var response = new BaseResponse();
             try
@@ -96,7 +96,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var address = await _unitOfWork.AddressRepository
-                                                .Query(a => a.Id == request.AddressId && a.AccountId == request.AccountId)
+                                                .Query(a => a.Id == addressId)
                                                 .FirstOrDefaultAsync();
 
                 if (address == null)
