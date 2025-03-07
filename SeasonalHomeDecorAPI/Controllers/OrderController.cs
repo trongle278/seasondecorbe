@@ -51,14 +51,14 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpPost("createOrder/{id}")]
         //[Authorize(Policy = "RequireCustomerRole")]
-        public async Task<IActionResult> CreateOrder(int id, int addressId, OrderRequest request)
+        public async Task<IActionResult> CreateOrder(int id, int addressId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _orderService.CreateOrder(id, addressId, request);
+            var result = await _orderService.CreateOrder(id, addressId);
 
             if (result.Success == false && result.Message == "Invalid cart")
             {

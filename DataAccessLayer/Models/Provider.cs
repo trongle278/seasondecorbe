@@ -18,7 +18,10 @@ namespace DataAccessObject.Models
         public int TotalRate { get; set; }
         [NotMapped]
         public int TotalProduct { get; set; }
-
+        [NotMapped]
+        public int Follower { get; set; }
+        [NotMapped]
+        public int Following { get; set; }
         public string? Bio { get; set; }
         public string? Avatar { get; set; }
         public string? Address { get; set; }
