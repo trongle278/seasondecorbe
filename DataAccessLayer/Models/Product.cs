@@ -30,7 +30,8 @@ namespace DataAccessObject.Models
         public enum ProductStatus
         {
             InStock,
-            OutOfStock
+            OutOfStock,
+            InComing
         }
         public ProductStatus Status { get; set; }
 

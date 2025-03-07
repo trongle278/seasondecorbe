@@ -76,7 +76,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> CreateOrder(int cartId, int addressId, OrderRequest request)
+        public async Task<BaseResponse> CreateOrder(int cartId, int addressId)
         {
             var response = new BaseResponse();
             try
@@ -126,8 +126,8 @@ namespace BusinessLogicLayer.Services
                 {
                     AccountId = cart.Account.Id,
                     AddressId = address.Id,
-                    Phone = request.Phone,
-                    FullName = request.FullName,
+                    Phone = address.Phone,
+                    FullName = address.FullName,
                     PaymentMethod = "Online Banking",
                     OrderDate = DateTime.Now.ToLocalTime(),
                     TotalPrice = orderItems.Sum(item => item.UnitPrice),
