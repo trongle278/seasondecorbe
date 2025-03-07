@@ -50,7 +50,18 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(response);
         }
 
-        [HttpGet("profile/{accountId}")]
+        [HttpGet("profile/{slug}")]
+        public async Task<IActionResult> GetProviderProfileBySlug(string slug)
+        {
+            var response = await _providerService.GetProviderProfileBySlugAsync(slug);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpGet("profile/{accountId:int}")]
         public async Task<IActionResult> GetProviderProfileByAccountId(int accountId)
         {
             var response = await _providerService.GetProviderProfileByAccountIdAsync(accountId);

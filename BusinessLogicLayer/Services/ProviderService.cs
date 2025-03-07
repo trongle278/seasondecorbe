@@ -56,6 +56,52 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse> GetProviderProfileBySlugAsync(string slug)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Truy vấn Provider dựa trên slug trong bảng Account và include luôn thông tin Account
+                var provider = await _unitOfWork.ProviderRepository
+                    .Query(p => p.Account.Slug == slug)
+                    .Include(p => p.Account)
+                    .FirstOrDefaultAsync();
+
+                if (provider == null)
+                {
+                    response.Success = false;
+                    response.Message = "Provider not found for the given slug";
+                    return response;
+                }
+
+                // Tính số lượng followers và followings dựa trên AccountId
+                int followersCount = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowingId == provider.AccountId)
+                    .CountAsync();
+
+                int followingsCount = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowerId == provider.AccountId)
+                    .CountAsync();
+
+                // Ánh xạ Provider sang DTO ProviderResponse đã cấu hình trong AutoMapper
+                // Giả sử ProviderResponse có các trường: id, name, bio, phone, address, isProvider, joinedDate, followersCount, followingsCount
+                var providerResponse = _mapper.Map<ProviderResponse>(provider);
+                providerResponse.FollowersCount = followersCount;
+                providerResponse.FollowingsCount = followingsCount;
+
+                response.Success = true;
+                response.Message = "Provider profile retrieved successfully";
+                response.Data = providerResponse;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving provider profile by slug";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
         public async Task<BaseResponse> GetProviderProfileByAccountIdAsync(int accountId)
         {
             var response = new BaseResponse();
