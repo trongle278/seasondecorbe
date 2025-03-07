@@ -182,7 +182,7 @@ namespace BusinessLogicLayer.Services
 
                 // Update cart
                 cart.TotalItem = cart.TotalItem - cart.TotalItem + cart.CartItems.Sum(ci => ci.Quantity);
-                cart.TotalPrice = cart.TotalPrice = cart.TotalPrice + cart.CartItems.Sum(_ci => _ci.UnitPrice);
+                cart.TotalPrice = cart.TotalPrice - cart.TotalPrice + cart.CartItems.Sum(_ci => _ci.UnitPrice);
 
                 _unitOfWork.CartRepository.Update(cart);
                 await _unitOfWork.CommitAsync();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelResponse.Review;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -59,5 +60,6 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
         public List<string>? ImageUrls { get; set; }
+        public List<ReviewResponse>? Reviews { get; set; }
     }
 }
