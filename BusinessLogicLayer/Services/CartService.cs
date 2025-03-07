@@ -159,7 +159,7 @@ namespace BusinessLogicLayer.Services
                         CartId = cart.Id,
                         ProductId = productId,
                         Quantity = quantity,
-                        UnitPrice = unitPrice,
+                        UnitPrice = quantity * unitPrice,
                         ProductName = product.ProductName,
                         Image = product.ProductImages?.FirstOrDefault()?.ImageUrl
                     };
@@ -175,12 +175,15 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
 
+                    // Update cartItem
                     cartItem.Quantity += quantity;
+                    cartItem.UnitPrice = cartItem.Quantity * unitPrice;
+                    _unitOfWork.CartItemRepository.Update(cartItem);
                 }
 
                 // Update cart
                 cart.TotalItem = cart.TotalItem - cart.TotalItem + cart.CartItems.Sum(ci => ci.Quantity);
-                cart.TotalPrice = cart.TotalPrice - cart.TotalPrice + cart.CartItems.Sum(ci => ci.Quantity * ci.UnitPrice);
+                cart.TotalPrice = cart.TotalPrice - cart.TotalPrice + cart.CartItems.Sum(ci => ci.UnitPrice);
 
                 _unitOfWork.CartRepository.Update(cart);
                 await _unitOfWork.CommitAsync();
