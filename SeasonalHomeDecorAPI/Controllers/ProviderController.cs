@@ -61,17 +61,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(response);
         }
 
-        [HttpGet("profile/{accountId:int}")]
-        public async Task<IActionResult> GetProviderProfileByAccountId(int accountId)
-        {
-            var response = await _providerService.GetProviderProfileByAccountIdAsync(accountId);
-            if (response.Success)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }  
-
         [HttpPost("send-invitation")]
         [Authorize]
         public async Task<IActionResult> SendProviderInvitationEmail([FromQuery] string email)
