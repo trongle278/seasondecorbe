@@ -72,12 +72,13 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<Provider, ProviderResponse>()              
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Account.Phone))
                 .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Account.Slug))
-                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Account.Avatar));
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Account.Avatar))
+                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate.ToString("yyyy-MM-dd"))); ;
                 
             // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 
             CreateMap<BecomeProviderRequest, Provider>()
-                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1))
                 .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
