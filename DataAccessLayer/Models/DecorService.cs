@@ -27,8 +27,8 @@ namespace DataAccessObject.Models
         public int DecorCategoryId { get; set; }
         public DecorCategory DecorCategory { get; set; }
 
-        public Booking Booking { get; set; }
+        public virtual ICollection<Booking> Bookings { get; set; }
 
-        public virtual ICollection<DecorImage> DecorImages { get; set; }
+        public virtual ICollection<DecorImage>? DecorImages { get; set; }
     }
 }

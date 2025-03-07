@@ -149,11 +149,11 @@ namespace DataAccessObject.Models
                 .WithOne(d => d.Account)
                 .HasForeignKey<Provider>(d => d.AccountId);
 
-            // Configure 1-1 relationship between Booking and DecorService
-            modelBuilder.Entity<DecorService>()
-                .HasOne(ds => ds.Booking)
-                .WithOne(b => b.DecorService)
-                .HasForeignKey<Booking>(b => b.DecorServiceId)
+            // Configure 1-N relationship between Booking and DecorService
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.DecorService)
+                .WithMany(ds => ds.Bookings)  // thay đổi từ WithOne sang WithMany
+                .HasForeignKey(b => b.DecorServiceId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationsip between Account and DecorService
