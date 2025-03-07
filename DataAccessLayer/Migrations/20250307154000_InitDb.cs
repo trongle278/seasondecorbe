@@ -582,8 +582,8 @@ namespace DataAccessObject.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     Phase = table.Column<int>(type: "int", nullable: false),
                     ScheduledAmount = table.Column<double>(type: "float", nullable: false),
-                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    OrderCode = table.Column<long>(type: "bigint", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -607,7 +607,7 @@ namespace DataAccessObject.Migrations
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     BookingId = table.Column<int>(type: "int", nullable: false),
@@ -839,8 +839,7 @@ namespace DataAccessObject.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_DecorServiceId",
                 table: "Bookings",
-                column: "DecorServiceId",
-                unique: true);
+                column: "DecorServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_VoucherId",
