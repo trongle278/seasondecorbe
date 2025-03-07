@@ -14,6 +14,11 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string? Name { get; set; }
+        [NotMapped]
+        public int TotalRate { get; set; }
+        [NotMapped]
+        public int TotalProduct { get; set; }
+
         public string? Bio { get; set; }
         public string? Avatar { get; set; }
         public string? Address { get; set; }
