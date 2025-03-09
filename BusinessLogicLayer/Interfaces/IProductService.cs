@@ -13,7 +13,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> GetAllProduct(); 
         Task<BaseResponse> GetProductById(int id);
         Task<BaseResponse> GetProductByCategoryId(int id);
-        Task<BaseResponse> GetProductByProviderId(int id);
+        Task<BaseResponse> GetProductByProvider(string slug);
         Task<BaseResponse> CreateProduct(CreateProductRequest request);
         Task<BaseResponse> UpdateProduct(int id, UpdateProductRequest request);
         Task<BaseResponse> DeleteProduct(int id);

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Net.payOS.Types;
 using Net.payOS;
 using Repository.UnitOfWork;
-using BusinessLogicLayer.POS;
+using BusinessLogicLayer.Utilities.POS;
 using BusinessLogicLayer.Interfaces;
 
 namespace BusinessLogicLayer.Services

@@ -41,10 +41,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest();
         }
 
-        [HttpGet("getProductByProvider/{id}")]
-        public async Task<IActionResult> GetProductByProvider(int id)
+        [HttpGet("getProductByProvider/{slug}")]
+        public async Task<IActionResult> GetProductByProvider(string slug)
         {
-            var result = await _productService.GetProductByProviderId(id);
+            var result = await _productService.GetProductByProvider(slug);
 
             if (result.Success)
             {
