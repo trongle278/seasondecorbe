@@ -39,5 +39,10 @@ namespace DataAccessObject.Models
 
         public Review Review { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
+<<<<<<< Updated upstream
+=======
+        public virtual ICollection<PaymentPhase> PaymentPhases { get; set; }
+        public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; }
+>>>>>>> Stashed changes
     }
 }

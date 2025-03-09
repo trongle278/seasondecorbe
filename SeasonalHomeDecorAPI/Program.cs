@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using BusinessLogicLayer.Hub;
 using BusinessLogicLayer.Services;
 using Repository.Repositories;
 using System.Text.Json.Serialization;
@@ -18,6 +17,10 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Design;
 using Nest;
 using Net.payOS;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+using BusinessLogicLayer.Utilities.Hub;
 >>>>>>> Stashed changes
 
 var builder = WebApplication.CreateBuilder(args);

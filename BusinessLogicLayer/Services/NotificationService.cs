@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BusinessLogicLayer.Hub;
 using BusinessLogicLayer.Interfaces;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -11,6 +10,7 @@ using Repository.Interfaces;
 using DataAccessObject.Models;
 using BusinessLogicLayer.ModelResponse;
 using AutoMapper;
+using BusinessLogicLayer.Utilities.Hub;
 
 namespace BusinessLogicLayer.Services
 {

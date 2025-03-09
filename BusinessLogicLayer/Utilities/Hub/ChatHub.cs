@@ -12,7 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLogicLayer.Hub
+namespace BusinessLogicLayer.Utilities.Hub
 {
     public class ChatHub : Microsoft.AspNetCore.SignalR.Hub
     {
@@ -33,7 +33,7 @@ namespace BusinessLogicLayer.Hub
             await base.OnConnectedAsync();
         }
 
-        public override async Task OnDisconnectedAsync(System.Exception exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
             var userId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             _userConnections.Remove(userId, out _);
@@ -50,7 +50,7 @@ namespace BusinessLogicLayer.Hub
             var formFiles = new List<IFormFile>();
             foreach (var base64File in request.Files)
             {
-                byte[] fileBytes = System.Convert.FromBase64String(base64File.Base64Content);
+                byte[] fileBytes = Convert.FromBase64String(base64File.Base64Content);
                 var stream = new MemoryStream(fileBytes);
 
                 var formFile = new FormFile(stream, 0, fileBytes.Length, base64File.FileName, base64File.FileName)

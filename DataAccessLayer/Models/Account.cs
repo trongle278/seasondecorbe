@@ -53,5 +53,6 @@ namespace DataAccessObject.Models
         //test
         public virtual ICollection<DecorService> DecorServices { get; set; }
         public ICollection<DeviceToken> DeviceTokens { get; set; }
+        public virtual Wallet Wallet { get; set; }
     }
 }

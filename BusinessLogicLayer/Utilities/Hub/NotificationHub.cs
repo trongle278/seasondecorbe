@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLogicLayer.Hub
+namespace BusinessLogicLayer.Utilities.Hub
 {
     public class NotificationHub : Microsoft.AspNetCore.SignalR.Hub
     {
