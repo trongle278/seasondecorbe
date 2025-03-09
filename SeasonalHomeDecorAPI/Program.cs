@@ -9,13 +9,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using BusinessLogicLayer.Hub;
 using BusinessLogicLayer.Services;
 using Repository.Repositories;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Design;
 using Nest;
 using Net.payOS;
+using BusinessLogicLayer.Utilities.Hub;
 
 var builder = WebApplication.CreateBuilder(args);
 

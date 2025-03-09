@@ -1,8 +1,8 @@
-﻿using BusinessLogicLayer.POS;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
 using Net.payOS;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.Utilities.POS;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {

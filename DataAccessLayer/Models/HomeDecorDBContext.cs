@@ -55,6 +55,8 @@ namespace DataAccessObject.Models
         public DbSet<TicketAttachment> TicketAttachments { get; set; }
         public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatFile> ChatFiles { get; set; }
+        public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         //test
         public DbSet<DeviceToken> DeviceTokens { get; set; }
 
@@ -149,10 +151,16 @@ namespace DataAccessObject.Models
                 .WithOne(d => d.Account)
                 .HasForeignKey<Provider>(d => d.AccountId);
 
+            // Configure 1-1 relationship between Account and Wallet
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Wallet)
+                .WithOne(d => d.Account)
+                .HasForeignKey<Wallet>(d => d.AccountId);
+
             // Configure 1-N relationship between Booking and DecorService
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.DecorService)
-                .WithMany(ds => ds.Bookings)  // thay đổi từ WithOne sang WithMany
+                .WithMany(ds => ds.Bookings)
                 .HasForeignKey(b => b.DecorServiceId)
                 .OnDelete(DeleteBehavior.NoAction);
 
@@ -335,6 +343,20 @@ namespace DataAccessObject.Models
                 .WithMany(pp => pp.Payments)
                 .HasForeignKey(p => p.PaymentPhaseId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasOne(p => p.Wallet)
+                .WithMany(pp => pp.Transactions)
+                .HasForeignKey(p => p.WalletId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Wallet>()
+                .Property(w => w.Balance)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .Property(p => p.Amount)
+                .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },
