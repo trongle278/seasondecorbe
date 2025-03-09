@@ -232,13 +232,27 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> GetProductByProviderId(int id)
+        public async Task<BaseResponse> GetProductByProvider(string slug)
         {
             var response = new BaseResponse();
             try
             {
+                var account = await _unitOfWork.AccountRepository
+                                               .Query(a => a.Slug == slug)
+                                               .Include(a => a.Provider)
+                                               .FirstOrDefaultAsync();
+
+                if (account == null || account.Provider == null)
+                {
+                    response.Success = false;
+                    response.Message = "Provider not found";
+                    return response;
+                }
+
+                var providerId = account.Provider.Id;
+
                 var products = await _unitOfWork.ProductRepository
-                                                .Query(p => p.ProviderId == id)
+                                                .Query(p => p.ProviderId == providerId)
                                                 .Include(p => p.ProductImages)
                                                 .ToListAsync();
 

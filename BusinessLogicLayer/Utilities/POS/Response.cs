@@ -4,11 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-<<<<<<<< Updated upstream:BusinessLogicLayer/PayOS/Response.cs
-namespace BusinessLogicLayer.PayOS
-========
 namespace BusinessLogicLayer.Utilities.POS
->>>>>>>> Stashed changes:BusinessLogicLayer/Utilities/POS/Response.cs
 {
     public class Response
     {
