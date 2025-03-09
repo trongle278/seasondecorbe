@@ -637,6 +637,46 @@ namespace DataAccessObject.Migrations
                     b.ToTable("PaymentPhase");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TransactionStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransactionType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WalletId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -1147,6 +1187,28 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Vouchers");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.ToTable("Wallets");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Role", "Role")
@@ -1414,6 +1476,29 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("BookingId");
+
+                    b.HasOne("DataAccessObject.Models.Order", "Order")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("DataAccessObject.Models.Wallet", "Wallet")
+                        .WithMany("Transactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
                 {
                     b.HasOne("DataAccessObject.Models.ProductCategory", "Category")
@@ -1565,6 +1650,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Support");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithOne("Wallet")
+                        .HasForeignKey("DataAccessObject.Models.Wallet", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
                     b.Navigation("Addresses");
@@ -1596,6 +1692,9 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Supports");
 
                     b.Navigation("TicketReplies");
+
+                    b.Navigation("Wallet")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Address", b =>
@@ -1606,6 +1705,8 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
                 {
                     b.Navigation("PaymentPhases");
+
+                    b.Navigation("PaymentTransactions");
 
                     b.Navigation("Payments");
 
@@ -1637,6 +1738,8 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>
                 {
+                    b.Navigation("PaymentTransactions");
+
                     b.Navigation("Payments");
 
                     b.Navigation("ProductOrders");
@@ -1704,6 +1807,11 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Carts");
 
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

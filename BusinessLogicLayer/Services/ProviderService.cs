@@ -7,7 +7,6 @@ using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
-using BusinessLogicLayer.POS;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;

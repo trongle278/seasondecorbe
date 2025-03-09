@@ -399,6 +399,26 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Wallets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Wallets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Wallets_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
@@ -595,6 +615,40 @@ namespace DataAccessObject.Migrations
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WalletId = table.Column<int>(type: "int", nullable: false),
+                    BookingId = table.Column<int>(type: "int", nullable: true),
+                    OrderId = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TransactionType = table.Column<int>(type: "int", nullable: false),
+                    TransactionStatus = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Wallets_WalletId",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -963,6 +1017,21 @@ namespace DataAccessObject.Migrations
                 column: "PaymentPhaseId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_BookingId",
+                table: "PaymentTransactions",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_OrderId",
+                table: "PaymentTransactions",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_WalletId",
+                table: "PaymentTransactions",
+                column: "WalletId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductImage_ProductId",
                 table: "ProductImage",
                 column: "ProductId");
@@ -1043,6 +1112,12 @@ namespace DataAccessObject.Migrations
                 name: "IX_TicketReplies_SupportId",
                 table: "TicketReplies",
                 column: "SupportId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wallets_AccountId",
+                table: "Wallets",
+                column: "AccountId",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -1069,6 +1144,9 @@ namespace DataAccessObject.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
+                name: "PaymentTransactions");
+
+            migrationBuilder.DropTable(
                 name: "ProductImage");
 
             migrationBuilder.DropTable(
@@ -1088,6 +1166,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "PaymentPhase");
+
+            migrationBuilder.DropTable(
+                name: "Wallets");
 
             migrationBuilder.DropTable(
                 name: "Products");
