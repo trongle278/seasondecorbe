@@ -277,6 +277,15 @@ namespace BusinessLogicLayer.Services
                         Errors = new List<string> { "Account not found" }
                     };
                 }
+                
+                if (account.IsProvider == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Please complete your provider registration first!"
+                    };
+                }
 
                 account.IsProvider = isProvider;
 
