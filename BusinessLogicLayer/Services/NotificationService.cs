@@ -51,17 +51,17 @@ namespace BusinessLogicLayer.Services
                              .SendAsync("ReceiveNotification", response);
 
             // Gửi push notification qua FCM cho từng token
-            var deviceTokens = await _deviceTokenRepository.GetTokensByAccountIdAsync(notification.AccountId);
-            foreach (var token in deviceTokens)
-            {
-                var data = new Dictionary<string, string>
-        {
-            { "type", "chat" },
-            { "notificationId", notification.Id.ToString() }
-        };
+        //    var deviceTokens = await _deviceTokenRepository.GetTokensByAccountIdAsync(notification.AccountId);
+        //    foreach (var token in deviceTokens)
+        //    {
+        //        var data = new Dictionary<string, string>
+        //{
+        //    { "type", "chat" },
+        //    { "notificationId", notification.Id.ToString() }
+        //};
 
-                await _fcmService.SendPushNotificationAsync(token.Token, "Tin nhắn mới", notification.Content, data);
-            }
+        //        await _fcmService.SendPushNotificationAsync(token.Token, "Tin nhắn mới", notification.Content, data);
+        //    }
 
             return response;
         }
