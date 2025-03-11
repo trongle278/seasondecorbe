@@ -66,7 +66,7 @@ namespace BusinessLogicLayer.ObjectMapper
         private void ProviderProfile()
         {
             CreateMap<Account, ProviderResponse>()              
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.BusinessName))
+                .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.BusinessName))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress))
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src =>
     src.JoinedDate.HasValue ? src.JoinedDate.Value.ToString("yyyy-MM-dd") : null));

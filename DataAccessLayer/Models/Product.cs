@@ -15,12 +15,6 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string ProductName { get; set; }
-        [NotMapped]
-        public double Rate { get; set; }
-        [NotMapped]
-        public int TotalRate { get; set; }
-        [NotMapped]
-        public int TotalSold { get; set; }
         public string? Description { get; set; }
         public double ProductPrice { get; set; }
         public int? Quantity { get; set; }

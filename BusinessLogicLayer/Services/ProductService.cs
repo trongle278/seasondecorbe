@@ -137,7 +137,38 @@ namespace BusinessLogicLayer.Services
                     Image = r.Image,
                     CreateAt = r.CreateAt,
                     UpdateAt = r.UpdateAt
-                }).ToList();
+                }).ToList(); ;
+
+                // Get follower
+                var followers = await _unitOfWork.FollowRepository
+                                    .Query(f => f.FollowerId == product.AccountId)
+                                    .CountAsync();
+
+                // Get following
+                var followings = await _unitOfWork.FollowRepository
+                                    .Query(f => f.FollowingId == product.AccountId)
+                                    .CountAsync();
+
+                // Calculate total product of provider
+                var totalProduct = await _unitOfWork.ProductRepository
+                                        .Query(p => p.AccountId == product.AccountId)
+                                        .CountAsync();
+
+                // Get provider of product
+                var provider = await _unitOfWork.AccountRepository
+                                    .Query(a => a.Id == product.AccountId)
+                                    .FirstOrDefaultAsync();
+
+                // Mapping provider to response
+                var providerResponse = new ProductProviderResponse
+                {
+                    BusinessName = provider.BusinessName,
+                    avatar = provider.Avatar ?? "null",
+                    TotalRate = totalRate,
+                    FollowersCount = followers,
+                    FollowingsCount = followings,
+                    TotalProduct = totalProduct
+                };
 
                 var productDetailResponse = new ProductDetailResponse
                 {
@@ -153,6 +184,7 @@ namespace BusinessLogicLayer.Services
                     ShipFrom = product.ShipFrom,
                     CategoryId = product.CategoryId,
                     ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>(),
+                    Provider = providerResponse,
                     Reviews = reviewResponses
                 };
 
@@ -241,7 +273,7 @@ namespace BusinessLogicLayer.Services
                                                .Query(a => a.Slug == slug && a.IsProvider == true)
                                                .FirstOrDefaultAsync();
 
-                if (account == null || account.IsProvider == null)
+                if (account == null || account.IsProvider == false)
                 {
                     response.Success = false;
                     response.Message = "Provider not found";
