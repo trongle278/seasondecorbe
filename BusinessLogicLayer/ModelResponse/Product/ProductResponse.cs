@@ -19,7 +19,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
-        public int ProviderId { get; set; }
+        public int AccountId { get; set; }
         public DateTime CreateAt { get; set; }
         public List<IFormFile> Images { get; set; }
     }
@@ -60,6 +60,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
         public List<string>? ImageUrls { get; set; }
+        public ProductProviderResponse? Provider { get; set; }
         public List<ReviewResponse>? Reviews { get; set; }
     }
 }
