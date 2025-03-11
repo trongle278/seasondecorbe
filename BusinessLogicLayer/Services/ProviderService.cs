@@ -33,13 +33,10 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                // Truy vấn tất cả các provider, có thể include thêm Account nếu cần
-                var providers = await _unitOfWork.ProviderRepository
-                    .Query(p => true)  // Lấy tất cả provider
-                    .Include(p => p.Account)
+                var providers = await _unitOfWork.AccountRepository
+                    .Query(a => a.IsProvider == true)
                     .ToListAsync();
 
-                // Ánh xạ danh sách Provider sang DTO (ProviderResponse) đã cấu hình trong AutoMapper
                 var providerList = _mapper.Map<List<ProviderResponse>>(providers);
 
                 response.Success = true;
@@ -55,71 +52,22 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> GetProviderProfileBySlugAsync(string slug)
-        {
-            var response = new BaseResponse();
-            try
-            {
-                // Truy vấn Provider dựa trên slug trong bảng Account và include luôn thông tin Account
-                var provider = await _unitOfWork.ProviderRepository
-                    .Query(p => p.Account.Slug == slug)
-                    .Include(p => p.Account)
-                    .FirstOrDefaultAsync();
-
-                if (provider == null)
-                {
-                    response.Success = false;
-                    response.Message = "Provider not found for the given slug";
-                    return response;
-                }
-
-                // Tính số lượng followers và followings dựa trên AccountId
-                int followersCount = await _unitOfWork.FollowRepository
-                    .Query(f => f.FollowingId == provider.AccountId)
-                    .CountAsync();
-
-                int followingsCount = await _unitOfWork.FollowRepository
-                    .Query(f => f.FollowerId == provider.AccountId)
-                    .CountAsync();
-
-                // Ánh xạ Provider sang DTO ProviderResponse đã cấu hình trong AutoMapper
-                // Giả sử ProviderResponse có các trường: id, name, bio, phone, address, isProvider, joinedDate, followersCount, followingsCount
-                var providerResponse = _mapper.Map<ProviderResponse>(provider);
-                providerResponse.FollowersCount = followersCount;
-                providerResponse.FollowingsCount = followingsCount;
-
-                response.Success = true;
-                response.Message = "Provider profile retrieved successfully";
-                response.Data = providerResponse;
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "Error retrieving provider profile by slug";
-                response.Errors.Add(ex.Message);
-            }
-            return response;
-        }
-
         public async Task<BaseResponse> GetProviderProfileByAccountIdAsync(int accountId)
         {
             var response = new BaseResponse();
             try
             {
-                // Lấy provider kèm thông tin Account
-                var provider = await _unitOfWork.ProviderRepository
-                    .Query(p => p.AccountId == accountId)
-                    .Include(p => p.Account)
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Id == accountId && a.IsProvider == true)
                     .FirstOrDefaultAsync();
 
-                if (provider == null)
+                if (account == null)
                 {
                     response.Success = false;
                     response.Message = "Provider not found for the given account";
                     return response;
                 }
 
-                // Tính số người theo dõi (followers) và đang theo dõi (followings)
                 int followersCount = await _unitOfWork.FollowRepository
                     .Query(f => f.FollowingId == accountId)
                     .CountAsync();
@@ -128,8 +76,7 @@ namespace BusinessLogicLayer.Services
                     .Query(f => f.FollowerId == accountId)
                     .CountAsync();
 
-                // Ánh xạ từ Provider sang ProviderResponse (đã cấu hình trong AutoMapper)
-                var providerData = _mapper.Map<ProviderResponse>(provider);
+                var providerData = _mapper.Map<ProviderResponse>(account);
                 providerData.FollowersCount = followersCount;
                 providerData.FollowingsCount = followingsCount;
 
@@ -146,6 +93,46 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse> GetProviderProfileBySlugAsync(string slug)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Slug == slug && a.IsProvider == true)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    response.Success = false;
+                    response.Message = "Provider not found for the given slug";
+                    return response;
+                }
+
+                int followersCount = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowingId == account.Id)
+                    .CountAsync();
+
+                int followingsCount = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowerId == account.Id)
+                    .CountAsync();
+
+                var providerResponse = _mapper.Map<ProviderResponse>(account);
+                providerResponse.FollowersCount = followersCount;
+                providerResponse.FollowingsCount = followingsCount;
+
+                response.Success = true;
+                response.Message = "Provider profile retrieved successfully";
+                response.Data = providerResponse;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving provider profile by slug";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
         public async Task<BaseResponse> SendProviderInvitationEmailAsync(string email)
         {
             try
@@ -183,7 +170,6 @@ namespace BusinessLogicLayer.Services
         {
             try
             {
-                // Retrieve the existing account
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Id == accountId)
                     .FirstOrDefaultAsync();
@@ -197,33 +183,30 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                var existingProfile = await _unitOfWork.ProviderRepository
-                    .Query(p => p.AccountId == accountId)
-                    .FirstOrDefaultAsync();
-
-                if (existingProfile != null)
+                if (account.IsProvider == true)
                 {
                     return new BaseResponse
                     {
                         Success = false,
-                        Errors = new List<string> { "You already have a provider profile" }
+                        Errors = new List<string> { "You are already registered as a provider" }
                     };
                 }
 
-                var provider = _mapper.Map<Provider>(request);
-                provider.AccountId = accountId;
+                // Cập nhật tài khoản thành provider
+                account.IsProvider = true;
+                account.BusinessName = request.Name;
+                account.Bio = request.Bio;
+                account.Phone = request.Phone;
+                account.BusinessAddress = request.Address;
+                account.JoinedDate = DateTime.UtcNow.ToLocalTime();
 
-                // Use the existing account
-                provider.Account = account;
-                provider.Account.Phone = request.Phone;
-
-                await _unitOfWork.ProviderRepository.InsertAsync(provider);
+                _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();
 
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = "Your provider profile has been created successfully"
+                    Message = "Provider profile created successfully"
                 };
             }
             catch (Exception ex)
@@ -240,12 +223,11 @@ namespace BusinessLogicLayer.Services
         {
             try
             {
-                var provider = await _unitOfWork.ProviderRepository
-                    .Query(p => p.AccountId == accountId)
-                    .Include(p => p.Account) // Include related account information
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Id == accountId && a.IsProvider == true)
                     .FirstOrDefaultAsync();
 
-                if (provider == null)
+                if (account == null)
                 {
                     return new BaseResponse
                     {
@@ -254,13 +236,12 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                // Update provider details
-                provider.Name = request.Name;
-                provider.Bio = request.Bio;
-                provider.Account.Phone = request.Phone;
-                provider.Address = request.Address;
+                account.FirstName = request.Name;
+                account.Bio = request.Bio;
+                account.Phone = request.Phone;
+                account.BusinessAddress = request.Address;
 
-                _unitOfWork.ProviderRepository.Update(provider);
+                _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();
 
                 return new BaseResponse
@@ -284,50 +265,28 @@ namespace BusinessLogicLayer.Services
         {
             try
             {
-                // Tìm Provider tương ứng với accountId
-                var provider = await _unitOfWork.ProviderRepository
-                    .Query(p => p.AccountId == accountId)
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Id == accountId)
                     .FirstOrDefaultAsync();
 
-                // Nếu chưa có Provider record => chưa đăng ký
-                if (isProvider && provider == null)
+                if (account == null)
                 {
                     return new BaseResponse
                     {
                         Success = false,
-                        Errors = new List<string>
-                {
-                    "Please apply your provider registration first!"
-                }
+                        Errors = new List<string> { "Account not found" }
                     };
                 }
 
-                // Nếu isProvider = true và provider != null => Chuyển sang provider
-                // Nếu isProvider = false => Chuyển về customer (dù có provider hay chưa)
-                //   - Trường hợp provider == null mà isProvider = false => có thể coi như 
-                //     user vốn đã là customer, nên return success hoặc tuỳ ý
-                if (provider == null)
-                {
-                    // Vẫn thành công do user vốn là customer
-                    return new BaseResponse
-                    {
-                        Success = true,
-                        Message = "You remain in customer mode."
-                    };
-                }
+                account.IsProvider = isProvider;
 
-                // Tới đây là provider != null
-                provider.IsProvider = isProvider;
-
-                _unitOfWork.ProviderRepository.Update(provider);
+                _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();
 
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = isProvider
-                        ? "Welcome to the Provider Dashboard!"
-                        : "Welcome back to Customer"
+                    Message = isProvider ? "Account is now a Provider!" : "Account is now a Customer!"
                 };
             }
             catch (Exception ex)
@@ -335,13 +294,9 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = false,
-                    Errors = new List<string>
-            {
-                "An error occurred while changing your provider status.",
-                ex.Message
-            }
+                    Errors = new List<string> { "An error occurred while changing provider status", ex.Message }
                 };
             }
-        }    
+        }
     }
 }

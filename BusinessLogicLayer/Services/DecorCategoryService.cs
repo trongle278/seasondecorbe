@@ -134,7 +134,6 @@ namespace BusinessLogicLayer.Services
                 }
 
                 category.CategoryName = request.CategoryName.Trim();
-                category.Description = request.Description?.Trim();
 
                 _unitOfWork.DecorCategoryRepository.Update(category);
                 await _unitOfWork.CommitAsync();

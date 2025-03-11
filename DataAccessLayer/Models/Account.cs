@@ -38,8 +38,6 @@ namespace DataAccessObject.Models
 
         public int? SubscriptionId { get; set; }
         public Subscription Subscription { get; set; }
-
-        public Provider Provider { get; set; }
         public Cart Cart { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }
         public virtual ICollection<Follow> Followers { get; set; }
@@ -51,9 +49,16 @@ namespace DataAccessObject.Models
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<Address> Addresses { get; set; }= new List<Address>();
-        //test
         public virtual ICollection<DecorService> DecorServices { get; set; }
         public ICollection<DeviceToken> DeviceTokens { get; set; }
         public virtual Wallet Wallet { get; set; }
+
+        // Fields from Provider
+        public string? BusinessName { get; set; }
+        public string? Bio { get; set; }
+        public string? BusinessAddress { get; set; }
+        public DateTime JoinedDate { get; set; }
+        public bool? IsProvider { get; set; }
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

@@ -33,7 +33,6 @@ namespace DataAccessObject.Models
         public DbSet<Role> Roles { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Follow> Follows { get; set; }
-        public DbSet<Provider> Providers { get; set; }
         public DbSet<DecorService> DecorServices { get; set; }
         public DbSet<DecorImage> DecorImages { get; set; }
         public DbSet<DecorCategory> DecorCategories { get; set; }
@@ -145,12 +144,6 @@ namespace DataAccessObject.Models
                 .WithMany(a => a.Reviews)
                 .HasForeignKey(r => r.AccountId);
 
-            // Configure 1-1 relationship between Account and Provider
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.Provider)
-                .WithOne(d => d.Account)
-                .HasForeignKey<Provider>(d => d.AccountId);
-
             // Configure 1-1 relationship between Account and Wallet
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Wallet)
@@ -199,11 +192,11 @@ namespace DataAccessObject.Models
                 .HasForeignKey<Cart>(c => c.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure 1-N relationship between Product and Provider
+            // Configure 1-N relationship between Product and Account
             modelBuilder.Entity<Product>()
-                .HasOne(p => p.Provider)
+                .HasOne(p => p.Account)
                 .WithMany(pr => pr.Products)
-                .HasForeignKey(p => p.ProviderId)
+                .HasForeignKey(p => p.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure 1-N relationship between ProductImage and Product
@@ -281,14 +274,6 @@ namespace DataAccessObject.Models
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Subscription)
                 .WithMany(sb => sb.Accounts)
-                .HasForeignKey(a => a.SubscriptionId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure 1-N relationship between Subscription and Provider
-            modelBuilder.Entity<Provider>()
-                .HasOne(p => p.Subscription)
-                .WithMany(sb => sb.Providers)
                 .HasForeignKey(a => a.SubscriptionId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
@@ -383,6 +368,17 @@ namespace DataAccessObject.Models
                 new ProductCategory { Id = 12, CategoryName = "Hanger"},
                 new ProductCategory { Id = 13, CategoryName = "Closet"},
                 new ProductCategory { Id = 14, CategoryName = "Vanity"}
+            );
+
+            modelBuilder.Entity<DecorCategory>().HasData(
+                new DecorCategory { Id = 1, CategoryName = "Living Room" },
+                new DecorCategory { Id = 2, CategoryName = "Bedroom" },
+                new DecorCategory { Id = 3, CategoryName = "Kitchen" },
+                new DecorCategory { Id = 4, CategoryName = "Bathroom" },
+                new DecorCategory { Id = 5, CategoryName = "Home Office" },
+                new DecorCategory { Id = 6, CategoryName = "Balcony & Garden" },
+                new DecorCategory { Id = 8, CategoryName = "Dining Room" },
+                new DecorCategory { Id = 9, CategoryName = "Entertainment Room" }
             );
         }
     }

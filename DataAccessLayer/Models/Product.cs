@@ -38,8 +38,8 @@ namespace DataAccessObject.Models
         public int CategoryId { get; set; }
         public ProductCategory Category { get; set; }
 
-        public int ProviderId { get; set; }
-        public Provider Provider { get; set; }
+        public int AccountId { get; set; }
+        public Account Account { get; set; }
 
         public virtual ICollection<CartItem> CartItems { get; set; }
         public virtual ICollection<ProductOrder> ProductOrders { get; set; }
