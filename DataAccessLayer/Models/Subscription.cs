@@ -23,8 +23,6 @@ namespace DataAccessObject.Models
         //    Unsubcribed
         //}
         //public SubscriptionStatus Status { get; set; }
-
         public virtual ICollection<Account> Accounts { get; set; }
-        public virtual ICollection<Provider> Providers { get; set; }
     }
 }

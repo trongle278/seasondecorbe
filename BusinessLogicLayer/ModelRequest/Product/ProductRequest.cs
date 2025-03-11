@@ -27,7 +27,7 @@ namespace BusinessLogicLayer.ModelRequest.Product
         [Required]
         public int CategoryId { get; set; }
         [Required]
-        public int ProviderId { get; set; }
+        public int AccountId { get; set; }
         public List<IFormFile> Images { get; set; }
     }
 

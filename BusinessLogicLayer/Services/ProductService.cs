@@ -238,21 +238,20 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                                               .Query(a => a.Slug == slug)
-                                               .Include(a => a.Provider)
+                                               .Query(a => a.Slug == slug && a.IsProvider == true)
                                                .FirstOrDefaultAsync();
 
-                if (account == null || account.Provider == null)
+                if (account == null || account.IsProvider == null)
                 {
                     response.Success = false;
                     response.Message = "Provider not found";
                     return response;
                 }
 
-                var providerId = account.Provider.Id;
+                var accountId = account.Id;
 
                 var products = await _unitOfWork.ProductRepository
-                                                .Query(p => p.ProviderId == providerId)
+                                                .Query(p => p.AccountId == accountId)
                                                 .Include(p => p.ProductImages)
                                                 .ToListAsync();
 
@@ -358,7 +357,7 @@ namespace BusinessLogicLayer.Services
                     MadeIn = request.MadeIn,
                     ShipFrom = request.ShipFrom,
                     CategoryId = request.CategoryId,
-                    ProviderId = request.ProviderId,
+                    AccountId = request.AccountId,
                     CreateAt = DateTime.UtcNow.ToLocalTime(),
                     ProductImages = new List<ProductImage>()
                 };

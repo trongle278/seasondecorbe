@@ -45,13 +45,9 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void DecorCategoryProfile()
         {
-            CreateMap<DecorCategory, DecorCategoryDTO>()
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            CreateMap<DecorCategory, DecorCategoryDTO>();
 
-            CreateMap<DecorCategoryRequest, DecorCategory>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
-                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            CreateMap<DecorCategoryRequest, DecorCategory>();
         }
 
         private void RoleCategoryProfile()
@@ -69,22 +65,17 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void ProviderProfile()
         {
-            CreateMap<Provider, ProviderResponse>()              
-                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Account.Phone))
-                .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Account.Slug))
-                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Account.Avatar))
+            CreateMap<Account, ProviderResponse>()              
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.BusinessName))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress))
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => src.JoinedDate.ToString("yyyy-MM-dd"))); ;
-                
+
             // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 
-            CreateMap<BecomeProviderRequest, Provider>()
+            CreateMap<BecomeProviderRequest, Account>()
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
-                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1))
-                .ForMember(dest => dest.Account, opt => opt.MapFrom(src => new Account
-                {
-                    Phone = src.Phone
-                }));
+                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1));             
         }
 
         private void TicketTypeProfile()

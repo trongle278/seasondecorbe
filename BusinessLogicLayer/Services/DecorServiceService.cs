@@ -20,7 +20,10 @@ namespace BusinessLogicLayer.Services
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IElasticClientService _elasticClientService;
 
-        public DecorServiceService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService, IElasticClientService elasticClientService)
+        public DecorServiceService(IUnitOfWork unitOfWork, 
+                                   IMapper mapper, 
+                                   ICloudinaryService cloudinaryService, 
+                                   IElasticClientService elasticClientService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -114,11 +117,11 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var provider = await _unitOfWork.ProviderRepository
-                        .Query(p => p.AccountId == accountId)
+                var account = await _unitOfWork.AccountRepository
+                        .Query(a => a.Id == accountId && a.IsProvider == true)
                         .FirstOrDefaultAsync();
 
-                if (provider == null || !provider.IsProvider)
+                if (account == null)
                 {
                     response.Success = false;
                     response.Message = "Only a Provider is allowed to create a decor service.";
@@ -189,11 +192,11 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var provider = await _unitOfWork.ProviderRepository
-                        .Query(p => p.AccountId == accountId)
+                var account = await _unitOfWork.AccountRepository
+                        .Query(a => a.Id == accountId && a.IsProvider == true)
                         .FirstOrDefaultAsync();
 
-                if (provider == null || !provider.IsProvider)
+                if (account == null)
                 {
                     response.Success = false;
                     response.Message = "Only a Provider is allowed to update a decor service.";
@@ -323,11 +326,11 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var provider = await _unitOfWork.ProviderRepository
-                        .Query(p => p.AccountId == accountId)
+                var account = await _unitOfWork.AccountRepository
+                        .Query(a => a.Id == accountId && a.IsProvider == true)
                         .FirstOrDefaultAsync();
 
-                if (provider == null || !provider.IsProvider)
+                if (account == null)
                 {
                     response.Success = false;
                     response.Message = "Only a Provider is allowed to delete a decor service.";
@@ -384,11 +387,11 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var provider = await _unitOfWork.ProviderRepository
-                        .Query(p => p.AccountId == accountId)
+                var account = await _unitOfWork.AccountRepository
+                        .Query(a => a.Id == accountId && a.IsProvider == true)
                         .FirstOrDefaultAsync();
 
-                if (provider == null || !provider.IsProvider)
+                if (account == null)
                 {
                     response.Success = false;
                     response.Message = "Only a Provider is allowed to restore a decor service.";

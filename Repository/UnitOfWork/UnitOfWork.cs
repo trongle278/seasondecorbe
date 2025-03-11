@@ -23,7 +23,6 @@ namespace Repository.UnitOfWork
             RoleRepository = new RoleRepository(_context);
             DecorCategoryRepository = new DecorCategoryRepository(_context);
             ChatRepository = new ChatRepository(_context);
-            ProviderRepository = new ProviderRepository(_context);
             ProductRepository = new ProductRepository(_context);
             ProductImageRepository = new ProductImageRepository(_context);
             ProductCategoryRepository = new ProductCategoryRepository(_context);
@@ -44,7 +43,6 @@ namespace Repository.UnitOfWork
         }
 
         public IAccountRepository AccountRepository { get; private set; }
-        public IProviderRepository ProviderRepository { get; private set; }
         public IRoleRepository RoleRepository { get; private set; }
         public IDecorCategoryRepository DecorCategoryRepository { get; private set; }
         public IChatRepository ChatRepository { get; private set; }
