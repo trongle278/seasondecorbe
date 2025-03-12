@@ -73,7 +73,8 @@ namespace BusinessLogicLayer.Services
                     IsVerified = false,
                     VerificationToken = otp,
                     VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15),
-                    SubscriptionId = 1
+                    SubscriptionId = 1,
+                    JoinedDate = DateTime.UtcNow.ToLocalTime(),
                 };
 
                 account.Password = HashPassword(account, request.Password);
@@ -376,7 +377,8 @@ namespace BusinessLogicLayer.Services
                         IsVerified = true,
                         RoleId = 3,
                         SubscriptionId = 1,
-                        Slug = GenerateDefaultSlug() // Sinh slug mặc định
+                        Slug = GenerateDefaultSlug(),
+                        JoinedDate = DateTime.UtcNow.ToLocalTime()// Sinh slug mặc định
                     };
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);

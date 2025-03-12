@@ -198,7 +198,6 @@ namespace BusinessLogicLayer.Services
                 account.Bio = request.Bio;
                 account.Phone = request.Phone;
                 account.BusinessAddress = request.Address;
-                account.JoinedDate = DateTime.UtcNow.ToLocalTime();
 
                 _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();

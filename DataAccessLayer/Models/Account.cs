@@ -57,7 +57,7 @@ namespace DataAccessObject.Models
         public string? BusinessName { get; set; }
         public string? Bio { get; set; }
         public string? BusinessAddress { get; set; }
-        public DateTime? JoinedDate { get; set; }
+        public DateTime JoinedDate { get; set; }
         public bool? IsProvider { get; set; }
         public virtual ICollection<Product> Products { get; set; }
     }
