@@ -34,7 +34,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var providers = await _unitOfWork.AccountRepository
-                    .Query(a => a.IsProvider == true)
+                    .Query(a => a.ProviderVerified == true)
                     .ToListAsync();
 
                 var providerList = _mapper.Map<List<ProviderResponse>>(providers);
@@ -194,6 +194,7 @@ namespace BusinessLogicLayer.Services
 
                 // Cập nhật tài khoản thành provider
                 account.IsProvider = true;
+                account.ProviderVerified = true;
                 account.BusinessName = request.Name;
                 account.Bio = request.Bio;
                 account.Phone = request.Phone;
@@ -282,7 +283,7 @@ namespace BusinessLogicLayer.Services
                     return new BaseResponse
                     {
                         Success = false,
-                        Message = "Please complete your provider registration first!"
+                        Message = "Please apply your provider registration first!"
                     };
                 }
 
@@ -294,7 +295,8 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = isProvider ? "Account is now a Provider!" : "Account is now a Customer!"
+                    Message = isProvider ? "Welcome to the Provider Dashboard!"
+                                         : "Welcome back to Customer"
                 };
             }
             catch (Exception ex)

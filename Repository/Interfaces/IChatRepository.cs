@@ -12,5 +12,6 @@ namespace Repository.Interfaces
     {
         Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId);
         Task<IEnumerable<Chat>> GetUnreadMessagesAsync(int receiverId, int senderId);
+        Task<IEnumerable<Chat>> GetAllUserChatsAsync(int userId);
     }
 }

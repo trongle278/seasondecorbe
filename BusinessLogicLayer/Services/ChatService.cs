@@ -140,5 +140,30 @@ namespace BusinessLogicLayer.Services
             }
             await _unitOfWork.CommitAsync();
         }
+
+        public async Task<List<ChatMessageResponse>> GetAllUserChatAsync(int userId)
+        {
+            var chats = await _unitOfWork.ChatRepository.GetAllUserChatsAsync(userId);
+
+            if (chats == null || !chats.Any())
+                return new List<ChatMessageResponse>();
+
+            var contacts = chats
+                .GroupBy(chat => chat.SenderId == userId ? chat.ReceiverId : chat.SenderId)
+                .Select(group => group.OrderByDescending(c => c.SentTime).First())
+                .Select(chat => new ChatMessageResponse
+                {
+                    Id = chat.Id,
+                    SenderId = chat.SenderId,
+                    ReceiverId = chat.ReceiverId,
+                    Message = chat.Message,
+                    SentTime = chat.SentTime,
+                    IsRead = chat.IsRead
+                })
+                .OrderByDescending(c => c.SentTime)
+                .ToList();
+
+            return contacts;
+        }
     }
 }

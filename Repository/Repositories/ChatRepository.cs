@@ -43,8 +43,24 @@ namespace Repository.Repositories
                 c.SenderId == senderId &&
                 !c.IsRead;
 
-            return await GetAllAsync(100, filter,  // Thêm limit parameter
+            return await GetAllAsync(100, filter,
                 orderBy: q => q.OrderByDescending(x => x.SentTime));
+        }
+
+        public async Task<IEnumerable<Chat>> GetAllUserChatsAsync(int userId)
+        {
+            Expression<Func<Chat, bool>> filter = c =>
+                c.SenderId == userId || c.ReceiverId == userId;
+
+            return await GetAllAsync(
+                limit: 100,
+                filter: filter,
+                orderBy: q => q.OrderByDescending(x => x.SentTime),
+                includeProperties: new Expression<Func<Chat, object>>[]
+                {
+            c => c.Sender,
+            c => c.Receiver
+                });
         }
     }
 }

@@ -59,6 +59,7 @@ namespace DataAccessObject.Models
         public string? BusinessAddress { get; set; }
         public DateTime JoinedDate { get; set; }
         public bool? IsProvider { get; set; }
+        public bool? ProviderVerified { get; set; }
         public virtual ICollection<Product> Products { get; set; }
     }
 }
