@@ -58,7 +58,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                    .Query(a => a.Id == accountId && a.IsProvider == true)
+                    .Query(a => a.Id == accountId && a.ProviderVerified == true)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
@@ -99,7 +99,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                    .Query(a => a.Slug == slug && a.IsProvider == true)
+                    .Query(a => a.Slug == slug && a.ProviderVerified == true)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
