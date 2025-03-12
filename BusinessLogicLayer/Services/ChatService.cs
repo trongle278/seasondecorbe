@@ -155,7 +155,14 @@ namespace BusinessLogicLayer.Services
                 {
                     Id = chat.Id,
                     SenderId = chat.SenderId,
+                    SenderName = chat.Sender?.IsProvider == true
+                               ? chat.Sender.BusinessName
+                               : $"{chat.Sender.FirstName} {chat.Sender.LastName}",
+                    
                     ReceiverId = chat.ReceiverId,
+                    ReceiverName = chat.Receiver?.IsProvider == true
+                                 ? chat.Receiver.BusinessName
+                                 : $"{chat.Receiver.FirstName} {chat.Receiver.LastName}",
                     Message = chat.Message,
                     SentTime = chat.SentTime,
                     IsRead = chat.IsRead

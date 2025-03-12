@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -37,7 +38,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         // Gửi tin nhắn kèm file (qua multipart/form-data)
-        [HttpPost("send-with-files")]
+        [HttpPost("sendmessage")]
         public async Task<IActionResult> SendMessageWithFiles([FromForm] ChatMessageRequest request,
                                                               [FromForm] List<IFormFile> files)
         {
@@ -56,7 +57,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         // Đánh dấu tin nhắn đã đọc
-        [HttpPost("mark-as-read/{senderId}")]
+        [HttpPost("markasread/{senderId}")]
         public async Task<IActionResult> MarkAsRead(int senderId)
         {
             try
@@ -64,6 +65,29 @@ namespace SeasonalHomeDecorAPI.Controllers
                 var receiverId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
                 return Ok(new { message = "Messages marked as read" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("getall")]
+        public async Task<IActionResult> GetAllUserChats()
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+                if (userId <= 0)
+                    return BadRequest(new { message = "Invalid user ID" });
+
+                var contacts = await _chatService.GetAllUserChatAsync(userId);
+
+                if (contacts == null || !contacts.Any())
+                    return Ok(new List<ChatMessageResponse>()); // Trả về danh sách rỗng thay vì lỗi
+
+                return Ok(contacts);
             }
             catch (Exception ex)
             {
