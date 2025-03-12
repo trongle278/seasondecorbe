@@ -64,7 +64,7 @@ namespace BusinessLogicLayer.Services
                 var notifResponse = await _notificationService.SendNotificationAsync(notification);
 
                 response.Success = true;
-                response.Message = "Follow successful. Notification sent.";
+                response.Message = "Follow successful!";
                 response.Data = follow; // Hoặc bạn có thể map sang DTO nếu cần
             }
             catch (Exception ex)
@@ -89,7 +89,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Unfollow successful.";
+                response.Message = "Unfollow successful!";
             }
             catch (Exception ex)
             {
@@ -105,7 +105,17 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var followers = await _unitOfWork.FollowRepository.GetFollowsByFollowingIdAsync(userId);
+                var followers = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowingId == userId)
+                    .Include(f => f.Follower) // Lấy thông tin người follow
+                    .Select(f => new
+                    {
+                        AccountId = f.Follower.Id,
+                        BusinessName = f.Follower.BusinessName,
+                        Avatar = f.Follower.Avatar
+                    })
+                    .ToListAsync();
+
                 response.Success = true;
                 response.Message = "Successfully retrieved followers.";
                 response.Data = followers;
@@ -124,7 +134,17 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                var followings = await _unitOfWork.FollowRepository.GetFollowsByFollowerIdAsync(userId);
+                var followings = await _unitOfWork.FollowRepository
+                    .Query(f => f.FollowerId == userId)
+                    .Include(f => f.Following) // Lấy thông tin người được follow
+                    .Select(f => new
+                    {
+                        AccountId = f.Following.Id,
+                        BusinessName = f.Following.BusinessName,
+                        Avatar = f.Follower.Avatar
+                    })
+                    .ToListAsync();
+
                 response.Success = true;
                 response.Message = "Successfully retrieved followings.";
                 response.Data = followings;
