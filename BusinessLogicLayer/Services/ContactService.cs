@@ -28,7 +28,7 @@ namespace BusinessLogicLayer.Services
             {
                 var account = contact.ContactUser;
 
-                string displayName = account.IsProvider == true && !string.IsNullOrEmpty(account.BusinessName)
+                string displayName = account.ProviderVerified == true && !string.IsNullOrEmpty(account.BusinessName)
                     ? account.BusinessName
                     : $"{account.FirstName} {account.LastName}";
 
