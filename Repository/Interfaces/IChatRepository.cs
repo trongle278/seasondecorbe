@@ -11,9 +11,8 @@ namespace Repository.Interfaces
     public interface IChatRepository : IGenericRepository<Chat>
     {
         Task<IEnumerable<Chat>> GetChatHistoryAsync(int senderId, int receiverId);
-        Task<IEnumerable<Chat>> GetUnreadMessagesAsync(int receiverId, int senderId);
-        //Task<IEnumerable<Chat>> GetAllUserChatsAsync(int userId);
-        //Task<bool> ChatExistsAsync(int senderId, int receiverId);
+        Task MarkMessagesAsReadAsync(int receiverId, int senderId);
+        Task<IEnumerable<Chat>> GetUnreadMessagesAsync(int receiverId);
         Task<IEnumerable<Chat>> GetUserChatAsync(int userId);
     }
 }

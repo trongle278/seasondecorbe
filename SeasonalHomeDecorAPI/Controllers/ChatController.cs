@@ -20,12 +20,18 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         // Lấy lịch sử giữa senderId (lấy từ token) và receiverId
-        [HttpGet("history/{receiverId}")]
-        public async Task<IActionResult> GetChatHistory(int receiverId)
+        [HttpGet("chat-history/{userId}")]
+        public async Task<IActionResult> GetChatHistory(int userId)
         {
-            var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            var response = await _chatService.GetChatHistoryAsync(senderId, receiverId);
-            return Ok(response);
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            if (currentUserId == 0)
+            {
+                return Unauthorized(new { message = "Invalid token or user ID" });
+            }
+
+            var response = await _chatService.GetChatHistoryAsync(currentUserId, userId);
+            return Ok(response); // ✅ Trả về nguyên BaseResponse, không chỉnh sửa
         }
 
         // Gửi tin nhắn kèm file (qua multipart/form-data)
@@ -47,7 +53,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        // Đánh dấu tin nhắn đã đọc
         [HttpPost("markasread/{senderId}")]
         public async Task<IActionResult> MarkAsRead(int senderId)
         {
@@ -63,36 +68,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        //[HttpGet("getall")]
-        //public async Task<IActionResult> GetAllUserChats()
-        //{
-        //    try
-        //    {
-        //        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-        //        if (userId <= 0)
-        //            return BadRequest(new { message = "Invalid user ID" });
-
-        //        var contacts = await _chatService.GetAllUserChatAsync(userId);
-
-        //        if (contacts == null || !contacts.Any())
-        //            return Ok(new List<ChatMessageResponse>()); // Trả về danh sách rỗng thay vì lỗi
-
-        //        return Ok(contacts);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
-
-        //[HttpPost("add-to-chat-list")]
-        //public async Task<IActionResult> AddToChatList([FromBody] CreateChatRequest request)
-        //{
-        //    var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-        //    await _chatService.AddToChatListAsync(senderId, request.ReceiverId);
-
-        //    return Ok(new { message = "User added to chat list." });
-        //}
+        [HttpGet("unread-messages")]
+        public async Task<IActionResult> GetUnreadMessages()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var response = await _chatService.GetUnreadMessagesAsync(userId);
+            return Ok(response);
+        }
     }
 }
