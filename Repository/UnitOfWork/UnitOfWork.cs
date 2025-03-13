@@ -40,6 +40,7 @@ namespace Repository.UnitOfWork
             ReviewRepository = new ReviewRepository(_context);
             BookingRepository = new BookingRepository(_context);
             PaymentPhaseRepository = new PaymentPhaseRepository(_context);
+            ContactRepository = new ContactRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -63,6 +64,7 @@ namespace Repository.UnitOfWork
         public IReviewRepository ReviewRepository { get; private set; }
         public IBookingRepository BookingRepository { get; private set; }
         public IPaymentPhaseRepository PaymentPhaseRepository { get; private set; }
+        public IContactRepository ContactRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

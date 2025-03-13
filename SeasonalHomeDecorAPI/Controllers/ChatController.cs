@@ -72,27 +72,36 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [HttpGet("getall")]
-        public async Task<IActionResult> GetAllUserChats()
-        {
-            try
-            {
-                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        //[HttpGet("getall")]
+        //public async Task<IActionResult> GetAllUserChats()
+        //{
+        //    try
+        //    {
+        //        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-                if (userId <= 0)
-                    return BadRequest(new { message = "Invalid user ID" });
+        //        if (userId <= 0)
+        //            return BadRequest(new { message = "Invalid user ID" });
 
-                var contacts = await _chatService.GetAllUserChatAsync(userId);
+        //        var contacts = await _chatService.GetAllUserChatAsync(userId);
 
-                if (contacts == null || !contacts.Any())
-                    return Ok(new List<ChatMessageResponse>()); // Trả về danh sách rỗng thay vì lỗi
+        //        if (contacts == null || !contacts.Any())
+        //            return Ok(new List<ChatMessageResponse>()); // Trả về danh sách rỗng thay vì lỗi
 
-                return Ok(contacts);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //        return Ok(contacts);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
+
+        //[HttpPost("add-to-chat-list")]
+        //public async Task<IActionResult> AddToChatList([FromBody] CreateChatRequest request)
+        //{
+        //    var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        //    await _chatService.AddToChatListAsync(senderId, request.ReceiverId);
+
+        //    return Ok(new { message = "User added to chat list." });
+        //}
     }
 }

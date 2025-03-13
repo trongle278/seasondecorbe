@@ -47,20 +47,45 @@ namespace Repository.Repositories
                 orderBy: q => q.OrderByDescending(x => x.SentTime));
         }
 
-        public async Task<IEnumerable<Chat>> GetAllUserChatsAsync(int userId)
-        {
-            Expression<Func<Chat, bool>> filter = c =>
-                c.SenderId == userId || c.ReceiverId == userId;
+        //public async Task<IEnumerable<Chat>> GetAllUserChatsAsync(int userId)
+        //{
+        //    Expression<Func<Chat, bool>> filter = c =>
+        //        c.SenderId == userId || c.ReceiverId == userId;
 
+        //    return await GetAllAsync(
+        //        limit: 100,
+        //        filter: filter,
+        //        orderBy: q => q.OrderByDescending(x => x.SentTime),
+        //        includeProperties: new Expression<Func<Chat, object>>[]
+        //        {
+        //    c => c.Sender,
+        //    c => c.Receiver
+        //        });
+        //}
+
+        //public async Task<bool> ChatExistsAsync(int senderId, int receiverId)
+        //{
+        //    var chats = await GetAllAsync(
+        //        limit: 1,
+        //        filter: c => (c.SenderId == senderId && c.ReceiverId == receiverId) ||
+        //                     (c.SenderId == receiverId && c.ReceiverId == senderId)
+        //    );
+
+        //    return chats.Any();
+        //}
+
+        public async Task<IEnumerable<Chat>> GetUserChatAsync(int userId)
+        {
             return await GetAllAsync(
-                limit: 100,
-                filter: filter,
+                limit: 500,
+                filter: c => c.SenderId == userId || c.ReceiverId == userId,
                 orderBy: q => q.OrderByDescending(x => x.SentTime),
                 includeProperties: new Expression<Func<Chat, object>>[]
                 {
             c => c.Sender,
             c => c.Receiver
-                });
+                }
+            );
         }
     }
 }
