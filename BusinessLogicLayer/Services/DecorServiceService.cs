@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using BusinessLogicLayer.ModelResponse.Product;
 using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +24,9 @@ namespace BusinessLogicLayer.Services
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IElasticClientService _elasticClientService;
 
-        public DecorServiceService(IUnitOfWork unitOfWork, 
-                                   IMapper mapper, 
-                                   ICloudinaryService cloudinaryService, 
+        public DecorServiceService(IUnitOfWork unitOfWork,
+                                   IMapper mapper,
+                                   ICloudinaryService cloudinaryService,
                                    IElasticClientService elasticClientService)
         {
             _unitOfWork = unitOfWork;
@@ -101,6 +105,90 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Data = dtos;
+                response.Message = "Decor services retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving decor services.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<DecorServiceListResponse>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<DecorServiceListResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<DecorService, bool>> filter = decorService =>
+                    (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
+                    (string.IsNullOrEmpty(request.Province) || decorService.Province.Contains(request.Province)) &&
+                    (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
+                    (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
+                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);
+
+                // Sort
+                Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
+                {
+                    "Style" => decorService => decorService.Style,
+                    "Province" => decorService => decorService.Province,
+                    "CreateAt" => decorService => decorService.CreateAt,
+                    _ => decorService => decorService.Id
+                };
+
+                // Include Images
+                Expression<Func<DecorService, object>>[] includeProperties =
+                {
+                    decorService => decorService.DecorImages,
+                    decorService => decorService.DecorCategory
+                };
+
+                // Get paginated data and filter
+                (IEnumerable<DecorService> decorServices, int totalCount) = await _unitOfWork.DecorServiceRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var services = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => !ds.IsDeleted)
+                    .Include(ds => ds.DecorImages)
+                    .ToListAsync();
+
+                // Map mỗi service sang DecorServiceDTO
+                var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
+
+                // Map DecorImages -> DecorImageDTO
+                for (int i = 0; i < services.Count; i++)
+                {
+                    dtos[i].Images = services[i].DecorImages
+                        .Select(img => new DecorImageResponse
+                        {
+                            Id = img.Id,
+                            ImageURL = img.ImageURL
+                        })
+                        .ToList();
+                }
+
+                var pageResult = new PageResult<DecorServiceListResponse>
+                {
+                    Data = new List<DecorServiceListResponse>
+                    {
+                        new DecorServiceListResponse
+                        {
+                            Data = dtos
+                        }
+                    },
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Data = pageResult;
                 response.Message = "Decor services retrieved successfully.";
             }
             catch (Exception ex)

@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelRequest.Product;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
 using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Review;
 using DataAccessObject.Models;
@@ -37,6 +39,13 @@ namespace BusinessLogicLayer.Services
             {
                 Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
                 var products = await _unitOfWork.ProductRepository.GetAllAsync(includeProperties);
+
+                if (products == null)
+                {
+                    response.Success = false;
+                    response.Message = "Non product available";
+                    return response;
+                }
 
                 var productResponses = new List<ProductListResponse>();
 
@@ -79,6 +88,104 @@ namespace BusinessLogicLayer.Services
                 response.Success = true;
                 response.Message = "Product list retrieved successfully";
                 response.Data = productResponses;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving product list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<ProductListResponse>>> GetPaginate(ProductFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<ProductListResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<Product, bool>> filter = product =>
+                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
+                    (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
+                    (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
+
+                // Sort
+                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                {
+                    "ProductName" => product => product.ProductName,
+                    "ProductPrice" => product => product.ProductPrice,
+                    "CreateAt" => product => product.CreateAt,
+                    _ => product => product.Id
+                };
+
+                // Include Images
+                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
+
+                // Get paginated data and filter
+                (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                if (products == null)
+                {
+                    response.Success = false;
+                    response.Message = "Non product available";
+                    return response;
+                }
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get productOrder of product
+                    var productOrders = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .Include(po => po.Order)
+                                                .ThenInclude(o => o.Reviews)
+                                            .ToListAsync();
+
+                    // Get review of product
+                    var reviews = productOrders
+                                    .SelectMany(po => po.Order.Reviews)
+                                    .ToList();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Calculate total sold
+                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
+                var pageResult = new PageResult<ProductListResponse>
+                {
+                    Data = productResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Product list retrieved successfully";
+                response.Data = pageResult;
             }
             catch (Exception ex)
             {
@@ -212,6 +319,13 @@ namespace BusinessLogicLayer.Services
                                                 .Include(p => p.ProductImages)
                                                 .ToListAsync();
 
+                if (products == null)
+                {
+                    response.Success = false;
+                    response.Message = "Non product available";
+                    return response;
+                }
+
                 var productResponses = new List<ProductListResponse>();
 
                 foreach (var product in products)
@@ -264,6 +378,105 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<PageResult<ProductListResponse>>> GetPaginateByCategory(FilterByCategoryRequest request)
+        {
+            var response = new BaseResponse<PageResult<ProductListResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<Product, bool>> filter = product =>
+                    product.CategoryId == request.CategoryId &&
+                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
+                    (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
+                    (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
+
+                // Sort
+                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                {
+                    "ProductName" => product => product.ProductName,
+                    "ProductPrice" => product => product.ProductPrice,
+                    "CreateAt" => product => product.CreateAt,
+                    _ => product => product.Id
+                };
+
+                // Include Images
+                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
+
+                // Get paginated data and filter
+                (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                if (products == null)
+                {
+                    response.Success = false;
+                    response.Message = "Non product available";
+                    return response;
+                }
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get productOrder of product
+                    var productOrders = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .Include(po => po.Order)
+                                                .ThenInclude(o => o.Reviews)
+                                            .ToListAsync();
+
+                    // Get review of product
+                    var reviews = productOrders
+                                    .SelectMany(po => po.Order.Reviews)
+                                    .ToList();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Calculate total sold
+                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
+                var pageResult = new PageResult<ProductListResponse>
+                {
+                    Data = productResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Product list retrieved successfully";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving product list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
         public async Task<BaseResponse> GetProductByProvider(string slug)
         {
             var response = new BaseResponse();
@@ -286,6 +499,13 @@ namespace BusinessLogicLayer.Services
                                                 .Query(p => p.AccountId == accountId)
                                                 .Include(p => p.ProductImages)
                                                 .ToListAsync();
+
+                if (products == null)
+                {
+                    response.Success = false;
+                    response.Message = "Non product available";
+                    return response;
+                }
 
                 var productResponses = new List<ProductListResponse>();
 
@@ -328,6 +548,109 @@ namespace BusinessLogicLayer.Services
                 response.Success = true;
                 response.Message = "Product list retrieved successfully";
                 response.Data = productResponses;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving product list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<ProductListResponse>>> GetPaginateByProvider(FilterByProviderRequest request)
+        {
+            var response = new BaseResponse<PageResult<ProductListResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<Product, bool>> filter = product =>
+                    (product.Account.Slug == request.Slug && product.Account.IsProvider == true) &&
+                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
+                    (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
+                    (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
+
+                // Sort
+                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                {
+                    "ProductName" => product => product.ProductName,
+                    "ProductPrice" => product => product.ProductPrice,
+                    "CreateAt" => product => product.CreateAt,
+                    _ => product => product.Id
+                };
+
+                // Include Images
+                Expression<Func<Product, object>>[] includeProperties =
+                {
+                    product => product.ProductImages,
+                    product => product.Account
+                };
+
+                // Get paginated data and filter
+                (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                if (products == null)
+                {
+                    response.Success = false;
+                    response.Message = "Non product available";
+                    return response;
+                }
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get productOrder of product
+                    var productOrders = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .Include(po => po.Order)
+                                                .ThenInclude(o => o.Reviews)
+                                            .ToListAsync();
+
+                    // Get review of product
+                    var reviews = productOrders
+                                    .SelectMany(po => po.Order.Reviews)
+                                    .ToList();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Calculate total sold
+                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
+                var pageResult = new PageResult<ProductListResponse>
+                {
+                    Data = productResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Product list retrieved successfully";
+                response.Data = pageResult;
             }
             catch (Exception ex)
             {

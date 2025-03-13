@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,18 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _decorServiceService.GetAllDecorServicesAsync();
             if (result.Success)
                 return Ok(result);
+            return BadRequest(result.Message);
+        }
+
+        [HttpGet("getPaginated")]
+        public async Task<IActionResult> GetPaginatedDecorService([FromQuery]DecorServiceFilterRequest request)
+        {
+            var result = await  _decorServiceService.GetFilterDecorServicesAsync(request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
             return BadRequest(result.Message);
         }
 

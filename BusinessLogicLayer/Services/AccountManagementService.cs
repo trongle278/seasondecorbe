@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
 using DataAccessObject.Models;
+using BusinessLogicLayer.ModelRequest.Pagination;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using System.Linq.Expressions;
+using AutoMapper;
 
 namespace BusinessLogicLayer.Services
 {
@@ -17,20 +21,20 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasher<Account> _passwordHasher;
+        private readonly IMapper _mapper;
 
-        public AccountManagementService(IUnitOfWork unitOfWork)
+        public AccountManagementService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = new PasswordHasher<Account>();
+            _mapper = mapper;
         }
 
         public async Task<BaseResponse> GetAllAccountsAsync()
         {
             try
             {
-                var accounts = await _unitOfWork.AccountRepository
-                    .Query(x => !x.IsDisable)
-                    .ToListAsync();
+                var accounts = await _unitOfWork.AccountRepository.GetAllAsync();
 
                 return new BaseResponse
                 {
@@ -48,6 +52,65 @@ namespace BusinessLogicLayer.Services
                     Errors = new List<string> { ex.Message }
                 };
             }
+        }
+        public async Task<BaseResponse<PageResult<AccountListResponse>>> GetFilterAccountsAsync(AccountFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<AccountListResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<Account, bool>> filter = account =>
+                    (!request.Gender.HasValue || account.Gender == request.Gender.Value) &&
+                    (string.IsNullOrEmpty(request.Status) || account.Status.Contains(request.Status)) &&
+                    (!request.IsVerified.HasValue || account.IsVerified == request.IsVerified.Value) &&
+                    (!request.IsDisable.HasValue || account.IsDisable == request.IsDisable.Value);
+
+                // Sort
+                Expression<Func<Account, object>> orderByExpression = request.SortBy switch
+                {
+                    "Email" => account => account.Email,
+                    "FirstName" => account => account.FirstName,
+                    "LastName" => account => account.LastName,
+                    "Gender" => account => account.Gender,
+                    _ => account => account.Id
+                };
+
+                // Get paginated data and filter
+                (IEnumerable<Account> accounts, int totalCount) = await _unitOfWork.AccountRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending
+                );
+
+                var account = await _unitOfWork.AccountRepository.GetAllAsync();
+
+                var dtos = _mapper.Map<List<AccountDTO>>(account);
+
+                var pageResult = new PageResult<AccountListResponse>
+                {
+                    Data = new List<AccountListResponse>
+                    {
+                        new AccountListResponse
+                        {
+                            Data = dtos
+                        }
+                    },
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Accounts retrieved successfully";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving accounts";
+                response.Errors = new List<string> { ex.Message };
+            }
+            return response;
         }
 
         // Lấy thông tin một tài khoản theo id

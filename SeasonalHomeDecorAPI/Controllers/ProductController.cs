@@ -1,4 +1,5 @@
 ﻿using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelRequest.Product;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,11 +23,39 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var result = await _productService.GetAllProduct();
 
-            if (result.Success)
+            if (result.Success == false && result.Message == "Non product available")
             {
-                return Ok(result);
+                ModelState.AddModelError("", $"Non product available!");
+                return StatusCode(400, ModelState);
             }
-            return BadRequest();
+
+            if (result.Success == false && result.Message == "Error retrieving product list")
+            {
+                ModelState.AddModelError("", $"Error retrieving product list!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);            
+        }
+
+        [HttpGet("getPaginatedList")]
+        public async Task<IActionResult> GetFilterProduct([FromQuery] ProductFilterRequest request)
+        {
+            var result = await _productService.GetPaginate(request);
+
+            if (result.Success == false && result.Message == "Non product available")
+            {
+                ModelState.AddModelError("", $"Non product available!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error retrieving product list")
+            {
+                ModelState.AddModelError("", $"Error retrieving product list!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
         }
 
         [HttpGet("getProductByCategory/{id}")]
@@ -34,11 +63,59 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var result = await _productService.GetProductByCategoryId(id);
 
-            if (result.Success)
+            if (result.Success == false && result.Message == "Non product available")
             {
-                return Ok(result);
+                ModelState.AddModelError("", $"Non product available!");
+                return StatusCode(400, ModelState);
             }
-            return BadRequest();
+
+            if (result.Success == false && result.Message == "Error retrieving product list")
+            {
+                ModelState.AddModelError("", $"Error retrieving product list!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("getPaginatedListByCategory")]
+        public async Task<IActionResult> GetFilterByCategory([FromQuery] FilterByCategoryRequest request)
+        {
+            var result = await _productService.GetPaginateByCategory(request);
+
+            if (result.Success == false && result.Message == "Non product available")
+            {
+                ModelState.AddModelError("", $"Non product available!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error retrieving product list")
+            {
+                ModelState.AddModelError("", $"Error retrieving product list!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("getPaginatedListByProvider")]
+        public async Task<IActionResult> GetFilterByProvider([FromQuery] FilterByProviderRequest request)
+        {
+            var result = await _productService.GetPaginateByProvider(request);
+
+            if (result.Success == false && result.Message == "Non product available")
+            {
+                ModelState.AddModelError("", $"Non product available!");
+                return StatusCode(400, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error retrieving product list")
+            {
+                ModelState.AddModelError("", $"Error retrieving product list!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
         }
 
         [HttpGet("getProductByProvider/{slug}")]
@@ -46,11 +123,19 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var result = await _productService.GetProductByProvider(slug);
 
-            if (result.Success)
+            if (result.Success == false && result.Message == "Non product available")
             {
-                return Ok(result);
+                ModelState.AddModelError("", $"Non product available!");
+                return StatusCode(400, ModelState);
             }
-            return BadRequest();
+
+            if (result.Success == false && result.Message == "Error retrieving product list")
+            {
+                ModelState.AddModelError("", $"Error retrieving product list!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
         }
 
         [HttpGet("getById/{id}")]
