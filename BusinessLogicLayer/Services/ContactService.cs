@@ -28,12 +28,10 @@ namespace BusinessLogicLayer.Services
             {
                 var account = contact.ContactUser;
 
-                // Xác định tên hiển thị
                 string displayName = account.IsProvider == true && !string.IsNullOrEmpty(account.BusinessName)
                     ? account.BusinessName
                     : $"{account.FirstName} {account.LastName}";
 
-                // Tìm tin nhắn gần nhất
                 var lastMessage = chatHistory
                     .Where(chat => chat.SenderId == contact.ContactId || chat.ReceiverId == contact.ContactId)
                     .OrderByDescending(chat => chat.SentTime)
@@ -43,38 +41,60 @@ namespace BusinessLogicLayer.Services
                 {
                     ContactId = contact.ContactId,
                     ContactName = displayName,
-                    Avatar = account.Avatar, // Trả avatar
+                    Avatar = account.Avatar,
                     Message = lastMessage?.Message,
-                    LastMessageTime = lastMessage?.SentTime ?? contact.CreatedAt // Nếu chưa có tin nhắn, lấy CreatedAt của Contact
+                    LastMessageTime = lastMessage?.SentTime.ToString("dd/MM/yy")
                 };
             })
-            .OrderByDescending(c => c.LastMessageTime) // Sắp xếp theo SentTime mới nhất
+            .OrderByDescending(c => c.Message != null)
+            .ThenByDescending(c => c.LastMessageTime)
             .ToList();
-            
+
             return new BaseResponse
             {
                 Success = true,
                 Message = "Contacts retrieved successfully.",
+                Errors = new List<string>(),
                 Data = contactList
             };
         }
 
-        public async Task AddToContactListAsync(int userId, int contactId)
+        public async Task<BaseResponse> AddToContactListAsync(int userId, int receiverId)
         {
-            if (userId == contactId)
-                throw new InvalidOperationException("Cannot add yourself as a contact.");
+            if (userId == receiverId)
+                return new BaseResponse 
+                { 
+                    Success = false, 
+                    Message = "Cannot add yourself as a contact.", 
+                    Errors = new List<string>() 
+                };
 
-            var contactExists = await _unitOfWork.ContactRepository.ContactExistsAsync(userId, contactId);
-            if (contactExists) return;
+            var contactExists = await _unitOfWork.ContactRepository.ContactExistsAsync(userId, receiverId);
+            
+            if (contactExists)
+                return new BaseResponse 
+                { 
+                    Success = false, 
+                    Message = "Contact already exists.", 
+                    Errors = new List<string>() 
+                };
 
             var newContact = new Contact
             {
                 UserId = userId,
-                ContactId = contactId
+                ContactId = receiverId
             };
 
             await _unitOfWork.ContactRepository.InsertAsync(newContact);
             await _unitOfWork.CommitAsync();
+
+            return new BaseResponse 
+            { 
+                Success = true,
+                Message = "Contact added successfully.", 
+                Errors = new List<string>(), 
+                Data = null 
+            };
         }
     }
 }

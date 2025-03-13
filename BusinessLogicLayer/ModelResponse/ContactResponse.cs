@@ -12,6 +12,6 @@ namespace BusinessLogicLayer.ModelResponse
         public string ContactName { get; set; }
         public string? Avatar { get; set; }
         public string Message { get; set; }
-        public DateTime LastMessageTime { get; set; }
+        public string? LastMessageTime { get; set; }
     }
 }

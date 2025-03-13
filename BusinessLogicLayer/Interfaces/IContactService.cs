@@ -10,6 +10,6 @@ namespace BusinessLogicLayer.Interfaces
     public interface IContactService
     {
         Task<BaseResponse> GetAllContactsAsync(int userId);
-        Task AddToContactListAsync(int userId, int contactId);
+        Task<BaseResponse> AddToContactListAsync(int userId, int receiverId);
     }
 }

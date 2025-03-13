@@ -25,32 +25,15 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var response = await _contactService.GetAllContactsAsync(userId);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-
-            // Ép kiểu Data về danh sách ContactResponse trước khi Select
-            var formattedContacts = ((List<ContactResponse>)response.Data).Select(c => new
-            {
-                c.ContactId,
-                c.ContactName,
-                c.Avatar,
-                c.Message,
-                LastMessageTime = c.LastMessageTime.ToString("dd/MM/yy")
-            });
-
-            return Ok(formattedContacts);
+            return Ok(response);
         }
 
-        [HttpPost("add-to-contact-list")]
-        public async Task<IActionResult> AddToContactList([FromBody] CreateContactRequest request)
+        [HttpPost("add/{receiverId}")]
+        public async Task<IActionResult> AddToContactList(int receiverId)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            await _contactService.AddToContactListAsync(userId, request.ReceiverId);
-
-            return Ok(new { message = "User added to contact list." });
+            var response = await _contactService.AddToContactListAsync(userId, receiverId);
+            return Ok(response);
         }
     }
 }
