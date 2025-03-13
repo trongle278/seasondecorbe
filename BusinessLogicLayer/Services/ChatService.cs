@@ -141,36 +141,58 @@ namespace BusinessLogicLayer.Services
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task<List<ChatMessageResponse>> GetAllUserChatAsync(int userId)
-        {
-            var chats = await _unitOfWork.ChatRepository.GetAllUserChatsAsync(userId);
+        //public async Task<List<ChatMessageResponse>> GetAllUserChatAsync(int userId)
+        //{
+        //    var chats = await _unitOfWork.ChatRepository.GetAllUserChatsAsync(userId);
 
-            if (chats == null || !chats.Any())
-                return new List<ChatMessageResponse>();
+        //    if (chats == null || !chats.Any())
+        //        return new List<ChatMessageResponse>();
 
-            var contacts = chats
-                .GroupBy(chat => chat.SenderId == userId ? chat.ReceiverId : chat.SenderId)
-                .Select(group => group.OrderByDescending(c => c.SentTime).First())
-                .Select(chat => new ChatMessageResponse
-                {
-                    Id = chat.Id,
-                    SenderId = chat.SenderId,
-                    SenderName = chat.Sender?.IsProvider == true
-                               ? chat.Sender.BusinessName
-                               : $"{chat.Sender.FirstName} {chat.Sender.LastName}",
+        //    var contacts = chats
+        //        .GroupBy(chat => chat.SenderId == userId ? chat.ReceiverId : chat.SenderId)
+        //        .Select(group => group.OrderByDescending(c => c.SentTime).First())
+        //        .Select(chat => new ChatMessageResponse
+        //        {
+        //            Id = chat.Id,
+        //            SenderId = chat.SenderId,
+        //            SenderName = chat.Sender?.IsProvider == true
+        //                       ? chat.Sender.BusinessName
+        //                       : $"{chat.Sender.FirstName} {chat.Sender.LastName}",
                     
-                    ReceiverId = chat.ReceiverId,
-                    ReceiverName = chat.Receiver?.IsProvider == true
-                                 ? chat.Receiver.BusinessName
-                                 : $"{chat.Receiver.FirstName} {chat.Receiver.LastName}",
-                    Message = chat.Message,
-                    SentTime = chat.SentTime,
-                    IsRead = chat.IsRead
-                })
-                .OrderByDescending(c => c.SentTime)
-                .ToList();
+        //            ReceiverId = chat.ReceiverId,
+        //            ReceiverName = chat.Receiver?.IsProvider == true
+        //                         ? chat.Receiver.BusinessName
+        //                         : $"{chat.Receiver.FirstName} {chat.Receiver.LastName}",
+        //            Message = chat.Message,
+        //            SentTime = chat.SentTime,
+        //            IsRead = chat.IsRead
+        //        })
+        //        .OrderByDescending(c => c.SentTime)
+        //        .ToList();
 
-            return contacts;
-        }
+        //    return contacts;
+        //}
+
+        //public async Task AddToChatListAsync(int senderId, int receiverId)
+        //{
+        //    if (senderId == receiverId)
+        //        throw new InvalidOperationException("Cannot add yourself to the chat list.");
+
+        //    var chatExists = await _unitOfWork.ChatRepository.ChatExistsAsync(senderId, receiverId);
+
+        //    if (chatExists) return; // Nếu đã có trong danh sách chat, không cần thêm
+
+        //    var newChat = new Chat
+        //    {
+        //        SenderId = senderId,
+        //        ReceiverId = receiverId,
+        //        Message = null, // Không lưu tin nhắn rỗng
+        //        SentTime = DateTime.UtcNow,
+        //        IsRead = true
+        //    };
+
+        //    await _unitOfWork.ChatRepository.InsertAsync(newChat);
+        //    await _unitOfWork.CommitAsync();
+        //}
     }
 }

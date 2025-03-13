@@ -19,4 +19,9 @@ namespace BusinessLogicLayer.ModelRequest
         public string Message { get; set; }
         public List<Base64FileDto> Files { get; set; } = new List<Base64FileDto>();
     }
+
+    public class CreateContactRequest
+    {
+        public int ReceiverId { get; set; }
+    }
 }

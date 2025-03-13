@@ -15,6 +15,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<List<ChatMessageResponse>> GetChatHistoryAsync(int senderId, int receiverId);
         Task MarkMessagesAsReadAsync(int receiverId, int senderId);
         Task<ChatMessageResponse> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles);
-        Task<List<ChatMessageResponse>> GetAllUserChatAsync(int userId);
+        //Task<List<ChatMessageResponse>> GetAllUserChatAsync(int userId);
+        //Task AddToChatListAsync(int senderId, int receiverId);
     }
 }

@@ -58,6 +58,7 @@ namespace DataAccessObject.Models
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         //test
         public DbSet<DeviceToken> DeviceTokens { get; set; }
+        public DbSet<Contact> Contacts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -348,6 +349,18 @@ namespace DataAccessObject.Models
                 new Role { Id = 2, RoleName = "Provider" },
                 new Role { Id = 3, RoleName = "Customer" }
             );
+
+            modelBuilder.Entity<Contact>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contact>()
+                .HasOne(c => c.ContactUser)
+                .WithMany()
+                .HasForeignKey(c => c.ContactId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Subscription>().HasData(
                 new Subscription { Id = 1, Name = "Basic", Description = "Normal Package", Price = 0, Duration = 999 }
