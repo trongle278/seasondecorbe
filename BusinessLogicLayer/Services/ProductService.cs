@@ -40,13 +40,6 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
                 var products = await _unitOfWork.ProductRepository.GetAllAsync(includeProperties);
 
-                if (products == null)
-                {
-                    response.Success = false;
-                    response.Message = "Non product available";
-                    return response;
-                }
-
                 var productResponses = new List<ProductListResponse>();
 
                 foreach (var product in products)
@@ -132,13 +125,6 @@ namespace BusinessLogicLayer.Services
                     includeProperties
                 );
 
-                if (products == null)
-                {
-                    response.Success = false;
-                    response.Message = "Non product available";
-                    return response;
-                }
-
                 var productResponses = new List<ProductListResponse>();
 
                 foreach (var product in products)
@@ -206,13 +192,6 @@ namespace BusinessLogicLayer.Services
                                         .Query(p => p.Id == id)
                                         .Include(p => p.ProductImages)
                                         .FirstOrDefaultAsync();
-
-                if (product == null)
-                {
-                    response.Success = false;
-                    response.Message = "Invalid product";
-                    return response;
-                }
 
                 // Get productOrder of product
                 var productOrders = await _unitOfWork.ProductOrderRepository
@@ -319,13 +298,6 @@ namespace BusinessLogicLayer.Services
                                                 .Include(p => p.ProductImages)
                                                 .ToListAsync();
 
-                if (products == null)
-                {
-                    response.Success = false;
-                    response.Message = "Non product available";
-                    return response;
-                }
-
                 var productResponses = new List<ProductListResponse>();
 
                 foreach (var product in products)
@@ -412,13 +384,6 @@ namespace BusinessLogicLayer.Services
                     includeProperties
                 );
 
-                if (products == null)
-                {
-                    response.Success = false;
-                    response.Message = "Non product available";
-                    return response;
-                }
-
                 var productResponses = new List<ProductListResponse>();
 
                 foreach (var product in products)
@@ -499,13 +464,6 @@ namespace BusinessLogicLayer.Services
                                                 .Query(p => p.AccountId == accountId)
                                                 .Include(p => p.ProductImages)
                                                 .ToListAsync();
-
-                if (products == null)
-                {
-                    response.Success = false;
-                    response.Message = "Non product available";
-                    return response;
-                }
 
                 var productResponses = new List<ProductListResponse>();
 
