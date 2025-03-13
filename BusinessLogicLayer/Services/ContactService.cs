@@ -62,23 +62,25 @@ namespace BusinessLogicLayer.Services
         public async Task<BaseResponse> AddToContactListAsync(int userId, int receiverId)
         {
             if (userId == receiverId)
-                return new BaseResponse 
-                { 
-                    Success = false, 
-                    Message = "Cannot add yourself as a contact.", 
-                    Errors = new List<string>() 
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Cannot add yourself as a contact.",
+                    Errors = new List<string>()
                 };
 
+            // Kiểm tra xem liên hệ từ A đến B đã tồn tại chưa
             var contactExists = await _unitOfWork.ContactRepository.ContactExistsAsync(userId, receiverId);
-            
+
             if (contactExists)
-                return new BaseResponse 
-                { 
-                    Success = false, 
-                    Message = "Contact already exists.", 
-                    Errors = new List<string>() 
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Contact already exists.",
+                    Errors = new List<string>()
                 };
 
+            // Tạo liên hệ từ A đến B
             var newContact = new Contact
             {
                 UserId = userId,
@@ -86,14 +88,25 @@ namespace BusinessLogicLayer.Services
             };
 
             await _unitOfWork.ContactRepository.InsertAsync(newContact);
+
+            // Tạo liên hệ từ B đến A
+            var reverseContact = new Contact
+            {
+                UserId = receiverId,
+                ContactId = userId
+            };
+
+            await _unitOfWork.ContactRepository.InsertAsync(reverseContact);
+
+            // Lưu thay đổi vào database
             await _unitOfWork.CommitAsync();
 
-            return new BaseResponse 
-            { 
+            return new BaseResponse
+            {
                 Success = true,
-                Message = "Contact added successfully.", 
-                Errors = new List<string>(), 
-                Data = null 
+                Message = "Contact added successfully.",
+                Errors = new List<string>(),
+                Data = null
             };
         }
     }
