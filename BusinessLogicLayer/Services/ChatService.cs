@@ -26,24 +26,17 @@ namespace BusinessLogicLayer.Services
             _notificationService = notificationService;
         }
 
-        public async Task<List<ChatMessageResponse>> GetChatHistoryAsync(int senderId, int receiverId)
+        public async Task<BaseResponse> GetChatHistoryAsync(int senderId, int receiverId)
         {
-            // Lấy danh sách Chat entity và include ChatFiles, Sender và Receiver
             var chats = await _unitOfWork.ChatRepository.GetChatHistoryAsync(senderId, receiverId);
 
-            var response = chats.Select(chat => new ChatMessageResponse
+            var chatMessages = chats.Select(chat => new ChatMessageResponse
             {
                 Id = chat.Id,
                 SenderId = chat.SenderId,
-                // Kết hợp FirstName và LastName của Sender (nếu có)
-                SenderName = chat.Sender != null
-                                ? $"{chat.Sender.FirstName} {chat.Sender.LastName}"
-                                : null,
+                SenderName = chat.Sender != null ? $"{chat.Sender.FirstName} {chat.Sender.LastName}" : null,
                 ReceiverId = chat.ReceiverId,
-                // Kết hợp FirstName và LastName của Receiver (nếu có)
-                ReceiverName = chat.Receiver != null
-                                ? $"{chat.Receiver.FirstName} {chat.Receiver.LastName}"
-                                : null,
+                ReceiverName = chat.Receiver != null ? $"{chat.Receiver.FirstName} {chat.Receiver.LastName}" : null,
                 Message = chat.Message,
                 SentTime = chat.SentTime,
                 IsRead = chat.IsRead,
@@ -56,7 +49,13 @@ namespace BusinessLogicLayer.Services
                 }).ToList()
             }).ToList();
 
-            return response;
+            return new BaseResponse
+            {
+                Success = true,
+                Message = "Chat history retrieved successfully.",
+                Errors = new List<string>(),
+                Data = chatMessages
+            };
         }
 
         public async Task<ChatMessageResponse> SendMessageWithFilesAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles)

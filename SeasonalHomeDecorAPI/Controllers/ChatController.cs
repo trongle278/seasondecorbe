@@ -23,18 +23,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("history/{receiverId}")]
         public async Task<IActionResult> GetChatHistory(int receiverId)
         {
-            try
-            {
-                var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-                // Giờ hàm trả về List<ChatMessageResponse>
-                var history = await _chatService.GetChatHistoryAsync(senderId, receiverId);
-                return Ok(history);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var response = await _chatService.GetChatHistoryAsync(senderId, receiverId);
+            return Ok(response);
         }
 
         // Gửi tin nhắn kèm file (qua multipart/form-data)
