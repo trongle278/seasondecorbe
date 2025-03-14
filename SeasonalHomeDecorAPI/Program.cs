@@ -100,6 +100,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 Console.WriteLine("Token validated successfully");
                 return Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"]; // 🔥 Lấy token từ query
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+                {
+                    context.Token = accessToken; // ✅ Gán token cho context
+                }
+                return Task.CompletedTask;
             }
         };
     });
@@ -199,13 +209,13 @@ app.UseHttpsRedirection();
 // CORS must be configured before Authentication and Authorization
 app.UseCors("AllowAll");
 
-// Map SignalR hub
-app.MapHub<ChatHub>("/chatHub");
-app.MapHub<NotificationHub>("/notificationHub");
-
 // The order here is important
 app.UseAuthentication();    // Authentication
 app.UseAuthorization();     // Authorization
+
+// Map SignalR hub
+app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.MapControllers();
 

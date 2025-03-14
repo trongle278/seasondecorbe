@@ -32,47 +32,40 @@ namespace BusinessLogicLayer.Utilities.Hub
 
         public override async Task OnConnectedAsync()
         {
-            if (Context.User == null)
+            var httpContext = Context.GetHttpContext();
+            if (httpContext == null || httpContext.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
             {
-                Console.WriteLine("Context.User is null");
+                throw new Exception("User is not authenticated!");
             }
-            else
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
             {
-                var userIdClaim = Context.User.FindFirst("nameid");
-                if (userIdClaim == null)
-                {
-                    Console.WriteLine("Claim 'nameid' not found in token.");
-                }
-                else
-                {
-                    Console.WriteLine($"UserId: {userIdClaim.Value}");
-                    _userConnections[int.Parse(userIdClaim.Value)] = Context.ConnectionId;
-                }
+                throw new Exception("User ID not found in claims!");
             }
+
+            var userId = int.Parse(userIdClaim.Value);
+            _userConnections[userId] = Context.ConnectionId;
 
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            if (Context.User == null)
+            var httpContext = Context.GetHttpContext();
+            if (httpContext == null || httpContext.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
             {
-                Console.WriteLine("Context.User is null");
-            }
-            else
-            {
-                var userIdClaim = Context.User.FindFirst("nameid");
-                if (userIdClaim == null)
-                {
-                    Console.WriteLine("Claim 'nameid' not found in token.");
-                }
-                else
-                {
-                    Console.WriteLine($"UserId: {userIdClaim.Value}");
-                    _userConnections[int.Parse(userIdClaim.Value)] = Context.ConnectionId;
-                }
+                throw new Exception("User is not authenticated!");
             }
 
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                throw new Exception("User ID not found in claims!");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+            _userConnections.Remove(userId, out _);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -81,7 +74,7 @@ namespace BusinessLogicLayer.Utilities.Hub
         {
             if (Context.User != null)
             {
-                var senderIdClaim = Context.User.FindFirst("nameid");
+                var senderIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier);
                 if (senderIdClaim != null && int.TryParse(senderIdClaim.Value, out var senderId))
                 {
                     // Tạo entity Chat
@@ -181,7 +174,7 @@ namespace BusinessLogicLayer.Utilities.Hub
         {
             if (Context.User != null)
             {
-                var receiverIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
+                var receiverIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier);
                 if (receiverIdClaim != null && int.TryParse(receiverIdClaim.Value, out var receiverId))
                 {
                     await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
