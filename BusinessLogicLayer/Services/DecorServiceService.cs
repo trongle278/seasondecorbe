@@ -116,9 +116,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<DecorServiceListResponse>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
         {
-            var response = new BaseResponse<PageResult<DecorServiceListResponse>>();
+            var response = new BaseResponse<PageResult<DecorServiceDTO>>();
             try
             {
                 // Filter
@@ -175,15 +175,9 @@ namespace BusinessLogicLayer.Services
                         .ToList();
                 }
 
-                var pageResult = new PageResult<DecorServiceListResponse>
+                var pageResult = new PageResult<DecorServiceDTO>
                 {
-                    Data = new List<DecorServiceListResponse>
-                    {
-                        new DecorServiceListResponse
-                        {
-                            Data = dtos
-                        }
-                    },
+                    Data = dtos,
                     TotalCount = totalCount
                 };
 

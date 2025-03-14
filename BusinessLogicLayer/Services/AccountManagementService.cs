@@ -53,9 +53,9 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
-        public async Task<BaseResponse<PageResult<AccountListResponse>>> GetFilterAccountsAsync(AccountFilterRequest request)
+        public async Task<BaseResponse<PageResult<AccountDTO>>> GetFilterAccountsAsync(AccountFilterRequest request)
         {
-            var response = new BaseResponse<PageResult<AccountListResponse>>();
+            var response = new BaseResponse<PageResult<AccountDTO>>();
             try
             {
                 // Filter
@@ -88,15 +88,9 @@ namespace BusinessLogicLayer.Services
 
                 var dtos = _mapper.Map<List<AccountDTO>>(account);
 
-                var pageResult = new PageResult<AccountListResponse>
+                var pageResult = new PageResult<AccountDTO>
                 {
-                    Data = new List<AccountListResponse>
-                    {
-                        new AccountListResponse
-                        {
-                            Data = dtos
-                        }
-                    },
+                    Data = dtos,
                     TotalCount = totalCount
                 };
 

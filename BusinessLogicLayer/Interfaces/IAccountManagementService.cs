@@ -13,7 +13,7 @@ namespace BusinessLogicLayer.Interfaces
     public interface IAccountManagementService
     {
         Task<BaseResponse> GetAllAccountsAsync();
-        Task<BaseResponse<PageResult<AccountListResponse>>> GetFilterAccountsAsync(AccountFilterRequest request);
+        Task<BaseResponse<PageResult<AccountDTO>>> GetFilterAccountsAsync(AccountFilterRequest request);
         Task<BaseResponse> GetAccountByIdAsync(int accountId);
         Task<BaseResponse> CreateAccountAsync(CreateAccountRequest request);
         Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request);
