@@ -26,17 +26,29 @@ namespace BusinessLogicLayer.Utilities.Hub
 
         public override async Task OnConnectedAsync()
         {
-            // Lấy userId từ token/claim
-            var userId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _userConnections[userId] = Context.ConnectionId;
+            if (Context.User != null)
+            {
+                var userIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+                {
+                    _userConnections[userId] = Context.ConnectionId;
+                }
+            }
 
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var userId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            _userConnections.Remove(userId, out _);
+            if (Context.User != null)
+            {
+                var userIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+                {
+                    _userConnections.Remove(userId, out _);
+                }
+            }
+
             await base.OnDisconnectedAsync(exception);
         }
 
