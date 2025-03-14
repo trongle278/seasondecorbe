@@ -1,8 +1,10 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.Utilities.Hub;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace SeasonalHomeDecorAPI.Controllers
@@ -17,6 +19,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         public ChatController(IChatService chatService)
         {
             _chatService = chatService;
+
         }
 
         // Lấy lịch sử giữa senderId (lấy từ token) và receiverId
@@ -34,24 +37,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(response); // ✅ Trả về nguyên BaseResponse, không chỉnh sửa
         }
 
-        // Gửi tin nhắn kèm file (qua multipart/form-data)
-        [HttpPost("sendmessage")]
-        public async Task<IActionResult> SendMessageWithFiles([FromForm] ChatMessageRequest request,
-                                                              [FromForm] List<IFormFile> files)
-        {
-            try
-            {
-                var senderId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-                // Hàm này trả về ChatMessageResponse
-                var response = await _chatService.SendMessageWithFilesAsync(senderId, request, files);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        
 
         [HttpPost("markasread/{senderId}")]
         public async Task<IActionResult> MarkAsRead(int senderId)

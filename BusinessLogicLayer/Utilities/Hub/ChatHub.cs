@@ -18,10 +18,12 @@ namespace BusinessLogicLayer.Utilities.Hub
     {
         private static readonly Dictionary<int, string> _userConnections = new();
         private readonly IChatService _chatService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public ChatHub(IUnitOfWork unitOfWork, IChatService chatService)
         {
             _chatService = chatService;
+            _unitOfWork = unitOfWork;
         }
 
         public override async Task OnConnectedAsync()
@@ -53,39 +55,51 @@ namespace BusinessLogicLayer.Utilities.Hub
         }
 
         // Gửi tin nhắn + file (base64)
-        public async Task SendMessageWithFiles(ChatMessageRequest request)
+        public async Task SendMessage(int receiverId, string message)
         {
             if (Context.User != null)
             {
-                var senderIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
+                var senderIdClaim = Context.User.FindFirst("nameid");
                 if (senderIdClaim != null && int.TryParse(senderIdClaim.Value, out var senderId))
                 {
-                    // Chuyển Base64 -> IFormFile
-                    var formFiles = new List<IFormFile>();
-                    foreach (var base64File in request.Files)
+                    // Tạo entity Chat
+                    var chat = new Chat
                     {
-                        byte[] fileBytes = Convert.FromBase64String(base64File.Base64Content);
-                        var stream = new MemoryStream(fileBytes);
+                        SenderId = senderId,
+                        ReceiverId = receiverId,
+                        Message = message,
+                        SentTime = DateTime.UtcNow,
+                        IsRead = false
+                    };
 
-                        var formFile = new FormFile(stream, 0, fileBytes.Length, base64File.FileName, base64File.FileName)
+                    // Lưu tin nhắn vào database
+                    await _unitOfWork.ChatRepository.InsertAsync(chat);
+                    await _unitOfWork.CommitAsync();
+
+                    // Gửi tin nhắn real-time đến receiver (thằng B)
+                    if (_userConnections.TryGetValue(receiverId, out var receiverConn))
+                    {
+                        await Clients.Client(receiverConn).SendAsync("ReceiveMessage", new ChatMessageResponse
                         {
-                            Headers = new HeaderDictionary(),
-                            ContentType = base64File.ContentType ?? "application/octet-stream"
-                        };
-                        formFiles.Add(formFile);
+                            Id = chat.Id,
+                            SenderId = chat.SenderId,
+                            ReceiverId = chat.ReceiverId,
+                            Message = chat.Message,
+                            SentTime = chat.SentTime,
+                            IsRead = chat.IsRead
+                        });
                     }
 
-                    // Gọi service lưu tin nhắn + upload file
-                    ChatMessageResponse savedMsg = await _chatService.SendMessageWithFilesAsync(senderId, request, formFiles);
-
-                    // Bắn realtime cho receiver
-                    if (_userConnections.TryGetValue(savedMsg.ReceiverId, out var receiverConn))
+                    // Gửi phản hồi cho sender (thằng A)
+                    await Clients.Caller.SendAsync("MessageSent", new ChatMessageResponse
                     {
-                        await Clients.Client(receiverConn).SendAsync("ReceiveMessage", savedMsg);
-                    }
-
-                    // Optionally, trả kết quả cho chính sender (nếu muốn)
-                    await Clients.Caller.SendAsync("MessageSent", savedMsg);
+                        Id = chat.Id,
+                        SenderId = chat.SenderId,
+                        ReceiverId = chat.ReceiverId,
+                        Message = chat.Message,
+                        SentTime = chat.SentTime,
+                        IsRead = chat.IsRead
+                    });
                 }
                 else
                 {
