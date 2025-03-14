@@ -41,6 +41,7 @@ namespace Repository.UnitOfWork
             BookingRepository = new BookingRepository(_context);
             PaymentPhaseRepository = new PaymentPhaseRepository(_context);
             ContactRepository = new ContactRepository(_context);
+            ChatFileRepository = new ChatFileRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -65,6 +66,7 @@ namespace Repository.UnitOfWork
         public IBookingRepository BookingRepository { get; private set; }
         public IPaymentPhaseRepository PaymentPhaseRepository { get; private set; }
         public IContactRepository ContactRepository { get; private set; }
+        public IChatFileRepository ChatFileRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

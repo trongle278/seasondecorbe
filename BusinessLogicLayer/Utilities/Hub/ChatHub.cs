@@ -1,6 +1,8 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.Services;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
@@ -19,21 +21,32 @@ namespace BusinessLogicLayer.Utilities.Hub
         private static readonly Dictionary<int, string> _userConnections = new();
         private readonly IChatService _chatService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ChatHub(IUnitOfWork unitOfWork, IChatService chatService)
+        public ChatHub(IUnitOfWork unitOfWork, IChatService chatService, ICloudinaryService cloudinaryService)
         {
             _chatService = chatService;
             _unitOfWork = unitOfWork;
+            _cloudinaryService = cloudinaryService;
         }
 
         public override async Task OnConnectedAsync()
         {
-            if (Context.User != null)
+            if (Context.User == null)
             {
-                var userIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+                Console.WriteLine("Context.User is null");
+            }
+            else
+            {
+                var userIdClaim = Context.User.FindFirst("nameid");
+                if (userIdClaim == null)
                 {
-                    _userConnections[userId] = Context.ConnectionId;
+                    Console.WriteLine("Claim 'nameid' not found in token.");
+                }
+                else
+                {
+                    Console.WriteLine($"UserId: {userIdClaim.Value}");
+                    _userConnections[int.Parse(userIdClaim.Value)] = Context.ConnectionId;
                 }
             }
 
@@ -42,12 +55,21 @@ namespace BusinessLogicLayer.Utilities.Hub
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            if (Context.User != null)
+            if (Context.User == null)
             {
-                var userIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+                Console.WriteLine("Context.User is null");
+            }
+            else
+            {
+                var userIdClaim = Context.User.FindFirst("nameid");
+                if (userIdClaim == null)
                 {
-                    _userConnections.Remove(userId, out _);
+                    Console.WriteLine("Claim 'nameid' not found in token.");
+                }
+                else
+                {
+                    Console.WriteLine($"UserId: {userIdClaim.Value}");
+                    _userConnections[int.Parse(userIdClaim.Value)] = Context.ConnectionId;
                 }
             }
 
@@ -55,7 +77,7 @@ namespace BusinessLogicLayer.Utilities.Hub
         }
 
         // Gửi tin nhắn + file (base64)
-        public async Task SendMessage(int receiverId, string message)
+        public async Task SendMessage(int receiverId, string message, List<FileRequest> files)
         {
             if (Context.User != null)
             {
@@ -76,6 +98,33 @@ namespace BusinessLogicLayer.Utilities.Hub
                     await _unitOfWork.ChatRepository.InsertAsync(chat);
                     await _unitOfWork.CommitAsync();
 
+                    // Xử lý file đính kèm
+                    if (files != null && files.Any())
+                    {
+                        foreach (var fileRequest in files)
+                        {
+                            // Chuyển đổi base64 thành IFormFile
+                            var formFile = ConvertBase64ToFormFile(fileRequest);
+
+                            // Upload file lên Cloudinary hoặc lưu trữ khác
+                            var fileUrl = await _cloudinaryService.UploadFileAsync(formFile.OpenReadStream(), formFile.FileName);
+
+                            // Tạo entity ChatFile
+                            var chatFile = new ChatFile
+                            {
+                                ChatId = chat.Id,
+                                FileName = formFile.FileName,
+                                FileUrl = fileUrl,
+                                UploadedAt = DateTime.UtcNow
+                            };
+
+                            // Lưu file vào database
+                            await _unitOfWork.ChatFileRepository.InsertAsync(chatFile);
+                        }
+
+                        await _unitOfWork.CommitAsync();
+                    }
+
                     // Gửi tin nhắn real-time đến receiver (thằng B)
                     if (_userConnections.TryGetValue(receiverId, out var receiverConn))
                     {
@@ -86,7 +135,14 @@ namespace BusinessLogicLayer.Utilities.Hub
                             ReceiverId = chat.ReceiverId,
                             Message = chat.Message,
                             SentTime = chat.SentTime,
-                            IsRead = chat.IsRead
+                            IsRead = chat.IsRead,
+                            Files = chat.ChatFiles.Select(cf => new ChatFileResponse
+                            {
+                                FileId = cf.Id,
+                                FileName = cf.FileName,
+                                FileUrl = cf.FileUrl,
+                                UploadedAt = cf.UploadedAt
+                            }).ToList()
                         });
                     }
 
@@ -98,7 +154,14 @@ namespace BusinessLogicLayer.Utilities.Hub
                         ReceiverId = chat.ReceiverId,
                         Message = chat.Message,
                         SentTime = chat.SentTime,
-                        IsRead = chat.IsRead
+                        IsRead = chat.IsRead,
+                        Files = chat.ChatFiles.Select(cf => new ChatFileResponse
+                        {
+                            FileId = cf.Id,
+                            FileName = cf.FileName,
+                            FileUrl = cf.FileUrl,
+                            UploadedAt = cf.UploadedAt
+                        }).ToList()
                     });
                 }
                 else
@@ -138,6 +201,18 @@ namespace BusinessLogicLayer.Utilities.Hub
             {
                 throw new UnauthorizedAccessException("User is not authenticated.");
             }
+        }
+
+        private IFormFile ConvertBase64ToFormFile(FileRequest fileRequest)
+        {
+            byte[] fileBytes = Convert.FromBase64String(fileRequest.Base64Content);
+            var stream = new MemoryStream(fileBytes);
+
+            return new FormFile(stream, 0, fileBytes.Length, fileRequest.FileName, fileRequest.FileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = fileRequest.ContentType ?? "application/octet-stream"
+            };
         }
     }
 }

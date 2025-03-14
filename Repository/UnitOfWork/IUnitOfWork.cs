@@ -32,6 +32,7 @@ namespace Repository.UnitOfWork
         IBookingRepository BookingRepository { get; }
         IPaymentPhaseRepository PaymentPhaseRepository { get; }
         IContactRepository ContactRepository { get; }
+        IChatFileRepository ChatFileRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
