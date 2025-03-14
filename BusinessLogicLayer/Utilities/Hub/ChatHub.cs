@@ -55,48 +55,74 @@ namespace BusinessLogicLayer.Utilities.Hub
         // Gửi tin nhắn + file (base64)
         public async Task SendMessageWithFiles(ChatMessageRequest request)
         {
-            // request chứa {ReceiverId, Message, List<Base64FileDto> Files}
-            var senderId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            // Chuyển Base64 -> IFormFile
-            var formFiles = new List<IFormFile>();
-            foreach (var base64File in request.Files)
+            if (Context.User != null)
             {
-                byte[] fileBytes = Convert.FromBase64String(base64File.Base64Content);
-                var stream = new MemoryStream(fileBytes);
-
-                var formFile = new FormFile(stream, 0, fileBytes.Length, base64File.FileName, base64File.FileName)
+                var senderIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
+                if (senderIdClaim != null && int.TryParse(senderIdClaim.Value, out var senderId))
                 {
-                    Headers = new HeaderDictionary(),
-                    ContentType = base64File.ContentType ?? "application/octet-stream"
-                };
-                formFiles.Add(formFile);
+                    // Chuyển Base64 -> IFormFile
+                    var formFiles = new List<IFormFile>();
+                    foreach (var base64File in request.Files)
+                    {
+                        byte[] fileBytes = Convert.FromBase64String(base64File.Base64Content);
+                        var stream = new MemoryStream(fileBytes);
+
+                        var formFile = new FormFile(stream, 0, fileBytes.Length, base64File.FileName, base64File.FileName)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = base64File.ContentType ?? "application/octet-stream"
+                        };
+                        formFiles.Add(formFile);
+                    }
+
+                    // Gọi service lưu tin nhắn + upload file
+                    ChatMessageResponse savedMsg = await _chatService.SendMessageWithFilesAsync(senderId, request, formFiles);
+
+                    // Bắn realtime cho receiver
+                    if (_userConnections.TryGetValue(savedMsg.ReceiverId, out var receiverConn))
+                    {
+                        await Clients.Client(receiverConn).SendAsync("ReceiveMessage", savedMsg);
+                    }
+
+                    // Optionally, trả kết quả cho chính sender (nếu muốn)
+                    await Clients.Caller.SendAsync("MessageSent", savedMsg);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Sender ID not found in token.");
+                }
             }
-
-            // Gọi service lưu tin nhắn + upload file
-            ChatMessageResponse savedMsg = await _chatService.SendMessageWithFilesAsync(senderId, request, formFiles);
-
-            // Bắn realtime cho receiver
-            if (_userConnections.TryGetValue(savedMsg.ReceiverId, out var receiverConn))
+            else
             {
-                await Clients.Client(receiverConn).SendAsync("ReceiveMessage", savedMsg);
+                throw new UnauthorizedAccessException("User is not authenticated.");
             }
-
-            // Optionally, trả kết quả cho chính sender (nếu muốn)
-            await Clients.Caller.SendAsync("MessageSent", savedMsg);
         }
 
 
         // Đánh dấu tin nhắn đã đọc
         public async Task MarkAsRead(int senderId)
         {
-            var receiverId = int.Parse(Context.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
-
-            // Thông báo realtime cho sender
-            if (_userConnections.TryGetValue(senderId, out var senderConn))
+            if (Context.User != null)
             {
-                await Clients.Client(senderConn).SendAsync("MessagesRead", receiverId);
+                var receiverIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
+                if (receiverIdClaim != null && int.TryParse(receiverIdClaim.Value, out var receiverId))
+                {
+                    await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
+
+                    // Thông báo realtime cho sender
+                    if (_userConnections.TryGetValue(senderId, out var senderConn))
+                    {
+                        await Clients.Client(senderConn).SendAsync("MessagesRead", receiverId);
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Receiver ID not found in token.");
+                }
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("User is not authenticated.");
             }
         }
     }
