@@ -14,6 +14,7 @@ namespace BusinessLogicLayer.Interfaces
     {
         Task<BaseResponse> GetChatHistoryAsync(int senderId, int receiverId);
         Task<ChatMessageResponse> SendMessageAsync(int senderId, ChatMessageRequest request);
+        Task<BaseResponse> MarkMessagesAsReadAsync(int receiverId, int senderId);
         Task<BaseResponse> GetUnreadMessagesAsync(int userId);
     }
 }

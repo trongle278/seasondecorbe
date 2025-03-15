@@ -99,5 +99,27 @@ namespace BusinessLogicLayer.Utilities.Hub
 
             await Clients.Caller.SendAsync("MessageSent", chatMessage);
         }
+
+        public async Task MarkAsRead(int senderId)
+        {
+            var httpContext = Context.GetHttpContext();
+            if (httpContext?.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("User is not authenticated.");
+            }
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var receiverId))
+            {
+                throw new HubException("Invalid receiver ID.");
+            }
+
+            var response = await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
+
+            if (response.Success && _userConnections.TryGetValue(senderId, out var senderConn))
+            {
+                await Clients.Client(senderConn).SendAsync("MessagesRead", receiverId);
+            }
+        }
     }
 }
