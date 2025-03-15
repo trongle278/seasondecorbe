@@ -13,7 +13,6 @@ namespace BusinessLogicLayer.Interfaces
     public interface IChatService
     {
         Task<BaseResponse> GetChatHistoryAsync(int senderId, int receiverId);
-        Task<BaseResponse> MarkMessagesAsReadAsync(int receiverId, int senderId);
         Task<ChatMessageResponse> SendMessageAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles);
         Task<BaseResponse> GetUnreadMessagesAsync(int userId);
     }
