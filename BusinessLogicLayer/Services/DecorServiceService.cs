@@ -128,7 +128,7 @@ namespace BusinessLogicLayer.Services
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
                     (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value)&&
-                    (!request.SeasonIds.HasValue || decorService.DecorServiceSeasons.Any(ds => ds.SeasonId == request.SeasonIds.Value));
+                    (!request.SeasonIds.Any() || decorService.DecorServiceSeasons.Any(ds => request.SeasonIds.Contains(ds.SeasonId)));
 
                 // Sort
                 Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
