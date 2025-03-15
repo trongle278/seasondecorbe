@@ -37,23 +37,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(response); // ✅ Trả về nguyên BaseResponse, không chỉnh sửa
         }
 
-        
-
-        [HttpPost("markasread/{senderId}")]
-        public async Task<IActionResult> MarkAsRead(int senderId)
-        {
-            try
-            {
-                var receiverId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
-                return Ok(new { message = "Messages marked as read" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
         [HttpGet("unread-messages")]
         public async Task<IActionResult> GetUnreadMessages()
         {
