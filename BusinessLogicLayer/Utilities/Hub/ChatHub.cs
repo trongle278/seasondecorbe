@@ -20,14 +20,12 @@ namespace BusinessLogicLayer.Utilities.Hub
     {
         private static readonly Dictionary<int, string> _userConnections = new();
         private readonly IChatService _chatService;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ICloudinaryService _cloudinaryService;
+        private readonly IContactService _contactService;
 
-        public ChatHub(IUnitOfWork unitOfWork, IChatService chatService, ICloudinaryService cloudinaryService)
+        public ChatHub(IUnitOfWork unitOfWork, IChatService chatService, ICloudinaryService cloudinaryService, IContactService contactService)
         {
             _chatService = chatService;
-            _unitOfWork = unitOfWork;
-            _cloudinaryService = cloudinaryService;
+            _contactService = contactService;
         }
 
         public override async Task OnConnectedAsync()
@@ -119,6 +117,28 @@ namespace BusinessLogicLayer.Utilities.Hub
             if (response.Success && _userConnections.TryGetValue(senderId, out var senderConn))
             {
                 await Clients.Client(senderConn).SendAsync("MessagesRead", receiverId);
+            }
+        }
+
+        public async Task UpdateContacts()
+        {
+            var httpContext = Context.GetHttpContext();
+            if (httpContext?.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("User is not authenticated.");
+            }
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                throw new HubException("Invalid user ID.");
+            }
+
+            var response = await _contactService.GetAllContactsAsync(userId);
+
+            if (response.Success)
+            {
+                await Clients.Caller.SendAsync("ContactsUpdated", response.Data);
             }
         }
     }
