@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoMapper;
+using LinqKit;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
@@ -127,8 +128,14 @@ namespace BusinessLogicLayer.Services
                     (string.IsNullOrEmpty(request.Province) || decorService.Province.Contains(request.Province)) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
-                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value)&&
-                    (!request.SeasonIds.Any() || decorService.DecorServiceSeasons.Any(ds => request.SeasonIds.Contains(ds.SeasonId)));
+                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);
+
+                if (request.SeasonIds != null && request.SeasonIds.Any())
+                {
+                    filter = filter.And(decorService =>
+                        decorService.DecorServiceSeasons.Any(ds => request.SeasonIds.Contains(ds.SeasonId))
+                    );
+                }
 
                 // Sort
                 Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
