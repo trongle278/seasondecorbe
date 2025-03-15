@@ -127,7 +127,8 @@ namespace BusinessLogicLayer.Services
                     (string.IsNullOrEmpty(request.Province) || decorService.Province.Contains(request.Province)) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
-                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);
+                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value)&&
+                    (!request.SeasonIds.HasValue || decorService.DecorServiceSeasons.Any(ds => ds.SeasonId == request.SeasonIds.Value));
 
                 // Sort
                 Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
@@ -142,7 +143,9 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<DecorService, object>>[] includeProperties =
                 {
                     decorService => decorService.DecorImages,
-                    decorService => decorService.DecorCategory
+                    decorService => decorService.DecorCategory,
+                    decorService => decorService.DecorServiceSeasons
+                            .Select(ds => ds.Season)
                 };
 
                 // Get paginated data and filter
@@ -158,6 +161,7 @@ namespace BusinessLogicLayer.Services
                 var services = await _unitOfWork.DecorServiceRepository
                     .Query(ds => !ds.IsDeleted)
                     .Include(ds => ds.DecorImages)
+                    .Include(ds => ds.DecorServiceSeasons).ThenInclude(dss => dss.Season)
                     .ToListAsync();
 
                 // Map mỗi service sang DecorServiceDTO
@@ -173,7 +177,16 @@ namespace BusinessLogicLayer.Services
                             ImageURL = img.ImageURL
                         })
                         .ToList();
+
+                    dtos[i].Seasons = services[i].DecorServiceSeasons
+                        .Select(dss => new SeasonResponse
+                        {
+                            Id = dss.Season.Id,
+                            SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
                 }
+
 
                 var pageResult = new PageResult<DecorServiceDTO>
                 {
@@ -225,8 +238,21 @@ namespace BusinessLogicLayer.Services
                     AccountId = accountId,
                     DecorCategoryId = request.DecorCategoryId,
                     CreateAt = DateTime.UtcNow.ToLocalTime(),
-                    DecorImages = new List<DecorImage>()
+                    DecorImages = new List<DecorImage>(),
+                    DecorServiceSeasons = new List<DecorServiceSeason>()
                 };
+
+                // Thêm mùa vào dịch vụ
+                if (request.SeasonIds != null && request.SeasonIds.Any())
+                {
+                    foreach (var seasonId in request.SeasonIds)
+                    {
+                        decorService.DecorServiceSeasons.Add(new DecorServiceSeason
+                        {
+                            SeasonId = seasonId
+                        });
+                    }
+                }
 
                 // Nếu có ảnh, upload
                 if (request.Images != null && request.Images.Any())
@@ -287,6 +313,7 @@ namespace BusinessLogicLayer.Services
 
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id)
+                    .Include(ds => ds.DecorServiceSeasons) // Include danh sách mùa
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -301,6 +328,22 @@ namespace BusinessLogicLayer.Services
                 decorService.Province = request.Province;
                 decorService.AccountId = accountId;
                 decorService.DecorCategoryId = request.DecorCategoryId;
+
+                // Cập nhật danh sách mùa
+                if (request.SeasonIds != null)
+                {
+                    // Xóa tất cả mùa cũ
+                    decorService.DecorServiceSeasons.Clear();
+
+                    // Thêm mùa mới
+                    foreach (var seasonId in request.SeasonIds)
+                    {
+                        decorService.DecorServiceSeasons.Add(new DecorServiceSeason
+                        {
+                            SeasonId = seasonId
+                        });
+                    }
+                }
 
                 _unitOfWork.DecorServiceRepository.Update(decorService);
                 await _unitOfWork.CommitAsync();

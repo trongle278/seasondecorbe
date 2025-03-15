@@ -49,6 +49,19 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Seasons",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SeasonName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Seasons", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Subscriptions",
                 columns: table => new
                 {
@@ -569,6 +582,32 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DecorServiceSeasons",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DecorServiceId = table.Column<int>(type: "int", nullable: false),
+                    SeasonId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DecorServiceSeasons", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DecorServiceSeasons_DecorServices_DecorServiceId",
+                        column: x => x.DecorServiceId,
+                        principalTable: "DecorServices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DecorServiceSeasons_Seasons_SeasonId",
+                        column: x => x.SeasonId,
+                        principalTable: "Seasons",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CartItems",
                 columns: table => new
                 {
@@ -883,6 +922,17 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Seasons",
+                columns: new[] { "Id", "SeasonName" },
+                values: new object[,]
+                {
+                    { 1, "Spring" },
+                    { 2, "Summer" },
+                    { 3, "Autumn" },
+                    { 4, "Winter" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Subscriptions",
                 columns: new[] { "Id", "Description", "Duration", "Name", "Price" },
                 values: new object[] { 1, "Normal Package", 999, "Basic", 0.0 });
@@ -977,6 +1027,16 @@ namespace DataAccessObject.Migrations
                 name: "IX_DecorServices_DecorCategoryId",
                 table: "DecorServices",
                 column: "DecorCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DecorServiceSeasons_DecorServiceId",
+                table: "DecorServiceSeasons",
+                column: "DecorServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DecorServiceSeasons_SeasonId",
+                table: "DecorServiceSeasons",
+                column: "SeasonId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceTokens_AccountId",
@@ -1151,6 +1211,9 @@ namespace DataAccessObject.Migrations
                 name: "DecorImages");
 
             migrationBuilder.DropTable(
+                name: "DecorServiceSeasons");
+
+            migrationBuilder.DropTable(
                 name: "DeviceTokens");
 
             migrationBuilder.DropTable(
@@ -1182,6 +1245,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Chats");
+
+            migrationBuilder.DropTable(
+                name: "Seasons");
 
             migrationBuilder.DropTable(
                 name: "PaymentPhase");

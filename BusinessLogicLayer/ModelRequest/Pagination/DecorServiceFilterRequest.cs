@@ -14,6 +14,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
         public int? DecorCategoryId { get; set; }
+        public int? SeasonIds { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public string SortBy { get; set; } = "";

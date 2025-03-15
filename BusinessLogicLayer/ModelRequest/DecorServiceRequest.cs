@@ -24,6 +24,9 @@ namespace BusinessLogicLayer.ModelRequest
 
         // Danh sách file ảnh đính kèm, tối đa 5 ảnh
         public List<IFormFile> Images { get; set; }
+
+        // Danh sách SeasonIds để gán vào dịch vụ
+        public List<int> SeasonIds { get; set; } = new List<int>();
     }
 
     public class UpdateDecorServiceRequest
@@ -39,6 +42,9 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "DecorCategoryId is required")]
         public int DecorCategoryId { get; set; }
+
+        // Danh sách SeasonIds để cập nhật
+        public List<int> SeasonIds { get; set; } = new List<int>();
     }
 }
 

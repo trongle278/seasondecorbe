@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250313084501_InitDb")]
+    [Migration("20250315084324_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -495,6 +495,29 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("DecorCategoryId");
 
                     b.ToTable("DecorServices");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.DecorServiceSeason", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("DecorServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeasonId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DecorServiceId");
+
+                    b.HasIndex("SeasonId");
+
+                    b.ToTable("DecorServiceSeasons");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
@@ -1040,6 +1063,45 @@ namespace DataAccessObject.Migrations
                         });
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Season", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("SeasonName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Seasons");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            SeasonName = "Spring"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            SeasonName = "Summer"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            SeasonName = "Autumn"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            SeasonName = "Winter"
+                        });
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -1424,6 +1486,25 @@ namespace DataAccessObject.Migrations
                     b.Navigation("DecorCategory");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.DecorServiceSeason", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
+                        .WithMany("DecorServiceSeasons")
+                        .HasForeignKey("DecorServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Season", "Season")
+                        .WithMany("DecorServiceSeasons")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DecorService");
+
+                    b.Navigation("Season");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -1779,6 +1860,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("DecorImages");
+
+                    b.Navigation("DecorServiceSeasons");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>
@@ -1814,6 +1897,11 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Role", b =>
                 {
                     b.Navigation("Accounts");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Season", b =>
+                {
+                    b.Navigation("DecorServiceSeasons");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>

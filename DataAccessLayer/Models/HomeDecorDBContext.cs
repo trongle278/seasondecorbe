@@ -34,6 +34,8 @@ namespace DataAccessObject.Models
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Follow> Follows { get; set; }
         public DbSet<DecorService> DecorServices { get; set; }
+        public DbSet<Season> Seasons { get; set; }
+        public DbSet<DecorServiceSeason> DecorServiceSeasons { get; set; }
         public DbSet<DecorImage> DecorImages { get; set; }
         public DbSet<DecorCategory> DecorCategories { get; set; }
         public DbSet<Booking> Bookings { get; set; }
@@ -93,6 +95,17 @@ namespace DataAccessObject.Models
                 .HasOne(di => di.DecorService)
                 .WithMany(ds => ds.DecorImages)
                 .HasForeignKey(di => di.DecorServiceId);
+
+            // Configure Many-to-Many between DecorService and Season
+            modelBuilder.Entity<DecorServiceSeason>()
+                .HasOne(dss => dss.DecorService)
+                .WithMany(ds => ds.DecorServiceSeasons)
+                .HasForeignKey(dss => dss.DecorServiceId);
+
+            modelBuilder.Entity<DecorServiceSeason>()
+                .HasOne(dss => dss.Season)
+                .WithMany(s => s.DecorServiceSeasons)
+                .HasForeignKey(dss => dss.SeasonId);
 
             // Configure 1-N relationship between Account and Support
             modelBuilder.Entity<Support>()
@@ -392,6 +405,13 @@ namespace DataAccessObject.Models
                 new DecorCategory { Id = 6, CategoryName = "Balcony & Garden" },
                 new DecorCategory { Id = 8, CategoryName = "Dining Room" },
                 new DecorCategory { Id = 9, CategoryName = "Entertainment Room" }
+            );
+
+            modelBuilder.Entity<Season>().HasData(
+                new Season { Id = 1, SeasonName = "Spring" },
+                new Season { Id = 2, SeasonName = "Summer" },
+                new Season { Id = 3, SeasonName = "Autumn" },
+                new Season { Id = 4, SeasonName = "Winter" }
             );
         }
     }
