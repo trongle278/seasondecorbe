@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Http;
@@ -57,6 +58,76 @@ namespace BusinessLogicLayer.Services
                 Errors = new List<string>(),
                 Data = chatMessages
             };
+        }
+
+        public async Task<ChatMessageResponse> SendMessageAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles)
+        {
+            if (senderId == request.ReceiverId)
+            {
+                throw new InvalidOperationException("Cannot send a message to yourself.");
+            }
+
+            // Tạo entity Chat
+            var chat = new Chat
+            {
+                SenderId = senderId,
+                ReceiverId = request.ReceiverId,
+                Message = request.Message,
+                SentTime = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            // Upload và thêm ChatFile
+            foreach (var formFile in formFiles)
+            {
+                using var stream = formFile.OpenReadStream();
+                var fileUrl = await _cloudinaryService.UploadFileAsync(stream, formFile.FileName);
+
+                var chatFile = new ChatFile
+                {
+                    FileName = formFile.FileName,
+                    FileUrl = fileUrl
+                };
+                chat.ChatFiles.Add(chatFile);
+            }
+
+            // Lưu chat vào DB
+            await _unitOfWork.ChatRepository.InsertAsync(chat);
+            await _unitOfWork.CommitAsync();
+
+            // Tạo đối tượng Notification cho tin nhắn mới
+            var notification = new Notification
+            {
+                Title = "New Message",
+                Content = chat.Message, // Hoặc bạn có thể định dạng lại nội dung hiển thị thông báo
+                NotifiedAt = DateTime.UtcNow,
+                AccountId = chat.ReceiverId,
+                SenderId = chat.SenderId,
+                Type = NotificationType.Chat
+            };
+
+            // Gọi NotificationService để lưu và gửi realtime notification
+            await _notificationService.SendNotificationAsync(notification);
+
+            // Map sang response
+            var response = new ChatMessageResponse
+            {
+                Id = chat.Id,
+                SenderId = chat.SenderId,
+                ReceiverId = chat.ReceiverId,
+                Message = chat.Message,
+                SentTime = chat.SentTime,
+                IsRead = chat.IsRead,
+                Files = chat.ChatFiles.Select(cf => new ChatFileResponse
+                {
+                    FileId = cf.Id,
+                    FileName = cf.FileName,
+                    FileUrl = cf.FileUrl,
+                    UploadedAt = cf.UploadedAt
+                }).ToList()
+            };
+
+            return response;
         }
 
         public async Task<BaseResponse> MarkMessagesAsReadAsync(int receiverId, int senderId)

@@ -69,105 +69,38 @@ namespace BusinessLogicLayer.Utilities.Hub
             await base.OnDisconnectedAsync(exception);
         }
 
-        // Gửi tin nhắn + file (base64)
-        public async Task SendMessage(int receiverId, string message, List<FileRequest> files)
+        public async Task SendMessage(int receiverId, string message, IEnumerable<IFormFile> files)
         {
-            if (Context.User != null)
+            var httpContext = Context.GetHttpContext();
+            if (httpContext?.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
             {
-                var senderIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier);
-                if (senderIdClaim != null && int.TryParse(senderIdClaim.Value, out var senderId))
-                {
-                    // Tạo entity Chat
-                    var chat = new Chat
-                    {
-                        SenderId = senderId,
-                        ReceiverId = receiverId,
-                        Message = message,
-                        SentTime = DateTime.UtcNow,
-                        IsRead = false
-                    };
-
-                    // Lưu tin nhắn vào database
-                    await _unitOfWork.ChatRepository.InsertAsync(chat);
-                    await _unitOfWork.CommitAsync();
-
-                    // Xử lý file đính kèm
-                    if (files != null && files.Any())
-                    {
-                        foreach (var fileRequest in files)
-                        {
-                            // Chuyển đổi base64 thành IFormFile
-                            var formFile = ConvertBase64ToFormFile(fileRequest);
-
-                            // Upload file lên Cloudinary hoặc lưu trữ khác
-                            var fileUrl = await _cloudinaryService.UploadFileAsync(formFile.OpenReadStream(), formFile.FileName);
-
-                            // Tạo entity ChatFile
-                            var chatFile = new ChatFile
-                            {
-                                ChatId = chat.Id,
-                                FileName = formFile.FileName,
-                                FileUrl = fileUrl,
-                                UploadedAt = DateTime.UtcNow
-                            };
-
-                            // Lưu file vào database
-                            await _unitOfWork.ChatFileRepository.InsertAsync(chatFile);
-                        }
-
-                        await _unitOfWork.CommitAsync();
-                    }
-
-                    // Gửi tin nhắn real-time đến receiver (thằng B)
-                    if (_userConnections.TryGetValue(receiverId, out var receiverConn))
-                    {
-                        await Clients.Client(receiverConn).SendAsync("ReceiveMessage", new ChatMessageResponse
-                        {
-                            Id = chat.Id,
-                            SenderId = chat.SenderId,
-                            ReceiverId = chat.ReceiverId,
-                            Message = chat.Message,
-                            SentTime = chat.SentTime,
-                            IsRead = chat.IsRead,
-                            Files = chat.ChatFiles.Select(cf => new ChatFileResponse
-                            {
-                                FileId = cf.Id,
-                                FileName = cf.FileName,
-                                FileUrl = cf.FileUrl,
-                                UploadedAt = cf.UploadedAt
-                            }).ToList()
-                        });
-                    }
-
-                    // Gửi phản hồi cho sender (thằng A)
-                    await Clients.Caller.SendAsync("MessageSent", new ChatMessageResponse
-                    {
-                        Id = chat.Id,
-                        SenderId = chat.SenderId,
-                        ReceiverId = chat.ReceiverId,
-                        Message = chat.Message,
-                        SentTime = chat.SentTime,
-                        IsRead = chat.IsRead,
-                        Files = chat.ChatFiles.Select(cf => new ChatFileResponse
-                        {
-                            FileId = cf.Id,
-                            FileName = cf.FileName,
-                            FileUrl = cf.FileUrl,
-                            UploadedAt = cf.UploadedAt
-                        }).ToList()
-                    });
-                }
-                else
-                {
-                    throw new InvalidOperationException("Sender ID not found in token.");
-                }
+                throw new HubException("User is not authenticated.");
             }
-            else
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var senderId))
             {
-                throw new UnauthorizedAccessException("User is not authenticated.");
+                throw new HubException("Invalid sender ID.");
             }
+
+            var chatRequest = new ChatMessageRequest
+            {
+                ReceiverId = receiverId,
+                Message = message
+            };
+
+            // Gọi ChatService để xử lý gửi tin nhắn
+            var chatMessage = await _chatService.SendMessageAsync(senderId, chatRequest, files);
+
+            // Gửi tin nhắn real-time đến receiver nếu họ đang online
+            if (_userConnections.TryGetValue(receiverId, out var receiverConn))
+            {
+                await Clients.Client(receiverConn).SendAsync("ReceiveMessage", chatMessage);
+            }
+
+            // Gửi phản hồi cho sender
+            await Clients.Caller.SendAsync("MessageSent", chatMessage);
         }
-
 
         // Đánh dấu tin nhắn đã đọc
         public async Task MarkAsRead(int senderId)
@@ -194,18 +127,6 @@ namespace BusinessLogicLayer.Utilities.Hub
             {
                 throw new UnauthorizedAccessException("User is not authenticated.");
             }
-        }
-
-        private IFormFile ConvertBase64ToFormFile(FileRequest fileRequest)
-        {
-            byte[] fileBytes = Convert.FromBase64String(fileRequest.Base64Content);
-            var stream = new MemoryStream(fileBytes);
-
-            return new FormFile(stream, 0, fileBytes.Length, fileRequest.FileName, fileRequest.FileName)
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = fileRequest.ContentType ?? "application/octet-stream"
-            };
         }
     }
 }
