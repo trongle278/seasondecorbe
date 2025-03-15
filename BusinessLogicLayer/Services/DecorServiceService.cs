@@ -145,7 +145,6 @@ namespace BusinessLogicLayer.Services
                     decorService => decorService.DecorImages,
                     decorService => decorService.DecorCategory,
                     decorService => decorService.DecorServiceSeasons
-                            .Select(ds => ds.Season)
                 };
 
                 // Get paginated data and filter
@@ -161,7 +160,8 @@ namespace BusinessLogicLayer.Services
                 var services = await _unitOfWork.DecorServiceRepository
                     .Query(ds => !ds.IsDeleted)
                     .Include(ds => ds.DecorImages)
-                    .Include(ds => ds.DecorServiceSeasons).ThenInclude(dss => dss.Season)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
                     .ToListAsync();
 
                 // Map mỗi service sang DecorServiceDTO
