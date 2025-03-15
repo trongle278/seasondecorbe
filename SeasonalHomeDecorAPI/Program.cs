@@ -48,6 +48,7 @@ builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024;
 });
 
 // 3. Configure CORS

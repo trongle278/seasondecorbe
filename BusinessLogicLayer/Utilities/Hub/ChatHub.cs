@@ -100,33 +100,6 @@ namespace BusinessLogicLayer.Utilities.Hub
 
             // Gửi phản hồi cho sender
             await Clients.Caller.SendAsync("MessageSent", chatMessage);
-        }
-
-        // Đánh dấu tin nhắn đã đọc
-        public async Task MarkAsRead(int senderId)
-        {
-            if (Context.User != null)
-            {
-                var receiverIdClaim = Context.User.FindFirst(ClaimTypes.NameIdentifier);
-                if (receiverIdClaim != null && int.TryParse(receiverIdClaim.Value, out var receiverId))
-                {
-                    await _chatService.MarkMessagesAsReadAsync(receiverId, senderId);
-
-                    // Thông báo realtime cho sender
-                    if (_userConnections.TryGetValue(senderId, out var senderConn))
-                    {
-                        await Clients.Client(senderConn).SendAsync("MessagesRead", receiverId);
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException("Receiver ID not found in token.");
-                }
-            }
-            else
-            {
-                throw new UnauthorizedAccessException("User is not authenticated.");
-            }
-        }
+        }     
     }
 }

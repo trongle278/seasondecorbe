@@ -130,19 +130,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> MarkMessagesAsReadAsync(int receiverId, int senderId)
-        {
-            await _unitOfWork.ChatRepository.MarkMessagesAsReadAsync(receiverId, senderId);
-
-            return new BaseResponse
-            {
-                Success = true,
-                Message = "Messages marked as read successfully",
-                Errors = new List<string>(),
-                Data = new List<object>() // Dữ liệu rỗng nhưng vẫn là []
-            };
-        }
-
         public async Task<BaseResponse> GetUnreadMessagesAsync(int userId)
         {
             var unreadMessages = await _unitOfWork.ChatRepository.GetUnreadMessagesAsync(userId);
