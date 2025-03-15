@@ -69,7 +69,7 @@ namespace BusinessLogicLayer.Utilities.Hub
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task SendMessage(int receiverId, string message, IEnumerable<IFormFile> files)
+        public async Task SendMessage(int receiverId, string message, List<Base64FileDto> files)
         {
             var httpContext = Context.GetHttpContext();
             if (httpContext?.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
@@ -86,20 +86,18 @@ namespace BusinessLogicLayer.Utilities.Hub
             var chatRequest = new ChatMessageRequest
             {
                 ReceiverId = receiverId,
-                Message = message
+                Message = message,
+                Files = files
             };
 
-            // Gọi ChatService để xử lý gửi tin nhắn
-            var chatMessage = await _chatService.SendMessageAsync(senderId, chatRequest, files);
+            var chatMessage = await _chatService.SendMessageAsync(senderId, chatRequest);
 
-            // Gửi tin nhắn real-time đến receiver nếu họ đang online
             if (_userConnections.TryGetValue(receiverId, out var receiverConn))
             {
                 await Clients.Client(receiverConn).SendAsync("ReceiveMessage", chatMessage);
             }
 
-            // Gửi phản hồi cho sender
             await Clients.Caller.SendAsync("MessageSent", chatMessage);
-        }     
+        }
     }
 }

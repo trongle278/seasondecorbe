@@ -60,57 +60,53 @@ namespace BusinessLogicLayer.Services
             };
         }
 
-        public async Task<ChatMessageResponse> SendMessageAsync(int senderId, ChatMessageRequest request, IEnumerable<IFormFile> formFiles)
+        public async Task<ChatMessageResponse> SendMessageAsync(int senderId, ChatMessageRequest request)
         {
             if (senderId == request.ReceiverId)
             {
                 throw new InvalidOperationException("Cannot send a message to yourself.");
             }
 
-            // Tạo entity Chat
             var chat = new Chat
             {
                 SenderId = senderId,
                 ReceiverId = request.ReceiverId,
                 Message = request.Message,
                 SentTime = DateTime.UtcNow.ToLocalTime(),
-                IsRead = false
+                IsRead = false,
+                ChatFiles = new List<ChatFile>()
             };
 
-            // Upload và thêm ChatFile
-            foreach (var formFile in formFiles)
+            foreach (var file in request.Files)
             {
-                using var stream = formFile.OpenReadStream();
-                var fileUrl = await _cloudinaryService.UploadFileAsync(stream, formFile.FileName);
+                var fileBytes = Convert.FromBase64String(file.Base64Content);
+                using var stream = new MemoryStream(fileBytes);
 
-                var chatFile = new ChatFile
+                var fileUrl = await _cloudinaryService.UploadFileAsync(stream, file.FileName);
+
+                chat.ChatFiles.Add(new ChatFile
                 {
-                    FileName = formFile.FileName,
+                    FileName = file.FileName,
                     FileUrl = fileUrl
-                };
-                chat.ChatFiles.Add(chatFile);
+                });
             }
 
-            // Lưu chat vào DB
             await _unitOfWork.ChatRepository.InsertAsync(chat);
             await _unitOfWork.CommitAsync();
 
-            // Tạo đối tượng Notification cho tin nhắn mới
             var notification = new Notification
             {
                 Title = "New Message",
-                Content = chat.Message, // Hoặc bạn có thể định dạng lại nội dung hiển thị thông báo
+                Content = chat.Message,
                 NotifiedAt = DateTime.UtcNow.ToLocalTime(),
                 AccountId = chat.ReceiverId,
                 SenderId = chat.SenderId,
                 Type = NotificationType.Chat
             };
 
-            // Gọi NotificationService để lưu và gửi realtime notification
             await _notificationService.SendNotificationAsync(notification);
 
-            // Map sang response
-            var response = new ChatMessageResponse
+            return new ChatMessageResponse
             {
                 Id = chat.Id,
                 SenderId = chat.SenderId,
@@ -126,8 +122,6 @@ namespace BusinessLogicLayer.Services
                     UploadedAt = cf.UploadedAt
                 }).ToList()
             };
-
-            return response;
         }
 
         public async Task<BaseResponse> GetUnreadMessagesAsync(int userId)
