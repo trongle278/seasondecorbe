@@ -31,5 +31,6 @@ namespace DataAccessObject.Models
         public virtual ICollection<DecorImage>? DecorImages { get; set; }
         // Quan hệ Many-to-Many với Season
         public virtual ICollection<DecorServiceSeason> DecorServiceSeasons { get; set; }
+        public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
     }
 }

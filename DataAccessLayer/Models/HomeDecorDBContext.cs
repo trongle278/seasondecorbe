@@ -61,6 +61,7 @@ namespace DataAccessObject.Models
         //test
         public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Contact> Contacts { get; set; }
+        public DbSet<FavoriteService> FavoriteServices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -349,6 +350,36 @@ namespace DataAccessObject.Models
                 .HasForeignKey(p => p.WalletId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Contact>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contact>()
+                .HasOne(c => c.ContactUser)
+                .WithMany()
+                .HasForeignKey(c => c.ContactId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FavoriteService>()
+                .HasOne(f => f.DecorService)
+                .WithMany(d => d.FavoriteServices)
+                .HasForeignKey(f => f.DecorServiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FavoriteService>()
+                .HasOne(f => f.Account)
+                .WithMany(a => a.FavoriteServices)
+                .HasForeignKey(f => f.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<FavoriteService>()
+                .HasOne(f => f.DecorService)
+                .WithMany(ds => ds.FavoriteServices)
+                .HasForeignKey(f => f.DecorServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)
                 .HasColumnType("decimal(18,2)");
@@ -361,19 +392,7 @@ namespace DataAccessObject.Models
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Provider" },
                 new Role { Id = 3, RoleName = "Customer" }
-            );
-
-            modelBuilder.Entity<Contact>()
-            .HasOne(c => c.User)
-            .WithMany()
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Contact>()
-                .HasOne(c => c.ContactUser)
-                .WithMany()
-                .HasForeignKey(c => c.ContactId)
-                .OnDelete(DeleteBehavior.Restrict);
+            );      
 
             modelBuilder.Entity<Subscription>().HasData(
                 new Subscription { Id = 1, Name = "Basic", Description = "Normal Package", Price = 0, Duration = 999 }

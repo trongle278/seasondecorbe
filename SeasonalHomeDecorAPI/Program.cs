@@ -188,6 +188,7 @@ builder.Services.AddScoped<IElasticClientService, ElasticClientService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IFavoriteServiceService, FavoriteServiceService>();
 
 // 11. Build the application
 var app = builder.Build();

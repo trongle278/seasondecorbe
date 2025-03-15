@@ -608,6 +608,33 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FavoriteServices",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    DecorServiceId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FavoriteServices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FavoriteServices_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_FavoriteServices_DecorServices_DecorServiceId",
+                        column: x => x.DecorServiceId,
+                        principalTable: "DecorServices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CartItems",
                 columns: table => new
                 {
@@ -1044,6 +1071,16 @@ namespace DataAccessObject.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FavoriteServices_AccountId",
+                table: "FavoriteServices",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FavoriteServices_DecorServiceId",
+                table: "FavoriteServices",
+                column: "DecorServiceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Follows_FollowerId",
                 table: "Follows",
                 column: "FollowerId");
@@ -1215,6 +1252,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "DeviceTokens");
+
+            migrationBuilder.DropTable(
+                name: "FavoriteServices");
 
             migrationBuilder.DropTable(
                 name: "Follows");

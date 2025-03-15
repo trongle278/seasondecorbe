@@ -9,9 +9,9 @@ using Repository.Interfaces;
 
 namespace Repository.Repositories
 {
-    public class ChatFileRepository : GenericRepository<ChatFile>, IChatFileRepository
+    public class FavoriteServiceRepository : GenericRepository<FavoriteService>, IFavoriteServiceRepository
     {
-        public ChatFileRepository(HomeDecorDBContext context) : base(context)
+        public FavoriteServiceRepository(HomeDecorDBContext context) : base(context)
         {
         }
     }

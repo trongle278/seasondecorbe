@@ -8,7 +8,7 @@ using Repository.GenericRepository;
 
 namespace Repository.Interfaces
 {
-    public interface IChatFileRepository : IGenericRepository<ChatFile>
+    public interface IFavoriteServiceRepository : IGenericRepository<FavoriteService>
     {
     }
 }

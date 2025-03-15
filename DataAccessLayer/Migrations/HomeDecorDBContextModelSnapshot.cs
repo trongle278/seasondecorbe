@@ -547,6 +547,32 @@ namespace DataAccessObject.Migrations
                     b.ToTable("DeviceTokens");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DecorServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("DecorServiceId");
+
+                    b.ToTable("FavoriteServices");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Follow", b =>
                 {
                     b.Property<int>("Id")
@@ -1514,6 +1540,25 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("FavoriteServices")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
+                        .WithMany("FavoriteServices")
+                        .HasForeignKey("DecorServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("DecorService");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Follow", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Follower")
@@ -1799,6 +1844,8 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("DeviceTokens");
 
+                    b.Navigation("FavoriteServices");
+
                     b.Navigation("Followers");
 
                     b.Navigation("Followings");
@@ -1860,6 +1907,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("DecorImages");
 
                     b.Navigation("DecorServiceSeasons");
+
+                    b.Navigation("FavoriteServices");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>
