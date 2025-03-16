@@ -25,6 +25,8 @@ namespace BusinessLogicLayer.ModelResponse
 
     public class ProductProviderResponse
     {
+        public int Id { get; set; }
+        public string Slug { get; set; }
         public string BusinessName { get; set; }
         public string avatar { get; set; }
         public int TotalRate { get; set; }

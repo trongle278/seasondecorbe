@@ -248,6 +248,8 @@ namespace BusinessLogicLayer.Services
                 // Mapping provider to response
                 var providerResponse = new ProductProviderResponse
                 {
+                    Id = provider.Id,
+                    Slug = provider.Slug,
                     BusinessName = provider.BusinessName,
                     avatar = provider.Avatar ?? "null",
                     TotalRate = totalRate,
