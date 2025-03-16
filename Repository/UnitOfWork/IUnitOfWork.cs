@@ -33,6 +33,7 @@ namespace Repository.UnitOfWork
         IPaymentPhaseRepository PaymentPhaseRepository { get; }
         IContactRepository ContactRepository { get; }
         IFavoriteServiceRepository FavoriteServiceRepository { get; }
+        ISeasonRepository SeasonRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

@@ -42,6 +42,7 @@ namespace Repository.UnitOfWork
             PaymentPhaseRepository = new PaymentPhaseRepository(_context);
             ContactRepository = new ContactRepository(_context);
             FavoriteServiceRepository = new FavoriteServiceRepository(_context);
+            SeasonRepository = new SeasonRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -67,6 +68,7 @@ namespace Repository.UnitOfWork
         public IPaymentPhaseRepository PaymentPhaseRepository { get; private set; }
         public IContactRepository ContactRepository { get; private set; }
         public IFavoriteServiceRepository FavoriteServiceRepository { get; private set; }
+        public ISeasonRepository SeasonRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();
