@@ -56,6 +56,13 @@ namespace BusinessLogicLayer.Services
                     // Map các trường cơ bản của DecorService sang DecorServiceDTO
                     var dto = _mapper.Map<DecorServiceDTO>(decorService);
 
+                    // Hiện số lượng yêu thích
+                    var favoriteCount = await _unitOfWork.FavoriteServiceRepository
+                        .Query(f => f.DecorServiceId == id)
+                        .CountAsync();
+
+                    dto.FavoriteCount = favoriteCount;
+
                     // Thay vì ImageUrls = [...], ta map sang List<DecorImageDTO>
                     dto.Images = decorService.DecorImages
                         .Select(img => new DecorImageResponse
@@ -92,6 +99,13 @@ namespace BusinessLogicLayer.Services
                 // Map mỗi service sang DecorServiceDTO
                 var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
 
+                // Hiện số lượng yêu thích
+                var favoriteCounts = await _unitOfWork.FavoriteServiceRepository
+                    .Query(f => services.Select(s => s.Id).Contains(f.DecorServiceId))
+                    .GroupBy(f => f.DecorServiceId)
+                    .Select(g => new { ServiceId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.ServiceId, x => x.Count);
+
                 // Map DecorImages -> DecorImageDTO
                 for (int i = 0; i < services.Count; i++)
                 {
@@ -102,6 +116,10 @@ namespace BusinessLogicLayer.Services
                             ImageURL = img.ImageURL
                         })
                         .ToList();
+                    
+                    dtos[i].FavoriteCount = favoriteCounts.ContainsKey(services[i].Id) 
+                                          ? favoriteCounts[services[i].Id] 
+                                          : 0;
                 }
 
                 response.Success = true;
@@ -112,6 +130,79 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Error retrieving decor services.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<DecorServiceResponse> GetDecorServiceBySlugAsync(string slug)
+        {
+            var response = new DecorServiceResponse();
+            try
+            {
+                // First, find the account by slug
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Slug == slug && a.ProviderVerified == true)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    response.Success = false;
+                    response.Message = "Provider not found.";
+                    return response;
+                }
+
+                // Then get the decor service for this account
+                var decorService = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => ds.AccountId == account.Id && !ds.IsDeleted)
+                    .Include(ds => ds.DecorImages)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
+                    .FirstOrDefaultAsync();
+
+                if (decorService == null)
+                {
+                    response.Success = false;
+                    response.Message = "Decor service not found for this provider.";
+                    return response;
+                }
+
+                // Map to DTO
+                var dto = _mapper.Map<DecorServiceDTO>(decorService);
+
+                // Get favorite count
+                var favoriteCount = await _unitOfWork.FavoriteServiceRepository
+                    .Query(f => f.DecorServiceId == decorService.Id)
+                    .CountAsync();
+
+                dto.FavoriteCount = favoriteCount;
+
+                // Map images
+                dto.Images = decorService.DecorImages
+                    .Select(img => new DecorImageResponse
+                    {
+                        Id = img.Id,
+                        ImageURL = img.ImageURL
+                    })
+                    .ToList();
+
+                // Map seasons
+                dto.Seasons = decorService.DecorServiceSeasons
+                    .Select(dss => new SeasonResponse
+                    {
+                        Id = dss.Season.Id,
+                        SeasonName = dss.Season.SeasonName
+                    })
+                    .ToList();
+
+                response.Success = true;
+                response.Data = dto;
+                response.Message = "Decor service retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving decor service.";
                 response.Errors.Add(ex.Message);
             }
             return response;
@@ -143,6 +234,7 @@ namespace BusinessLogicLayer.Services
                     "Style" => decorService => decorService.Style,
                     "Province" => decorService => decorService.Province,
                     "CreateAt" => decorService => decorService.CreateAt,
+                    "Favorite" => decorService => decorService.FavoriteServices.Count,
                     _ => decorService => decorService.Id
                 };
 
@@ -151,6 +243,7 @@ namespace BusinessLogicLayer.Services
                 {
                     decorService => decorService.DecorImages,
                     decorService => decorService.DecorCategory,
+                    decorService => decorService.FavoriteServices,
                     decorService => decorService.DecorServiceSeasons
                 };
 
@@ -163,7 +256,7 @@ namespace BusinessLogicLayer.Services
                     request.Descending,
                     includeProperties
                 );
-
+          
                 var services = await _unitOfWork.DecorServiceRepository
                     .Query(ds => !ds.IsDeleted)
                     .Include(ds => ds.DecorImages)
@@ -177,6 +270,7 @@ namespace BusinessLogicLayer.Services
                 // Map DecorImages -> DecorImageDTO
                 for (int i = 0; i < services.Count; i++)
                 {
+                    var service = decorServices.ElementAt(i);
                     dtos[i].Images = services[i].DecorImages
                         .Select(img => new DecorImageResponse
                         {
@@ -192,6 +286,8 @@ namespace BusinessLogicLayer.Services
                             SeasonName = dss.Season.SeasonName
                         })
                         .ToList();
+
+                    dtos[i].FavoriteCount = service.FavoriteServices.Count;
                 }
 
 

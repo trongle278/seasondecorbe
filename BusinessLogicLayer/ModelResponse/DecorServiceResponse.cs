@@ -29,6 +29,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime CreateAt { get; set; }
         public int AccountId { get; set; }
         public int DecorCategoryId { get; set; }
+        public int FavoriteCount { get; set; }
         public List<string> ImageUrls { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
