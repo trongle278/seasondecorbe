@@ -44,6 +44,8 @@ namespace BusinessLogicLayer.Services
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id)
                     .Include(ds => ds.DecorImages)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -72,6 +74,14 @@ namespace BusinessLogicLayer.Services
                         })
                         .ToList();
 
+                    dto.Seasons = decorService.DecorServiceSeasons
+                        .Select(dss => new SeasonResponse
+                        {
+                            Id = dss.Season.Id,
+                            SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
+
                     response.Success = true;
                     response.Data = dto;
                     response.Message = "Decor service retrieved successfully.";
@@ -94,6 +104,8 @@ namespace BusinessLogicLayer.Services
                 var services = await _unitOfWork.DecorServiceRepository
                     .Query(ds => !ds.IsDeleted)
                     .Include(ds => ds.DecorImages)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
                     .ToListAsync();
 
                 // Map mỗi service sang DecorServiceDTO
@@ -120,6 +132,14 @@ namespace BusinessLogicLayer.Services
                     dtos[i].FavoriteCount = favoriteCounts.ContainsKey(services[i].Id) 
                                           ? favoriteCounts[services[i].Id] 
                                           : 0;
+
+                    dtos[i].Seasons = services[i].DecorServiceSeasons
+                        .Select(dss => new SeasonResponse
+                        {
+                            Id = dss.Season.Id,
+                            SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
                 }
 
                 response.Success = true;
