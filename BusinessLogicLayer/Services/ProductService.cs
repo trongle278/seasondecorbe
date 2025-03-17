@@ -462,7 +462,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                                               .Query(a => a.Slug == slug && a.IsProvider == true)
+                                               .Query(a => a.Slug == slug && a.ProviderVerified == true)
                                                .FirstOrDefaultAsync();
 
                 if (account == null || account.IsProvider == false)
@@ -537,7 +537,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var providerAccount = await _unitOfWork.AccountRepository
-                                  .Query(a => a.Slug == request.Slug && a.IsProvider == true)
+                                  .Query(a => a.Slug == request.Slug && a.ProviderVerified == true)
                                   .FirstOrDefaultAsync();
 
                 if (providerAccount == null)
@@ -549,7 +549,7 @@ namespace BusinessLogicLayer.Services
 
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
-                    (product.Account.Slug == request.Slug && product.Account.IsProvider == true) &&
+                    (product.Account.Slug == request.Slug && product.Account.ProviderVerified == true) &&
                     (string.IsNullOrEmpty(request.ProductName) && product.ProductName.Contains(request.ProductName)) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
