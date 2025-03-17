@@ -147,6 +147,10 @@ namespace Repository.GenericRepository
             {
                 query = query.Where(filter);
             }
+            else
+            {
+                query = query.Where(e => false);
+            }
 
             if (includeProperties != null)
             {

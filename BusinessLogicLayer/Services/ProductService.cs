@@ -12,6 +12,7 @@ using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Review;
+using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -357,10 +358,21 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<PageResult<ProductListResponse>>();
             try
             {
+                var productCategory = await _unitOfWork.ProductCategoryRepository
+                                                        .Query(p => p.Id == request.CategoryId)
+                                                        .FirstOrDefaultAsync();
+
+                if (productCategory == null)
+                {
+                    response.Success = false;
+                    response.Message = "Category not found";
+                    return response;
+                }
+
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
                     product.CategoryId == request.CategoryId &&
-                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
+                    (string.IsNullOrEmpty(request.ProductName) && product.ProductName.Contains(request.ProductName)) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
@@ -524,10 +536,21 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<PageResult<ProductListResponse>>();
             try
             {
+                var providerAccount = await _unitOfWork.AccountRepository
+                                  .Query(a => a.Slug == request.Slug && a.IsProvider == true)
+                                  .FirstOrDefaultAsync();
+
+                if (providerAccount == null)
+                {
+                    response.Success = false;
+                    response.Message = "Invalid provider slug";
+                    return response;
+                }
+
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
                     (product.Account.Slug == request.Slug && product.Account.IsProvider == true) &&
-                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
+                    (string.IsNullOrEmpty(request.ProductName) && product.ProductName.Contains(request.ProductName)) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
@@ -556,13 +579,6 @@ namespace BusinessLogicLayer.Services
                     request.Descending,
                     includeProperties
                 );
-
-                if (products == null)
-                {
-                    response.Success = false;
-                    response.Message = "Non product available";
-                    return response;
-                }
 
                 var productResponses = new List<ProductListResponse>();
 
