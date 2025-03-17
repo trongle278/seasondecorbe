@@ -353,6 +353,13 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                if (request.SeasonIds == null || !request.SeasonIds.Any())
+                {
+                    response.Success = false;
+                    response.Message = "Please choose at least one season";
+                    return response;
+                }
+
                 var decorService = new DecorService
                 {
                     Style = request.Style,
