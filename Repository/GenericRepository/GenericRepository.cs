@@ -143,7 +143,7 @@ namespace Repository.GenericRepository
         {
             IQueryable<T> query = _context.Set<T>();
 
-            if (filter != null && _context.Set<T>().Any(filter))
+            if (filter != null)
             {
                 query = query.Where(filter);
             }
