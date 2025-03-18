@@ -141,7 +141,7 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = f.Following.Id,
                         BusinessName = f.Following.BusinessName,
-                        Avatar = f.Follower.Avatar
+                        Avatar = f.Following.Avatar
                     })
                     .ToListAsync();
 
