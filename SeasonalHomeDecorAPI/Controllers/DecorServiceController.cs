@@ -1,6 +1,7 @@
 ﻿using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
+using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -116,13 +117,34 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result.Message);
         }
 
+        //[HttpGet("search")]
+        //public async Task<IActionResult> Search([FromQuery] string keyword)
+        //{
+        //    var result = await _decorServiceService.SearchDecorServices(keyword);
+        //    if (!result.Success)
+        //        return BadRequest(result);
+        //    return Ok(result);
+        //}
+
         [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string keyword)
+        public async Task<IActionResult> SearchMultiCriteria(
+            [FromQuery] string? Style,
+            [FromQuery] string? Province,
+            [FromQuery] string? CategoryName,
+            [FromQuery] string? SeasonName)
         {
-            var result = await _decorServiceService.SearchDecorServices(keyword);
-            if (!result.Success)
-                return BadRequest(result);
-            return Ok(result);
+            var request = new SearchDecorServiceRequest
+            {
+                Style = Style,
+                Province = Province,
+                CategoryName = CategoryName,
+                SeasonName = SeasonName
+            };
+
+            var result = await _decorServiceService.SearchMultiCriteriaDecorServices(request);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result);
         }
     }
 }

@@ -430,7 +430,15 @@ namespace DataAccessObject.Models
                 new Season { Id = 1, SeasonName = "Spring" },
                 new Season { Id = 2, SeasonName = "Summer" },
                 new Season { Id = 3, SeasonName = "Autumn" },
-                new Season { Id = 4, SeasonName = "Winter" }
+                new Season { Id = 4, SeasonName = "Winter" },
+                new Season { Id = 5, SeasonName = "Christmas" },
+                new Season { Id = 6, SeasonName = "Tet" },
+                new Season { Id = 7, SeasonName = "Valentine" },
+                new Season { Id = 8, SeasonName = "Halloween" },
+                new Season { Id = 9, SeasonName = "Easter" },
+                new Season { Id = 10, SeasonName = "Birthday" },
+                new Season { Id = 11, SeasonName = "Wedding" },
+                new Season { Id = 12, SeasonName = "Anniversary" }
             );
         }
     }

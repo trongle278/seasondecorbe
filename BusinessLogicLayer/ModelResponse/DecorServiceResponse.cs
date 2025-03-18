@@ -29,6 +29,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime CreateAt { get; set; }
         public int AccountId { get; set; }
         public int DecorCategoryId { get; set; }
+        public string CategoryName { get; set; }
         public int FavoriteCount { get; set; }
         public List<string> ImageUrls { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
@@ -45,5 +46,13 @@ namespace BusinessLogicLayer.ModelResponse
     {
         public int Id { get; set; }
         public string SeasonName { get; set; }
+    }
+
+    public class SearchDecorServiceRequest
+    {
+        public string? Style { get; set; }
+        public string? Province { get; set; }
+        public string? CategoryName { get; set; }  // Tìm theo tên danh mục
+        public string? SeasonName { get; set; }  // Tìm theo tên mùa
     }
 }

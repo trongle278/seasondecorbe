@@ -21,5 +21,6 @@ namespace BusinessLogicLayer.Interfaces
         //Task<BaseResponse> UpdateDecorServiceAsyncWithImage(int id, UpdateDecorServiceRequest request, int accountId);
         Task<BaseResponse> DeleteDecorServiceAsync(int id, int accountId);
         Task<DecorServiceListResponse> SearchDecorServices(string keyword);
+        Task<DecorServiceListResponse> SearchMultiCriteriaDecorServices(SearchDecorServiceRequest request);
     }
 }

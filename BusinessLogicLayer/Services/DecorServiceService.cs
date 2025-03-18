@@ -43,6 +43,7 @@ namespace BusinessLogicLayer.Services
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id)
+                    .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
@@ -57,6 +58,9 @@ namespace BusinessLogicLayer.Services
                 {
                     // Map các trường cơ bản của DecorService sang DecorServiceDTO
                     var dto = _mapper.Map<DecorServiceDTO>(decorService);
+
+                    //Hiện Category Name
+                    dto.CategoryName = decorService.DecorCategory.CategoryName;
 
                     // Hiện số lượng yêu thích
                     var favoriteCount = await _unitOfWork.FavoriteServiceRepository
@@ -103,6 +107,7 @@ namespace BusinessLogicLayer.Services
             {
                 var services = await _unitOfWork.DecorServiceRepository
                     .Query(ds => !ds.IsDeleted)
+                    .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
@@ -121,6 +126,8 @@ namespace BusinessLogicLayer.Services
                 // Map DecorImages -> DecorImageDTO
                 for (int i = 0; i < services.Count; i++)
                 {
+                    dtos[i].CategoryName = services[i].DecorCategory.CategoryName;
+
                     dtos[i].Images = services[i].DecorImages
                         .Select(img => new DecorImageResponse
                         {
@@ -175,6 +182,7 @@ namespace BusinessLogicLayer.Services
                 // Then get the decor service for this account
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.AccountId == account.Id && !ds.IsDeleted)
+                    .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
@@ -189,6 +197,9 @@ namespace BusinessLogicLayer.Services
 
                 // Map to DTO
                 var dto = _mapper.Map<DecorServiceDTO>(decorService);
+
+                //Get CategiryName
+                dto.CategoryName = decorService.DecorCategory.CategoryName;
 
                 // Get favorite count
                 var favoriteCount = await _unitOfWork.FavoriteServiceRepository
@@ -291,6 +302,8 @@ namespace BusinessLogicLayer.Services
                 for (int i = 0; i < services.Count; i++)
                 {
                     var service = decorServices.ElementAt(i);
+                    dtos[i].CategoryName = service.DecorCategory.CategoryName;
+
                     dtos[i].Images = services[i].DecorImages
                         .Select(img => new DecorImageResponse
                         {
@@ -722,5 +735,68 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
+        public async Task<DecorServiceListResponse> SearchMultiCriteriaDecorServices(SearchDecorServiceRequest request)
+        {
+            var response = new DecorServiceListResponse();
+            try
+            {
+                var query = _unitOfWork.DecorServiceRepository.Query(ds => !ds.IsDeleted);
+
+                if (!string.IsNullOrEmpty(request.Style))
+                    query = query.Where(ds => ds.Style.Contains(request.Style));
+
+                if (!string.IsNullOrEmpty(request.Province))
+                    query = query.Where(ds => ds.Province.Contains(request.Province));
+
+                if (!string.IsNullOrEmpty(request.CategoryName))
+                    query = query.Where(ds => ds.DecorCategory.CategoryName.Contains(request.CategoryName));
+
+                if (!string.IsNullOrEmpty(request.SeasonName))
+                    query = query.Where(ds => ds.DecorServiceSeasons.Any(dss => dss.Season.SeasonName.Contains(request.SeasonName)));
+
+                var decorServices = await query
+                    .Include(ds => ds.DecorCategory)
+                    .Include(ds => ds.DecorImages)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
+                    .ToListAsync();
+
+                var dtos = decorServices.Select(ds => new DecorServiceDTO
+                {
+                    Id = ds.Id,
+                    Style = ds.Style,
+                    Description = ds.Description,
+                    Province = ds.Province,
+                    CreateAt = ds.CreateAt,
+                    AccountId = ds.AccountId,
+                    FavoriteCount = 0,
+                    CategoryName = ds.DecorCategory.CategoryName,
+                    Images = ds.DecorImages.Select(img => new DecorImageResponse
+                    {
+                        Id = img.Id,
+                        ImageURL = img.ImageURL
+                    }).ToList(),
+                    Seasons = ds.DecorServiceSeasons.Select(dss => new SeasonResponse
+                    {
+                        Id = dss.Season.Id,
+                        SeasonName = dss.Season.SeasonName
+                    }).ToList()
+                }).ToList();
+
+                response.Success = true;
+                response.Data = dtos;
+                response.Message = "Multi-criteria search completed successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error performing multi-criteria search.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+
     }
 }
