@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BusinessLogicLayer.Interfaces;
@@ -6,16 +6,19 @@ using BusinessLogicLayer.ModelResponse;
 using DataAccessObject.Models;
 using Repository.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace BusinessLogicLayer.Services
 {
     public class FavoriteServiceService : IFavoriteServiceService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public FavoriteServiceService(IUnitOfWork unitOfWork)
+        public FavoriteServiceService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<BaseResponse<List<FavoriteServiceResponse>>> GetFavoriteServicesAsync(int accountId)
@@ -23,20 +26,59 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<List<FavoriteServiceResponse>>();
             try
             {
+                // Cải thiện query để đảm bảo lấy đầy đủ thông tin Images và Seasons
                 var favorites = await _unitOfWork.FavoriteServiceRepository
                     .Query(f => f.AccountId == accountId)
                     .Include(f => f.DecorService)
-                    .Select(f => new FavoriteServiceResponse
-                    {
-                        Id = f.Id,
-                        AccountId = f.AccountId,
-                        DecorServiceId = f.DecorServiceId,
-                        DecorServiceName = f.DecorService.Style
-                    })
+                        .ThenInclude(ds => ds.DecorImages) // Include images
+                    .Include(f => f.DecorService.DecorServiceSeasons) // Include mối quan hệ với Seasons
+                        .ThenInclude(dss => dss.Season)
                     .ToListAsync();
 
+                // Tạo danh sách FavoriteServiceResponse với đầy đủ thông tin
+                var result = new List<FavoriteServiceResponse>();
+
+                foreach (var favorite in favorites)
+                {
+                    // Map DecorService sang DecorServiceDTO
+                    var decorServiceDTO = _mapper.Map<DecorServiceDTO>(favorite.DecorService);
+
+                    // Tính số favorite cho DecorService này
+                    decorServiceDTO.FavoriteCount = await _unitOfWork.FavoriteServiceRepository
+                           .Query(f => f.DecorServiceId == favorite.DecorService.Id)
+                           .CountAsync();
+
+                    // Map thủ công các collection nếu AutoMapper không hoạt động đúng
+                    if (favorite.DecorService.DecorImages != null)
+                    {
+                        decorServiceDTO.Images = favorite.DecorService.DecorImages.Select(img => new DecorImageResponse
+                        {
+                            Id = img.Id,
+                            ImageURL = img.ImageURL
+                        }).ToList();
+                    }
+
+                    if (favorite.DecorService.DecorServiceSeasons != null)
+                    {
+                        decorServiceDTO.Seasons = favorite.DecorService.DecorServiceSeasons
+                            .Where(dss => dss.Season != null)
+                            .Select(dss => new SeasonResponse
+                            {
+                                Id = dss.Season.Id,
+                                SeasonName = dss.Season.SeasonName
+                            }).ToList();
+                    }
+
+                    // Tạo và thêm FavoriteServiceResponse vào kết quả
+                    result.Add(new FavoriteServiceResponse
+                    {
+                        FavoriteId = favorite.Id,
+                        DecorServiceDetails = decorServiceDTO
+                    });
+                }
+
                 response.Success = true;
-                response.Data = favorites;
+                response.Data = result;
                 response.Message = "Favorite services retrieved successfully.";
             }
             catch (Exception ex)

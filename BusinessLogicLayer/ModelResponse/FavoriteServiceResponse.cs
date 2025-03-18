@@ -8,9 +8,7 @@ namespace BusinessLogicLayer.ModelResponse
 {
     public class FavoriteServiceResponse
     {
-        public int Id { get; set; }
-        public int AccountId { get; set; }
-        public int DecorServiceId { get; set; }
-        public string DecorServiceName { get; set; } // Tên dịch vụ yêu thích
+        public int FavoriteId { get; set; }
+        public DecorServiceDTO DecorServiceDetails { get; set; }
     }
 }

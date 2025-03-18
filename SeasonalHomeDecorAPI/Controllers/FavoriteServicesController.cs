@@ -20,7 +20,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             _favoriteService = favoriteService;
         }
 
-        [HttpGet]
+        [HttpGet("myfavorite")]
         public async Task<IActionResult> GetFavoriteDecorServices()
         {
             int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
