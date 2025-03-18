@@ -172,6 +172,7 @@ namespace BusinessLogicLayer.Services
                     Gender = request.Gender,
                     Phone = request.Phone,
                     RoleId = 3, //Customer
+                    Slug = GenerateDefaultSlug(),
                     IsDisable = false
                 };
 
@@ -319,5 +320,57 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
+        public async Task<BaseResponse> ToggleAccountStatusAsync(int accountId)
+        {
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(x => x.Id == accountId)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Account not found"
+                    };
+                }
+
+                // Toggle trạng thái ban/unban
+                account.IsDisable = !account.IsDisable;
+                _unitOfWork.AccountRepository.Update(account);
+                await _unitOfWork.CommitAsync();
+
+                string statusMessage = account.IsDisable
+                    ? "Account banned successfully"
+                    : "Account unbanned successfully";
+
+                return new BaseResponse
+                {
+                    Success = true,
+                    Message = statusMessage
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Error toggling account status",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
+        #region
+        private string GenerateDefaultSlug()
+        {
+            // Simple implementation: generate a 5-digit random number as a string
+            var random = new Random();
+            return random.Next(10000, 99999).ToString();
+        }
+        #endregion
     }
 }

@@ -81,28 +81,39 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
 
-        // Ban tài khoản (set isDisable = true)
-        [HttpPut("ban/{id}")]
-        public async Task<IActionResult> BanAccount(int id)
-        {
-            var result = await _accountManagementService.BanAccountAsync(id);
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
+        //// Ban tài khoản (set isDisable = true)
+        //[HttpPut("ban/{id}")]
+        //public async Task<IActionResult> BanAccount(int id)
+        //{
+        //    var result = await _accountManagementService.BanAccountAsync(id);
+        //    if (result.Success)
+        //    {
+        //        return Ok(result);
+        //    }
+        //    return BadRequest(result);
+        //}
 
-        // Nếu cần mở khóa tài khoản (set isDisable = false)
-        [HttpPut("unban/{id}")]
-        public async Task<IActionResult> UnbanAccount(int id)
+        //// Nếu cần mở khóa tài khoản (set isDisable = false)
+        //[HttpPut("unban/{id}")]
+        //public async Task<IActionResult> UnbanAccount(int id)
+        //{
+        //    var result = await _accountManagementService.UnbanAccountAsync(id);
+        //    if (result.Success)
+        //    {
+        //        return Ok(result);
+        //    }
+        //    return BadRequest(result);
+        //}
+
+        [HttpPut("toggle-status/{accountId}")]
+        public async Task<IActionResult> ToggleAccountStatus(int accountId)
         {
-            var result = await _accountManagementService.UnbanAccountAsync(id);
-            if (result.Success)
+            var response = await _accountManagementService.ToggleAccountStatusAsync(accountId);
+            if (response.Success)
             {
-                return Ok(result);
+                return Ok(response);
             }
-            return BadRequest(result);
+            return BadRequest(response);
         }
     }
 }

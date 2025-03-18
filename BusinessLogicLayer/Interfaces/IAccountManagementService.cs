@@ -19,5 +19,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request);
         Task<BaseResponse> BanAccountAsync(int accountId);
         Task<BaseResponse> UnbanAccountAsync(int accountId);
+        Task<BaseResponse> ToggleAccountStatusAsync(int accountId);
     }
 }
