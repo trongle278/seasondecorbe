@@ -246,6 +246,7 @@ namespace BusinessLogicLayer.Services
             {
                 // Filter
                 Expression<Func<DecorService, bool>> filter = decorService =>
+                    decorService.IsDeleted == false &&
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
                     (string.IsNullOrEmpty(request.Province) || decorService.Province.Contains(request.Province)) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
@@ -269,14 +270,13 @@ namespace BusinessLogicLayer.Services
                     _ => decorService => decorService.Id
                 };
 
-                // Include Images
-                Expression<Func<DecorService, object>>[] includeProperties =
-                {
-                    decorService => decorService.DecorImages,
-                    decorService => decorService.DecorCategory,
-                    decorService => decorService.FavoriteServices,
-                    decorService => decorService.DecorServiceSeasons
-                };
+                // Include Entities
+                Func<IQueryable<DecorService>, IQueryable<DecorService>> customQuery = query =>
+                    query.Include(ds => ds.DecorImages)
+                         .Include(ds => ds.DecorCategory)
+                         .Include(ds => ds.FavoriteServices)
+                         .Include(ds => ds.DecorServiceSeasons)
+                             .ThenInclude(dss => dss.Season);
 
                 // Get paginated data and filter
                 (IEnumerable<DecorService> decorServices, int totalCount) = await _unitOfWork.DecorServiceRepository.GetPagedAndFilteredAsync(
@@ -285,26 +285,20 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderByExpression,
                     request.Descending,
-                    includeProperties
+                    null,
+                    customQuery
                 );
-          
-                var services = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => !ds.IsDeleted)
-                    .Include(ds => ds.DecorImages)
-                    .Include(ds => ds.DecorServiceSeasons)
-                        .ThenInclude(dss => dss.Season)
-                    .ToListAsync();
 
                 // Map mỗi service sang DecorServiceDTO
-                var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
+                var dtos = _mapper.Map<List<DecorServiceDTO>>(decorServices);
 
                 // Map DecorImages -> DecorImageDTO
-                for (int i = 0; i < services.Count; i++)
+                for (int i = 0; i < decorServices.Count(); i++)
                 {
                     var service = decorServices.ElementAt(i);
                     dtos[i].CategoryName = service.DecorCategory.CategoryName;
 
-                    dtos[i].Images = services[i].DecorImages
+                    dtos[i].Images = service.DecorImages
                         .Select(img => new DecorImageResponse
                         {
                             Id = img.Id,
@@ -312,7 +306,7 @@ namespace BusinessLogicLayer.Services
                         })
                         .ToList();
 
-                    dtos[i].Seasons = services[i].DecorServiceSeasons
+                    dtos[i].Seasons = service.DecorServiceSeasons
                         .Select(dss => new SeasonResponse
                         {
                             Id = dss.Season.Id,

@@ -84,9 +84,7 @@ namespace BusinessLogicLayer.Services
                     request.Descending
                 );
 
-                var account = await _unitOfWork.AccountRepository.GetAllAsync();
-
-                var dtos = _mapper.Map<List<AccountDTO>>(account);
+                var dtos = _mapper.Map<List<AccountDTO>>(accounts);
 
                 var pageResult = new PageResult<AccountDTO>
                 {
