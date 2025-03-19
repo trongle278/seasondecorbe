@@ -105,6 +105,11 @@ namespace Repository.GenericRepository
         public IQueryable<T> Query(Expression<Func<T, bool>> filter)
         {
             return _context.Set<T>().Where(filter);
+
+        }
+            public IQueryable<T> Queryable()
+        {
+            return _context.Set<T>();
         }
 
         public virtual void UpdateAndRelationStatus(T entity, Expression<Func<T, object>>[]? includeProperties = null)

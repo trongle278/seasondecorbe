@@ -20,6 +20,6 @@ namespace DataAccessObject.Models
 
         public virtual Account Account { get; set; }
 
-        public virtual ICollection<PaymentTransaction> Transactions { get; set; }
+        public virtual ICollection<WalletTransaction> WalletTransactions { get; set; }
     }
 }

@@ -794,16 +794,11 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("TransactionType")
                         .HasColumnType("int");
 
-                    b.Property<int>("WalletId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
 
                     b.HasIndex("OrderId");
-
-                    b.HasIndex("WalletId");
 
                     b.ToTable("PaymentTransactions");
                 });
@@ -1123,7 +1118,63 @@ namespace DataAccessObject.Migrations
                         {
                             Id = 4,
                             SeasonName = "Winter"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            SeasonName = "Christmas"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            SeasonName = "Tet"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            SeasonName = "Valentine"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            SeasonName = "Halloween"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            SeasonName = "Easter"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            SeasonName = "Birthday"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            SeasonName = "Wedding"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            SeasonName = "Anniversary"
                         });
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Setting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<decimal>("Commission")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settings");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
@@ -1338,6 +1389,29 @@ namespace DataAccessObject.Migrations
                         .IsUnique();
 
                     b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.WalletTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("PaymentTransactionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WalletId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentTransactionId");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("WalletTransactions");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
@@ -1674,17 +1748,9 @@ namespace DataAccessObject.Migrations
                         .WithMany("PaymentTransactions")
                         .HasForeignKey("OrderId");
 
-                    b.HasOne("DataAccessObject.Models.Wallet", "Wallet")
-                        .WithMany("Transactions")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Booking");
 
                     b.Navigation("Order");
-
-                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
@@ -1831,6 +1897,25 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.WalletTransaction", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.PaymentTransaction", "PaymentTransaction")
+                        .WithMany("WalletTransactions")
+                        .HasForeignKey("PaymentTransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Wallet", "Wallet")
+                        .WithMany("WalletTransactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PaymentTransaction");
+
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
                     b.Navigation("Addresses");
@@ -1927,6 +2012,11 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Payments");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
+                {
+                    b.Navigation("WalletTransactions");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
                 {
                     b.Navigation("CartItems");
@@ -1984,7 +2074,7 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
                 {
-                    b.Navigation("Transactions");
+                    b.Navigation("WalletTransactions");
                 });
 #pragma warning restore 612, 618
         }

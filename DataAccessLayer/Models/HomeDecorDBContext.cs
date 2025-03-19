@@ -62,6 +62,8 @@ namespace DataAccessObject.Models
         public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<FavoriteService> FavoriteServices { get; set; }
+        public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<Setting> Settings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -344,12 +346,6 @@ namespace DataAccessObject.Models
                 .HasForeignKey(p => p.PaymentPhaseId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<PaymentTransaction>()
-                .HasOne(p => p.Wallet)
-                .WithMany(pp => pp.Transactions)
-                .HasForeignKey(p => p.WalletId)
-                .OnDelete(DeleteBehavior.NoAction);
-
             modelBuilder.Entity<Contact>()
                 .HasOne(c => c.User)
                 .WithMany()
@@ -382,10 +378,6 @@ namespace DataAccessObject.Models
 
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)
-                .HasColumnType("decimal(18,2)");
-
-            modelBuilder.Entity<PaymentTransaction>()
-                .Property(p => p.Amount)
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<Role>().HasData(

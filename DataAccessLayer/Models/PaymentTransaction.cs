@@ -13,8 +13,6 @@ namespace DataAccessObject.Models
         [Key]
         public int Id { get; set; }
 
-        public int WalletId { get; set; }
-
         public int? BookingId { get; set; }
 
         public int? OrderId { get; set; }
@@ -27,7 +25,11 @@ namespace DataAccessObject.Models
         public enum EnumTransactionType
         {
             TopUp, // Nạp tiền
-            Withdraw // rút tiền
+            Withdraw, // rút tiền
+            Deposite, // đặt cọc
+            Refund,
+            Pay,
+            Revenue
         }
         public EnumTransactionType TransactionType { get; set; }
 
@@ -41,8 +43,7 @@ namespace DataAccessObject.Models
 
         public EnumTransactionStatus TransactionStatus { get; set; }
 
-        public virtual Wallet Wallet { get; set; }
-
+        public virtual ICollection<WalletTransaction> WalletTransactions { get; set; }
 
         public virtual Booking Booking { get; set; }
 
