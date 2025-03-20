@@ -14,7 +14,6 @@ using Repository.Repositories;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Design;
 using Nest;
-using Net.payOS;
 using BusinessLogicLayer.Utilities.Hub;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,11 +37,6 @@ builder.Services.AddControllers()
        });
 
 builder.Services.AddEndpointsApiExplorer();
-
-PayOS payOS = new PayOS(configuration["Environment:PAYOS_CLIENT_ID"] ?? throw new Exception("Cannot find environment"),
-                    configuration["Environment:PAYOS_API_KEY"] ?? throw new Exception("Cannot find environment"),
-                    configuration["Environment:PAYOS_CHECKSUM_KEY"] ?? throw new Exception("Cannot find environment"));
-builder.Services.AddSingleton(payOS);
 
 builder.Services.AddSignalR(options =>
 {

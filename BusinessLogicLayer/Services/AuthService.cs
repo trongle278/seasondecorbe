@@ -29,18 +29,21 @@ namespace BusinessLogicLayer.Services
         private readonly PasswordHasher<Account> _passwordHasher;
         private readonly IEmailService _emailService;
         private readonly ICartService _cartService;
+        private readonly IWalletService _walletService;
         private readonly IMapper _mapper;
 
-        public AuthService(IUnitOfWork unitOfWork, 
-                           IConfiguration configuration, 
-                           IEmailService emailService, 
-                           ICartService cartService)
+        public AuthService(IUnitOfWork unitOfWork,
+                          IConfiguration configuration,
+                          IEmailService emailService,
+                          ICartService cartService,
+                          IWalletService walletService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _passwordHasher = new PasswordHasher<Account>();
             _emailService = emailService;
             _cartService = cartService;
+            _walletService = walletService;
         }
 
         public async Task<BaseResponse> RegisterCustomerAsync(RegisterRequest request)
@@ -72,9 +75,9 @@ namespace BusinessLogicLayer.Services
                     RoleId = 3, // Customer role
                     IsVerified = false,
                     VerificationToken = otp,
-                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15),
+                    VerificationTokenExpiry = DateTime.Now.AddMinutes(15),
                     SubscriptionId = 1,
-                    JoinedDate = DateTime.UtcNow.ToLocalTime(),
+                    JoinedDate = DateTime.Now,
                 };
 
                 account.Password = HashPassword(account, request.Password);
@@ -82,7 +85,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.AccountRepository.InsertAsync(account);
                 await _unitOfWork.CommitAsync();
 
-                // Use CartService to create a cart
+                // Create a cart for new user
                 var cartResponse = await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
                 if (!cartResponse.Success)
                 {
@@ -90,6 +93,17 @@ namespace BusinessLogicLayer.Services
                     {
                         Success = false,
                         Errors = new List<string> { "User registered, but failed to create cart." }
+                    };
+                }
+
+                // Create a wallet for new user
+                var walletSuccess = await _walletService.CreateWallet(account.Id);
+                if (!walletSuccess)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "User registered, but failed to create wallet." }
                     };
                 }
 
@@ -129,7 +143,7 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                if (account.VerificationTokenExpiry < DateTime.UtcNow)
+                if (account.VerificationTokenExpiry < DateTime.Now)
                 {
                     return new BaseResponse
                     {
@@ -266,7 +280,7 @@ namespace BusinessLogicLayer.Services
             {
                 var otp = GenerateOTP();
                 account.TwoFactorToken = otp;
-                account.TwoFactorTokenExpiry = DateTime.UtcNow.AddMinutes(5);
+                account.TwoFactorTokenExpiry = DateTime.Now.AddMinutes(5);
                 await _unitOfWork.CommitAsync();
 
                 await SendLoginOTPEmail(account.Email, otp);
@@ -308,7 +322,7 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                if (account.TwoFactorTokenExpiry < DateTime.UtcNow)
+                if (account.TwoFactorTokenExpiry < DateTime.Now)
                 {
                     return new LoginResponse
                     {
@@ -378,7 +392,7 @@ namespace BusinessLogicLayer.Services
                         RoleId = 3,
                         SubscriptionId = 1,
                         Slug = GenerateDefaultSlug(),
-                        JoinedDate = DateTime.UtcNow.ToLocalTime()// Sinh slug mặc định
+                        JoinedDate = DateTime.Now
                     };
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);
@@ -401,6 +415,16 @@ namespace BusinessLogicLayer.Services
                         {
                             Success = false,
                             Errors = new List<string> { "Google login succeeded, but failed to create cart." }
+                        };
+                    }
+
+                    var walletSuccess = await _walletService.CreateWallet(account.Id);
+                    if (!walletSuccess)
+                    {
+                        return new GoogleLoginResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { "Google login succeeded, but failed to create wallet." }
                         };
                     }
                 }
@@ -453,9 +477,9 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Kiểm tra xem có OTP cũ chưa hết hạn không
-                if (account.ResetPasswordTokenExpiry != null && account.ResetPasswordTokenExpiry > DateTime.UtcNow)
+                if (account.ResetPasswordTokenExpiry != null && account.ResetPasswordTokenExpiry > DateTime.Now)
                 {
-                    var remainingMinutes = Math.Ceiling(((DateTime)account.ResetPasswordTokenExpiry - DateTime.UtcNow).TotalMinutes);
+                    var remainingMinutes = Math.Ceiling(((DateTime)account.ResetPasswordTokenExpiry - DateTime.Now).TotalMinutes);
                     return new ForgotPasswordResponse
                     {
                         Success = false,
@@ -464,7 +488,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var otp = GenerateOTP();
-                var otpExpiry = DateTime.UtcNow.AddMinutes(15);
+                var otpExpiry = DateTime.Now.AddMinutes(15);
 
                 account.ResetPasswordToken = otp;
                 account.ResetPasswordTokenExpiry = otpExpiry;
@@ -519,7 +543,7 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                if (account.ResetPasswordTokenExpiry < DateTime.UtcNow)
+                if (account.ResetPasswordTokenExpiry < DateTime.Now)
                 {
                     return new AuthResponse
                     {
@@ -637,7 +661,7 @@ namespace BusinessLogicLayer.Services
             new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
             new Claim(ClaimTypes.Name, $"{account.FirstName} {account.LastName}"),
         }),
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = DateTime.Now.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"]

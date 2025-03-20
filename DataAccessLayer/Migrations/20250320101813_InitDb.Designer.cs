@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250315132052_InitDb")]
+    [Migration("20250320101813_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -187,6 +187,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
+                    b.Property<int>("AddressId")
+                        .HasColumnType("int");
+
                     b.Property<string>("BookingCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -196,6 +199,9 @@ namespace DataAccessObject.Migrations
 
                     b.Property<int>("DecorServiceId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("DepositAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -210,11 +216,48 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("AccountId");
 
+                    b.HasIndex("AddressId");
+
                     b.HasIndex("DecorServiceId");
 
                     b.HasIndex("VoucherId");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.BookingDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EstimatedCompletion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ServiceItem")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("BookingDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
@@ -690,86 +733,6 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Payment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PaymentPhaseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<double>("Total")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("PaymentPhaseId");
-
-                    b.ToTable("Payments");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.PaymentPhase", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("OrderCode")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Phase")
-                        .HasColumnType("int");
-
-                    b.Property<double>("ScheduledAmount")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId");
-
-                    b.ToTable("PaymentPhase");
-                });
-
             modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
                 {
                     b.Property<int>("Id")
@@ -796,16 +759,11 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("TransactionType")
                         .HasColumnType("int");
 
-                    b.Property<int>("WalletId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
 
                     b.HasIndex("OrderId");
-
-                    b.HasIndex("WalletId");
 
                     b.ToTable("PaymentTransactions");
                 });
@@ -1125,7 +1083,63 @@ namespace DataAccessObject.Migrations
                         {
                             Id = 4,
                             SeasonName = "Winter"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            SeasonName = "Christmas"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            SeasonName = "Tet"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            SeasonName = "Valentine"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            SeasonName = "Halloween"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            SeasonName = "Easter"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            SeasonName = "Birthday"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            SeasonName = "Wedding"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            SeasonName = "Anniversary"
                         });
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Setting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<decimal>("Commission")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settings");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
@@ -1284,6 +1298,45 @@ namespace DataAccessObject.Migrations
                     b.ToTable("TicketTypes");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Tracking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime?>("ActualDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrls")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PlannedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("Trackings");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
                 {
                     b.Property<int>("Id")
@@ -1342,6 +1395,29 @@ namespace DataAccessObject.Migrations
                     b.ToTable("Wallets");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.WalletTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("PaymentTransactionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WalletId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentTransactionId");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("WalletTransactions");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Role", "Role")
@@ -1379,21 +1455,38 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Address", "Address")
+                        .WithMany("Bookings")
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
                         .WithMany("Bookings")
                         .HasForeignKey("DecorServiceId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.Voucher", "Voucher")
+                    b.HasOne("DataAccessObject.Models.Voucher", null)
                         .WithMany("Bookings")
                         .HasForeignKey("VoucherId");
 
                     b.Navigation("Account");
 
-                    b.Navigation("DecorService");
+                    b.Navigation("Address");
 
-                    b.Navigation("Voucher");
+                    b.Navigation("DecorService");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.BookingDetail", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
+                        .WithMany("BookingDetails")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
@@ -1620,52 +1713,6 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Address");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.Payment", b =>
-                {
-                    b.HasOne("DataAccessObject.Models.Account", "Account")
-                        .WithMany("Payments")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
-                        .WithMany("Payments")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DataAccessObject.Models.Order", "Order")
-                        .WithMany("Payments")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DataAccessObject.Models.PaymentPhase", "PaymentPhase")
-                        .WithMany("Payments")
-                        .HasForeignKey("PaymentPhaseId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Order");
-
-                    b.Navigation("PaymentPhase");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.PaymentPhase", b =>
-                {
-                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
-                        .WithMany("PaymentPhases")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-                });
-
             modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Booking", "Booking")
@@ -1676,17 +1723,9 @@ namespace DataAccessObject.Migrations
                         .WithMany("PaymentTransactions")
                         .HasForeignKey("OrderId");
 
-                    b.HasOne("DataAccessObject.Models.Wallet", "Wallet")
-                        .WithMany("Transactions")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Booking");
 
                     b.Navigation("Order");
-
-                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
@@ -1822,6 +1861,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Support");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Tracking", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
+                        .WithMany("Trackings")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -1831,6 +1881,25 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.WalletTransaction", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.PaymentTransaction", "PaymentTransaction")
+                        .WithMany("WalletTransactions")
+                        .HasForeignKey("PaymentTransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Wallet", "Wallet")
+                        .WithMany("WalletTransactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PaymentTransaction");
+
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
@@ -1856,8 +1925,6 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("Orders");
 
-                    b.Navigation("Payments");
-
                     b.Navigation("Products");
 
                     b.Navigation("Reviews");
@@ -1872,19 +1939,21 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Address", b =>
                 {
+                    b.Navigation("Bookings");
+
                     b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
                 {
-                    b.Navigation("PaymentPhases");
+                    b.Navigation("BookingDetails");
 
                     b.Navigation("PaymentTransactions");
 
-                    b.Navigation("Payments");
-
                     b.Navigation("Review")
                         .IsRequired();
+
+                    b.Navigation("Trackings");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
@@ -1917,16 +1986,14 @@ namespace DataAccessObject.Migrations
                 {
                     b.Navigation("PaymentTransactions");
 
-                    b.Navigation("Payments");
-
                     b.Navigation("ProductOrders");
 
                     b.Navigation("Reviews");
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.PaymentPhase", b =>
+            modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
                 {
-                    b.Navigation("Payments");
+                    b.Navigation("WalletTransactions");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
@@ -1986,7 +2053,7 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
                 {
-                    b.Navigation("Transactions");
+                    b.Navigation("WalletTransactions");
                 });
 #pragma warning restore 612, 618
         }

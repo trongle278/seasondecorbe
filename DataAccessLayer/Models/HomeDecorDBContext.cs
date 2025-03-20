@@ -45,7 +45,6 @@ namespace DataAccessObject.Models
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<ProductOrder> ProductOrders { get; set; }
-        public DbSet<Payment> Payments { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -58,12 +57,13 @@ namespace DataAccessObject.Models
         public DbSet<ChatFile> ChatFiles { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
-        //test
         public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<FavoriteService> FavoriteServices { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
         public DbSet<Setting> Settings { get; set; }
+        public DbSet<BookingDetail> BookingDetails { get; set; }
+        public DbSet<Tracking> Trackings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -149,12 +149,6 @@ namespace DataAccessObject.Models
                 .WithMany(a => a.Bookings)
                 .HasForeignKey(b => b.AccountId);
 
-            // Configure 1-N relationship between Account and Payment
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Account)
-                .WithMany(a => a.Payments)
-                .HasForeignKey(p => p.AccountId);
-
             // Configure 1-N relationship between Account and Review
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Account)
@@ -180,26 +174,11 @@ namespace DataAccessObject.Models
                 .WithMany(a => a.DecorServices)
                 .HasForeignKey(ds => ds.AccountId);
 
-            // Configure 1-N relationship between Voucher and Booking
-            modelBuilder.Entity<Booking>()
-                .HasOne(b => b.Voucher)
-                .WithMany(v => v.Bookings)
-                .IsRequired(false)
-                .HasForeignKey(b => b.VoucherId);
-                
-
             // Configure 1-1 relationship between Booking and Review
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Review)
                 .WithOne(r => r.Booking)
                 .HasForeignKey<Review>(r => r.BookingId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure 1-N relationship between Booking and Payment
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Booking)
-                .WithMany(b => b.Payments)
-                .HasForeignKey(p => p.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-1 relationship between User and Cart
@@ -280,13 +259,6 @@ namespace DataAccessObject.Models
                 .HasForeignKey(f => f.OrderId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure 1-N relationship between Order and Payment
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Order)
-                .WithMany(o => o.Payments)
-                .HasForeignKey(p => p.OrderId)
-                .OnDelete(DeleteBehavior.NoAction);
-
             // Configure 1-N relationship between Subscription and Account
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Subscription)
@@ -327,24 +299,11 @@ namespace DataAccessObject.Models
                 .HasForeignKey(f => f.FollowingId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //test
             modelBuilder.Entity<DeviceToken>()
                 .HasOne(dt => dt.Account)
                 .WithMany(a => a.DeviceTokens)
                 .HasForeignKey(dt => dt.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PaymentPhase>()
-                .HasOne(pp => pp.Booking)
-                .WithMany(b => b.PaymentPhases)
-                .HasForeignKey(pp => pp.BookingId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.PaymentPhase)
-                .WithMany(pp => pp.Payments)
-                .HasForeignKey(p => p.PaymentPhaseId)
-                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Contact>()
                 .HasOne(c => c.User)
@@ -374,6 +333,12 @@ namespace DataAccessObject.Models
                 .HasOne(f => f.DecorService)
                 .WithMany(ds => ds.FavoriteServices)
                 .HasForeignKey(f => f.DecorServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Address)
+                .WithMany(a => a.Bookings)
+                .HasForeignKey(b => b.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Wallet>()

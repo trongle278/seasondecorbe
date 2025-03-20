@@ -30,7 +30,6 @@ namespace Repository.UnitOfWork
         IAddressRepository AddressRepository { get; }
         IReviewRepository ReviewRepository { get; }
         IBookingRepository BookingRepository { get; }
-        IPaymentPhaseRepository PaymentPhaseRepository { get; }
         IWalletRepository WalletRepository { get; }
         IPaymentTractionRepository PaymentTractionRepository { get; }
         IWalletTransactionRepository WalletTransactionRepository { get; }
@@ -38,6 +37,8 @@ namespace Repository.UnitOfWork
         IFavoriteServiceRepository FavoriteServiceRepository { get; }
         ISeasonRepository SeasonRepository { get; }
         ISettingRepository SettingRepository { get; }
+        IBookingDetailRepository BookingDetailRepository { get; }
+        ITrackingRepository TrackingRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

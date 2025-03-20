@@ -8,7 +8,7 @@ using Repository.GenericRepository;
 
 namespace Repository.Interfaces
 {
-    public interface IPaymentPhaseRepository : IGenericRepository<PaymentPhase>
+    public interface ITrackingRepository : IGenericRepository<Tracking>
     {
     }
 }

@@ -14,6 +14,7 @@ using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using System.Linq.Expressions;
 using AutoMapper;
+using BusinessLogicLayer.ModelRequest.Cart;
 
 namespace BusinessLogicLayer.Services
 {
@@ -22,12 +23,19 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasher<Account> _passwordHasher;
         private readonly IMapper _mapper;
+        private readonly ICartService _cartService;
+        private readonly IWalletService _walletService;
 
-        public AccountManagementService(IUnitOfWork unitOfWork, IMapper mapper)
+        public AccountManagementService(IUnitOfWork unitOfWork, 
+                                        IMapper mapper, 
+                                        ICartService cartService, 
+                                        IWalletService walletService)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = new PasswordHasher<Account>();
             _mapper = mapper;
+            _cartService = cartService;
+            _walletService = walletService;
         }
 
         public async Task<BaseResponse> GetAllAccountsAsync()
@@ -177,6 +185,30 @@ namespace BusinessLogicLayer.Services
                 account.Password = _passwordHasher.HashPassword(account, request.Password);
                 await _unitOfWork.AccountRepository.InsertAsync(account);
                 await _unitOfWork.CommitAsync();
+
+                // Create a cart for the new account
+                var cartResponse = await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
+                if (!cartResponse.Success)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Account created but failed to create cart",
+                        Errors = cartResponse.Errors
+                    };
+                }
+
+                // Create a wallet for the new account
+                var walletCreated = await _walletService.CreateWallet(account.Id);
+                if (!walletCreated)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Account created but failed to create wallet",
+                        Errors = new List<string> { "Wallet creation failed" }
+                    };
+                }
 
                 return new BaseResponse
                 {

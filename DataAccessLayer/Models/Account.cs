@@ -44,7 +44,6 @@ namespace DataAccessObject.Models
         public virtual ICollection<Follow> Followings { get; set; }
         public virtual ICollection<Support> Supports { get; set; }
         public virtual ICollection<TicketReply> TicketReplies { get; set; }
-        public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }

@@ -374,7 +374,7 @@ namespace BusinessLogicLayer.Services
                     Province = request.Province,
                     AccountId = accountId,
                     DecorCategoryId = request.DecorCategoryId,
-                    CreateAt = DateTime.UtcNow.ToLocalTime(),
+                    CreateAt = DateTime.Now,
                     DecorImages = new List<DecorImage>(),
                     DecorServiceSeasons = new List<DecorServiceSeason>()
                 };

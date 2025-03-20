@@ -62,6 +62,19 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Settings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Commission = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Settings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Subscriptions",
                 columns: table => new
                 {
@@ -534,10 +547,12 @@ namespace DataAccessObject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TotalPrice = table.Column<double>(type: "float", nullable: false),
+                    DepositAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     DecorServiceId = table.Column<int>(type: "int", nullable: false),
+                    AddressId = table.Column<int>(type: "int", nullable: false),
                     VoucherId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -549,6 +564,12 @@ namespace DataAccessObject.Migrations
                         principalTable: "Accounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Address_AddressId",
+                        column: x => x.AddressId,
+                        principalTable: "Address",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Bookings_DecorServices_DecorServiceId",
                         column: x => x.DecorServiceId,
@@ -740,23 +761,23 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentPhase",
+                name: "BookingDetails",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    Phase = table.Column<int>(type: "int", nullable: false),
-                    ScheduledAmount = table.Column<double>(type: "float", nullable: false),
-                    OrderCode = table.Column<long>(type: "bigint", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ServiceItem = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EstimatedCompletion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentPhase", x => x.Id);
+                    table.PrimaryKey("PK_BookingDetails", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PaymentPhase_Bookings_BookingId",
+                        name: "FK_BookingDetails_Bookings_BookingId",
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "Id",
@@ -769,7 +790,6 @@ namespace DataAccessObject.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    WalletId = table.Column<int>(type: "int", nullable: false),
                     BookingId = table.Column<int>(type: "int", nullable: true),
                     OrderId = table.Column<int>(type: "int", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -789,11 +809,6 @@ namespace DataAccessObject.Migrations
                         name: "FK_PaymentTransactions_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PaymentTransactions_Wallets_WalletId",
-                        column: x => x.WalletId,
-                        principalTable: "Wallets",
                         principalColumn: "Id");
                 });
 
@@ -835,6 +850,31 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Trackings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    Stage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PlannedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ActualDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ImageUrls = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Trackings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Trackings_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TicketAttachments",
                 columns: table => new
                 {
@@ -862,44 +902,29 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payments",
+                name: "WalletTransactions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Total = table.Column<double>(type: "float", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: false),
-                    BookingId = table.Column<int>(type: "int", nullable: false),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    PaymentPhaseId = table.Column<int>(type: "int", nullable: false)
+                    WalletId = table.Column<int>(type: "int", nullable: false),
+                    PaymentTransactionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.PrimaryKey("PK_WalletTransactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Payments_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
+                        name: "FK_WalletTransactions_PaymentTransactions_PaymentTransactionId",
+                        column: x => x.PaymentTransactionId,
+                        principalTable: "PaymentTransactions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Payments_Bookings_BookingId",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Payments_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Payments_PaymentPhase_PaymentPhaseId",
-                        column: x => x.PaymentPhaseId,
-                        principalTable: "PaymentPhase",
-                        principalColumn: "Id");
+                        name: "FK_WalletTransactions_Wallets_WalletId",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
@@ -956,7 +981,15 @@ namespace DataAccessObject.Migrations
                     { 1, "Spring" },
                     { 2, "Summer" },
                     { 3, "Autumn" },
-                    { 4, "Winter" }
+                    { 4, "Winter" },
+                    { 5, "Christmas" },
+                    { 6, "Tet" },
+                    { 7, "Valentine" },
+                    { 8, "Halloween" },
+                    { 9, "Easter" },
+                    { 10, "Birthday" },
+                    { 11, "Wedding" },
+                    { 12, "Anniversary" }
                 });
 
             migrationBuilder.InsertData(
@@ -980,9 +1013,19 @@ namespace DataAccessObject.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BookingDetails_BookingId",
+                table: "BookingDetails",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_AccountId",
                 table: "Bookings",
                 column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_AddressId",
+                table: "Bookings",
+                column: "AddressId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_DecorServiceId",
@@ -1116,31 +1159,6 @@ namespace DataAccessObject.Migrations
                 column: "VoucherId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PaymentPhase_BookingId",
-                table: "PaymentPhase",
-                column: "BookingId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_AccountId",
-                table: "Payments",
-                column: "AccountId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_BookingId",
-                table: "Payments",
-                column: "BookingId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_OrderId",
-                table: "Payments",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_PaymentPhaseId",
-                table: "Payments",
-                column: "PaymentPhaseId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PaymentTransactions_BookingId",
                 table: "PaymentTransactions",
                 column: "BookingId");
@@ -1149,11 +1167,6 @@ namespace DataAccessObject.Migrations
                 name: "IX_PaymentTransactions_OrderId",
                 table: "PaymentTransactions",
                 column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PaymentTransactions_WalletId",
-                table: "PaymentTransactions",
-                column: "WalletId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductImage_ProductId",
@@ -1227,14 +1240,32 @@ namespace DataAccessObject.Migrations
                 column: "SupportId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Trackings_BookingId",
+                table: "Trackings",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Wallets_AccountId",
                 table: "Wallets",
                 column: "AccountId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_PaymentTransactionId",
+                table: "WalletTransactions",
+                column: "PaymentTransactionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WalletTransactions_WalletId",
+                table: "WalletTransactions",
+                column: "WalletId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "BookingDetails");
+
             migrationBuilder.DropTable(
                 name: "CartItems");
 
@@ -1263,12 +1294,6 @@ namespace DataAccessObject.Migrations
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "Payments");
-
-            migrationBuilder.DropTable(
-                name: "PaymentTransactions");
-
-            migrationBuilder.DropTable(
                 name: "ProductImage");
 
             migrationBuilder.DropTable(
@@ -1278,7 +1303,16 @@ namespace DataAccessObject.Migrations
                 name: "Reviews");
 
             migrationBuilder.DropTable(
+                name: "Settings");
+
+            migrationBuilder.DropTable(
                 name: "TicketAttachments");
+
+            migrationBuilder.DropTable(
+                name: "Trackings");
+
+            migrationBuilder.DropTable(
+                name: "WalletTransactions");
 
             migrationBuilder.DropTable(
                 name: "Carts");
@@ -1290,46 +1324,46 @@ namespace DataAccessObject.Migrations
                 name: "Seasons");
 
             migrationBuilder.DropTable(
-                name: "PaymentPhase");
-
-            migrationBuilder.DropTable(
-                name: "Wallets");
-
-            migrationBuilder.DropTable(
                 name: "Products");
-
-            migrationBuilder.DropTable(
-                name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "TicketReplies");
 
             migrationBuilder.DropTable(
-                name: "Bookings");
+                name: "PaymentTransactions");
+
+            migrationBuilder.DropTable(
+                name: "Wallets");
 
             migrationBuilder.DropTable(
                 name: "ProductCategories");
 
             migrationBuilder.DropTable(
-                name: "Address");
-
-            migrationBuilder.DropTable(
                 name: "Supports");
 
             migrationBuilder.DropTable(
-                name: "DecorServices");
+                name: "Bookings");
 
             migrationBuilder.DropTable(
-                name: "Vouchers");
+                name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "TicketTypes");
 
             migrationBuilder.DropTable(
-                name: "Accounts");
+                name: "DecorServices");
+
+            migrationBuilder.DropTable(
+                name: "Address");
+
+            migrationBuilder.DropTable(
+                name: "Vouchers");
 
             migrationBuilder.DropTable(
                 name: "DecorCategories");
+
+            migrationBuilder.DropTable(
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "Roles");

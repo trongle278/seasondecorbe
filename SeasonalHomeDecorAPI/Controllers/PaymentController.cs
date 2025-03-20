@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Net.payOS.Types;
-using Net.payOS;
 using BusinessLogicLayer.Interfaces;
 using KCP.Service.Service.Pay;
 using BusinessLogicLayer.ModelResponse;
-using BusinessLogicLayer.Utilities.POS;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -12,44 +9,14 @@ namespace SeasonalHomeDecorAPI.Controllers
     [Route("api/[controller]")]
     public class PaymentController : ControllerBase
     {
-        private readonly PayOS _payOS;
         private readonly IWalletService _walletService;
         private readonly IPaymentService _paymentService;
 
         // Inject PayOS đã đăng ký ở Program/Startup
-        public PaymentController(PayOS payOS, IWalletService walletService, IPaymentService paymentService)
+        public PaymentController(IWalletService walletService, IPaymentService paymentService)
         {
-            _payOS = payOS;
             _walletService = walletService;
             _paymentService = paymentService;
-        }
-
-        [HttpPost("create-payment-link")]
-        public async Task<IActionResult> CreatePaymentLink([FromBody] CreatePaymentLinkRequest request)
-        {
-            var domain = "http://localhost:5297";
-
-            // Thay depositPayment.Total = request.Amount
-            int finalAmount = (int)Math.Round((decimal)request.Amount);
-
-            // items: ép Price sang int
-            var itemList = request.Items.Select(x =>
-                new ItemData(x.Name, x.Quantity, (int)Math.Round((decimal)x.Price))
-            ).ToList();
-
-            var paymentData = new PaymentData(
-                orderCode: request.OrderCode,
-                amount: finalAmount,
-                description: request.Description,
-                items: itemList,
-                cancelUrl: $"{domain}/cancel",
-                returnUrl: $"{domain}/success"
-            );
-
-            var payResponse = await _payOS.createPaymentLink(paymentData);
-
-            // Trả về link cho client
-            return Ok(new { checkoutUrl = payResponse.checkoutUrl });
         }
 
         [HttpPost("top-up")]

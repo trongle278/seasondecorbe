@@ -42,5 +42,7 @@ namespace DataAccessObject.Models
         public virtual Account Account { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
+
+        public virtual ICollection<Booking> Bookings { get; set; }
     }
 }

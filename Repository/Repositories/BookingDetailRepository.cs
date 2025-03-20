@@ -9,9 +9,9 @@ using Repository.Interfaces;
 
 namespace Repository.Repositories
 {
-    public class PaymentPhaseRepository : GenericRepository<PaymentPhase>, IPaymentPhaseRepository
+    public class BookingDetailRepository : GenericRepository<BookingDetail>, IBookingDetailRepository
     {
-        public PaymentPhaseRepository(HomeDecorDBContext context) : base(context)
+        public BookingDetailRepository(HomeDecorDBContext context) : base(context)
         {
         }
     }

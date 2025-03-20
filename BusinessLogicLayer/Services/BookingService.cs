@@ -7,10 +7,7 @@ using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
-using Net.payOS.Types;
-using Net.payOS;
 using Repository.UnitOfWork;
-using BusinessLogicLayer.Utilities.POS;
 using BusinessLogicLayer.Interfaces;
 
 namespace BusinessLogicLayer.Services
@@ -18,60 +15,309 @@ namespace BusinessLogicLayer.Services
     public class BookingService : IBookingService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly PayOS _payOS;
 
-        public BookingService(IUnitOfWork unitOfWork, PayOS payOS)
+        public BookingService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _payOS = payOS;
         }
 
         /// <summary>
-        /// Tạo booking (trạng thái ban đầu là Pending).
-        /// Không tạo PaymentPhase ở đây.
-        /// Validation: chỉ cho tài khoản khách hàng (isProvider=false) và không được book dịch vụ do chính mình tạo.
+        /// Lấy danh sách booking của một người dùng cụ thể (có thể là customer hoặc provider)
         /// </summary>
-        public async Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId)
+        public async Task<BaseResponse> GetBookingsByUserAsync(int accountId, int page = 1, int pageSize = 10)
         {
             var response = new BaseResponse();
             try
             {
-                // Lấy Account và kiểm tra isProvider
+                // Kiểm tra tài khoản tồn tại
                 var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
                 if (account == null)
                 {
                     response.Message = "Account not found.";
                     return response;
                 }
-                // Nếu account là provider, không được book
-                if (account.IsProvider == true) // ✅ Kiểm tra trực tiếp từ Account
+
+                // Tính toán số lượng bản ghi bỏ qua cho phân trang
+                int skip = (page - 1) * pageSize;
+
+                // Lấy danh sách booking theo loại tài khoản
+                var query = _unitOfWork.BookingRepository.Queryable()
+                    .Include(b => b.DecorService)
+                    .Include(b => b.Address)
+                    .AsQueryable();
+
+                if (account.IsProvider == true)
                 {
-                    response.Message = "Providers are not allowed to book services.";
+                    // Nếu là provider, lấy các booking của dịch vụ mà provider cung cấp
+                    query = query.Where(b => b.DecorService.AccountId == accountId);
+                }
+                else
+                {
+                    // Nếu là customer, lấy các booking mà customer đã tạo
+                    query = query.Where(b => b.AccountId == accountId);
+                }
+
+                // Đếm tổng số bản ghi để phân trang
+                var totalRecords = await query.CountAsync();
+
+                // Lấy dữ liệu theo phân trang và sắp xếp theo thời gian tạo (mới nhất trước)
+                var bookings = await query
+                    .OrderByDescending(b => b.CreateAt)
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Map sang DTO nếu cần (giả sử có BookingDTO)
+                // var bookingDTOs = _mapper.Map<List<BookingDTO>>(bookings);
+
+                response.Success = true;
+                response.Message = "Bookings retrieved successfully.";
+                response.Data = new
+                {
+                    Bookings = bookings,
+                    TotalRecords = totalRecords,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving bookings.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Lấy chi tiết booking theo ID (kiểm tra quyền truy cập)
+        /// </summary>
+        public async Task<BaseResponse> GetBookingDetailsAsync(int bookingId, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Kiểm tra booking tồn tại và load cả thông tin liên quan
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .Include(b => b.DecorService)
+                    .Include(b => b.Address)
+                    .Include(b => b.Account)
+                    .Include(b => b.BookingDetails)
+                    .Include(b => b.Trackings)
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
                     return response;
                 }
 
-                // Lấy DecorService để kiểm tra xem người book có phải là người tạo dịch vụ không
+                // Kiểm tra quyền truy cập: 
+                // - Nếu là customer, chỉ được xem booking của chính mình
+                // - Nếu là provider, chỉ được xem booking thuộc dịch vụ của mình
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+                if (account == null)
+                {
+                    response.Message = "Account not found.";
+                    return response;
+                }
+
+                if (account.IsProvider == true)
+                {
+                    if (booking.DecorService.AccountId != accountId)
+                    {
+                        response.Message = "You don't have permission to view this booking.";
+                        return response;
+                    }
+                }
+                else
+                {
+                    if (booking.AccountId != accountId)
+                    {
+                        response.Message = "You don't have permission to view this booking.";
+                        return response;
+                    }
+                }
+
+                // Trả về thông tin chi tiết booking
+                response.Success = true;
+                response.Message = "Booking details retrieved successfully.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving booking details.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Thêm chi tiết báo giá vào booking
+        /// </summary>
+        public async Task<BaseResponse> AddBookingDetailAsync(int bookingId, BookingDetailRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                // Kiểm tra trạng thái booking có phù hợp để thêm chi tiết báo giá không
+                if (booking.Status != Booking.BookingStatus.Survey && booking.Status != Booking.BookingStatus.Confirm)
+                {
+                    response.Message = "Can only add booking details during Survey or Confirm stage.";
+                    return response;
+                }
+
+                // Tạo chi tiết báo giá mới
+                var bookingDetail = new BookingDetail
+                {
+                    BookingId = bookingId,
+                    ServiceItem = request.ServiceItem,
+                    Cost = request.Cost,
+                    EstimatedCompletion = request.EstimatedCompletion,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                await _unitOfWork.BookingDetailRepository.InsertAsync(bookingDetail);
+
+                // Cập nhật tổng giá của booking
+                var allDetails = await _unitOfWork.BookingDetailRepository.Queryable()
+                    .Where(d => d.BookingId == bookingId)
+                    .SumAsync(d => (double)d.Cost);
+                booking.TotalPrice = allDetails;
+                _unitOfWork.BookingRepository.Update(booking);
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking detail added successfully.";
+                response.Data = bookingDetail;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error adding booking detail.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        // <summary>
+        /// Thêm tracking (cập nhật tiến độ thi công) vào booking
+        /// </summary>
+        public async Task<BaseResponse> AddTrackingAsync(int bookingId, TrackingRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                // Kiểm tra trạng thái booking có phù hợp để thêm tracking không
+                if (booking.Status != Booking.BookingStatus.Progressing)
+                {
+                    response.Message = "Can only add tracking during Progressing stage.";
+                    return response;
+                }
+
+                // Tạo tracking mới
+                var tracking = new Tracking
+                {
+                    BookingId = bookingId,
+                    Stage = request.Stage,
+                    PlannedDate = request.PlannedDate,
+                    ActualDate = request.ActualDate,
+                    ImageUrls = request.ImageUrls,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                await _unitOfWork.TrackingRepository.InsertAsync(tracking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Tracking added successfully.";
+                response.Data = tracking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error adding tracking.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Tạo booking mới với thông tin dịch vụ, địa chỉ… của khách hàng.
+        /// Kiểm tra: 
+        /// - Account tồn tại và không phải Provider.
+        /// - Dịch vụ (DecorService) tồn tại và không do chính chủ đặt.
+        /// - Địa chỉ (Address) tồn tại.
+        /// Trạng thái ban đầu: Pending.
+        /// </summary>
+        public async Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Kiểm tra tài khoản: Chỉ khách hàng (không phải Provider) mới được đặt dịch vụ
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+                if (account == null)
+                {
+                    response.Message = "Account not found.";
+                    return response;
+                }
+                if (account.IsProvider == true)
+                {
+                    response.Message = "Providers cannot book services.";
+                    return response;
+                }
+
+                // Kiểm tra DecorService: tồn tại và không phải của chính người đặt
                 var decorService = await _unitOfWork.DecorServiceRepository.GetByIdAsync(request.DecorServiceId);
                 if (decorService == null)
                 {
                     response.Message = "DecorService not found.";
                     return response;
                 }
-                // Giả sử DecorService có navigation property Provider với AccountId
                 if (decorService.AccountId == accountId)
                 {
                     response.Message = "Service creator cannot book their own service.";
                     return response;
                 }
 
+                // Kiểm tra địa chỉ
+                var address = await _unitOfWork.AddressRepository.GetByIdAsync(request.AddressId);
+                if (address == null)
+                {
+                    response.Message = "Address not found.";
+                    return response;
+                }
+
+                // Khởi tạo booking với trạng thái Pending, tổng tiền 0 (sẽ cập nhật sau khi có báo giá)
                 var booking = new Booking
                 {
-                    DecorServiceId = request.DecorServiceId,
-                    BookingCode = GenerateBookingCode(), // Hoặc bạn có thể sinh mã khác cho hiển thị lịch sử
-                    AccountId = accountId,
+                    BookingCode = GenerateBookingCode(),
+                    TotalPrice = 0.0,
+                    CreateAt = DateTime.Now,
                     Status = Booking.BookingStatus.Pending,
-                    CreateAt = DateTime.UtcNow.ToLocalTime(),
-                    VoucherId = null
+                    AccountId = accountId,
+                    DecorServiceId = request.DecorServiceId,
+                    AddressId = request.AddressId
                 };
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
@@ -84,18 +330,17 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Booking creation failed.";
+                response.Message = "Error creating booking.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
 
         /// <summary>
-        /// Các API chuyển trạng thái (Confirm, Survey, Procuring, Progressing, Completed, Cancelled)
-        /// Chúng ta có thể gộp lại logic chuyển trạng thái đơn thuần vào 1 API AdvanceBookingPhaseAsync.
-        /// Với điều kiện đặc biệt: từ Surveying sang Procuring thì cần có PaymentPhase Deposit đã hoàn thành.
+        /// Chuyển booking từ trạng thái Pending sang Survey.
+        /// (Provider xác nhận booking và lên lịch khảo sát).
         /// </summary>
-        public async Task<BaseResponse> AdvanceBookingPhaseAsync(int bookingId)
+        public async Task<BaseResponse> SurveyBookingAsync(int bookingId)
         {
             var response = new BaseResponse();
             try
@@ -106,197 +351,215 @@ namespace BusinessLogicLayer.Services
                     response.Message = "Booking not found.";
                     return response;
                 }
-
-                Booking.BookingStatus nextStatus;
-                switch (booking.Status)
+                if (booking.Status != Booking.BookingStatus.Pending)
                 {
-                    case Booking.BookingStatus.Pending:
-                        nextStatus = Booking.BookingStatus.Confirmed;
-                        break;
-                    case Booking.BookingStatus.Confirmed:
-                        nextStatus = Booking.BookingStatus.Surveying;
-                        break;
-                    case Booking.BookingStatus.Surveying:
-                        // Chuyển sang Procuring chỉ nếu có PaymentPhase Deposit đã hoàn thành (PaymentDate != null)
-                        var depositPhase = await _unitOfWork.PaymentPhaseRepository
-                            .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.Deposit)
-                            .FirstOrDefaultAsync();
-                        if (depositPhase == null || depositPhase.PaymentDate == null)
-                        {
-                            response.Message = "Cannot advance to Procuring: Deposit payment not completed.";
-                            return response;
-                        }
-                        nextStatus = Booking.BookingStatus.Procuring;
-                        break;
-                    case Booking.BookingStatus.Procuring:
-                        nextStatus = Booking.BookingStatus.Progressing;
-                        break;
-                    case Booking.BookingStatus.Progressing:
-                        // Để hoàn thành, cần cả FinalPayment hoàn thành
-                        var finalPhase = await _unitOfWork.PaymentPhaseRepository
-                            .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.FinalPayment)
-                            .FirstOrDefaultAsync();
-                        if (finalPhase == null || finalPhase.PaymentDate == null)
-                        {
-                            response.Message = "Cannot advance to Completed: Final payment not completed.";
-                            return response;
-                        }
-                        nextStatus = Booking.BookingStatus.Completed;
-                        break;
-                    default:
-                        response.Message = "No further advancement possible.";
-                        return response;
+                    response.Message = "Only Pending bookings can be moved to Survey state.";
+                    return response;
                 }
-
-                booking.Status = nextStatus;
+                booking.Status = Booking.BookingStatus.Survey;
                 _unitOfWork.BookingRepository.Update(booking);
-
-                // Nếu booking đã Completed, tính lại TotalPrice: tổng ScheduledAmount của Deposit và FinalPayment.
-                if (nextStatus == Booking.BookingStatus.Completed)
-                {
-                    double depositAmount = 0, finalAmount = 0;
-                    var depositPhase = await _unitOfWork.PaymentPhaseRepository
-                        .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.Deposit)
-                        .FirstOrDefaultAsync();
-                    var finalPhase = await _unitOfWork.PaymentPhaseRepository
-                        .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.FinalPayment)
-                        .FirstOrDefaultAsync();
-                    if (depositPhase != null)
-                        depositAmount = depositPhase.ScheduledAmount;
-                    if (finalPhase != null)
-                        finalAmount = finalPhase.ScheduledAmount;
-                    booking.TotalPrice = depositAmount + finalAmount;
-                }
-
                 await _unitOfWork.CommitAsync();
+
                 response.Success = true;
-                response.Message = $"Booking advanced to {booking.Status}.";
+                response.Message = "Booking status updated to Survey.";
                 response.Data = booking;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error advancing booking phase.";
+                response.Message = "Failed to update booking to Survey state.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
 
         /// <summary>
-        /// Sau khi khảo sát, customer chốt OK và đặt cọc.
-        /// Tạo PaymentPhase (Deposit) nếu chưa có, với ScheduledAmount = depositAmount.
+        /// Khi khách hàng đã khảo sát và đọc điều khoản hợp đồng, họ xác nhận chốt hợp đồng.
+        /// Chuyển booking từ Survey sang Confirm và lưu số tiền đặt cọc.
         /// </summary>
-        public async Task<BaseResponse> ApproveSurveyAndDepositAsync(int bookingId, double depositAmount)
+        public async Task<BaseResponse> ConfirmBookingAsync(int bookingId, decimal depositAmount)
         {
             var response = new BaseResponse();
             try
             {
-                // 1) Lấy booking và kiểm tra
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
                 if (booking == null)
                 {
                     response.Message = "Booking not found.";
                     return response;
                 }
-                if (booking.Status != Booking.BookingStatus.Surveying)
+                if (booking.Status != Booking.BookingStatus.Survey)
                 {
-                    response.Message = "Booking must be in Surveying status for deposit.";
+                    response.Message = "Only bookings in Survey state can be confirmed.";
                     return response;
                 }
-
-                // 2) Tạo (hoặc tìm) PaymentPhase cho Deposit
-                var depositPhase = await _unitOfWork.PaymentPhaseRepository
-                    .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.Deposit)
-                    .FirstOrDefaultAsync();
-
-                // Sinh orderCode và description theo định dạng "yyMMdd" + bookingId (3 chữ số)
-                long orderCode = 0;
-                if (!long.TryParse("", out orderCode))
-                {
-                    orderCode = DateTimeOffset.Now.ToUnixTimeSeconds();
-                }
-
-                string phaseDescription = $"DatCocNGLieuID#{bookingId}";
-                if (phaseDescription.Length > 25)
-                {
-                    phaseDescription = phaseDescription.Substring(0, 25);
-                }
-
-                if (depositPhase == null)
-                {
-                    depositPhase = new PaymentPhase
-                    {
-                        BookingId = bookingId,
-                        Phase = PaymentPhase.PaymentPhaseType.Deposit,
-                        ScheduledAmount = depositAmount,
-                        OrderCode = orderCode,
-                        Description = phaseDescription
-                        // Các trường DueDate, PaymentPhaseStatus đã bị loại bỏ
-                    };
-                    await _unitOfWork.PaymentPhaseRepository.InsertAsync(depositPhase);
-                    await _unitOfWork.CommitAsync();
-                }
-                else
-                {
-                    depositPhase.ScheduledAmount = depositAmount;
-                    depositPhase.OrderCode = orderCode;
-                    depositPhase.Description = phaseDescription;
-                    _unitOfWork.PaymentPhaseRepository.Update(depositPhase);
-                    await _unitOfWork.CommitAsync();
-                }
-
-                // 3) Tạo PaymentData để gọi API payOS
-                int depositAmountInt = (int)Math.Round(depositAmount);
-                var items = new List<ItemData>
-                {
-                    new ItemData("Đặt cọc chuẩn bị nguyên liệu", 1, depositAmountInt)
-                };
-
-                string paymentDescription = phaseDescription; // Sử dụng cùng description
-                var paymentData = new PaymentData(
-                    orderCode: orderCode,
-                    amount: depositAmountInt,
-                    description: paymentDescription,
-                    items: items,
-                    cancelUrl: "http://localhost:5297/payment-cancel",
-                    returnUrl: "http://localhost:5297/payment-success"
-                );
-
-                var payResult = await _payOS.createPaymentLink(paymentData);
-
-                // 4) Lưu thông tin giao dịch đặt cọc trong PaymentPhase (ví dụ, cập nhật PaymentDate)
-                depositPhase.PaymentDate = DateTime.UtcNow.ToLocalTime();
-                _unitOfWork.PaymentPhaseRepository.Update(depositPhase);
+                booking.Status = Booking.BookingStatus.Confirm;
+                // Lưu số tiền đặt cọc vào booking (đảm bảo Booking có thuộc tính DepositAmount)
+                booking.DepositAmount = depositAmount;
+                _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Deposit payment link created; please complete payment via the provided link.";
-                response.Data = new
-                {
-                    CheckoutUrl = payResult.checkoutUrl,
-                    Booking = booking,
-                    OrderCode = orderCode
-                };
+                response.Message = "Booking confirmed successfully with deposit saved.";
+                response.Data = booking;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error processing deposit payment.";
+                response.Message = "Failed to confirm booking.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
 
         /// <summary>
-        /// Khi thi công xong, khách hàng thanh toán phần cuối (FinalPayment) và booking chuyển sang Completed.
-        /// Tạo PaymentPhase (FinalPayment) nếu chưa có, với ScheduledAmount = finalAmount.
+        /// Sau khi giao dịch đặt cọc thành công, cập nhật trạng thái booking thành DepositPaid.
         /// </summary>
+        public async Task<BaseResponse> MarkDepositPaidAsync(int bookingId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+                if (booking.Status != Booking.BookingStatus.Confirm)
+                {
+                    response.Message = "Booking must be confirmed before marking as DepositPaid.";
+                    return response;
+                }
+                booking.Status = Booking.BookingStatus.DepositPaid;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking updated to DepositPaid.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to mark booking as DepositPaid.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
         /// <summary>
-        /// Xử lý thanh toán cuối (FinalPayment) và chuyển booking sang Completed.
-        /// Tạo PaymentPhase (FinalPayment) nếu chưa có, với ScheduledAmount = finalAmount.
-        /// Sử dụng logic orderCode: nếu finalPayment.Code không hợp lệ, sinh bằng Unix time.
+        /// Chuyển trạng thái booking từ DepositPaid sang Preparing (Chuẩn bị nguyên liệu).
         /// </summary>
-        public async Task<BaseResponse> CompleteBookingAsync(int bookingId, double finalAmount)
+        public async Task<BaseResponse> MarkPreparingAsync(int bookingId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+                if (booking.Status != Booking.BookingStatus.DepositPaid)
+                {
+                    response.Message = "Booking must be in DepositPaid state to transition to Preparing.";
+                    return response;
+                }
+                booking.Status = Booking.BookingStatus.Preparing;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking updated to Preparing.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to update booking to Preparing.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Chuyển trạng thái booking từ Preparing sang InTransit (Nguyên liệu được chuyển đến khách hàng).
+        /// </summary>
+        public async Task<BaseResponse> MarkInTransitAsync(int bookingId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+                if (booking.Status != Booking.BookingStatus.Preparing)
+                {
+                    response.Message = "Booking must be in Preparing state to transition to InTransit.";
+                    return response;
+                }
+                booking.Status = Booking.BookingStatus.InTransit;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking updated to InTransit.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to update booking to InTransit.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Chuyển trạng thái booking từ InTransit sang Progressing (Thi công đang diễn ra).
+        /// </summary>
+        public async Task<BaseResponse> MarkProgressingAsync(int bookingId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+                if (booking.Status != Booking.BookingStatus.InTransit)
+                {
+                    response.Message = "Booking must be in InTransit state to transition to Progressing.";
+                    return response;
+                }
+                booking.Status = Booking.BookingStatus.Progressing;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking updated to Progressing.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to update booking to Progressing.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Chuyển trạng thái booking từ Progressing sang ConstructionPayment (Thanh toán thi công).
+        /// </summary>
+        public async Task<BaseResponse> MarkConstructionPaymentAsync(int bookingId)
         {
             var response = new BaseResponse();
             try
@@ -309,109 +572,64 @@ namespace BusinessLogicLayer.Services
                 }
                 if (booking.Status != Booking.BookingStatus.Progressing)
                 {
-                    response.Message = "Booking must be in Progressing status to complete.";
+                    response.Message = "Booking must be in Progressing state to transition to ConstructionPayment.";
                     return response;
                 }
+                booking.Status = Booking.BookingStatus.ConstructionPayment;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
 
-                var finalPhase = await _unitOfWork.PaymentPhaseRepository
-                    .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.FinalPayment)
-                    .FirstOrDefaultAsync();
-
-                long orderCode = 0;
-                // Giả sử finalPayment.Code nằm trong finalAmount (vì PaymentRequest không chứa Code)
-                // Nếu không có, sinh bằng Unix time.
-                // Bạn có thể tùy chỉnh nếu muốn nhận Code từ FE.
-                if (!long.TryParse("", out orderCode))
-                {
-                    orderCode = DateTimeOffset.Now.ToUnixTimeSeconds();
-                }
-                string phaseDescription = $"ThanhToanThiCong#{bookingId}";
-                if (phaseDescription.Length > 25)
-                    phaseDescription = phaseDescription.Substring(0, 25);
-
-                if (finalPhase == null)
-                {
-                    finalPhase = new PaymentPhase
-                    {
-                        BookingId = bookingId,
-                        Phase = PaymentPhase.PaymentPhaseType.FinalPayment,
-                        ScheduledAmount = finalAmount,
-                        OrderCode = orderCode,
-                        Description = phaseDescription
-                    };
-                    await _unitOfWork.PaymentPhaseRepository.InsertAsync(finalPhase);
-                    await _unitOfWork.CommitAsync();
-                }
-                else
-                {
-                    finalPhase.ScheduledAmount = finalAmount;
-                    finalPhase.OrderCode = orderCode;
-                    finalPhase.Description = phaseDescription;
-                    _unitOfWork.PaymentPhaseRepository.Update(finalPhase);
-                    await _unitOfWork.CommitAsync();
-                }
-
-                int finalAmountInt = (int)Math.Round(finalAmount);
-                var items = new List<ItemData>
-                {
-                    new ItemData("Thanh toán thi công trang trí", 1, finalAmountInt)
-                };
-
-                string paymentDescription = phaseDescription;
-                var paymentData = new PaymentData(
-                    orderCode: orderCode,
-                    amount: finalAmountInt,
-                    description: paymentDescription,
-                    items: items,
-                    cancelUrl: "http://example.com/payment-cancel",
-                    returnUrl: "http://example.com/payment-success"
-                );
-
-                var payResult = await _payOS.createPaymentLink(paymentData);
-
-                if (payResult != null)
-                {
-                    finalPhase.PaymentDate = DateTime.UtcNow.ToLocalTime();
-                    _unitOfWork.PaymentPhaseRepository.Update(finalPhase);
-
-                    booking.Status = Booking.BookingStatus.Completed;
-                    // Tính TotalPrice = ScheduledAmount của Deposit + FinalPayment
-                    double depositAmount = 0;
-                    var depositPhase = await _unitOfWork.PaymentPhaseRepository
-                        .Query(pp => pp.BookingId == bookingId && pp.Phase == PaymentPhase.PaymentPhaseType.Deposit)
-                        .FirstOrDefaultAsync();
-                    if (depositPhase != null)
-                        depositAmount = depositPhase.ScheduledAmount;
-                    booking.TotalPrice = depositAmount + finalAmount;
-                    _unitOfWork.BookingRepository.Update(booking);
-
-                    await _unitOfWork.CommitAsync();
-
-                    response.Success = true;
-                    response.Message = "Final payment processed; booking completed.";
-                    response.Data = new
-                    {
-                        CheckoutUrl = payResult.checkoutUrl,
-                        Booking = booking,
-                        OrderCode = orderCode.ToString()
-                    };
-                }
-                else
-                {
-                    response.Message = "Final payment failed.";
-                }
+                response.Success = true;
+                response.Message = "Booking updated to ConstructionPayment.";
+                response.Data = booking;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error processing final payment.";
+                response.Message = "Failed to update booking to ConstructionPayment.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
 
         /// <summary>
-        /// Hủy booking và cập nhật trạng thái của các giai đoạn thanh toán liên quan.
+        /// Hoàn thành booking: chuyển trạng thái từ ConstructionPayment sang Completed.
+        /// </summary>
+        public async Task<BaseResponse> CompleteBookingAsync(int bookingId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+                if (booking.Status != Booking.BookingStatus.ConstructionPayment)
+                {
+                    response.Message = "Booking must be in ConstructionPayment state to be completed.";
+                    return response;
+                }
+                booking.Status = Booking.BookingStatus.Completed;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking completed successfully.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to complete booking.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Hủy booking ở bất kỳ giai đoạn nào.
         /// </summary>
         public async Task<BaseResponse> CancelBookingAsync(int bookingId)
         {
@@ -421,65 +639,21 @@ namespace BusinessLogicLayer.Services
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
                 if (booking == null)
                 {
-                    response.Success = false;
                     response.Message = "Booking not found.";
                     return response;
                 }
-
                 booking.Status = Booking.BookingStatus.Cancelled;
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
                 response.Message = "Booking cancelled successfully.";
+                response.Data = booking;
             }
             catch (Exception ex)
             {
                 response.Success = false;
                 response.Message = "Error cancelling booking.";
-                response.Errors.Add(ex.Message);
-            }
-            return response;
-        } 
-
-        /// <summary>
-        /// API lấy lịch sử booking cho một tài khoản.
-        /// Nếu booking đã Completed và có đủ 2 PaymentPhase (Deposit & FinalPayment),
-        /// TotalPrice được tính là tổng ScheduledAmount của 2 PaymentPhase.
-        /// </summary>
-        public async Task<BaseResponse> GetBookingHistoryAsync(int accountId)
-        {
-            var response = new BaseResponse();
-            try
-            {
-                var bookings = await _unitOfWork.BookingRepository.Query(b => b.AccountId == accountId)
-                    .Include(b => b.PaymentPhases)
-                    .ToListAsync();
-
-                // Chỉ lấy các booking có trạng thái Completed, và có cả Deposit và FinalPayment hoàn thành
-                var history = bookings.Where(b => b.Status == Booking.BookingStatus.Completed &&
-                    b.PaymentPhases.Any(pp => pp.Phase == PaymentPhase.PaymentPhaseType.Deposit && pp.PaymentDate != null) &&
-                    b.PaymentPhases.Any(pp => pp.Phase == PaymentPhase.PaymentPhaseType.FinalPayment && pp.PaymentDate != null))
-                    .Select(b =>
-                    {
-                        double deposit = b.PaymentPhases
-                            .Where(pp => pp.Phase == PaymentPhase.PaymentPhaseType.Deposit && pp.PaymentDate != null)
-                            .Sum(pp => pp.ScheduledAmount);
-                        double final = b.PaymentPhases
-                            .Where(pp => pp.Phase == PaymentPhase.PaymentPhaseType.FinalPayment && pp.PaymentDate != null)
-                            .Sum(pp => pp.ScheduledAmount);
-                        b.TotalPrice = deposit + final;
-                        return b;
-                    }).ToList();
-
-                response.Success = true;
-                response.Message = "Booking history retrieved.";
-                response.Data = history;
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "Error retrieving booking history.";
                 response.Errors.Add(ex.Message);
             }
             return response;

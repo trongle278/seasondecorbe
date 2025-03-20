@@ -9,104 +9,433 @@ using BusinessLogicLayer.Interfaces;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
+        private readonly IPaymentService _paymentService;
 
-        public BookingController(IBookingService bookingService)
+        public BookingController(IBookingService bookingService, IPaymentService paymentService)
         {
             _bookingService = bookingService;
+            _paymentService = paymentService;
         }
 
         /// <summary>
-        /// Tạo booking (trạng thái ban đầu là Pending).
+        /// Tạo booking mới (chỉ dành cho customer)
         /// </summary>
-        [HttpPost("create")]
-        [Authorize]
+        [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null)
+            try
             {
-                return Unauthorized(new BaseResponse { Success = false, Message = "Invalid token." });
+                // Lấy ID người dùng hiện tại từ claim
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (accountId == 0)
+                {
+                    return Unauthorized(new { Message = "Unauthorized" });
+                }
+
+                var response = await _bookingService.CreateBookingAsync(request, accountId);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
             }
-
-            int accountId = int.Parse(userIdClaim.Value);
-            var response = await _bookingService.CreateBookingAsync(request, accountId);
-            if (response.Success) return Ok(response);
-            return BadRequest(response);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
         }
 
         /// <summary>
-        /// API tự động chuyển trạng thái booking sang giai đoạn tiếp theo dựa trên trạng thái hiện tại.
-        /// Chỉ cần nhập bookingId.
-        /// Ví dụ: nếu booking đang ở Surveying và Deposit đã hoàn thành, sẽ chuyển sang Procuring.
+        /// Lấy danh sách booking của người dùng hiện tại (có thể là customer hoặc provider)
         /// </summary>
-        [HttpPut("advance/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> AdvanceBookingPhase(int bookingId)
+        [HttpGet]
+        public async Task<IActionResult> GetMyBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var response = await _bookingService.AdvanceBookingPhaseAsync(bookingId);
-            if (response.Success)
+            try
+            {
+                // Lấy ID người dùng hiện tại từ claim
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (accountId == 0)
+                {
+                    return Unauthorized(new { Message = "Unauthorized" });
+                }
+
+                // Gọi service để lấy booking của người dùng hiện tại
+                var response = await _bookingService.GetBookingsByUserAsync(accountId, page, pageSize);
                 return Ok(response);
-            return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
         }
 
         /// <summary>
-        /// Sau khảo sát, customer đặt cọc (Deposit): Surveying -> (Deposit phase tạo mới) -> (sau đó chuyển sang Procuring qua API riêng nếu cần).
+        /// Lấy chi tiết booking theo ID
         /// </summary>
-        [HttpPost("deposit/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> ApproveSurveyAndDeposit(int bookingId, [FromBody] PaymentRequest paymentRequest)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBookingDetails(int id)
         {
-            // PaymentRequest chỉ chứa Total
-            double depositAmount = paymentRequest.Total;
-            var response = await _bookingService.ApproveSurveyAndDepositAsync(bookingId, depositAmount);
-            if (response.Success) return Ok(response);
-            return BadRequest(response);
+            try
+            {
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (accountId == 0)
+                {
+                    return Unauthorized(new { Message = "Unauthorized" });
+                }
+
+                var response = await _bookingService.GetBookingDetailsAsync(id, accountId);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return NotFound(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
         }
 
         /// <summary>
-        /// Khi thi công xong, customer thanh toán cuối (FinalPayment): Progressing -> (Final phase tạo mới) -> Completed.
+        /// [Provider] Chuyển booking sang trạng thái Survey
         /// </summary>
-        [HttpPost("complete/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> CompleteBooking(int bookingId, [FromBody] PaymentRequest paymentRequest)
+        [HttpPut("{id}/survey")]
+        public async Task<IActionResult> SurveyBooking(int id)
         {
-            double finalAmount = paymentRequest.Total;
-            var response = await _bookingService.CompleteBookingAsync(bookingId, finalAmount);
-            if (response.Success) return Ok(response);
-            return BadRequest(response);
-        }        
-
-        [HttpGet("history")]
-        [Authorize]
-        public async Task<IActionResult> GetBookingHistory()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null)
-                return Unauthorized(new BaseResponse { Success = false, Message = "Invalid token." });
-
-            int accountId = int.Parse(userIdClaim.Value);
-            var response = await _bookingService.GetBookingHistoryAsync(accountId);
-            if (response.Success)
-                return Ok(response);
-            return BadRequest(response);
+            try
+            {
+                var response = await _bookingService.SurveyBookingAsync(id);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
         }
 
         /// <summary>
-        /// Hủy booking.
+        /// [Customer] Confirm booking và lưu số tiền đặt cọc
         /// </summary>
-        [HttpPut("cancel/{bookingId}")]
-        [Authorize]
-        public async Task<IActionResult> CancelBooking(int bookingId)
+        [HttpPut("{id}/confirm")]
+        public async Task<IActionResult> ConfirmBooking(int id, [FromBody] ConfirmBookingRequest request)
         {
-            var response = await _bookingService.CancelBookingAsync(bookingId);
-            if (response.Success) return Ok(response);
-            return BadRequest(response);
+            try
+            {
+                var response = await _bookingService.ConfirmBookingAsync(id, request.DepositAmount);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
         }
 
+        /// <summary>
+        /// [Customer] Thanh toán đặt cọc
+        /// </summary>
+        [HttpPost("{id}/deposit")]
+        public async Task<IActionResult> DepositPayment(int id)
+        {
+            try
+            {
+                // Lấy ID khách hàng hiện tại
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (accountId == 0)
+                {
+                    return Unauthorized(new { Message = "Unauthorized" });
+                }
+
+                // Lấy thông tin booking
+                var bookingResponse = await _bookingService.GetBookingDetailsAsync(id, accountId);
+                if (!bookingResponse.Success)
+                {
+                    return BadRequest(bookingResponse);
+                }
+
+                // Giả sử booking có trường DepositAmount để biết số tiền cần đặt cọc
+                var booking = (dynamic)bookingResponse.Data;
+                decimal depositAmount = booking.DepositAmount;
+
+                // Thực hiện thanh toán đặt cọc
+                // Giả sử adminId = 1, đây là tài khoản admin nhận tiền đặt cọc
+                var paymentSuccess = await _paymentService.Deposit(accountId, 1, depositAmount, id);
+
+                if (paymentSuccess)
+                {
+                    // Nếu thanh toán thành công, cập nhật trạng thái booking
+                    var updateResponse = await _bookingService.MarkDepositPaidAsync(id);
+                    if (updateResponse.Success)
+                    {
+                        return Ok(new BaseResponse
+                        {
+                            Success = true,
+                            Message = "Deposit payment successful, booking updated to DepositPaid.",
+                            Data = updateResponse.Data
+                        });
+                    }
+                    return Ok(new BaseResponse
+                    {
+                        Success = true,
+                        Message = "Deposit payment successful, but failed to update booking status.",
+                        Data = booking
+                    });
+                }
+
+                return BadRequest(new BaseResponse
+                {
+                    Success = false,
+                    Message = "Deposit payment failed."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// [Provider] Chuyển booking sang trạng thái Preparing sau khi đã đặt cọc
+        /// </summary>
+        [HttpPut("{id}/preparing")]
+        public async Task<IActionResult> MarkPreparing(int id)
+        {
+            try
+            {
+                var response = await _bookingService.MarkPreparingAsync(id);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// [Provider] Chuyển booking sang trạng thái InTransit
+        /// </summary>
+        [HttpPut("{id}/in-transit")]
+        public async Task<IActionResult> MarkInTransit(int id)
+        {
+            try
+            {
+                var response = await _bookingService.MarkInTransitAsync(id);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// [Provider] Chuyển booking sang trạng thái Progressing (thi công)
+        /// </summary>
+        [HttpPut("{id}/progressing")]
+        public async Task<IActionResult> MarkProgressing(int id)
+        {
+            try
+            {
+                var response = await _bookingService.MarkProgressingAsync(id);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// [Provider] Chuyển booking sang trạng thái ConstructionPayment
+        /// </summary>
+        [HttpPut("{id}/construction-payment")]
+        public async Task<IActionResult> MarkConstructionPayment(int id)
+        {
+            try
+            {
+                var response = await _bookingService.MarkConstructionPaymentAsync(id);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// [Customer] Thanh toán cuối cùng (phần còn lại) và hoàn thành booking
+        /// </summary>
+        [HttpPost("{id}/final-payment")]
+        public async Task<IActionResult> FinalPayment(int id)
+        {
+            try
+            {
+                // Lấy ID khách hàng hiện tại
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (accountId == 0)
+                {
+                    return Unauthorized(new { Message = "Unauthorized" });
+                }
+
+                // Lấy thông tin booking
+                var bookingResponse = await _bookingService.GetBookingDetailsAsync(id, accountId);
+                if (!bookingResponse.Success)
+                {
+                    return BadRequest(bookingResponse);
+                }
+
+                // Lấy thông tin booking và tính toán số tiền cần thanh toán
+                var booking = (dynamic)bookingResponse.Data;
+                double totalPrice = booking.TotalPrice;
+
+                // Lấy thông tin provider của dịch vụ
+                int providerId = booking.ProviderId;
+
+                // Thực hiện thanh toán cuối cùng
+                var paymentSuccess = await _paymentService.Pay(accountId, (decimal)totalPrice, providerId, id);
+
+                if (paymentSuccess)
+                {
+                    // Nếu thanh toán thành công, hoàn thành booking
+                    var updateResponse = await _bookingService.CompleteBookingAsync(id);
+                    if (updateResponse.Success)
+                    {
+                        return Ok(new BaseResponse
+                        {
+                            Success = true,
+                            Message = "Final payment successful, booking completed.",
+                            Data = updateResponse.Data
+                        });
+                    }
+                    return Ok(new BaseResponse
+                    {
+                        Success = true,
+                        Message = "Final payment successful, but failed to update booking status.",
+                        Data = booking
+                    });
+                }
+
+                return BadRequest(new BaseResponse
+                {
+                    Success = false,
+                    Message = "Final payment failed."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// Hủy booking
+        /// </summary>
+        [HttpPut("{id}/cancel")]
+        public async Task<IActionResult> CancelBooking(int id)
+        {
+            try
+            {
+                var response = await _bookingService.CancelBookingAsync(id);
+                if (response.Success)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = { ex.Message }
+                });
+            }
+        }
     }
 }
