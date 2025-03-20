@@ -21,8 +21,8 @@ namespace KCP.Service.Service.Pay
         {
             string vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}&adminId={vnPayRequest.AdminId}&proverId={vnPayRequest.ProverId}"; //URL nhan ket qua tra ve 
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; //URL thanh toan cua VNPAY 
-            string vnp_TmnCode = "1O5TRBGQ"; //Ma định danh merchant kết nối (Terminal Id)
-            string vnp_HashSecret = "9SJYAI2OFS37H2LIVCT8QCAFQR944JPW"; //Secret Key
+            string vnp_TmnCode = "ULVE3NUK"; //Ma định danh merchant kết nối (Terminal Id)
+            string vnp_HashSecret = "REFWL616A23MJOFK118BV7GA6FBS0609"; //Secret Key
 
             //Get payment input
             var OrderId = DateTime.Now.Ticks; // Giả lập mã giao dịch hệ thống merchant gửi sang VNPAY
