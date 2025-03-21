@@ -372,7 +372,7 @@ namespace BusinessLogicLayer.Services
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
                     product.CategoryId == request.CategoryId &&
-                    (string.IsNullOrEmpty(request.ProductName) && product.ProductName.Contains(request.ProductName)) &&
+                    string.IsNullOrEmpty(request.ProductName) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
@@ -550,7 +550,7 @@ namespace BusinessLogicLayer.Services
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
                     (product.Account.Slug == request.Slug && product.Account.ProviderVerified == true) &&
-                    (string.IsNullOrEmpty(request.ProductName) && product.ProductName.Contains(request.ProductName)) &&
+                    string.IsNullOrEmpty(request.ProductName) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
