@@ -15,12 +15,10 @@ namespace SeasonalHomeDecorAPI.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
-        private readonly IPaymentService _paymentService;
 
-        public BookingController(IBookingService bookingService, IPaymentService paymentService)
+        public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
-            _paymentService = paymentService;
         }
 
         /// <summary>
@@ -145,97 +143,17 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         /// <summary>
-        /// [Customer] Confirm booking và lưu số tiền đặt cọc
+        /// Xác nhận booking và tiến hành đặt cọc
         /// </summary>
-        [HttpPut("{id}/confirm")]
-        public async Task<IActionResult> ConfirmBooking(int id, [FromBody] ConfirmBookingRequest request)
+        [HttpPost("confirm/{bookingId}")]
+        public async Task<IActionResult> ConfirmBooking(int bookingId, [FromBody] decimal depositAmount)
         {
-            try
+            var response = await _bookingService.ConfirmBookingAsync(bookingId, depositAmount);
+            if (!response.Success)
             {
-                var response = await _bookingService.ConfirmBookingAsync(id, request.DepositAmount);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
                 return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
-        }
-
-        /// <summary>
-        /// [Customer] Thanh toán đặt cọc
-        /// </summary>
-        [HttpPost("{id}/deposit")]
-        public async Task<IActionResult> DepositPayment(int id)
-        {
-            try
-            {
-                // Lấy ID khách hàng hiện tại
-                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                if (accountId == 0)
-                {
-                    return Unauthorized(new { Message = "Unauthorized" });
-                }
-
-                // Lấy thông tin booking
-                var bookingResponse = await _bookingService.GetBookingDetailsAsync(id, accountId);
-                if (!bookingResponse.Success)
-                {
-                    return BadRequest(bookingResponse);
-                }
-
-                // Giả sử booking có trường DepositAmount để biết số tiền cần đặt cọc
-                var booking = (dynamic)bookingResponse.Data;
-                decimal depositAmount = booking.DepositAmount;
-
-                // Thực hiện thanh toán đặt cọc
-                // Giả sử adminId = 1, đây là tài khoản admin nhận tiền đặt cọc
-                var paymentSuccess = await _paymentService.Deposit(accountId, 1, depositAmount, id);
-
-                if (paymentSuccess)
-                {
-                    // Nếu thanh toán thành công, cập nhật trạng thái booking
-                    var updateResponse = await _bookingService.MarkDepositPaidAsync(id);
-                    if (updateResponse.Success)
-                    {
-                        return Ok(new BaseResponse
-                        {
-                            Success = true,
-                            Message = "Deposit payment successful, booking updated to DepositPaid.",
-                            Data = updateResponse.Data
-                        });
-                    }
-                    return Ok(new BaseResponse
-                    {
-                        Success = true,
-                        Message = "Deposit payment successful, but failed to update booking status.",
-                        Data = booking
-                    });
-                }
-
-                return BadRequest(new BaseResponse
-                {
-                    Success = false,
-                    Message = "Deposit payment failed."
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
+            return Ok(response);
         }
 
         /// <summary>
@@ -317,99 +235,17 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         /// <summary>
-        /// [Provider] Chuyển booking sang trạng thái ConstructionPayment
+        /// Thanh toán thi công
         /// </summary>
-        [HttpPut("{id}/construction-payment")]
-        public async Task<IActionResult> MarkConstructionPayment(int id)
+        [HttpPost("construction-payment/{bookingId}")]
+        public async Task<IActionResult> MarkConstructionPayment(int bookingId)
         {
-            try
+            var response = await _bookingService.MarkConstructionPaymentAsync(bookingId);
+            if (!response.Success)
             {
-                var response = await _bookingService.MarkConstructionPaymentAsync(id);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
                 return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
-        }
-
-        /// <summary>
-        /// [Customer] Thanh toán cuối cùng (phần còn lại) và hoàn thành booking
-        /// </summary>
-        [HttpPost("{id}/final-payment")]
-        public async Task<IActionResult> FinalPayment(int id)
-        {
-            try
-            {
-                // Lấy ID khách hàng hiện tại
-                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                if (accountId == 0)
-                {
-                    return Unauthorized(new { Message = "Unauthorized" });
-                }
-
-                // Lấy thông tin booking
-                var bookingResponse = await _bookingService.GetBookingDetailsAsync(id, accountId);
-                if (!bookingResponse.Success)
-                {
-                    return BadRequest(bookingResponse);
-                }
-
-                // Lấy thông tin booking và tính toán số tiền cần thanh toán
-                var booking = (dynamic)bookingResponse.Data;
-                double totalPrice = booking.TotalPrice;
-
-                // Lấy thông tin provider của dịch vụ
-                int providerId = booking.ProviderId;
-
-                // Thực hiện thanh toán cuối cùng
-                var paymentSuccess = await _paymentService.Pay(accountId, (decimal)totalPrice, providerId, id);
-
-                if (paymentSuccess)
-                {
-                    // Nếu thanh toán thành công, hoàn thành booking
-                    var updateResponse = await _bookingService.CompleteBookingAsync(id);
-                    if (updateResponse.Success)
-                    {
-                        return Ok(new BaseResponse
-                        {
-                            Success = true,
-                            Message = "Final payment successful, booking completed.",
-                            Data = updateResponse.Data
-                        });
-                    }
-                    return Ok(new BaseResponse
-                    {
-                        Success = true,
-                        Message = "Final payment successful, but failed to update booking status.",
-                        Data = booking
-                    });
-                }
-
-                return BadRequest(new BaseResponse
-                {
-                    Success = false,
-                    Message = "Final payment failed."
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
+            return Ok(response);
         }
 
         /// <summary>
