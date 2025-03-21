@@ -25,12 +25,14 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IElasticClientService _elasticClientService;
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService, IElasticClientService elasticClientService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cloudinaryService = cloudinaryService;
+            _elasticClientService = elasticClientService;
         }
 
         public async Task<BaseResponse> GetAllProduct()
@@ -856,6 +858,105 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Error deleting product";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> SearchMultiCriteriaProduct(SearchProductRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                Expression<Func<Product, object>>[] includeProperties =
+                {
+                    p => p.Category,
+                    p => p.ProductImages
+                };
+                var products = await _unitOfWork.ProductRepository.GetAllAsync(includeProperties);
+
+                if (!string.IsNullOrEmpty(request.ProductName))
+                    products = products.Where(p => p.ProductName.Contains(request.ProductName));
+
+                if (!string.IsNullOrEmpty(request.CategoryName))
+                    products = products.Where(p => p.Category.CategoryName.Contains(request.CategoryName));
+                
+                if (!string.IsNullOrEmpty(request.ShipFrom))
+                    products = products.Where(p => p.ShipFrom != null && p.ShipFrom.Contains(request.ShipFrom));
+                
+                if (!string.IsNullOrEmpty(request.MadeIn))
+                    products = products.Where(p => p.MadeIn != null && p.MadeIn.Contains(request.MadeIn));
+
+                var productResponses = new List<ProductListResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get productOrder of product
+                    var productOrders = await _unitOfWork.ProductOrderRepository
+                                            .Query(po => po.ProductId == product.Id
+                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                            .Include(po => po.Order)
+                                                .ThenInclude(o => o.Reviews)
+                                            .ToListAsync();
+
+                    // Get review of product
+                    var reviews = productOrders
+                                    .SelectMany(po => po.Order.Reviews)
+                                    .ToList();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+
+                    // Calculate total sold
+                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+
+                    var productResponse = new ProductListResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        Rate = averageRate,
+                        ProductPrice = product.ProductPrice,
+                        TotalSold = totalSold,
+                        ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
+                    };
+
+                    productResponses.Add(productResponse);
+                }
+
+                response.Success = true;
+                response.Message = "Product list retrieved successfully";
+                response.Data = productResponses;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error performing multi-criteria search";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<ProductListResponse>> SearchProduct(string keyword)
+        {
+            var response = new BaseResponse<ProductListResponse>();
+            try
+            {
+                var result = await _elasticClientService.SearchProductAsync(keyword);
+
+                var productResponse = _mapper.Map<ProductListResponse>(result);
+
+                response.Success = true;
+                response.Message = "Search completed successfully";
+                response.Data = productResponse;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error searching products";
                 response.Errors.Add(ex.Message);
             }
 

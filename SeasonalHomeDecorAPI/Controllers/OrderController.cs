@@ -1,6 +1,8 @@
-﻿using BusinessLogicLayer;
+﻿using System.Security.Claims;
+using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Order;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +10,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -20,6 +23,12 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getList")]
         public async Task<IActionResult> GetOrderList()
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _orderService.GetOrderList();
 
             if (result.Success)
@@ -32,6 +41,12 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _orderService.GetOrderById(id);
 
             if (result.Success == false && result.Message == "Invalid order")
@@ -50,9 +65,14 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("createOrder/{id}")]
-        //[Authorize(Policy = "RequireCustomerRole")]
         public async Task<IActionResult> CreateOrder(int id, int addressId)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -88,9 +108,14 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("updateStatus/{id}")]
-        //[Authorize(Policy = "RequireCustomerRole")]
         public async Task<IActionResult> UpdateOrderStatus(int id)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -114,9 +139,14 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpDelete("cancelOrder/{id}")]
-        //[Authorize(Policy = "RequireCustomerRole")]
         public async Task<IActionResult> CancelOrder(int id)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);

@@ -1,6 +1,8 @@
-﻿using BusinessLogicLayer;
+﻿using System.Security.Claims;
+using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Product;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,9 +51,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost("createProductCategory")]
         public async Task<IActionResult> CreateProductCategory(ProductCategoryRequest request)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _productCategoryService.CreateProductCategory(request);
 
             if (result.Success == false && result.Message == "Invalid product category request")
@@ -75,9 +84,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPut("updateProductCategory/{id}")]
         public async Task<IActionResult> UpdateProductCategory(int id, ProductCategoryRequest request)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _productCategoryService.UpdateProductCategory(id, request);
 
             if (result.Success == false && result.Message == "Invalid product category")
@@ -101,9 +117,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpDelete("deleteProductCategory/{id}")]
         public async Task<IActionResult> DeleteProductCategory(int id)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _productCategoryService.DeleteProductCategory(id);
 
             if (result.Success == false && result.Message == "Invalid product category")

@@ -12,5 +12,6 @@ namespace BusinessLogicLayer.Interfaces
         Task IndexDecorServiceAsync(DecorService decorService);
         Task DeleteDecorServiceAsync(int id);
         Task<List<DecorService>> SearchDecorServicesAsync(string keyword);
+        Task<List<Product>> SearchProductAsync(string keyword);
     }
 }

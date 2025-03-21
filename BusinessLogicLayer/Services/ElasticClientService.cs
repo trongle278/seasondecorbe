@@ -81,5 +81,31 @@ namespace BusinessLogicLayer.Services
 
             return searchResponse.Documents.ToList();
         }
+
+        public async Task<List<Product>> SearchProductAsync(string keyword)
+        {
+            var searchResponse = await _elasticClient.SearchAsync<Product>(p => p
+                .Index(IndexName)
+                .Query(q => q
+                    .MultiMatch(m => m
+                        .Fields(f => f
+                            .Field(ff => ff.ProductName)
+                            .Field(ff => ff.ShipFrom)
+                            .Fields(ff => ff.MadeIn)
+                        )
+                        .Query(keyword)
+                        .Fuzziness(Fuzziness.Auto)
+                    )
+                )
+                .Size(50)
+            );
+
+            if (!searchResponse.IsValid)
+            {
+                throw new Exception($"Search DecorService failed: {searchResponse.OriginalException.Message}");
+            }
+
+            return searchResponse.Documents.ToList();
+        }
     }
 }

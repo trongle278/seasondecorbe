@@ -23,5 +23,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> CreateProduct(CreateProductRequest request);
         Task<BaseResponse> UpdateProduct(int id, UpdateProductRequest request);
         Task<BaseResponse> DeleteProduct(int id);
+        Task<BaseResponse> SearchMultiCriteriaProduct(SearchProductRequest request);
+        Task<BaseResponse<ProductListResponse>> SearchProduct(string keyword);
     }
 }

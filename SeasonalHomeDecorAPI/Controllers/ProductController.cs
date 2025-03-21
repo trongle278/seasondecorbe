@@ -1,6 +1,9 @@
-﻿using BusinessLogicLayer.Interfaces;
+﻿using System.Security.Claims;
+using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelRequest.Product;
+using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -116,9 +119,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost("createProduct")]
         public async Task<IActionResult> CreateProduct([FromForm] CreateProductRequest request)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _productService.CreateProduct(request);
 
             if (result.Success == false && result.Message == "Invalid product request")
@@ -160,9 +170,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPut("updateProduct/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromForm] UpdateProductRequest request)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _productService.UpdateProduct(id, request);
 
             if (result.Success == false && result.Message == "Invalid product")
@@ -204,9 +221,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpDelete("deleteProduct/{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
             var result = await _productService.DeleteProduct(id);
 
             if (result.Success == false && result.Message == "Invalid product")
@@ -222,6 +246,30 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             return Ok(result);
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchMultiCriteria(
+        [FromQuery] string? ProductName,
+        [FromQuery] string? CategoryName,
+        [FromQuery] string? ShipFrom,
+        [FromQuery] string? MadeIn)
+        {
+            var request = new SearchProductRequest
+            {
+                ProductName = ProductName,
+                CategoryName = CategoryName,
+                ShipFrom = ShipFrom,
+                MadeIn = MadeIn
+            };
+
+            var result = await _productService.SearchMultiCriteriaProduct(request);
+            
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest();
         }
     }
 }

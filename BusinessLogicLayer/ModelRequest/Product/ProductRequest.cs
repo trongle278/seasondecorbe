@@ -75,4 +75,12 @@ namespace BusinessLogicLayer.ModelRequest.Product
         public int CategoryId { get; set; }
         public List<string>? ImageUrls { get; set; }
     }
+
+    public class SearchProductRequest
+    {
+        public string? ProductName { get; set; }
+        public string? CategoryName { get; set; }
+        public string? MadeIn { get; set; }
+        public string? ShipFrom { get; set; }
+    }
 }
