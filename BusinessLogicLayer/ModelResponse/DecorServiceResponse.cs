@@ -53,6 +53,6 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Style { get; set; }
         public string? Province { get; set; }
         public string? CategoryName { get; set; }  // Tìm theo tên danh mục
-        public string? SeasonName { get; set; }  // Tìm theo tên mùa
+        public List<string>? SeasonNames { get; set; }  // Tìm theo tên mùa
     }
 }

@@ -22,39 +22,6 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         /// <summary>
-        /// Tạo booking mới (chỉ dành cho customer)
-        /// </summary>
-        [HttpPost]
-        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
-        {
-            try
-            {
-                // Lấy ID người dùng hiện tại từ claim
-                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                if (accountId == 0)
-                {
-                    return Unauthorized(new { Message = "Unauthorized" });
-                }
-
-                var response = await _bookingService.CreateBookingAsync(request, accountId);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
-        }
-
-        /// <summary>
         /// Lấy danh sách booking của người dùng hiện tại (có thể là customer hoặc provider)
         /// </summary>
         [HttpGet]
@@ -117,135 +84,91 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         /// <summary>
-        /// [Provider] Chuyển booking sang trạng thái Survey
+        /// Customer tạo booking mới
         /// </summary>
-        [HttpPut("{id}/survey")]
-        public async Task<IActionResult> SurveyBooking(int id)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            try
-            {
-                var response = await _bookingService.SurveyBookingAsync(id);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.CreateBookingAsync(request, accountId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        /// <summary>
+        /// Provider duyệt booking (chuyển sang Survey)
+        /// </summary>
+        [HttpPost("survey/{bookingId}")]
+        public async Task<IActionResult> SurveyBooking(int bookingId)
+        {
+            var response = await _bookingService.SurveyBookingAsync(bookingId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        /// <summary>
+        /// Provider thêm bảng báo giá (BookingDetails)
+        /// </summary>
+        [HttpPost("add-detail/{bookingId}")]
+        public async Task<IActionResult> AddBookingDetail(int bookingId, [FromBody] BookingDetailRequest request)
+        {
+            var response = await _bookingService.AddBookingDetailAsync(bookingId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         /// <summary>
         /// Xác nhận booking và tiến hành đặt cọc
         /// </summary>
         [HttpPost("confirm/{bookingId}")]
-        public async Task<IActionResult> ConfirmBooking(int bookingId, [FromBody] decimal depositAmount)
+        public async Task<IActionResult> ConfirmBooking(int bookingId)
         {
-            var response = await _bookingService.ConfirmBookingAsync(bookingId, depositAmount);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var response = await _bookingService.ConfirmBookingAsync(bookingId);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         /// <summary>
-        /// [Provider] Chuyển booking sang trạng thái Preparing sau khi đã đặt cọc
+        /// Customer xác nhận báo giá và đặt cọc
         /// </summary>
-        [HttpPut("{id}/preparing")]
-        public async Task<IActionResult> MarkPreparing(int id)
+        [HttpPost("deposit/{bookingId}")]
+        public async Task<IActionResult> DepositForBooking(int bookingId)
         {
-            try
-            {
-                var response = await _bookingService.MarkPreparingAsync(id);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
+            var response = await _bookingService.DepositForBookingAsync(bookingId);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         /// <summary>
-        /// [Provider] Chuyển booking sang trạng thái InTransit
+        /// Chuyển booking sang các trạng thái tiếp theo
         /// </summary>
-        [HttpPut("{id}/in-transit")]
-        public async Task<IActionResult> MarkInTransit(int id)
+        [HttpPost("status/{bookingId}/{status}")]
+        public async Task<IActionResult> UpdateBookingStatus(int bookingId, string status)
         {
-            try
+            BaseResponse response = status.ToLower() switch
             {
-                var response = await _bookingService.MarkInTransitAsync(id);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
+                "preparing" => await _bookingService.MarkPreparingAsync(bookingId),
+                "intransit" => await _bookingService.MarkInTransitAsync(bookingId),
+                "progressing" => await _bookingService.MarkProgressingAsync(bookingId),
+                _ => new BaseResponse { Success = false, Message = "Invalid status." }
+            };
+
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         /// <summary>
-        /// [Provider] Chuyển booking sang trạng thái Progressing (thi công)
+        /// Customer thanh toán thi công (Tiền vào ví Admin)
         /// </summary>
-        [HttpPut("{id}/progressing")]
-        public async Task<IActionResult> MarkProgressing(int id)
+        [HttpPost("pay/{bookingId}")]
+        public async Task<IActionResult> PayForConstruction(int bookingId)
         {
-            try
-            {
-                var response = await _bookingService.MarkProgressingAsync(id);
-                if (response.Success)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new BaseResponse
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = { ex.Message }
-                });
-            }
+            var response = await _bookingService.PayForConstructionAsync(bookingId);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         /// <summary>
-        /// Thanh toán thi công
+        /// Hoàn thành booking
         /// </summary>
-        [HttpPost("construction-payment/{bookingId}")]
-        public async Task<IActionResult> MarkConstructionPayment(int bookingId)
+        [HttpPost("complete/{bookingId}")]
+        public async Task<IActionResult> CompleteBooking(int bookingId)
         {
-            var response = await _bookingService.MarkConstructionPaymentAsync(bookingId);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var response = await _bookingService.CompleteBookingAsync(bookingId);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         /// <summary>
@@ -272,6 +195,16 @@ namespace SeasonalHomeDecorAPI.Controllers
                     Errors = { ex.Message }
                 });
             }
+        }
+
+        /// <summary>
+        /// Provider cập nhật tiến độ thi công (Tracking)
+        /// </summary>
+        [HttpPost("tracking/{bookingId}")]
+        public async Task<IActionResult> AddTracking(int bookingId, [FromBody] TrackingRequest request)
+        {
+            var response = await _bookingService.AddTrackingAsync(bookingId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
     }
 }
