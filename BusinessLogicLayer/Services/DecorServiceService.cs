@@ -746,8 +746,10 @@ namespace BusinessLogicLayer.Services
                 if (!string.IsNullOrEmpty(request.CategoryName))
                     query = query.Where(ds => ds.DecorCategory.CategoryName.Contains(request.CategoryName));
 
-                if (!string.IsNullOrEmpty(request.SeasonName))
-                    query = query.Where(ds => ds.DecorServiceSeasons.Any(dss => dss.Season.SeasonName.Contains(request.SeasonName)));
+                if (request.SeasonNames != null && request.SeasonNames.Any())
+                {
+                    query = query.Where(ds => ds.DecorServiceSeasons.Any(dss => request.SeasonNames.Contains(dss.Season.SeasonName)));
+                }
 
                 var decorServices = await query
                     .Include(ds => ds.DecorCategory)
@@ -790,7 +792,5 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
-
-
     }
 }

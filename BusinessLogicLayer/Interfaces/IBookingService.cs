@@ -17,13 +17,13 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> AddTrackingAsync(int bookingId, TrackingRequest request);
         Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId);
         Task<BaseResponse> SurveyBookingAsync(int bookingId);
-        Task<BaseResponse> ConfirmBookingAsync(int bookingId, decimal depositAmount);
-        Task<BaseResponse> MarkDepositPaidAsync(int bookingId);
+        Task<BaseResponse> ConfirmBookingAsync(int bookingId);
         Task<BaseResponse> MarkPreparingAsync(int bookingId);
         Task<BaseResponse> MarkInTransitAsync(int bookingId);
         Task<BaseResponse> MarkProgressingAsync(int bookingId);
-        Task<BaseResponse> MarkConstructionPaymentAsync(int bookingId);
         Task<BaseResponse> CompleteBookingAsync(int bookingId);
         Task<BaseResponse> CancelBookingAsync(int bookingId);
+        Task<BaseResponse> DepositForBookingAsync(int bookingId);
+        Task<BaseResponse> PayForConstructionAsync(int bookingId);
     }
 }

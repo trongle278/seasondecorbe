@@ -128,17 +128,17 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchMultiCriteria(
-            [FromQuery] string? Style,
-            [FromQuery] string? Province,
-            [FromQuery] string? CategoryName,
-            [FromQuery] string? SeasonName)
+        [FromQuery] string? Style,
+        [FromQuery] string? Province,
+        [FromQuery] string? CategoryName,
+        [FromQuery] List<string>? SeasonNames) // Nhận danh sách thay vì string đơn lẻ
         {
             var request = new SearchDecorServiceRequest
             {
                 Style = Style,
                 Province = Province,
                 CategoryName = CategoryName,
-                SeasonName = SeasonName
+                SeasonNames = SeasonNames
             };
 
             var result = await _decorServiceService.SearchMultiCriteriaDecorServices(request);
