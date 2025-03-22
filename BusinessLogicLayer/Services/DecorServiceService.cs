@@ -409,16 +409,16 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.DecorServiceRepository.InsertAsync(decorService);
                 await _unitOfWork.CommitAsync();
 
-                // *** Index lên Elasticsearch (không throw exception nếu lỗi)
-                try
-                {
-                    await _elasticClientService.IndexDecorServiceAsync(decorService);
-                }
-                catch (Exception ex)
-                {
-                    // Log lỗi (nếu cần) nhưng không trả về lỗi cho client
-                    // Ví dụ: _logger.LogError(ex, "Elastic index error in CreateDecorServiceAsync");
-                }
+                //// *** Index lên Elasticsearch (không throw exception nếu lỗi)
+                //try
+                //{
+                //    await _elasticClientService.IndexDecorServiceAsync(decorService);
+                //}
+                //catch (Exception ex)
+                //{
+                //    // Log lỗi (nếu cần) nhưng không trả về lỗi cho client
+                //    // Ví dụ: _logger.LogError(ex, "Elastic index error in CreateDecorServiceAsync");
+                //}
 
                 response.Success = true;
                 response.Message = "Decor service created successfully.";
