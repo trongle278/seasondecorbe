@@ -186,6 +186,7 @@ builder.Services.AddScoped<IFavoriteServiceService, FavoriteServiceService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IQuotationService, QuotationService>();
 
 // 11. Build the application
 var app = builder.Build();

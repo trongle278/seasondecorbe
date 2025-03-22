@@ -30,24 +30,10 @@ namespace BusinessLogicLayer.ModelRequest
         public string ImageUrls { get; set; }
     }
 
-    public class ConfirmBookingRequest
+    public class CreateQuotationRequest
     {
-        [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Deposit amount must be greater than 0")]
-        public decimal DepositAmount { get; set; }
-    }
-
-    public class BookingDetailRequest
-    {
-        [Required]
-        [StringLength(255)]
-        public string ServiceItem { get; set; }
-
-        [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Cost must be greater than 0")]
-        public decimal Cost { get; set; }
-
-        [Required]
-        public DateTime EstimatedCompletion { get; set; }
+        public int BookingId { get; set; }
+        public decimal MaterialCost { get; set; }
+        public decimal LaborCost { get; set; }
     }
 }

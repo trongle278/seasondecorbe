@@ -26,8 +26,6 @@ namespace DataAccessObject.Models
             Expired
         }
         public VoucherStatus Status { get; set; }
-
-        public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Cart> Carts { get; set; }
     }

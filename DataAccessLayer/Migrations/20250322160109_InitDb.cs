@@ -553,7 +553,7 @@ namespace DataAccessObject.Migrations
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     DecorServiceId = table.Column<int>(type: "int", nullable: false),
                     AddressId = table.Column<int>(type: "int", nullable: false),
-                    VoucherId = table.Column<int>(type: "int", nullable: true)
+                    QuotationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -574,11 +574,6 @@ namespace DataAccessObject.Migrations
                         name: "FK_Bookings_DecorServices_DecorServiceId",
                         column: x => x.DecorServiceId,
                         principalTable: "DecorServices",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Bookings_Vouchers_VoucherId",
-                        column: x => x.VoucherId,
-                        principalTable: "Vouchers",
                         principalColumn: "Id");
                 });
 
@@ -771,7 +766,8 @@ namespace DataAccessObject.Migrations
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     EstimatedCompletion = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DepositPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -810,6 +806,28 @@ namespace DataAccessObject.Migrations
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Quotation",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    MaterialCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    LaborCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Quotation", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Quotation_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1033,11 +1051,6 @@ namespace DataAccessObject.Migrations
                 column: "DecorServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Bookings_VoucherId",
-                table: "Bookings",
-                column: "VoucherId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CartItems_CartId",
                 table: "CartItems",
                 column: "CartId");
@@ -1194,6 +1207,12 @@ namespace DataAccessObject.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Quotation_BookingId",
+                table: "Quotation",
+                column: "BookingId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_AccountId",
                 table: "Reviews",
                 column: "AccountId");
@@ -1298,6 +1317,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProductOrders");
+
+            migrationBuilder.DropTable(
+                name: "Quotation");
 
             migrationBuilder.DropTable(
                 name: "Reviews");

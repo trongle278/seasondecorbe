@@ -46,9 +46,13 @@ namespace DataAccessObject.Models
 
         // Chi tiết báo giá dùng entity BookingDetail
         public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
-
-        // Tracking cập nhật tiến độ thi công
         public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; }
+
+        public int QuotationId { get; set; }
+        public Quotation Quotation { get; set; }
+
+        //public int ContractId { get; set; }
+        //public Contract Contract { get; set; }
     }
 }

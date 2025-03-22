@@ -8,8 +8,7 @@ using Repository.GenericRepository;
 
 namespace Repository.Interfaces
 {
-    public interface IBookingDetailRepository : IGenericRepository<BookingDetail>
+    public interface IQuotationRepository : IGenericRepository<Quotation>
     {
-        Task InsertRangeAsync(IEnumerable<BookingDetail> bookingDetails);
     }
 }

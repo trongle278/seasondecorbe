@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250321115449_AddDepositPercentage")]
-    partial class AddDepositPercentage
+    [Migration("20250322160109_InitDb")]
+    partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -203,14 +203,14 @@ namespace DataAccessObject.Migrations
                     b.Property<decimal>("DepositAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("QuotationId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
-
-                    b.Property<int?>("VoucherId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -219,8 +219,6 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AddressId");
 
                     b.HasIndex("DecorServiceId");
-
-                    b.HasIndex("VoucherId");
 
                     b.ToTable("Bookings");
                 });
@@ -967,6 +965,34 @@ namespace DataAccessObject.Migrations
                     b.ToTable("ProductOrders");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Quotation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("LaborCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MaterialCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId")
+                        .IsUnique();
+
+                    b.ToTable("Quotation");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>
                 {
                     b.Property<int>("Id")
@@ -1470,10 +1496,6 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DataAccessObject.Models.Voucher", null)
-                        .WithMany("Bookings")
-                        .HasForeignKey("VoucherId");
-
                     b.Navigation("Account");
 
                     b.Navigation("Address");
@@ -1780,6 +1802,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Quotation", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
+                        .WithOne("Quotation")
+                        .HasForeignKey("DataAccessObject.Models.Quotation", "BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -1953,6 +1986,9 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("PaymentTransactions");
 
+                    b.Navigation("Quotation")
+                        .IsRequired();
+
                     b.Navigation("Review")
                         .IsRequired();
 
@@ -2047,8 +2083,6 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
                 {
-                    b.Navigation("Bookings");
-
                     b.Navigation("Carts");
 
                     b.Navigation("Orders");

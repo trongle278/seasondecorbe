@@ -149,6 +149,12 @@ namespace DataAccessObject.Models
                 .WithMany(a => a.Bookings)
                 .HasForeignKey(b => b.AccountId);
 
+            modelBuilder.Entity<BookingDetail>()
+                .HasOne(bd => bd.Booking)
+                .WithMany(b => b.BookingDetails)
+                .HasForeignKey(bd => bd.BookingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configure 1-N relationship between Account and Review
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Account)
@@ -396,6 +402,10 @@ namespace DataAccessObject.Models
                 new Season { Id = 10, SeasonName = "Birthday" },
                 new Season { Id = 11, SeasonName = "Wedding" },
                 new Season { Id = 12, SeasonName = "Anniversary" }
+            );
+
+            modelBuilder.Entity<Setting>().HasData(
+                new Setting { Id = 1, Commission = (decimal)0.4 }
             );
         }
     }

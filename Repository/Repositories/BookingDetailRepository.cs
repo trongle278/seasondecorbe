@@ -14,5 +14,9 @@ namespace Repository.Repositories
         public BookingDetailRepository(HomeDecorDBContext context) : base(context)
         {
         }
+        public async Task InsertRangeAsync(IEnumerable<BookingDetail> bookingDetails)
+        {
+            await _context.BookingDetails.AddRangeAsync(bookingDetails);
+        }
     }
 }

@@ -11,19 +11,12 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IBookingService
     {
-        Task<BaseResponse> GetBookingsByUserAsync(int accountId, int page = 1, int pageSize = 10);
-        Task<BaseResponse> GetBookingDetailsAsync(int bookingId, int accountId);
-        Task<BaseResponse> AddBookingDetailAsync(int bookingId, BookingDetailRequest request);
-        Task<BaseResponse> AddTrackingAsync(int bookingId, TrackingRequest request);
-        Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId);
-        Task<BaseResponse> SurveyBookingAsync(int bookingId);
-        Task<BaseResponse> ConfirmBookingAsync(int bookingId);
-        Task<BaseResponse> MarkPreparingAsync(int bookingId);
-        Task<BaseResponse> MarkInTransitAsync(int bookingId);
-        Task<BaseResponse> MarkProgressingAsync(int bookingId);
-        Task<BaseResponse> CompleteBookingAsync(int bookingId);
-        Task<BaseResponse> CancelBookingAsync(int bookingId);
-        Task<BaseResponse> DepositForBookingAsync(int bookingId);
-        Task<BaseResponse> PayForConstructionAsync(int bookingId);
+        Task<BaseResponse<List<Booking>>> GetBookingsByUserAsync(int accountId);
+        Task<BaseResponse<Booking>> GetBookingDetailsAsync(int bookingId);
+        Task<BaseResponse<Booking>> CreateBookingAsync(CreateBookingRequest request, int accountId);
+        Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId, Booking.BookingStatus newStatus);
+        Task<BaseResponse<bool>> CancelBookingAsync(int bookingId);
+        Task<BaseResponse> ProcessDepositAsync(int bookingId);
+        Task<BaseResponse> ProcessConstructionPaymentAsync(int bookingId);
     }
 }

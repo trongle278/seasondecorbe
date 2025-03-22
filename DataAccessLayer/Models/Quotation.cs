@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class BookingDetail
+    public class Quotation
     {
         [Key]
         public int Id { get; set; }
@@ -16,20 +16,8 @@ namespace DataAccessObject.Models
         [ForeignKey("Booking")]
         public int BookingId { get; set; }
         public virtual Booking Booking { get; set; }
-
-        [Required]
-        [StringLength(255)]
-        public string ServiceItem { get; set; }
-
-        [Required]
-        public decimal Cost { get; set; }
-
-        [Required]
-        public DateTime EstimatedCompletion { get; set; }
-
+        public decimal MaterialCost { get; set; } // Chi phí nguyên liệu
+        public decimal LaborCost { get; set; } // Chi phí thi công
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
-        public decimal DepositPercentage { get; set; }
     }
 }
