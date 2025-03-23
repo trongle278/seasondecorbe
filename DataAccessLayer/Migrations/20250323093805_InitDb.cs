@@ -546,7 +546,7 @@ namespace DataAccessObject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TotalPrice = table.Column<double>(type: "float", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DepositAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
@@ -766,8 +766,7 @@ namespace DataAccessObject.Migrations
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     EstimatedCompletion = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DepositPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1009,6 +1008,11 @@ namespace DataAccessObject.Migrations
                     { 11, "Wedding" },
                     { 12, "Anniversary" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Settings",
+                columns: new[] { "Id", "Commission" },
+                values: new object[] { 1, 0.4m });
 
             migrationBuilder.InsertData(
                 table: "Subscriptions",

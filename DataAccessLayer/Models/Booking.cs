@@ -14,7 +14,7 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string BookingCode { get; set; }
-        public double TotalPrice { get; set; }
+        public decimal TotalPrice { get; set; }
         public decimal DepositAmount { get; set; }
         public DateTime CreateAt { get; set; }
         public enum BookingStatus

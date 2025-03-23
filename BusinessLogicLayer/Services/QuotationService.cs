@@ -49,7 +49,12 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitAsync(); // ✅ Lưu báo giá trước khi cập nhật booking
+
+                // ✅ Cập nhật `QuotationId` trong `Booking`
+                booking.QuotationId = quotation.Id;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync(); // ✅ Lưu lại Booking với `QuotationId` mới
 
                 response.Success = true;
                 response.Message = "Quotation created successfully.";

@@ -44,10 +44,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("status/{bookingId}/{newStatus}")]
-        public async Task<IActionResult> ChangeBookingStatus(int bookingId, Booking.BookingStatus newStatus)
+        [HttpPut("status/{bookingId}")]
+        public async Task<IActionResult> ChangeBookingStatus(int bookingId)
         {
-            var response = await _bookingService.ChangeBookingStatusAsync(bookingId, newStatus);
+            var response = await _bookingService.ChangeBookingStatusAsync(bookingId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 

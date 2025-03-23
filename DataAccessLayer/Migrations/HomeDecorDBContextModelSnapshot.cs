@@ -207,8 +207,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<double>("TotalPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -237,9 +237,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<decimal>("DepositPercentage")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("EstimatedCompletion")
                         .HasColumnType("datetime2");
@@ -1167,6 +1164,13 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Commission = 0.4m
+                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>

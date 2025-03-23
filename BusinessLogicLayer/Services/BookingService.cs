@@ -46,38 +46,55 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<Booking>> CreateBookingAsync(CreateBookingRequest request, int accountId)
+        public async Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId)
         {
-            var response = new BaseResponse<Booking>();
-
-            var service = await _unitOfWork.DecorServiceRepository.GetByIdAsync(request.DecorServiceId);
-            if (service == null)
+            var response = new BaseResponse();
+            try
             {
-                response.Message = "Service not found.";
-                return response;
+                // 🔹 Kiểm tra nếu `DecorServiceId` hợp lệ
+                var decorService = await _unitOfWork.DecorServiceRepository.Queryable()
+                    .FirstOrDefaultAsync(ds => ds.Id == request.DecorServiceId);
+
+                if (decorService == null)
+                {
+                    response.Message = "Invalid DecorServiceId. Please check your input.";
+                    return response;
+                }
+
+                // 🔹 Kiểm tra nếu người tạo booking cũng là chủ của dịch vụ
+                if (decorService.AccountId == accountId)
+                {
+                    response.Message = "You cannot create a booking for your own service.";
+                    return response;
+                }
+
+                var booking = new Booking
+                {
+                    BookingCode = GenerateBookingCode(),
+                    AccountId = accountId,
+                    AddressId = request.AddressId,
+                    DecorServiceId = request.DecorServiceId,
+                    Status = Booking.BookingStatus.Pending,
+                    CreateAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.BookingRepository.InsertAsync(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking created successfully.";
+                response.Data = booking;
             }
-
-            var booking = new Booking
+            catch (Exception ex)
             {
-                DecorServiceId = request.DecorServiceId,
-                BookingCode = $"BKG-{DateTime.UtcNow.Ticks}",
-                TotalPrice = 0, // Giá sẽ được cập nhật sau khi báo giá
-                CreateAt = DateTime.Now,
-                Status = Booking.BookingStatus.Pending,
-                AccountId = accountId,
-                AddressId = request.AddressId
-            };
-
-            await _unitOfWork.BookingRepository.InsertAsync(booking);
-            await _unitOfWork.CommitAsync();
-
-            response.Success = true;
-            response.Message = "Booking created successfully.";
-            response.Data = booking;
+                response.Success = false;
+                response.Message = "Failed to create booking.";
+                response.Errors.Add(ex.Message);
+            }
             return response;
         }
 
-        public async Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId, Booking.BookingStatus newStatus)
+        public async Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId)
         {
             var response = new BaseResponse<bool>();
             var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
@@ -87,12 +104,32 @@ namespace BusinessLogicLayer.Services
                 return response;
             }
 
-            switch (booking.Status)
+            // 🔹 Xác định trạng thái tiếp theo
+            Booking.BookingStatus? newStatus = booking.Status switch
             {
-                case Booking.BookingStatus.Pending when newStatus == Booking.BookingStatus.Survey:
+                Booking.BookingStatus.Pending => Booking.BookingStatus.Survey,
+                Booking.BookingStatus.Survey => Booking.BookingStatus.Confirm,
+                Booking.BookingStatus.Confirm when booking.DepositAmount > 0 => Booking.BookingStatus.DepositPaid,
+                Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
+                Booking.BookingStatus.Preparing => Booking.BookingStatus.InTransit,
+                Booking.BookingStatus.InTransit => Booking.BookingStatus.Progressing,
+                Booking.BookingStatus.Progressing when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.ConstructionPayment,
+                Booking.BookingStatus.ConstructionPayment => Booking.BookingStatus.Completed,
+                _ => null // Giữ nguyên nếu không hợp lệ
+            };
+
+            if (newStatus == null)
+            {
+                response.Message = "Invalid status transition.";
+                return response;
+            }
+
+            switch (newStatus)
+            {
+                case Booking.BookingStatus.Survey:
                     break;
 
-                case Booking.BookingStatus.Survey when newStatus == Booking.BookingStatus.Confirm:
+                case Booking.BookingStatus.Confirm:
                     // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
                     var quotation = await _unitOfWork.QuotationRepository.Queryable()
                         .FirstOrDefaultAsync(q => q.BookingId == bookingId);
@@ -103,6 +140,10 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
 
+                    // ✅ Cập nhật `TotalPrice` trong `Booking`
+                    booking.TotalPrice = quotation.MaterialCost + quotation.LaborCost;
+
+                    // Kiểm tra nếu BookingDetail đã tồn tại
                     var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
                         .Where(bd => bd.BookingId == bookingId)
                         .ToListAsync();
@@ -111,8 +152,8 @@ namespace BusinessLogicLayer.Services
                     {
                         var bookingDetails = new List<BookingDetail>
                 {
-                    new BookingDetail { BookingId = bookingId, ServiceItem = "Nguyên liệu", Cost = quotation.MaterialCost },
-                    new BookingDetail { BookingId = bookingId, ServiceItem = "Thi công", Cost = quotation.LaborCost }
+                    new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
+                    new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Thi công", Cost = quotation.LaborCost }
                 };
 
                         await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
@@ -120,21 +161,35 @@ namespace BusinessLogicLayer.Services
                     }
                     break;
 
-                case Booking.BookingStatus.Confirm when newStatus == Booking.BookingStatus.DepositPaid:
-                case Booking.BookingStatus.DepositPaid when newStatus == Booking.BookingStatus.Preparing:
-                case Booking.BookingStatus.Preparing when newStatus == Booking.BookingStatus.InTransit:
-                case Booking.BookingStatus.InTransit when newStatus == Booking.BookingStatus.Progressing:
-                case Booking.BookingStatus.Progressing when newStatus == Booking.BookingStatus.ConstructionPayment:
-                case Booking.BookingStatus.ConstructionPayment when newStatus == Booking.BookingStatus.Completed:
+                case Booking.BookingStatus.DepositPaid:
+                    // ✅ Kiểm tra đã đặt cọc chưa
+                    if (booking.DepositAmount == 0)
+                    {
+                        response.Message = "Deposit is required before proceeding.";
+                        return response;
+                    }
                     break;
 
-                default:
-                    response.Message = "Invalid status transition.";
-                    return response;
+                case Booking.BookingStatus.Preparing:
+                case Booking.BookingStatus.InTransit:
+                case Booking.BookingStatus.Progressing:
+                    break;
+
+                case Booking.BookingStatus.ConstructionPayment:
+                    // ✅ Kiểm tra đã thanh toán thi công chưa trước khi chuyển sang `ConstructionPayment`
+                    if (booking.TotalPrice > 0 && booking.DepositAmount < booking.TotalPrice)
+                    {
+                        response.Message = "Full payment is required before proceeding.";
+                        return response;
+                    }
+                    break;
+
+                case Booking.BookingStatus.Completed:
+                    break;
             }
 
             // Cập nhật trạng thái booking
-            booking.Status = newStatus;
+            booking.Status = newStatus.Value;
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
 
@@ -143,6 +198,7 @@ namespace BusinessLogicLayer.Services
             response.Data = true;
             return response;
         }
+
 
         public async Task<BaseResponse<bool>> CancelBookingAsync(int bookingId)
         {
@@ -183,7 +239,9 @@ namespace BusinessLogicLayer.Services
                     .Where(bd => bd.BookingId == bookingId)
                     .SumAsync(bd => (decimal)bd.Cost);
 
-                var depositAmount = totalAmount * 2/10; // Đặt cọc toàn bộ tiền nguyên liệu + thi công
+                // Áp dụng đặt cọc 20%
+                decimal depositRate = 0.2m; // 20%
+                var depositAmount = totalAmount * depositRate;
 
                 var adminAccount = await _unitOfWork.AccountRepository.Queryable()
                     .Where(a => a.Role.RoleName == "Admin")
