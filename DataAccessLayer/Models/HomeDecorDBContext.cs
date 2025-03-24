@@ -347,6 +347,12 @@ namespace DataAccessObject.Models
                 .HasForeignKey(b => b.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Tracking>()
+                .HasOne(t => t.Booking)
+                .WithMany(b => b.Trackings)
+                .HasForeignKey(t => t.BookingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)
                 .HasColumnType("decimal(18,2)");

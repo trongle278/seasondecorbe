@@ -16,12 +16,13 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaymentService _paymentService;
+        private readonly ITrackingService _trackingService;
 
-
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, ITrackingService trackingService)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
+            _trackingService = trackingService;
         }
 
         public async Task<BaseResponse<List<Booking>>> GetBookingsByUserAsync(int accountId)
@@ -192,6 +193,9 @@ namespace BusinessLogicLayer.Services
             booking.Status = newStatus.Value;
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
+
+            // ✅ Gọi `AddBookingTrackingAsync` để lưu tracking
+            await _trackingService.AddTrackingAsync(booking.Id, newStatus.Value, "Status updated automatically.");
 
             response.Success = true;
             response.Message = $"Booking status changed to {newStatus}.";

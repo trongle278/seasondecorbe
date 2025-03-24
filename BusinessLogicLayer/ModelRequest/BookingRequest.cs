@@ -36,4 +36,11 @@ namespace BusinessLogicLayer.ModelRequest
         public decimal MaterialCost { get; set; }
         public decimal LaborCost { get; set; }
     }
+
+    public class UpdateTrackingRequest
+    {
+        public int TrackingId { get; set; }
+        public string? Note { get; set; }
+        public string? ImageUrl { get; set; }
+    }
 }

@@ -873,12 +873,10 @@ namespace DataAccessObject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    Stage = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    PlannedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ActualDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ImageUrls = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

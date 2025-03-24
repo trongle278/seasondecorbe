@@ -15,21 +15,13 @@ namespace DataAccessObject.Models
 
         [ForeignKey("Booking")]
         public int BookingId { get; set; }
-
         public virtual Booking Booking { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        public string Stage { get; set; }
+        [EnumDataType(typeof(Booking.BookingStatus))]
+        public Booking.BookingStatus Status { get; set; } // Trạng thái của booking tại thời điểm này
 
-        public DateTime? PlannedDate { get; set; }
-
-        public DateTime? ActualDate { get; set; }
-
-        public string ImageUrls { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public string? Note { get; set; } // Ghi chú (nếu có)
+        public string? ImageUrl { get; set; } // Link ảnh minh họa cho giai đoạn này
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
