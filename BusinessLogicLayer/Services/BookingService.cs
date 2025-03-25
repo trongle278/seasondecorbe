@@ -172,7 +172,20 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.Preparing:
+                    break;
+
                 case Booking.BookingStatus.InTransit:
+                    // ✅ Khi chuyển sang `InTransit`, cập nhật EstimatedCompletion cho `Chi Phí Nguyên liệu`
+                    var materialDetail = await _unitOfWork.BookingDetailRepository.Queryable()
+                        .FirstOrDefaultAsync(bd => bd.BookingId == bookingId && bd.ServiceItem == "Chi Phí Nguyên liệu");
+
+                    if (materialDetail != null)
+                    {
+                        materialDetail.EstimatedCompletion = DateTime.Now;
+                        _unitOfWork.BookingDetailRepository.Update(materialDetail);
+                    }
+                    break;
+
                 case Booking.BookingStatus.Progressing:
                     break;
 
@@ -186,6 +199,15 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.Completed:
+                    // ✅ Khi chuyển sang `Completed`, cập nhật EstimatedCompletion cho `Chi Phí Thi công`
+                    var laborDetail = await _unitOfWork.BookingDetailRepository.Queryable()
+                        .FirstOrDefaultAsync(bd => bd.BookingId == bookingId && bd.ServiceItem == "Chi Phí Thi công");
+
+                    if (laborDetail != null)
+                    {
+                        laborDetail.EstimatedCompletion = DateTime.Now;
+                        _unitOfWork.BookingDetailRepository.Update(laborDetail);
+                    }
                     break;
             }
 
