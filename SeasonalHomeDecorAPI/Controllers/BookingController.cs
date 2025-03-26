@@ -68,7 +68,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("payment/{bookingId}")]
         public async Task<IActionResult> ProcessConstructionPayment(int bookingId)
         {
-            var response = await _bookingService.ProcessConstructionPaymentAsync(bookingId);
+            var response = await _bookingService.ProcessFinalPaymentAsync(bookingId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 

@@ -22,75 +22,79 @@ namespace BusinessLogicLayer.Services
         }
 
         // amount = giá booking * comission (0.1)  setiing 
-        public async Task<bool> Deposit(int customerId, int adminId, decimal amount, int bookingId)
+        public async Task<bool> Deposit(int customerId, int providerId, decimal amount, int bookingId)
         {
             using (var transaction = await _unitOfWork.BeginTransactionAsync()) // Bắt đầu giao dịch
             {
                 try
                 {
-                    // Kiểm tra số tiền hợp lệ
+                    // 🔹 Kiểm tra số tiền hợp lệ
                     if (amount <= 0)
                     {
-                        throw new Exception("Số tiền gửi phải lớn hơn 0.");
+                        throw new Exception("Số tiền đặt cọc phải lớn hơn 0.");
                     }
-                    var comission = _unitOfWork.SettingRepository.Queryable().First().Commission;
 
-                    var deposit = amount * comission;
-
-                    // Lấy thông tin ví của khách hàng và Admin
+                    // 🔹 Lấy thông tin ví khách hàng & provider
                     var cusAccount = _unitOfWork.AccountRepository.Queryable()
                         .Include(x => x.Wallet)
                         .FirstOrDefault(x => x.Id == customerId);
 
-                    var adAccount = _unitOfWork.AccountRepository.Queryable()
+                    var providerAccount = _unitOfWork.AccountRepository.Queryable()
                         .Include(x => x.Wallet)
-                        .FirstOrDefault(x => x.Id == adminId);
+                        .FirstOrDefault(x => x.Id == providerId);
 
-                    if (cusAccount?.Wallet == null || adAccount?.Wallet == null)
+                    if (cusAccount?.Wallet == null || providerAccount?.Wallet == null)
                     {
-                        throw new Exception("Ví khách hàng hoặc ví Admin không tồn tại.");
+                        throw new Exception("Ví khách hàng hoặc ví nhà cung cấp không tồn tại.");
                     }
 
                     var cusWallet = cusAccount.Wallet;
-                    var adWallet = adAccount.Wallet;
+                    var providerWallet = providerAccount.Wallet;
 
-                    // Kiểm tra số dư khách hàng
-                    if (cusWallet.Balance < deposit)
+                    // 🔹 Kiểm tra số dư khách hàng
+                    if (cusWallet.Balance < amount)
                     {
-                        throw new Exception("Số dư không đủ.");
+                        throw new Exception("Số dư khách hàng không đủ để đặt cọc.");
                     }
 
-                    // Cập nhật số dư ví
-                    await _walletService.UpdateWallet(cusWallet.Id, cusWallet.Balance - deposit);
-                    await _walletService.UpdateWallet(adWallet.Id, adWallet.Balance + deposit);
-
-                    // Tạo giao dịch
-                    var newTransaction = new PaymentTransaction
+                    // 🔹 Tạo giao dịch đặt cọc (trạng thái Pending)
+                    var depositTransaction = new PaymentTransaction
                     {
-                        Amount = deposit,
+                        Amount = amount,
                         TransactionDate = DateTime.Now,
-                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Pending,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Deposite,
                         BookingId = bookingId
                     };
 
-                    // Lưu giao dịch vào lịch sử của khách hàng và Admin
-                    var newCusWalletTransaction = new WalletTransaction
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(depositTransaction);
+                    await _unitOfWork.CommitAsync(); // Lưu để lấy ID
+
+                    // 🔹 Cập nhật số dư ví (trừ tiền khách hàng, cộng tiền provider)
+                    await _walletService.UpdateWallet(cusWallet.Id, cusWallet.Balance - amount);
+                    await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance + amount);
+
+                    // 🔹 Lưu giao dịch vào lịch sử ví của khách hàng & Provider
+                    var cusWalletTransaction = new WalletTransaction
                     {
-                        PaymentTransaction = newTransaction,
+                        PaymentTransactionId = depositTransaction.Id,
                         WalletId = cusWallet.Id,
                     };
 
-                    var newAdWalletTransaction = new WalletTransaction
+                    var providerWalletTransaction = new WalletTransaction
                     {
-                        PaymentTransaction = newTransaction,
-                        WalletId = adWallet.Id,
+                        PaymentTransactionId = depositTransaction.Id,
+                        WalletId = providerWallet.Id,
                     };
 
-                    await _unitOfWork.WalletTransactionRepository.InsertAsync(newCusWalletTransaction);
-                    await _unitOfWork.WalletTransactionRepository.InsertAsync(newAdWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(cusWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
 
-                    // Commit giao dịch
+                    // 🔹 Cập nhật trạng thái giao dịch thành `Success`
+                    depositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
+                    _unitOfWork.PaymentTransactionRepository.Update(depositTransaction);
+
+                    // 🔹 Commit giao dịch
                     await _unitOfWork.CommitAsync();
                     transaction.Commit();
 
@@ -103,6 +107,7 @@ namespace BusinessLogicLayer.Services
                 }
             }
         }
+
 
         public async Task<bool> TopUp(int accountId, decimal amount)
         {
@@ -182,7 +187,7 @@ namespace BusinessLogicLayer.Services
                     }
 
                     // Lấy số tiền đã giao dịch trước đó (nếu có)
-                    var previousAmount = _unitOfWork.PaymentTractionRepository.Queryable()
+                    var previousAmount = _unitOfWork.PaymentTransactionRepository.Queryable()
                         .Where(x => x.BookingId == bookingId)
                         .Select(x => x.Amount)
                         .FirstOrDefault();
@@ -242,74 +247,60 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<bool> Pay(int accountId, decimal bookingAmount, int providerId, int bookingId)
+        public async Task<bool> FinalPay(int accountId, decimal remainBookingAmount, int providerId, int bookingId, decimal commissionRate)
         {
-            using (var transaction = await _unitOfWork.BeginTransactionAsync()) // Bắt đầu giao dịch
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
-                    // Lấy thông tin ví khách hàng và nhà cung cấp
-                    var cusWallet = _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefault(x => x.AccountId == accountId);
-                    var providerWallet = _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefault(x => x.AccountId == providerId);
+                    var cusWallet = await _unitOfWork.WalletRepository.Queryable()
+                        .FirstOrDefaultAsync(x => x.AccountId == accountId);
+                    var providerWallet = await _unitOfWork.WalletRepository.Queryable()
+                        .FirstOrDefaultAsync(x => x.AccountId == providerId);
+                    var adminWallet = await _unitOfWork.WalletRepository.Queryable()
+                        .FirstOrDefaultAsync(x => x.AccountId == 1);
 
-                    if (cusWallet == null || providerWallet == null)
-                    {
-                        throw new Exception("Ví khách hàng hoặc ví nhà cung cấp không tồn tại.");
-                    }
+                    if (cusWallet == null || providerWallet == null || adminWallet == null)
+                        throw new Exception("Ví không tồn tại.");
 
-                    // Lấy số tiền giao dịch trước đó (nếu có)
-                    var amount = _unitOfWork.PaymentTractionRepository.Queryable()
-                        .Where(x => x.BookingId == bookingId)
-                        .Select(x => x.Amount)
-                        .FirstOrDefault();
-
-                    decimal finalAmount = bookingAmount - ((decimal?)amount ?? decimal.Zero);// Nếu `amount` là null, mặc định 0
-
-
-                    if (finalAmount <= 0)
-                    {
+                    if (remainBookingAmount <= 0)
                         throw new Exception("Số tiền thanh toán không hợp lệ.");
-                    }
 
-                    // Kiểm tra số dư ví khách hàng có đủ không
-                    if (cusWallet.Balance < finalAmount)
-                    {
+                    if (cusWallet.Balance < remainBookingAmount)
                         throw new Exception("Số dư ví khách hàng không đủ.");
-                    }
 
-                    // Cập nhật số dư ví
-                    await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance + finalAmount);
-                    await _walletService.UpdateWallet(cusWallet.Id, cusWallet.Balance - finalAmount);
+                    // 🔴 Tính toán hoa hồng admin & số tiền provider nhận
+                    decimal adminCommission = remainBookingAmount * commissionRate;
+                    decimal providerReceiveAmount = remainBookingAmount - adminCommission;
 
-                    // Tạo giao dịch thanh toán
-                    var newTransaction = new PaymentTransaction
+                    // 🔴 Cập nhật số dư ví
+                    await _walletService.UpdateWallet(cusWallet.Id, cusWallet.Balance - remainBookingAmount);
+                    await _walletService.UpdateWallet(adminWallet.Id, adminWallet.Balance + adminCommission);
+                    await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance + providerReceiveAmount);
+
+                    // 🔴 Lưu giao dịch thanh toán của khách hàng
+                    var paymentTransaction = new PaymentTransaction
                     {
-                        Amount = finalAmount,
+                        Amount = remainBookingAmount,
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
                         TransactionType = PaymentTransaction.EnumTransactionType.Pay,
                         BookingId = bookingId,
                     };
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(paymentTransaction);
 
-                    // Lưu giao dịch vào lịch sử ví của khách hàng và nhà cung cấp
-                    var newWalletTransaction = new WalletTransaction
+                    // 🔴 Lưu giao dịch doanh thu của Admin
+                    var adminTransaction = new PaymentTransaction
                     {
-                        PaymentTransaction = newTransaction,
-                        WalletId = cusWallet.Id,
+                        Amount = adminCommission,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue, // Loại giao dịch của Admin
+                        BookingId = bookingId,
                     };
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminTransaction);
 
-                    var providerWalletTransaction = new WalletTransaction
-                    {
-                        PaymentTransaction = newTransaction,
-                        WalletId = providerWallet.Id,
-                    };
-
-                    await _unitOfWork.WalletTransactionRepository.InsertAsync(newWalletTransaction);
-                    await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
-
-                    // Commit giao dịch
+                    // 🔴 Commit giao dịch
                     await _unitOfWork.CommitAsync();
                     transaction.Commit();
 
@@ -318,10 +309,11 @@ namespace BusinessLogicLayer.Services
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+                    Console.WriteLine($"Lỗi khi thanh toán: {ex.Message}");
                     return false;
                 }
             }
         }
-
     }
 }
+

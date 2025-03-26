@@ -246,8 +246,10 @@ namespace BusinessLogicLayer.Services
         public async Task<BaseResponse> ProcessDepositAsync(int bookingId)
         {
             var response = new BaseResponse();
+
             try
             {
+                // 🔹 Lấy thông tin booking
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
                 if (booking == null)
                 {
@@ -260,39 +262,43 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Tính tổng tiền đặt cọc = nguyên liệu + thi công
+                // 🔹 Tính tổng chi phí booking
                 var totalAmount = await _unitOfWork.BookingDetailRepository.Queryable()
                     .Where(bd => bd.BookingId == bookingId)
-                    .SumAsync(bd => (decimal)bd.Cost);
+                    .SumAsync(bd => bd.Cost);
 
-                // Áp dụng đặt cọc 20%
-                decimal depositRate = 0.2m; // 20%
+                var depositRate = 0.2m; // Đặt cọc 20% tổng chi phí
                 var depositAmount = totalAmount * depositRate;
 
-                var adminAccount = await _unitOfWork.AccountRepository.Queryable()
-                    .Where(a => a.Role.RoleName == "Admin")
-                    .FirstOrDefaultAsync();
-                if (adminAccount == null)
+                // 🔹 Lấy Provider từ `DecorService`
+                var provider = await _unitOfWork.AccountRepository.Queryable()
+                    .FirstOrDefaultAsync(a => a.Id == _unitOfWork.DecorServiceRepository.Queryable()
+                        .Where(ds => ds.Id == booking.DecorServiceId)
+                        .Select(ds => ds.AccountId)
+                        .FirstOrDefault());
+
+                if (provider == null)
                 {
-                    response.Message = "Admin account not found.";
+                    response.Message = "Provider not found.";
                     return response;
                 }
 
-                // Gọi PaymentService để thực hiện đặt cọc
-                bool paymentSuccess = await _paymentService.Deposit(booking.AccountId, adminAccount.Id, depositAmount, booking.Id);
+                // 🔹 Thực hiện thanh toán, chuyển tiền cho Provider
+                bool paymentSuccess = await _paymentService.Deposit(booking.AccountId, provider.Id, depositAmount, booking.Id);
                 if (!paymentSuccess)
                 {
                     response.Message = "Deposit payment failed.";
                     return response;
                 }
 
+                // 🔹 Cập nhật trạng thái booking
                 booking.Status = Booking.BookingStatus.DepositPaid;
                 booking.DepositAmount = depositAmount;
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = $"Deposit successful: {depositAmount} transferred.";
+                response.Message = $"Deposit successful: {depositAmount} transferred to provider.";
                 response.Data = booking;
             }
             catch (Exception ex)
@@ -301,10 +307,11 @@ namespace BusinessLogicLayer.Services
                 response.Message = "Failed to process deposit.";
                 response.Errors.Add(ex.Message);
             }
+
             return response;
         }
 
-        public async Task<BaseResponse> ProcessConstructionPaymentAsync(int bookingId)
+        public async Task<BaseResponse> ProcessFinalPaymentAsync(int bookingId)
         {
             var response = new BaseResponse();
             try
@@ -317,33 +324,39 @@ namespace BusinessLogicLayer.Services
                 }
                 if (booking.Status != Booking.BookingStatus.Progressing)
                 {
-                    response.Message = "Booking must be in Progressing state to pay for construction.";
+                    response.Message = "Only progressing bookings can be paid for.";
                     return response;
                 }
 
-                // Tính số tiền cần thanh toán (tổng giá - đã đặt cọc)
-                var totalCost = await _unitOfWork.BookingDetailRepository.Queryable()
-                    .Where(bd => bd.BookingId == bookingId)
-                    .SumAsync(bd => (decimal)bd.Cost);
+                var remainingAmount = booking.TotalPrice - booking.DepositAmount;
 
-                var remainingAmount = totalCost - booking.DepositAmount;
                 if (remainingAmount <= 0)
                 {
-                    response.Message = "No remaining balance to pay.";
+                    response.Message = "No remaining amount to be paid.";
                     return response;
                 }
 
-                var adminAccount = await _unitOfWork.AccountRepository.Queryable()
-                    .Where(a => a.Role.RoleName == "Admin")
+                // Lấy Provider từ DecorService
+                var providerId = await _unitOfWork.DecorServiceRepository.Queryable()
+                    .Where(ds => ds.Id == booking.DecorServiceId)
+                    .Select(ds => ds.AccountId)
                     .FirstOrDefaultAsync();
-                if (adminAccount == null)
+
+                if (providerId == 0)
                 {
-                    response.Message = "Admin account not found.";
+                    response.Message = "Provider not found.";
                     return response;
                 }
 
-                // Gọi PaymentService để thanh toán phần còn lại
-                bool paymentSuccess = await _paymentService.Pay(booking.AccountId, remainingAmount, adminAccount.Id, booking.Id);
+                // Lấy % hoa hồng từ Setting
+                var commissionRate = await _unitOfWork.SettingRepository.Queryable()
+                    .Select(s => s.Commission)
+                    .FirstOrDefaultAsync();
+
+                // Gọi PaymentService.Pay với 5 tham số
+                bool paymentSuccess = await _paymentService.Pay(
+                    booking.AccountId, remainingAmount, providerId, booking.Id, commissionRate);
+
                 if (!paymentSuccess)
                 {
                     response.Message = "Construction payment failed.";
@@ -355,7 +368,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = $"Construction payment successful: {remainingAmount} transferred.";
+                response.Message = "Construction payment successful.";
                 response.Data = booking;
             }
             catch (Exception ex)
@@ -366,7 +379,6 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
-
         #region
         private string GenerateBookingCode()
         {

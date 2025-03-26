@@ -31,7 +31,7 @@ namespace Repository.UnitOfWork
         IReviewRepository ReviewRepository { get; }
         IBookingRepository BookingRepository { get; }
         IWalletRepository WalletRepository { get; }
-        IPaymentTractionRepository PaymentTractionRepository { get; }
+        IPaymentTransactionRepository PaymentTransactionRepository { get; }
         IWalletTransactionRepository WalletTransactionRepository { get; }
         IContactRepository ContactRepository { get; }
         IFavoriteServiceRepository FavoriteServiceRepository { get; }

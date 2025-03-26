@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    public class PaymentTransactionRepository : GenericRepository<PaymentTransaction>, IPaymentTractionRepository
+    public class PaymentTransactionRepository : GenericRepository<PaymentTransaction>, IPaymentTransactionRepository
     {
         public PaymentTransactionRepository(HomeDecorDBContext context) : base(context)
         {

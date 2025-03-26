@@ -22,6 +22,6 @@ namespace DataAccessObject.Models
 
         public string? Note { get; set; } // Ghi chú (nếu có)
         public string? ImageUrl { get; set; } // Link ảnh minh họa cho giai đoạn này
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

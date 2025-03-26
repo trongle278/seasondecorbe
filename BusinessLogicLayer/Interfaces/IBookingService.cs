@@ -17,6 +17,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId);
         Task<BaseResponse<bool>> CancelBookingAsync(int bookingId);
         Task<BaseResponse> ProcessDepositAsync(int bookingId);
-        Task<BaseResponse> ProcessConstructionPaymentAsync(int bookingId);
+        Task<BaseResponse> ProcessFinalPaymentAsync(int bookingId);
     }
 }

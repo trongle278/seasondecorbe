@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Interfaces
 {
-    public interface IPaymentTractionRepository : IGenericRepository<PaymentTransaction>
+    public interface IPaymentTransactionRepository : IGenericRepository<PaymentTransaction>
     {
     }
 }

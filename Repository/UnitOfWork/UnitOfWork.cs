@@ -41,7 +41,7 @@ namespace Repository.UnitOfWork
             BookingRepository = new BookingRepository(_context);
             WalletRepository = new WalletRepository(_context);
             WalletTransactionRepository = new WalletTransactionRepository(_context);
-            PaymentTractionRepository = new PaymentTransactionRepository(_context);
+            PaymentTransactionRepository = new PaymentTransactionRepository(_context);
             SettingRepository = new SettingRepository(_context);
             ContactRepository = new ContactRepository(_context);
             FavoriteServiceRepository = new FavoriteServiceRepository(_context);
@@ -72,7 +72,7 @@ namespace Repository.UnitOfWork
         public IReviewRepository ReviewRepository { get; private set; }
         public IBookingRepository BookingRepository { get; private set; }
         public IWalletRepository WalletRepository { get; }
-        public IPaymentTractionRepository PaymentTractionRepository { get; }
+        public IPaymentTransactionRepository PaymentTransactionRepository { get; }
         public IWalletTransactionRepository WalletTransactionRepository { get; }
         public IContactRepository ContactRepository { get; private set; }
         public IFavoriteServiceRepository FavoriteServiceRepository { get; private set; }

@@ -27,7 +27,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("return")]
-        public async Task<IActionResult> Return([FromQuery] VnPayResponse response, [FromQuery] int customerId, [FromQuery] int adminId, [FromQuery] int proverId)
+        public async Task<IActionResult> Return([FromQuery] VnPayResponse response, [FromQuery] int customerId)
         {
             if (response.vnp_TransactionStatus == "00")
             {
