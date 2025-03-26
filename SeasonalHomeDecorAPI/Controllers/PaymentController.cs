@@ -12,7 +12,6 @@ namespace SeasonalHomeDecorAPI.Controllers
         private readonly IWalletService _walletService;
         private readonly IPaymentService _paymentService;
 
-        // Inject PayOS đã đăng ký ở Program/Startup
         public PaymentController(IWalletService walletService, IPaymentService paymentService)
         {
             _walletService = walletService;

@@ -354,7 +354,7 @@ namespace BusinessLogicLayer.Services
                     .FirstOrDefaultAsync();
 
                 // Gọi PaymentService.Pay với 5 tham số
-                bool paymentSuccess = await _paymentService.Pay(
+                bool paymentSuccess = await _paymentService.FinalPay(
                     booking.AccountId, remainingAmount, providerId, booking.Id, commissionRate);
 
                 if (!paymentSuccess)

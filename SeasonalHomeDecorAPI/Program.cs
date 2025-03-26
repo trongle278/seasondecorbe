@@ -15,6 +15,9 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Design;
 using Nest;
 using BusinessLogicLayer.Utilities.Hub;
+using Quartz;
+using Quartz.AspNetCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +47,23 @@ builder.Services.AddSignalR(options =>
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     options.MaximumReceiveMessageSize = 10 * 1024 * 1024;
 });
+
+// Đăng ký Quartz
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("AccountCleanupService");
+    q.AddJob<AccountCleanupService>(opts => opts.WithIdentity(jobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("AccountCleanupServiceTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInHours(1) // Chạy mỗi 1 giờ
+            .RepeatForever()));
+
+}); 
+
+// Đăng ký dịch vụ Quartz background
+builder.Services.AddQuartzServer(options => options.WaitForJobsToComplete = true);
 
 // 3. Configure CORS
 builder.Services.AddCors(options =>
@@ -188,6 +208,7 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
+builder.Services.AddScoped<AccountCleanupService>();
 
 // 11. Build the application
 var app = builder.Build();
@@ -196,6 +217,14 @@ using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
     await seeder.SeedAdminAsync();
+}
+
+// 🚀 Kích hoạt job ngay khi ứng dụng khởi động
+using (var scope = app.Services.CreateScope())
+{
+    var schedulerFactory = scope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
+    var scheduler = await schedulerFactory.GetScheduler();
+    await scheduler.TriggerJob(new JobKey("AccountCleanupService"));
 }
 
 // 12. Configure the HTTP request pipeline
