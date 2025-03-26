@@ -16,11 +16,13 @@ namespace BusinessLogicLayer.Services
 {
     public class OrderService : IOrderService
     {
+        private readonly IPaymentService _paymentService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderService(IPaymentService paymentService, IUnitOfWork unitOfWork, IMapper mapper)
         {
+            _paymentService = paymentService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -124,11 +126,12 @@ namespace BusinessLogicLayer.Services
 
                 var order = new Order
                 {
+                    OrderCode = GenerateOrderCode(),
                     AccountId = cart.Account.Id,
                     AddressId = address.Id,
                     Phone = address.Phone,
                     FullName = address.FullName,
-                    PaymentMethod = "Online Banking",
+                    PaymentMethod = "Wallet Transaction",
                     OrderDate = DateTime.Now.ToLocalTime(),
                     TotalPrice = orderItems.Sum(item => item.UnitPrice),
                     Status = Order.OrderStatus.Pending,
@@ -195,7 +198,7 @@ namespace BusinessLogicLayer.Services
 
                 switch (order.Status)
                 {
-                    case Order.OrderStatus.Pending:
+                    case Order.OrderStatus.OrderPayment:
                         order.Status = Order.OrderStatus.Processing;
                         _unitOfWork.OrderRepository.Update(order);
                         break;
@@ -280,5 +283,102 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public async Task<BaseResponse> ProcessPayment(int id)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+
+                if (order == null)
+                {
+                    response.Success = false;
+                    response.Message = "Invalid order";
+                    return response;
+                }
+
+                if (order.Status != Order.OrderStatus.Pending)
+                {
+                    response.Success = false;
+                    response.Message = "Invalid status";
+                    return response;
+                }
+
+                var amount = order.TotalPrice;
+
+                if (amount <= 0)
+                {
+                    response.Success = false;
+                    response.Message = "No remaining amount to be paid";
+                    return response;
+                }
+
+                var orderProducts = await _unitOfWork.ProductOrderRepository.Queryable()
+                                        .Where(po => po.OrderId == id)
+                                        .ToListAsync();
+
+                var commissionRate = await _unitOfWork.SettingRepository.Queryable()
+                                            .Select(s => s.Commission)
+                                            .FirstOrDefaultAsync();
+
+                foreach (var orderProduct in orderProducts)
+                {
+                    var providerId = await _unitOfWork.ProductRepository.Queryable()
+                                            .Where(p => p.Id == orderProduct.ProductId)
+                                            .Select(p => p.AccountId)
+                                            .FirstOrDefaultAsync();
+
+                    if (providerId == 0)
+                    {
+                        response.Success = false;
+                        response.Message = "Invalid provider";
+                        return response;
+                    }
+
+                    var unitPrice = orderProduct.UnitPrice ?? 0;
+
+                    if (unitPrice <= 0)
+                    {
+                        response.Success = false;
+                        response.Message = $"Invalid price for product {orderProduct.ProductName}";
+                        return response;
+                    }
+
+                    bool paymentSuccess = await _paymentService.OrderPay(
+                        order.AccountId, providerId, order.Id, unitPrice, commissionRate);
+
+                    if (!paymentSuccess)
+                    {
+                        response.Success = false;
+                        response.Message = $"Failed to process payment for product {orderProduct.ProductName}";
+                        return response;
+                    }
+                }
+
+                order.Status = Order.OrderStatus.OrderPayment;
+                _unitOfWork.OrderRepository.Update(order);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Process payment successfully";
+                response.Data = order;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error process payment";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        #region
+        private string GenerateOrderCode()
+        {
+            return "ODR-" + DateTime.UtcNow.Ticks;
+        }
+        #endregion
     }
 }

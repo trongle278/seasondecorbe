@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250324105620_InitDb")]
-    partial class InitDb
+    [Migration("20250326172014_Init_Db")]
+    partial class Init_Db
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -272,8 +272,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("TotalItem")
                         .HasColumnType("int");
 
-                    b.Property<double>("TotalPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("VoucherId")
                         .HasColumnType("int");
@@ -313,8 +313,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<double>("UnitPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -700,6 +700,10 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
@@ -714,8 +718,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<double>("TotalPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("VoucherId")
                         .HasColumnType("int");
@@ -793,8 +797,8 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("ProductPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal>("ProductPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
@@ -950,8 +954,8 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<double?>("UnitPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -1666,7 +1670,7 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
                         .WithMany("FavoriteServices")
                         .HasForeignKey("DecorServiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Account");

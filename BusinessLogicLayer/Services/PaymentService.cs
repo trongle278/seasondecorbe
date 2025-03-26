@@ -314,6 +314,75 @@ namespace BusinessLogicLayer.Services
                 }
             }
         }
+
+        public async Task<bool> OrderPay(int customerId, int providerId, int orderId, decimal amount, decimal commissionRate)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var customerWallet = await _unitOfWork.WalletRepository.Queryable()
+                        .FirstOrDefaultAsync(x => x.AccountId == customerId);
+
+                    var providerWallet = await _unitOfWork.WalletRepository.Queryable()
+                        .FirstOrDefaultAsync(x => x.AccountId == providerId);
+
+                    var adminWallet = await _unitOfWork.WalletRepository.Queryable()
+                        .FirstOrDefaultAsync(x => x.AccountId == 1);
+
+                    if (customerWallet == null || providerWallet == null || adminWallet == null)
+                        throw new Exception("Ví không tồn tại.");
+
+                    if (amount <= 0)
+                        throw new Exception("Số tiền thanh toán không hợp lệ.");
+
+                    if (customerWallet.Balance < amount)
+                        throw new Exception("Số dư ví khách hàng không đủ.");
+
+                    // Calculate admin commission and provider income
+                    decimal adminCommission = amount * commissionRate;
+                    decimal providerReceiveAmount = amount - adminCommission;
+
+                    // Update wallet balance
+                    await _walletService.UpdateWallet(customerWallet.Id, customerWallet.Balance - amount);
+                    await _walletService.UpdateWallet(adminWallet.Id, adminWallet.Balance + adminCommission);
+                    await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance + providerReceiveAmount);
+
+                    // Save customer transaction
+                    var paymentTransaction = new PaymentTransaction
+                    {
+                        Amount = amount,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Pay,
+                        OrderId = orderId,
+                    };
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(paymentTransaction);
+
+                    // Save admin revenue transaction
+                    var adminTransaction = new PaymentTransaction
+                    {
+                        Amount = adminCommission,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue, // Loại giao dịch của Admin
+                        OrderId = orderId,
+                    };
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminTransaction);
+
+                    await _unitOfWork.CommitAsync();
+                    transaction.Commit();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine($"Lỗi khi thanh toán: {ex.Message}");
+                    return false;
+                }
+            }
+        }
     }
 }
 

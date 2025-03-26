@@ -150,7 +150,7 @@ namespace BusinessLogicLayer.Services
 
                 var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
 
-                double unitPrice = product.ProductPrice;
+                decimal unitPrice = product.ProductPrice;
 
                 // Add product to cart
                 if (cartItem == null)
@@ -251,11 +251,11 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                double unitPrice = product.ProductPrice;
+                decimal unitPrice = product.ProductPrice;
 
                 // Save old cartItem value before update
                 int oldQuantity = cartItem.Quantity;
-                double oldUnitPrice = cartItem.UnitPrice;
+                decimal oldUnitPrice = cartItem.UnitPrice;
 
                 // Update cartItem
                 cartItem.Quantity = quantity;

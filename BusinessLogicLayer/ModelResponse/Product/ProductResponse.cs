@@ -14,7 +14,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public int Id { get; set; }
         public string ProductName { get; set; }
         public string? Description { get; set; }
-        public double ProductPrice { get; set; }
+        public decimal ProductPrice { get; set; }
         public int? Quantity { get; set; }
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
@@ -28,7 +28,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public int Id { get; set; }
         public string ProductName { get; set; }
         public string? Description { get; set; }
-        public double ProductPrice { get; set; }
+        public decimal ProductPrice { get; set; }
         public int? Quantity { get; set; }
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
@@ -41,7 +41,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public int Id { get; set; }
         public string ProductName { get; set; }
         public double Rate { get; set; }
-        public double ProductPrice { get; set; }
+        public decimal ProductPrice { get; set; }
         public int TotalSold { get; set; }
         public List<string>? ImageUrls { get; set; }
     }
@@ -54,7 +54,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public int TotalRate { get; set; }
         public int TotalSold { get; set; }
         public string? Description { get; set; }
-        public double ProductPrice { get; set; }
+        public decimal ProductPrice { get; set; }
         public int? Quantity { get; set; }
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }

@@ -17,7 +17,7 @@ namespace BusinessLogicLayer.ModelRequest.Cart
         public string Image { get; set; }
         [Range(1, int.MaxValue, ErrorMessage  = "Item in cart quantity must exists.")]
         public int Quantity { get; set; }
-        [Range(0, double.MaxValue, ErrorMessage = "Unit price cannot be negative.")]
-        public double UnitPrice { get; set; }
+        [Range(0, (double)decimal.MaxValue, ErrorMessage = "Unit price cannot be negative.")]
+        public decimal UnitPrice { get; set; }
     }
 }

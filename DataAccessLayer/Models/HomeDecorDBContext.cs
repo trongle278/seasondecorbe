@@ -335,12 +335,6 @@ namespace DataAccessObject.Models
                 .HasForeignKey(f => f.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<FavoriteService>()
-                .HasOne(f => f.DecorService)
-                .WithMany(ds => ds.FavoriteServices)
-                .HasForeignKey(f => f.DecorServiceId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Address)
                 .WithMany(a => a.Bookings)

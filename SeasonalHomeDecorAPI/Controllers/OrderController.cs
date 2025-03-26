@@ -52,7 +52,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success == false && result.Message == "Invalid order")
             {
                 ModelState.AddModelError("", $"Order not found!");
-                return StatusCode(400, ModelState);
+                return StatusCode(404, ModelState);
             }
 
             if (result.Success == false && result.Message == "Error retrieving order")
@@ -83,19 +83,19 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success == false && result.Message == "Invalid cart")
             {
                 ModelState.AddModelError("", $"Cart not found!");
-                return StatusCode(403, ModelState);
+                return StatusCode(404, ModelState);
             }
             
             if (result.Success == false && result.Message == "Invalid address")
             {
                 ModelState.AddModelError("", $"Address not found!");
-                return StatusCode(403, ModelState);
+                return StatusCode(404, ModelState);
             }
 
             if (result.Success == false && result.Message == "Invalid item")
             {
                 ModelState.AddModelError("", $"Product not found!");
-                return StatusCode(403, ModelState);
+                return StatusCode(404, ModelState);
             }
 
             if (result.Success == false && result.Message == "Error creating order")
@@ -126,7 +126,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success == false && result.Message == "Invalid order")
             {
                 ModelState.AddModelError("", $"Invalid Order!");
-                return StatusCode(403, ModelState);
+                return StatusCode(404, ModelState);
             }
 
             if (result.Success == false && result.Message == "Error updating status")
@@ -157,17 +157,67 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success == false && result.Message == "Invalid order")
             {
                 ModelState.AddModelError("", $"Order not found!");
-                return StatusCode(403, ModelState);
+                return StatusCode(404, ModelState);
             }
 
             if (result.Success == false && result.Message == "Invalid status")
             {
                 ModelState.AddModelError("", $"Order cannot be cancelled!");
+                return StatusCode(404, ModelState);
             }
 
             if (result.Success == false && result.Message == "Error cancel order")
             {
                 ModelState.AddModelError("", $"Error cancel order!");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("payment/{id}")]
+        public async Task<IActionResult> ProcessOrderPayment(int id)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _orderService.ProcessPayment(id);
+
+            if (result.Success == false && result.Message == "Invalid order")
+            {
+                ModelState.AddModelError("", $"Order not found!");
+                return StatusCode(404, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Invalid status")
+            {
+                ModelState.AddModelError("", $"Order cannot be Paid!");
+                return StatusCode(404, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "No remaining amount to be paid")
+            {
+                ModelState.AddModelError("", $"No remaining amount to be paid!");
+                return StatusCode(417, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Invalid provider")
+            {
+                ModelState.AddModelError("", $"Provider not found!");
+                return StatusCode(404, ModelState);
+            }
+
+            if (result.Success == false && result.Message == "Error process payment")
+            {
+                ModelState.AddModelError("", $"Error process payment!");
                 return StatusCode(500, ModelState);
             }
 

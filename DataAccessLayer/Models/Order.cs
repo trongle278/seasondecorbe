@@ -13,14 +13,16 @@ namespace DataAccessObject.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        public string OrderCode { get; set; }
         public string Phone { get; set; }
         public string FullName { get; set; }
         public string PaymentMethod { get; set; }
         public DateTime OrderDate { get; set; }
-        public double TotalPrice { get; set; }
+        public decimal TotalPrice { get; set; }
         public enum OrderStatus
         {
             Pending,
+            OrderPayment,
             Processing,
             Shipping,
             Completed,

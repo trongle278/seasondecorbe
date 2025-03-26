@@ -15,5 +15,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> CreateOrder(int cartId, int addressId);
         Task<BaseResponse> UpdateStatus(int id);
         Task<BaseResponse> CancelOrder(int id);
+        Task<BaseResponse> ProcessPayment(int id);
     }
 }
