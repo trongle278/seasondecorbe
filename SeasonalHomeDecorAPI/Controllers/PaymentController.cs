@@ -28,7 +28,6 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("return")]
         public async Task<IActionResult> Return([FromQuery] VnPayResponse response, [FromQuery] int customerId)
         {
-                : "Giao dich that bai.";
             if (response.vnp_TransactionStatus == "00")
             {
                 if (customerId != 0)
