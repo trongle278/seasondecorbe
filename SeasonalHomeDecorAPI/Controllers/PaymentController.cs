@@ -25,32 +25,42 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        //        [HttpGet("return")]
+        //        public async Task<IActionResult> Return([FromQuery] VnPayResponse response, [FromQuery] int customerId)
+        //        {
+        //            if (response.vnp_TransactionStatus == "00")
+        //            {
+        //                if (customerId != 0)
+        //                {
+        //                    await _paymentService.TopUp(customerId, response.vnp_Amount);
+        //                }
+        //                // Xử lý đơn hàng (Cập nhật trạng thái đơn hàng thành "Đã thanh toán")
+        //                var htmlResponse = @"
+        //    <html>
+        //        <head>
+        //            <script type='text/javascript'>
+        //                window.open('https://example.com/confirmation', '_blank');              
+        //            </script>
+        //        </head>
+        //        <body>
+        //            <p>Thanh toán thành công  click <a href='http://localhost:3000/product' target='_blank'>here</a>.</p>
+        //        </body>
+        //    </html>
+        //";
+        //                return Content(htmlResponse, "text/html");
+        //            }
+
+        //            return Ok();
+        //        }
+
         [HttpGet("return")]
         public async Task<IActionResult> Return([FromQuery] VnPayResponse response, [FromQuery] int customerId)
         {
-            if (response.vnp_TransactionStatus == "00")
-            {
-                if (customerId != 0)
-                {
-                    await _paymentService.TopUp(customerId, response.vnp_Amount);
-                }
-                // Xử lý đơn hàng (Cập nhật trạng thái đơn hàng thành "Đã thanh toán")
-                var htmlResponse = @"
-    <html>
-        <head>
-            <script type='text/javascript'>
-                window.open('https://example.com/confirmation', '_blank');              
-            </script>
-        </head>
-        <body>
-            <p>Thanh toán thành công  click <a href='http://localhost:3000/product' target='_blank'>here</a>.</p>
-        </body>
-    </html>
-";
-                return Content(htmlResponse, "text/html");
-            }
+            string responseMessage = response.vnp_TransactionStatus == "00"
+                ? "Giao dich thanh cong."
+                : "Giao dich that bai.";
 
-            return Ok();
+            return Redirect($"http://localhost:3000/payment/success?responseMessage={Uri.EscapeDataString(responseMessage)}");
         }
     }
 }
