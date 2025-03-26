@@ -158,7 +158,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                _unitOfWork.FavoriteServiceRepository.Delete(favorite);
+                _unitOfWork.FavoriteServiceRepository.Delete(favorite.Id);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

@@ -29,7 +29,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpGet("list")]
+        [HttpGet("getBookingRequestList")]
         public async Task<IActionResult> GetBookingsByUser()
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
@@ -37,7 +37,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpGet("{bookingId}")]
+        [HttpGet("getBookingDetails/{bookingId}")]
         public async Task<IActionResult> GetBookingDetails(int bookingId)
         {
             var response = await _bookingService.GetBookingDetailsAsync(bookingId);

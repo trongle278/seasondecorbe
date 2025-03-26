@@ -11,8 +11,8 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IBookingService
     {
-        Task<BaseResponse<List<Booking>>> GetBookingsByUserAsync(int accountId);
-        Task<BaseResponse<Booking>> GetBookingDetailsAsync(int bookingId);
+        Task<BaseResponse<List<BookingResponse>>> GetBookingsByUserAsync(int accountId);
+        Task<BaseResponse<BookingResponse>> GetBookingDetailsAsync(int bookingId);
         Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId);
         Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId);
         Task<BaseResponse<bool>> CancelBookingAsync(int bookingId);

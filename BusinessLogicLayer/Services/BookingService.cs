@@ -25,25 +25,115 @@ namespace BusinessLogicLayer.Services
             _trackingService = trackingService;
         }
 
-        public async Task<BaseResponse<List<Booking>>> GetBookingsByUserAsync(int accountId)
+        public async Task<BaseResponse<List<BookingResponse>>> GetBookingsByUserAsync(int accountId)
         {
-            var response = new BaseResponse<List<Booking>>();
-            var bookings = await _unitOfWork.BookingRepository.Queryable()
-                .Where(b => b.AccountId == accountId)
-                .ToListAsync();
-            response.Success = true;
-            response.Data = bookings;
+            var response = new BaseResponse<List<BookingResponse>>();
+            try
+            {
+                var bookings = await _unitOfWork.BookingRepository.Queryable()
+                    .Where(b => b.AccountId == accountId)
+                    .Include(b => b.DecorService)
+                        .ThenInclude(ds => ds.Account) // ⭐ Join Provider
+                    .ToListAsync();
+
+                var result = bookings.Select(booking => new BookingResponse
+                {
+                    BookingId = booking.Id,
+                    BookingCode = booking.BookingCode,
+                    TotalPrice = booking.TotalPrice,
+                    Status = booking.Status.ToString(),
+                    CreatedAt = booking.CreateAt,
+
+                    // ⭐ Thông tin DecorService
+                    DecorService = new DecorServiceDTO
+                    {
+                        Id = booking.DecorService.Id,
+                        Style = booking.DecorService.Style,
+                        BasePrice = booking.DecorService.BasePrice,
+                        Description = booking.DecorService.Description
+                    },
+
+                    // ⭐ Thêm thông tin Provider
+                    Provider = new ProviderResponse
+                    {
+                        Id = booking.DecorService.Account.Id,
+                        BusinessName = booking.DecorService.Account.BusinessName,
+                        Avatar = booking.DecorService.Account.Avatar,
+                    }
+                }).ToList();
+
+                response.Success = true;
+                response.Data = result;
+                response.Message = "Bookings retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving bookings.";
+                response.Errors.Add(ex.Message);
+            }
             return response;
         }
 
-        public async Task<BaseResponse<Booking>> GetBookingDetailsAsync(int bookingId)
+        public async Task<BaseResponse<BookingResponse>> GetBookingDetailsAsync(int bookingId)
         {
-            var response = new BaseResponse<Booking>();
-            var booking = await _unitOfWork.BookingRepository.Queryable()
-                .Include(b => b.BookingDetails)
-                .FirstOrDefaultAsync(b => b.Id == bookingId);
-            response.Success = booking != null;
-            response.Data = booking;
+            var response = new BaseResponse<BookingResponse>();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .Include(b => b.BookingDetails)
+                    .Include(b => b.DecorService)
+                        .ThenInclude(ds => ds.Account) // ⭐ Join Provider
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                var bookingResponse = new BookingResponse
+                {
+                    BookingId = booking.Id,
+                    BookingCode = booking.BookingCode,
+                    TotalPrice = booking.TotalPrice,
+                    Status = booking.Status.ToString(),
+                    CreatedAt = booking.CreateAt,
+
+                    DecorService = new DecorServiceDTO
+                    {
+                        Id = booking.DecorService.Id,
+                        Style = booking.DecorService.Style,
+                        BasePrice = booking.DecorService.BasePrice,
+                        Description = booking.DecorService.Description
+                    },
+
+                    Provider = new ProviderResponse
+                    {
+                        Id = booking.DecorService.Account.Id,
+                        BusinessName = booking.DecorService.Account.BusinessName,
+                        Avatar = booking.DecorService.Account.Avatar,
+                    },
+
+                    BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
+                    {
+                        Id = bd.Id,
+                        ServiceItem = bd.ServiceItem,
+                        Cost = bd.Cost,
+                        EstimatedCompletion = bd.EstimatedCompletion
+                    }).ToList()
+                };
+
+                response.Success = true;
+                response.Data = bookingResponse;
+                response.Message = "Booking details retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving booking details.";
+                response.Errors.Add(ex.Message);
+            }
             return response;
         }
 
