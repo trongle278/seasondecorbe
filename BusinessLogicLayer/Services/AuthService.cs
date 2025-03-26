@@ -56,13 +56,30 @@ namespace BusinessLogicLayer.Services
 
                 if (existingAccount != null)
                 {
+                    if (existingAccount.IsVerified)
+                    {
+                        return new BaseResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { "Email already exists" }
+                        };
+                    }
+
+                    // Nếu chưa xác nhận, gửi lại OTP mới
+                    var newOtp = GenerateOTP();
+                    existingAccount.VerificationToken = newOtp;
+                    existingAccount.VerificationTokenExpiry = DateTime.Now.AddMinutes(15);
+                    await _unitOfWork.CommitAsync();
+
+                    await SendVerificationEmail(existingAccount.Email, newOtp);
                     return new BaseResponse
                     {
-                        Success = false,
-                        Errors = new List<string> { "Email already exists" }
+                        Success = true,
+                        Message = "A new verification code has been sent to your email."
                     };
                 }
 
+                // Nếu chưa có tài khoản, tạo mới
                 var otp = GenerateOTP();
                 var account = new Account
                 {
@@ -85,27 +102,8 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.AccountRepository.InsertAsync(account);
                 await _unitOfWork.CommitAsync();
 
-                // Create a cart for new user
-                var cartResponse = await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
-                if (!cartResponse.Success)
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Errors = new List<string> { "User registered, but failed to create cart." }
-                    };
-                }
-
-                // Create a wallet for new user
-                var walletSuccess = await _walletService.CreateWallet(account.Id);
-                if (!walletSuccess)
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Errors = new List<string> { "User registered, but failed to create wallet." }
-                    };
-                }
+                await _cartService.CreateCartAsync(new CartRequest { AccountId = account.Id });
+                await _walletService.CreateWallet(account.Id);
 
                 await SendVerificationEmail(account.Email, otp);
                 return new BaseResponse
