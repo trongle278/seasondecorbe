@@ -21,8 +21,14 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("top-up")]
         public IActionResult TopUp([FromBody] VnPayRequest request)
         {
-            var result = VNPayService.VNPay(HttpContext, request);
-            return Ok(result);
+            var vnPayResult = VNPayService.VNPay(HttpContext, request);
+            var response = new BaseResponse
+            {
+                Success = true,
+                Message = "Payment URL generated successfully",
+                Data = vnPayResult
+            };
+            return Ok(response);
         }
 
         [HttpGet("return")]
@@ -35,9 +41,9 @@ namespace SeasonalHomeDecorAPI.Controllers
                     await _paymentService.TopUp(customerId, response.vnp_Amount);
                 }
                 // Xử lý đơn hàng (Cập nhật trạng thái đơn hàng thành "Đã thanh toán"
-                return Redirect("https://meet.google.com/yjx-rcgq-yfx?authuser=1");
+                return Redirect("http://localhost:3000/payment/success");
             }
-            return Redirect("https://meet.google.com/yjx-rcgq-yfx?authuser=1");//trang thất bại
+            return Redirect("http://localhost:3000/payment/failure");//trang thất bại
         }
     }
 }
