@@ -33,8 +33,23 @@ namespace BusinessLogicLayer.ModelRequest
     public class CreateQuotationRequest
     {
         public int BookingId { get; set; }
-        public decimal MaterialCost { get; set; }
-        public decimal LaborCost { get; set; }
+        public List<MaterialItemRequest> Materials { get; set; }
+        public List<ConstructionItemRequest> ConstructionTasks { get; set; }
+    }
+
+    public class MaterialItemRequest
+    {
+        public string MaterialName { get; set; }
+        public int Quantity { get; set; }
+        public decimal Cost { get; set; }
+        public MaterialDetail.MaterialCategory Category { get; set; }
+    }
+
+    public class ConstructionItemRequest
+    {
+        public string TaskName { get; set; }
+        public decimal Cost { get; set; }
+        public string Unit { get; set; }
     }
 
     public class UpdateTrackingRequest

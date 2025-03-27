@@ -232,7 +232,7 @@ namespace BusinessLogicLayer.Services
                     }
 
                     // ✅ Cập nhật `TotalPrice` trong `Booking`
-                    booking.TotalPrice = quotation.MaterialCost + quotation.LaborCost;
+                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
 
                     // Kiểm tra nếu BookingDetail đã tồn tại
                     var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
@@ -244,7 +244,7 @@ namespace BusinessLogicLayer.Services
                         var bookingDetails = new List<BookingDetail>
                 {
                     new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
-                    new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Thi công", Cost = quotation.LaborCost }
+                    new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Thi công", Cost = quotation.ConstructionCost }
                 };
 
                         await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);

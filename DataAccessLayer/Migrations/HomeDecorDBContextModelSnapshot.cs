@@ -385,6 +385,35 @@ namespace DataAccessObject.Migrations
                     b.ToTable("ChatFiles");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.ConstructionDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("QuotationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TaskName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuotationId");
+
+                    b.ToTable("ConstructionDetails");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Contact", b =>
                 {
                     b.Property<int>("Id")
@@ -641,6 +670,37 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("FollowingId");
 
                     b.ToTable("Follows");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.MaterialDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MaterialName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuotationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuotationId");
+
+                    b.ToTable("MaterialDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Notification", b =>
@@ -975,11 +1035,11 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("ConstructionCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<decimal>("LaborCost")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("MaterialCost")
                         .HasColumnType("decimal(18,2)");
@@ -1578,6 +1638,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Chat");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.ConstructionDetail", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Quotation", "Quotation")
+                        .WithMany("ConstructionDetails")
+                        .HasForeignKey("QuotationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quotation");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Contact", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "ContactUser")
@@ -1693,6 +1764,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Follower");
 
                     b.Navigation("Following");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.MaterialDetail", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Quotation", "Quotation")
+                        .WithMany("MaterialDetails")
+                        .HasForeignKey("QuotationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quotation");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Notification", b =>
@@ -2044,6 +2126,13 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.ProductCategory", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Quotation", b =>
+                {
+                    b.Navigation("ConstructionDetails");
+
+                    b.Navigation("MaterialDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Role", b =>

@@ -49,6 +49,8 @@ namespace Repository.UnitOfWork
             BookingDetailRepository = new BookingDetailRepository(_context);
             TrackingRepository = new TrackingRepository(_context);
             QuotationRepository = new QuotationRepository(_context);
+            MaterialDetailRepository = new MaterialDetailRepository(_context);
+            ConstructionDetailRepository = new ConstructionDetailRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -81,6 +83,8 @@ namespace Repository.UnitOfWork
         public IBookingDetailRepository BookingDetailRepository { get; private set; }
         public ITrackingRepository TrackingRepository { get; private set; }
         public IQuotationRepository QuotationRepository { get; private set; }
+        public IMaterialDetailRepository MaterialDetailRepository { get; private set; }
+        public IConstructionDetailRepository ConstructionDetailRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

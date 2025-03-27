@@ -29,36 +29,67 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
+                // Kiểm tra booking
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(request.BookingId);
-                if (booking == null)
+                if (booking == null || booking.Status != Booking.BookingStatus.Survey)
                 {
-                    response.Message = "Booking not found.";
-                    return response;
-                }
-                if (booking.Status != Booking.BookingStatus.Survey)
-                {
-                    response.Message = "Quotation can only be created during the Survey phase.";
+                    response.Message = "Invalid booking or status.";
                     return response;
                 }
 
+                // Tính tổng chi phí
+                decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
+                decimal totalConstructionCost = request.ConstructionTasks.Sum(c => c.Cost);
+
+                // Tạo quotation
                 var quotation = new Quotation
                 {
                     BookingId = request.BookingId,
-                    MaterialCost = request.MaterialCost,
-                    LaborCost = request.LaborCost,
+                    MaterialCost = totalMaterialCost,
+                    ConstructionCost = totalConstructionCost,
+                    CreatedAt = DateTime.Now
                 };
 
                 await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                await _unitOfWork.CommitAsync(); // ✅ Lưu báo giá trước khi cập nhật booking
+                await _unitOfWork.CommitAsync();
 
-                // ✅ Cập nhật `QuotationId` trong `Booking`
+                // Thêm chi tiết nguyên liệu
+                var materialDetails = request.Materials.Select(m => new MaterialDetail
+                {
+                    QuotationId = quotation.Id,
+                    MaterialName = m.MaterialName,
+                    Quantity = m.Quantity,
+                    Cost = m.Cost,
+                    Category = m.Category
+                }).ToList();
+
+                await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
+
+                // Thêm chi tiết thi công
+                var constructionDetails = request.ConstructionTasks.Select(c => new ConstructionDetail
+                {
+                    QuotationId = quotation.Id,
+                    TaskName = c.TaskName,
+                    Cost = c.Cost,
+                    Unit = c.Unit
+                }).ToList();
+
+                await _unitOfWork.ConstructionDetailRepository.InsertRangeAsync(constructionDetails);
+
+                // Cập nhật booking
                 booking.QuotationId = quotation.Id;
                 _unitOfWork.BookingRepository.Update(booking);
-                await _unitOfWork.CommitAsync(); // ✅ Lưu lại Booking với `QuotationId` mới
+
+                await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Quotation created successfully.";
-                response.Data = quotation;
+                response.Message = "Quotation created successfully with all details.";
+                response.Data = new
+                {
+                    Quotation = quotation,
+                    MaterialDetails = materialDetails,
+                    ConstructionDetails = constructionDetails
+                };
             }
             catch (Exception ex)
             {
@@ -72,12 +103,15 @@ namespace BusinessLogicLayer.Services
         /// <summary>
         /// Lấy báo giá theo BookingId
         /// </summary>
-        public async Task<BaseResponse> GetQuotationByBookingIdAsync(int bookingId)
+        public async Task<BaseResponse<QuotationDetailResponse>> GetQuotationDetailAsync(int bookingId)
         {
-            var response = new BaseResponse();
+            var response = new BaseResponse<QuotationDetailResponse>();
             try
             {
+                // Lấy quotation kèm theo chi tiết
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.MaterialDetails)
+                    .Include(q => q.ConstructionDetails)
                     .FirstOrDefaultAsync(q => q.BookingId == bookingId);
 
                 if (quotation == null)
@@ -86,14 +120,41 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // Map sang response DTO
+                var quotationDetail = new QuotationDetailResponse
+                {
+                    Id = quotation.Id,
+                    BookingId = quotation.BookingId,
+                    MaterialCost = quotation.MaterialCost,
+                    ConstructionCost = quotation.ConstructionCost,
+                    CreatedAt = quotation.CreatedAt,
+
+                    Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
+                    {
+                        Id = m.Id,
+                        MaterialName = m.MaterialName,
+                        Quantity = m.Quantity,
+                        Cost = m.Cost,
+                        Category = m.Category
+                    }).ToList(),
+
+                    ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    {
+                        Id = c.Id,
+                        TaskName = c.TaskName,
+                        Cost = c.Cost,
+                        Unit = c.Unit
+                    }).ToList()
+                };
+
                 response.Success = true;
-                response.Message = "Quotation retrieved successfully.";
-                response.Data = quotation;
+                response.Message = "Quotation details retrieved successfully.";
+                response.Data = quotationDetail;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Failed to retrieve quotation.";
+                response.Message = "Failed to retrieve quotation details.";
                 response.Errors.Add(ex.Message);
             }
             return response;
@@ -129,7 +190,7 @@ namespace BusinessLogicLayer.Services
                 var bookingDetails = new List<BookingDetail>
         {
             new BookingDetail { BookingId = bookingId, ServiceItem = "Nguyên liệu", Cost = quotation.MaterialCost },
-            new BookingDetail { BookingId = bookingId, ServiceItem = "Thi công", Cost = quotation.LaborCost }
+            new BookingDetail { BookingId = bookingId, ServiceItem = "Thi công", Cost = quotation.ConstructionCost }
         };
 
                 await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);

@@ -11,6 +11,6 @@ namespace BusinessLogicLayer.Interfaces
     public interface IQuotationService
     {
         Task<BaseResponse> CreateQuotationAsync(CreateQuotationRequest request);
-        Task<BaseResponse> GetQuotationByBookingIdAsync(int bookingId);
+        Task<BaseResponse<QuotationDetailResponse>> GetQuotationDetailAsync(int bookingId);
     }
 }

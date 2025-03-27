@@ -30,10 +30,10 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Lấy báo giá theo BookingId
         /// </summary>
-        [HttpGet("{bookingId}")]
+        [HttpGet("getQuotationByBookingId/{bookingId}")]
         public async Task<IActionResult> GetQuotationByBookingId(int bookingId)
         {
-            var response = await _quotationService.GetQuotationByBookingIdAsync(bookingId);
+            var response = await _quotationService.GetQuotationDetailAsync(bookingId);
             return response.Success ? Ok(response) : NotFound(response);
         }
     }

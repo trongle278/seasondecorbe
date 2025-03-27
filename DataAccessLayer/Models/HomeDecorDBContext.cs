@@ -64,6 +64,8 @@ namespace DataAccessObject.Models
         public DbSet<Setting> Settings { get; set; }
         public DbSet<BookingDetail> BookingDetails { get; set; }
         public DbSet<Tracking> Trackings { get; set; }
+        public DbSet<MaterialDetail> MaterialDetails { get; set; }
+        public DbSet<ConstructionDetail> ConstructionDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -346,6 +348,18 @@ namespace DataAccessObject.Models
                 .WithMany(b => b.Trackings)
                 .HasForeignKey(t => t.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MaterialDetail>()
+                .HasOne(md => md.Quotation)
+                .WithMany(q => q.MaterialDetails)
+                .HasForeignKey(md => md.QuotationId)
+                .OnDelete(DeleteBehavior.Cascade); ;
+
+            modelBuilder.Entity<ConstructionDetail>()
+                .HasOne(cd => cd.Quotation)
+                .WithMany(q => q.ConstructionDetails)
+                .HasForeignKey(cd => cd.QuotationId)
+                .OnDelete(DeleteBehavior.Cascade); ;
 
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)

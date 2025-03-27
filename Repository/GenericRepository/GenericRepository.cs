@@ -92,6 +92,11 @@ namespace Repository.GenericRepository
             _context.Set<T>().Remove(entityToDelete);
         }
 
+        public virtual async Task InsertRangeAsync(IEnumerable<T> entities)
+        {
+            await _context.Set<T>().AddRangeAsync(entities);
+        }
+
         public virtual void RemoveRange(IEnumerable<T> entities)
         {
             _context.Set<T>().RemoveRange(entities);

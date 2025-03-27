@@ -40,6 +40,8 @@ namespace Repository.UnitOfWork
         IBookingDetailRepository BookingDetailRepository { get; }
         ITrackingRepository TrackingRepository { get; }
         IQuotationRepository QuotationRepository { get; }
+        IMaterialDetailRepository MaterialDetailRepository { get; }
+        IConstructionDetailRepository ConstructionDetailRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

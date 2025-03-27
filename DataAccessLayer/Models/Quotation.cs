@@ -17,7 +17,10 @@ namespace DataAccessObject.Models
         public int BookingId { get; set; }
         public virtual Booking Booking { get; set; }
         public decimal MaterialCost { get; set; } // Chi phí nguyên liệu
-        public decimal LaborCost { get; set; } // Chi phí thi công
+        public decimal ConstructionCost { get; set; } // Chi phí thi công
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
+        public virtual ICollection<ConstructionDetail> ConstructionDetails { get; set; }
     }
 }

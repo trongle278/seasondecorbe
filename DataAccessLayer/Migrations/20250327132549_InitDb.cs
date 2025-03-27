@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessObject.Migrations
 {
-    public partial class Init_Db : Migration
+    public partial class InitDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -816,7 +816,7 @@ namespace DataAccessObject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     MaterialCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    LaborCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ConstructionCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -939,6 +939,51 @@ namespace DataAccessObject.Migrations
                         name: "FK_WalletTransactions_Wallets_WalletId",
                         column: x => x.WalletId,
                         principalTable: "Wallets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConstructionDetails",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    QuotationId = table.Column<int>(type: "int", nullable: false),
+                    TaskName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConstructionDetails", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConstructionDetails_Quotation_QuotationId",
+                        column: x => x.QuotationId,
+                        principalTable: "Quotation",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MaterialDetails",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    QuotationId = table.Column<int>(type: "int", nullable: false),
+                    MaterialName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Category = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MaterialDetails", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MaterialDetails_Quotation_QuotationId",
+                        column: x => x.QuotationId,
+                        principalTable: "Quotation",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1090,6 +1135,11 @@ namespace DataAccessObject.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ConstructionDetails_QuotationId",
+                table: "ConstructionDetails",
+                column: "QuotationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Contacts_ContactId",
                 table: "Contacts",
                 column: "ContactId");
@@ -1148,6 +1198,11 @@ namespace DataAccessObject.Migrations
                 name: "IX_Follows_FollowingId",
                 table: "Follows",
                 column: "FollowingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MaterialDetails_QuotationId",
+                table: "MaterialDetails",
+                column: "QuotationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_AccountId",
@@ -1295,6 +1350,9 @@ namespace DataAccessObject.Migrations
                 name: "ChatFiles");
 
             migrationBuilder.DropTable(
+                name: "ConstructionDetails");
+
+            migrationBuilder.DropTable(
                 name: "Contacts");
 
             migrationBuilder.DropTable(
@@ -1313,6 +1371,9 @@ namespace DataAccessObject.Migrations
                 name: "Follows");
 
             migrationBuilder.DropTable(
+                name: "MaterialDetails");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
@@ -1320,9 +1381,6 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProductOrders");
-
-            migrationBuilder.DropTable(
-                name: "Quotation");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -1347,6 +1405,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Seasons");
+
+            migrationBuilder.DropTable(
+                name: "Quotation");
 
             migrationBuilder.DropTable(
                 name: "Products");
