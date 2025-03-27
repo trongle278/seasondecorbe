@@ -47,6 +47,12 @@ namespace BusinessLogicLayer.Services
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
+
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followers)
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followings)
+
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -86,6 +92,16 @@ namespace BusinessLogicLayer.Services
                         })
                         .ToList();
 
+                    dto.Provider = new ProviderResponse
+                    {
+                        Id = decorService.Account.Id,
+                        BusinessName = decorService.Account.BusinessName,
+                        Avatar = decorService.Account.Avatar,
+                        JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = decorService.Account.Followers?.Count ?? 0,
+                        FollowingsCount = decorService.Account.Followings?.Count ?? 0
+                    };
+
                     response.Success = true;
                     response.Data = dto;
                     response.Message = "Decor service retrieved successfully.";
@@ -111,6 +127,12 @@ namespace BusinessLogicLayer.Services
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
+
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followers)
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followings)
+
                     .ToListAsync();
 
                 // Map mỗi service sang DecorServiceDTO
@@ -126,6 +148,8 @@ namespace BusinessLogicLayer.Services
                 // Map DecorImages -> DecorImageDTO
                 for (int i = 0; i < services.Count; i++)
                 {
+                    var service = services[i];
+
                     dtos[i].CategoryName = services[i].DecorCategory.CategoryName;
 
                     dtos[i].Images = services[i].DecorImages
@@ -147,6 +171,19 @@ namespace BusinessLogicLayer.Services
                             SeasonName = dss.Season.SeasonName
                         })
                         .ToList();
+
+                    dtos[i].Provider = new ProviderResponse
+                    {
+                        Id = service.Account.Id,
+                        BusinessName = service.Account.BusinessName,
+                        Bio = service.Account.Bio,
+                        Avatar = service.Account.Avatar,
+                        Phone = service.Account.Phone,
+                        Address = service.Account.BusinessAddress,
+                        JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = service.Account.Followers?.Count ?? 0,
+                        FollowingsCount = service.Account.Followings?.Count ?? 0
+                    };
                 }
 
                 response.Success = true;
@@ -186,6 +223,12 @@ namespace BusinessLogicLayer.Services
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
+
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followers)
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followings)
+
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -225,6 +268,21 @@ namespace BusinessLogicLayer.Services
                         SeasonName = dss.Season.SeasonName
                     })
                     .ToList();
+
+                // Map Provider
+                // Map provider information
+                dto.Provider = new ProviderResponse
+                {
+                    Id = decorService.Account.Id,
+                    BusinessName = decorService.Account.BusinessName,
+                    Bio = decorService.Account.Bio,
+                    Avatar = decorService.Account.Avatar,
+                    Phone = decorService.Account.Phone,
+                    Address = decorService.Account.BusinessAddress,
+                    JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                    FollowersCount = decorService.Account.Followers?.Count ?? 0,
+                    FollowingsCount = decorService.Account.Followings?.Count ?? 0
+                };
 
                 response.Success = true;
                 response.Data = dto;
@@ -276,7 +334,12 @@ namespace BusinessLogicLayer.Services
                          .Include(ds => ds.DecorCategory)
                          .Include(ds => ds.FavoriteServices)
                          .Include(ds => ds.DecorServiceSeasons)
-                             .ThenInclude(dss => dss.Season);
+                             .ThenInclude(dss => dss.Season)
+
+                         .Include(ds => ds.Account)
+                            .ThenInclude(a => a.Followers)
+                         .Include(ds => ds.Account)
+                            .ThenInclude(a => a.Followings);
 
                 // Get paginated data and filter
                 (IEnumerable<DecorService> decorServices, int totalCount) = await _unitOfWork.DecorServiceRepository.GetPagedAndFilteredAsync(
@@ -315,6 +378,19 @@ namespace BusinessLogicLayer.Services
                         .ToList();
 
                     dtos[i].FavoriteCount = service.FavoriteServices.Count;
+
+                    dtos[i].Provider = new ProviderResponse
+                    {
+                        Id = service.Account.Id,
+                        BusinessName = service.Account.BusinessName,
+                        Bio = service.Account.Bio,
+                        Avatar = service.Account.Avatar,
+                        Phone = service.Account.Phone,
+                        Address = service.Account.BusinessAddress,
+                        JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = service.Account.Followers?.Count ?? 0,
+                        FollowingsCount = service.Account.Followings?.Count ?? 0
+                    };
                 }
 
 
