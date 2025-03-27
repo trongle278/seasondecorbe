@@ -32,8 +32,11 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class CreateQuotationRequest
     {
-        public int BookingId { get; set; }
+        [Required(ErrorMessage = "Materials list is required")]
+        [MinLength(1, ErrorMessage = "At least one material item is required")]
         public List<MaterialItemRequest> Materials { get; set; }
+        [Required(ErrorMessage = "Construction tasks list is required")]
+        [MinLength(1, ErrorMessage = "At least one construction task is required")]
         public List<ConstructionItemRequest> ConstructionTasks { get; set; }
     }
 

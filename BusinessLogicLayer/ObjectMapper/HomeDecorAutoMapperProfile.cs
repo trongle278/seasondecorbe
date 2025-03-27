@@ -34,6 +34,7 @@ namespace BusinessLogicLayer.ObjectMapper
             FollowProfile();
             AddressProfile();
             DecorServiceProfile();
+            WalletProfile();
         }
 
         private void AccountProfile()
@@ -230,6 +231,18 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<DecorService, DecorServiceDTO>();
             CreateMap<DecorImage, DecorImageResponse>();
+        }
+
+        private void WalletProfile()
+        {
+            CreateMap<WalletTransaction, WalletTransactionResponse>()
+    .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.PaymentTransaction.Amount))
+    .ForMember(dest => dest.TransactionDate, opt => opt.MapFrom(src => src.PaymentTransaction.TransactionDate))
+    .ForMember(dest => dest.TransactionType, opt => opt.MapFrom(src => src.PaymentTransaction.TransactionType))
+    .ForMember(dest => dest.TransactionStatus, opt => opt.MapFrom(src => src.PaymentTransaction.TransactionStatus))
+    .ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.PaymentTransaction.BookingId))
+    .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.PaymentTransaction.OrderId))
+    .ForMember(dest => dest.PaymentTransactionId, opt => opt.MapFrom(src => src.PaymentTransactionId));
         }
     }
 }

@@ -24,36 +24,52 @@ namespace BusinessLogicLayer.Services
         /// <summary>
         /// Tạo báo giá cho một booking
         /// </summary>
-        public async Task<BaseResponse> CreateQuotationAsync(CreateQuotationRequest request)
+        public async Task<BaseResponse> CreateQuotationAsync(int bookingId, CreateQuotationRequest request)
         {
             var response = new BaseResponse();
             try
             {
-                // Kiểm tra booking
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(request.BookingId);
-                if (booking == null || booking.Status != Booking.BookingStatus.Survey)
+                // Validate booking exists and status
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                if (booking == null)
                 {
-                    response.Message = "Invalid booking or status.";
+                    response.Message = "Booking not found.";
                     return response;
                 }
 
-                // Tính tổng chi phí
+                if (booking.Status != Booking.BookingStatus.Survey)
+                {
+                    response.Message = "Quotation can only be created during the Survey phase.";
+                    return response;
+                }
+
+                // Check if quotation already exists
+                var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .FirstOrDefaultAsync(q => q.BookingId == bookingId);
+
+                if (existingQuotation != null)
+                {
+                    response.Message = "Quotation already exists for this booking.";
+                    return response;
+                }
+
+                // Calculate totals
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
                 decimal totalConstructionCost = request.ConstructionTasks.Sum(c => c.Cost);
 
-                // Tạo quotation
+                // Create quotation
                 var quotation = new Quotation
                 {
-                    BookingId = request.BookingId,
+                    BookingId = bookingId,
                     MaterialCost = totalMaterialCost,
                     ConstructionCost = totalConstructionCost,
                     CreatedAt = DateTime.Now
                 };
 
                 await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitAsync(); // Save quotation first to get Id
 
-                // Thêm chi tiết nguyên liệu
+                // Create material details
                 var materialDetails = request.Materials.Select(m => new MaterialDetail
                 {
                     QuotationId = quotation.Id,
@@ -65,7 +81,7 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
 
-                // Thêm chi tiết thi công
+                // Create construction details
                 var constructionDetails = request.ConstructionTasks.Select(c => new ConstructionDetail
                 {
                     QuotationId = quotation.Id,
@@ -76,14 +92,10 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.ConstructionDetailRepository.InsertRangeAsync(constructionDetails);
 
-                // Cập nhật booking
-                booking.QuotationId = quotation.Id;
-                _unitOfWork.BookingRepository.Update(booking);
-
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Quotation created successfully with all details.";
+                response.Message = "Quotation created successfully.";
                 response.Data = new
                 {
                     Quotation = quotation,

@@ -21,9 +21,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// Tạo báo giá cho một booking
         /// </summary>
         [HttpPost("create")]
-        public async Task<IActionResult> CreateQuotation([FromBody] CreateQuotationRequest request)
+        public async Task<IActionResult> CreateQuotation([FromQuery] int bookingId, [FromBody] CreateQuotationRequest request)
         {
-            var response = await _quotationService.CreateQuotationAsync(request);
+            var response = await _quotationService.CreateQuotationAsync(bookingId, request);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 

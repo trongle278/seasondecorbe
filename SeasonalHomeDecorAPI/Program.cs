@@ -209,6 +209,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
 builder.Services.AddScoped<AccountCleanupService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 // 11. Build the application
 var app = builder.Build();
