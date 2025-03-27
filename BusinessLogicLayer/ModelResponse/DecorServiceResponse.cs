@@ -34,6 +34,7 @@ namespace BusinessLogicLayer.ModelResponse
         public List<string> ImageUrls { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
+        public ProviderResponse Provider { get; set; }
     }
 
     public class DecorImageResponse
