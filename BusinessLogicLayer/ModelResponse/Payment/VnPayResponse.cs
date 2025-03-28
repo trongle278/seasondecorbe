@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLogicLayer.ModelResponse
+namespace BusinessLogicLayer.ModelResponse.Payment
 {
     public class VnPayResponse
     {

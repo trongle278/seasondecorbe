@@ -63,7 +63,7 @@ namespace BusinessLogicLayer.Services
                         Amount = amount,
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Pending,
-                        TransactionType = PaymentTransaction.EnumTransactionType.Deposite,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Deposit,
                         BookingId = bookingId
                     };
 
@@ -107,7 +107,6 @@ namespace BusinessLogicLayer.Services
                 }
             }
         }
-
 
         public async Task<bool> TopUp(int accountId, decimal amount)
         {

@@ -13,6 +13,7 @@ using BusinessLogicLayer.ModelRequest.Product;
 using BusinessLogicLayer.ModelResponse.Cart;
 using BusinessLogicLayer.ModelResponse.Order;
 using BusinessLogicLayer.ModelResponse.Product;
+using BusinessLogicLayer.ModelResponse.Payment;
 
 namespace BusinessLogicLayer.ObjectMapper
 {
@@ -235,14 +236,7 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void WalletProfile()
         {
-            CreateMap<WalletTransaction, WalletTransactionResponse>()
-    .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.PaymentTransaction.Amount))
-    .ForMember(dest => dest.TransactionDate, opt => opt.MapFrom(src => src.PaymentTransaction.TransactionDate))
-    .ForMember(dest => dest.TransactionType, opt => opt.MapFrom(src => src.PaymentTransaction.TransactionType))
-    .ForMember(dest => dest.TransactionStatus, opt => opt.MapFrom(src => src.PaymentTransaction.TransactionStatus))
-    .ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.PaymentTransaction.BookingId))
-    .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.PaymentTransaction.OrderId))
-    .ForMember(dest => dest.PaymentTransactionId, opt => opt.MapFrom(src => src.PaymentTransactionId));
+            CreateMap<WalletTransaction, TransactionsResponse>();
         }
     }
 }

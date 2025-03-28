@@ -189,19 +189,18 @@ namespace BusinessLogicLayer.Services
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            // Kiểm tra đăng nhập admin dựa vào appsettings trước
             var adminEmail = _configuration["Admin:Email"];
             var adminPassword = _configuration["Admin:Password"];
+
             if (string.Equals(request.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
             {
-                // Thử lấy tài khoản admin từ DB
                 var adminAccount = await _unitOfWork.AccountRepository
                     .Query(a => a.Email == adminEmail)
+                    .Include(a => a.Wallet)
                     .FirstOrDefaultAsync();
 
                 if (adminAccount != null)
                 {
-                    // Nếu tồn tại, xác thực mật khẩu với password đã được hash trong DB
                     if (!VerifyPassword(adminAccount, request.Password))
                     {
                         return new LoginResponse
@@ -213,7 +212,6 @@ namespace BusinessLogicLayer.Services
                 }
                 else
                 {
-                    // Nếu chưa có admin trong DB, dựa vào cấu hình để xác thực
                     if (request.Password != adminPassword)
                     {
                         return new LoginResponse
@@ -222,13 +220,13 @@ namespace BusinessLogicLayer.Services
                             Errors = new List<string> { "Invalid email or password" }
                         };
                     }
-                    // Tạo đối tượng Account ảo (có thể là fallback)
+
                     adminAccount = new Account
                     {
                         Email = adminEmail,
                         FirstName = "Admin",
                         LastName = "",
-                        RoleId = 1, // Admin
+                        RoleId = 1,
                         SubscriptionId = 0
                     };
                 }
@@ -238,16 +236,18 @@ namespace BusinessLogicLayer.Services
                 {
                     Success = true,
                     Token = token,
-                    AccountId = adminAccount.Id,  // Sẽ trả về 1 nếu đã được seed
+                    AccountId = adminAccount.Id,
                     SubscriptionId = adminAccount.SubscriptionId,
-                    RoleId = adminAccount.RoleId
+                    RoleId = adminAccount.RoleId,
+                    WalletId = adminAccount.Wallet.Id
                 };
             }
 
-            // Tiếp tục xử lý đăng nhập cho người dùng thường...
+            // 👉 **Xử lý đăng nhập người dùng bình thường**
             var account = await _unitOfWork.AccountRepository
                 .Query(a => a.Email == request.Email)
                 .Include(a => a.Role)
+                .Include(a => a.Wallet)  // ✅ Thêm Include để lấy WalletId
                 .FirstOrDefaultAsync();
 
             if (account == null || !VerifyPassword(account, request.Password))
@@ -259,21 +259,6 @@ namespace BusinessLogicLayer.Services
                 };
             }
 
-            // Nếu account thuộc Admin trong DB (nếu có)
-            if (account.Role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                var token = await GenerateJwtToken(account);
-                return new LoginResponse
-                {
-                    Success = true,
-                    Token = token,
-                    AccountId = account.Id,
-                    SubscriptionId = account.SubscriptionId,
-                    RoleId = account.RoleId
-                };
-            }
-
-            // Các xử lý cho user thông thường...
             if (account.TwoFactorEnabled)
             {
                 var otp = GenerateOTP();
@@ -297,9 +282,11 @@ namespace BusinessLogicLayer.Services
                 Token = userToken,
                 AccountId = account.Id,
                 SubscriptionId = account.SubscriptionId,
-                RoleId = account.RoleId
+                RoleId = account.RoleId,
+                WalletId = account.Wallet.Id  // ✅ Trả WalletId cho người dùng bình thường
             };
         }
+
 
         public async Task<LoginResponse> VerifyLoginOTPAsync(VerifyOtpRequest request)
         {
@@ -309,6 +296,7 @@ namespace BusinessLogicLayer.Services
                     .Query(a => a.Email == request.Email &&
                                a.TwoFactorToken == request.OTP)
                     .Include(a => a.Role)
+                    .Include(a => a.Wallet)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
@@ -373,6 +361,7 @@ namespace BusinessLogicLayer.Services
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Email == email)
                     .Include(a => a.Role)
+                    .Include(a => a.Wallet)
                     .FirstOrDefaultAsync();
 
                 bool isNewUser = false;
@@ -396,11 +385,11 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.AccountRepository.InsertAsync(account);
                     await _unitOfWork.CommitAsync();
                     isNewUser = true;
-
-                    // Reload account để include Role
+                   
                     account = await _unitOfWork.AccountRepository
                         .Query(a => a.Email == email)
                         .Include(a => a.Role)
+                        .Include(a => a.Wallet)
                         .FirstOrDefaultAsync();
                 }
 
@@ -435,6 +424,7 @@ namespace BusinessLogicLayer.Services
                     RoleId = account.RoleId,
                     AccountId = account.Id,
                     SubscriptionId = account.SubscriptionId,
+                    WalletId = account.Wallet.Id
                 };
             }
             catch (Exception ex)

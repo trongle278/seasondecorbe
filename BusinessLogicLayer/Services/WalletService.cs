@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelResponse.Payment;
 
 namespace BusinessLogicLayer.Services
 {
@@ -65,178 +66,88 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse<List<WalletTransactionResponse>>> GetWalletTransactions(int walletId)
+        public async Task<BaseResponse<WalletResponse>> GetWalletByAccountId(int accountId)
         {
-            var response = new BaseResponse<List<WalletTransactionResponse>>();
+            var response = new BaseResponse<WalletResponse>();
+
             try
             {
-                var wallet = await _unitOfWork.WalletRepository.GetByIdAsync(walletId);
+                var wallet = await _unitOfWork.WalletRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(x => x.AccountId == accountId);
+
                 if (wallet == null)
                 {
                     response.Success = false;
-                    response.Message = "Wallet does not exist";
+                    response.Message = "Wallet not found.";
                     return response;
                 }
 
-                var transactions = _unitOfWork.WalletTransactionRepository.Queryable()
-                    .Where(wt => wt.WalletId == walletId)
-                    .Include(wt => wt.PaymentTransaction)
-                    .OrderByDescending(wt => wt.PaymentTransaction.TransactionDate)
-                    .ToList();
-
-                var transactionsResponse = _mapper.Map<List<WalletTransactionResponse>>(transactions);
                 response.Success = true;
-                response.Message = "Transaction list retrieved successfully";
-                response.Data = transactionsResponse;
-                return response;
+                response.Message = "Wallet retrieved successfully.";
+                response.Data = new WalletResponse
+                {
+                    WalletId = wallet.Id,
+                    Balance = wallet.Balance
+                };
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "An error occurred while retrieving transaction list";
+                response.Message = "An error occurred while retrieving the wallet.";
                 response.Errors.Add(ex.Message);
-                return response;
             }
+
+            return response;
         }
 
-        public async Task<BaseResponse<List<WalletTransactionResponse>>> GetTransactionsByType(int walletId, PaymentTransaction.EnumTransactionType type)
+
+        public async Task<BaseResponse<List<TransactionsResponse>>> GetAllTransactionsByAccountId(int accountId)
         {
-            var response = new BaseResponse<List<WalletTransactionResponse>>();
+            var response = new BaseResponse<List<TransactionsResponse>>();
+
             try
             {
-                var wallet = await _unitOfWork.WalletRepository.GetByIdAsync(walletId);
+                var wallet = await _unitOfWork.WalletRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(x => x.AccountId == accountId);
+
                 if (wallet == null)
                 {
                     response.Success = false;
-                    response.Message = "Wallet does not exist";
+                    response.Message = "Wallet not found.";
                     return response;
                 }
 
-                var transactions = _unitOfWork.WalletTransactionRepository.Queryable()
-                    .Where(wt => wt.WalletId == walletId)
-                    .Include(wt => wt.PaymentTransaction)
-                    .Where(wt => wt.PaymentTransaction.TransactionType == type)
-                    .OrderByDescending(wt => wt.PaymentTransaction.TransactionDate)
-                    .ToList();
+                var transactions = await _unitOfWork.WalletTransactionRepository
+                    .Queryable()
+                    .Where(x => x.WalletId == wallet.Id)
+                    .Include(x => x.PaymentTransaction)
+                    .Select(x => new TransactionsResponse
+                    {
+                        Id = x.PaymentTransaction.Id,
+                        BookingId = x.PaymentTransaction.BookingId,
+                        OrderId = x.PaymentTransaction.OrderId,
+                        Amount = x.PaymentTransaction.Amount,
+                        TransactionDate = x.PaymentTransaction.TransactionDate,
+                        TransactionType = x.PaymentTransaction.TransactionType.ToString(),
+                        TransactionStatus = x.PaymentTransaction.TransactionStatus.ToString()
+                    })
+                    .ToListAsync();
 
-                var transactionsResponse = _mapper.Map<List<WalletTransactionResponse>>(transactions);
                 response.Success = true;
-                response.Message = $"Transaction list of type {type} retrieved successfully";
-                response.Data = transactionsResponse;
-                return response;
+                response.Message = "Transactions retrieved successfully.";
+                response.Data = transactions;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "An error occurred while retrieving transaction list";
+                response.Message = "An error occurred while retrieving transactions.";
                 response.Errors.Add(ex.Message);
-                return response;
             }
+
+            return response;
         }
 
-        public async Task<BaseResponse<List<WalletTransactionResponse>>> GetTransactionsByStatus(int walletId, PaymentTransaction.EnumTransactionStatus status)
-        {
-            var response = new BaseResponse<List<WalletTransactionResponse>>();
-            try
-            {
-                var wallet = await _unitOfWork.WalletRepository.GetByIdAsync(walletId);
-                if (wallet == null)
-                {
-                    response.Success = false;
-                    response.Message = "Wallet does not exist";
-                    return response;
-                }
-
-                var transactions = _unitOfWork.WalletTransactionRepository.Queryable()
-                    .Where(wt => wt.WalletId == walletId)
-                    .Include(wt => wt.PaymentTransaction)
-                    .Where(wt => wt.PaymentTransaction.TransactionStatus == status)
-                    .OrderByDescending(wt => wt.PaymentTransaction.TransactionDate)
-                    .ToList();
-
-                var transactionsResponse = _mapper.Map<List<WalletTransactionResponse>>(transactions);
-                response.Success = true;
-                response.Message = $"Transaction list with status {status} retrieved successfully";
-                response.Data = transactionsResponse;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "An error occurred while retrieving transaction list";
-                response.Errors.Add(ex.Message);
-                return response;
-            }
-        }
-
-        public async Task<BaseResponse<List<WalletTransactionResponse>>> GetTransactionsByDateRange(int walletId, DateTime startDate, DateTime endDate)
-        {
-            var response = new BaseResponse<List<WalletTransactionResponse>>();
-            try
-            {
-                var wallet = await _unitOfWork.WalletRepository.GetByIdAsync(walletId);
-                if (wallet == null)
-                {
-                    response.Success = false;
-                    response.Message = "Wallet does not exist";
-                    return response;
-                }
-
-                var transactions = _unitOfWork.WalletTransactionRepository.Queryable()
-                    .Where(wt => wt.WalletId == walletId)
-                    .Include(wt => wt.PaymentTransaction)
-                    .Where(wt => wt.PaymentTransaction.TransactionDate >= startDate &&
-                                wt.PaymentTransaction.TransactionDate <= endDate)
-                    .OrderByDescending(wt => wt.PaymentTransaction.TransactionDate)
-                    .ToList();
-
-                var transactionsResponse = _mapper.Map<List<WalletTransactionResponse>>(transactions);
-                response.Success = true;
-                response.Message = "Transaction list by date range retrieved successfully";
-                response.Data = transactionsResponse;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "An error occurred while retrieving transaction list";
-                response.Errors.Add(ex.Message);
-                return response;
-            }
-        }
-
-        public async Task<BaseResponse<WalletTransactionResponse>> GetTransactionDetail(int transactionId)
-        {
-            var response = new BaseResponse<WalletTransactionResponse>();
-            try
-            {
-                var transaction = _unitOfWork.WalletTransactionRepository.Queryable()
-                    .Include(wt => wt.PaymentTransaction)
-                    .Include(wt => wt.Wallet)
-                    .Include(wt => wt.PaymentTransaction.Booking)
-                    .Include(wt => wt.PaymentTransaction.Order)
-                    .FirstOrDefault(wt => wt.Id == transactionId);
-
-                if (transaction == null)
-                {
-                    response.Success = false;
-                    response.Message = "Transaction not found";
-                    return response;
-                }
-
-                var transactionResponse = _mapper.Map<WalletTransactionResponse>(transaction);
-                response.Success = true;
-                response.Message = "Transaction details retrieved successfully";
-                response.Data = transactionResponse;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "An error occurred while retrieving transaction details";
-                response.Errors.Add(ex.Message);
-                return response;
-            }
-        }
     }
 }

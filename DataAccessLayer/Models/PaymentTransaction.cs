@@ -26,7 +26,7 @@ namespace DataAccessObject.Models
         {
             TopUp, // Nạp tiền
             Withdraw, // rút tiền
-            Deposite, // đặt cọc
+            Deposit, // đặt cọc
             Refund,
             Pay,
             Revenue

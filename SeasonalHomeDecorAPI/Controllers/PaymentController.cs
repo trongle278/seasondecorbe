@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using BusinessLogicLayer.Interfaces;
 using KCP.Service.Service.Pay;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Payment;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {

@@ -26,6 +26,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int AccountId { get; set; }
         public int? SubscriptionId { get; set; }
         public int RoleId { get; set; }
+        public int WalletId { get; set; }
         public bool RequiresTwoFactor { get; set; }
 
         public LoginResponse()
@@ -40,6 +41,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int RoleId { get; set; }
         public int AccountId { get; set; }
         public int? SubscriptionId { get; set; }
+        public int WalletId { get; set; }
         public List<string> Errors { get; set; }
     }
     public class ForgotPasswordResponse : BaseResponse
