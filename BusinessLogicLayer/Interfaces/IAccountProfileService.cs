@@ -15,5 +15,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<AccountListResponse> GetAllAccountsAsync();
         Task<BaseResponse> UpdateAccountAsync(int accountId, UpdateAccountRequest request);
         Task<BaseResponse> UpdateAvatarAsync(int accountId, Stream fileStream, string fileName);
+        Task<BaseResponse> UpdateLocationAsync(int accountId, UpdateLocationRequest request);
     }
 }

@@ -16,7 +16,7 @@ namespace DataAccessObject.Models
         public string Style { get; set; }
         public double? BasePrice { get; set; }
         public string Description { get; set; }
-        public string Province { get; set; }
+        public string Sublocation { get; set; }
         public DateTime CreateAt { get; set; }
 
         public bool IsDeleted { get; set; } = false;
@@ -26,7 +26,7 @@ namespace DataAccessObject.Models
 
         public int DecorCategoryId { get; set; }
         public DecorCategory DecorCategory { get; set; }
-
+        public DateTime StartDate { get; set; }
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<DecorImage>? DecorImages { get; set; }
         // Quan hệ Many-to-Many với Season

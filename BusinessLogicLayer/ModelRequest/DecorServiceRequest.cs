@@ -17,11 +17,13 @@ namespace BusinessLogicLayer.ModelRequest
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Province is required")]
-        public string Province { get; set; }
+        public string Sublocation { get; set; }
 
         [Required(ErrorMessage = "DecorCategoryId is required")]
         public int DecorCategoryId { get; set; }
 
+        [Required(ErrorMessage = "StartDate is required")]
+        public DateTime StartDate { get; set; }
         // Danh sách file ảnh đính kèm, tối đa 5 ảnh
         public List<IFormFile> Images { get; set; }
 
@@ -38,13 +40,19 @@ namespace BusinessLogicLayer.ModelRequest
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Province is required")]
-        public string Province { get; set; }
+        public string Sublocation { get; set; }
 
         [Required(ErrorMessage = "DecorCategoryId is required")]
         public int DecorCategoryId { get; set; }
 
         // Danh sách SeasonIds để cập nhật
         public List<int> SeasonIds { get; set; } = new List<int>();
+    }
+
+    public class ChangeStartDateRequest
+    {
+        [Required(ErrorMessage = "StartDate is required")]
+        public DateTime StartDate { get; set; }
     }
 }
 

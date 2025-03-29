@@ -160,5 +160,48 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
+        public async Task<BaseResponse> UpdateLocationAsync(int accountId, UpdateLocationRequest request)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                    .Query(a => a.Id == accountId && a.IsProvider == true)
+                    .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Only a provider can update their location."
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Location))
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Location cannot be empty."
+                    };
+                }
+
+                account.Location = request.Location;
+                _unitOfWork.AccountRepository.Update(account);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Location updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error updating location.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
     }
 }

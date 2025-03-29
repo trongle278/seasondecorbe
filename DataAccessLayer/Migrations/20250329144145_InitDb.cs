@@ -154,6 +154,7 @@ namespace DataAccessObject.Migrations
                     JoinedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsProvider = table.Column<bool>(type: "bit", nullable: true),
                     ProviderVerified = table.Column<bool>(type: "bit", nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProviderStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -294,11 +295,12 @@ namespace DataAccessObject.Migrations
                     Style = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BasePrice = table.Column<double>(type: "float", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Province = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Sublocation = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
-                    DecorCategoryId = table.Column<int>(type: "int", nullable: false)
+                    DecorCategoryId = table.Column<int>(type: "int", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

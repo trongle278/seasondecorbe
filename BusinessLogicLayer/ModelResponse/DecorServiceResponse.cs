@@ -25,7 +25,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string Style { get; set; }
         public double? BasePrice { get; set; }
         public string Description { get; set; }
-        public string Province { get; set; }
+        public string Sublocation { get; set; }
         public DateTime CreateAt { get; set; }
         public int AccountId { get; set; }
         public int DecorCategoryId { get; set; }
@@ -52,7 +52,7 @@ namespace BusinessLogicLayer.ModelResponse
     public class SearchDecorServiceRequest
     {
         public string? Style { get; set; }
-        public string? Province { get; set; }
+        public string? Sublocation { get; set; }
         public string? CategoryName { get; set; }  // Tìm theo tên danh mục
         public List<string>? SeasonNames { get; set; }  // Tìm theo tên mùa
     }

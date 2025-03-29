@@ -193,6 +193,13 @@ namespace BusinessLogicLayer.Services
                 }
                 /////------------------------------------------------------------------------------------------
 
+                // 🔹 Kiểm tra nếu ngày khảo sát có hợp lệ với ngày bắt đầu dịch vụ
+                if (request.SurveyDate < decorService.StartDate)
+                {
+                    response.Message = "This service is only available starting from " + decorService.StartDate.ToString("dd-MM-yyyy");
+                    return response;
+                }
+
                 // 🔹 Kiểm tra ngày khảo sát hợp lệ
                 if (request.SurveyDate < DateTime.Today)
                 {

@@ -26,7 +26,7 @@ namespace BusinessLogicLayer.Services
                 decorService.Id,
                 decorService.Style,
                 decorService.Description,
-                decorService.Province,
+                decorService.Sublocation,
                 decorService.AccountId,
                 decorService.DecorCategoryId,
                 decorService.CreateAt,
@@ -65,7 +65,7 @@ namespace BusinessLogicLayer.Services
                         .Fields(f => f
                             .Field(ff => ff.Style)
                             .Field(ff => ff.Description)
-                            .Fields(ff => ff.Province)
+                            .Fields(ff => ff.Sublocation)
                         )
                         .Query(keyword)
                         .Fuzziness(Fuzziness.Auto)

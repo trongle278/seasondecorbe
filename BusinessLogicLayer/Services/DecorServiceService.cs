@@ -297,16 +297,32 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
+
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request, int? accountId)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
             try
             {
-                // Filter
+                string? userLocation = null;
+
+                // ✅ Nếu user đăng nhập, lấy Location từ Account
+                if (accountId.HasValue)
+                {
+                    var userAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId.Value);
+                    if (userAccount != null && !string.IsNullOrEmpty(userAccount.Location))
+                    {
+                        userLocation = userAccount.Location;
+                    }
+                }
+
+                // ✅ Nếu user có chọn Sublocation, dùng Sublocation. Nếu không có, dùng Location từ Account.
+                string locationFilter = !string.IsNullOrEmpty(request.Sublocation) ? request.Sublocation : userLocation;
+
+                // ✅ Nếu user chưa đăng nhập, hoặc không có Location, thì không lọc theo Sublocation
                 Expression<Func<DecorService, bool>> filter = decorService =>
                     decorService.IsDeleted == false &&
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
-                    (string.IsNullOrEmpty(request.Province) || decorService.Province.Contains(request.Province)) &&
+                    (string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
                     (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);
@@ -322,7 +338,7 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
                 {
                     "Style" => decorService => decorService.Style,
-                    "Province" => decorService => decorService.Province,
+                    "Sublocation" => decorService => decorService.Sublocation,
                     "CreateAt" => decorService => decorService.CreateAt,
                     "Favorite" => decorService => decorService.FavoriteServices.Count,
                     _ => decorService => decorService.Id
@@ -335,7 +351,6 @@ namespace BusinessLogicLayer.Services
                          .Include(ds => ds.FavoriteServices)
                          .Include(ds => ds.DecorServiceSeasons)
                              .ThenInclude(dss => dss.Season)
-
                          .Include(ds => ds.Account)
                             .ThenInclude(a => a.Followers)
                          .Include(ds => ds.Account)
@@ -352,10 +367,9 @@ namespace BusinessLogicLayer.Services
                     customQuery
                 );
 
-                // Map mỗi service sang DecorServiceDTO
                 var dtos = _mapper.Map<List<DecorServiceDTO>>(decorServices);
 
-                // Map DecorImages -> DecorImageDTO
+                // Map dữ liệu
                 for (int i = 0; i < decorServices.Count(); i++)
                 {
                     var service = decorServices.ElementAt(i);
@@ -393,7 +407,6 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-
                 var pageResult = new PageResult<DecorServiceDTO>
                 {
                     Data = dtos,
@@ -412,6 +425,7 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
 
         public async Task<BaseResponse> CreateDecorServiceAsync(CreateDecorServiceRequest request, int accountId)
         {
@@ -447,10 +461,11 @@ namespace BusinessLogicLayer.Services
                 {
                     Style = request.Style,
                     Description = request.Description,
-                    Province = request.Province,
+                    Sublocation = request.Sublocation,
                     AccountId = accountId,
                     DecorCategoryId = request.DecorCategoryId,
                     CreateAt = DateTime.Now,
+                    StartDate = request.StartDate,
                     DecorImages = new List<DecorImage>(),
                     DecorServiceSeasons = new List<DecorServiceSeason>()
                 };
@@ -538,7 +553,7 @@ namespace BusinessLogicLayer.Services
 
                 decorService.Style = request.Style;
                 decorService.Description = request.Description;
-                decorService.Province = request.Province;
+                decorService.Sublocation = request.Sublocation;
                 decorService.AccountId = accountId;
                 decorService.DecorCategoryId = request.DecorCategoryId;
 
@@ -816,8 +831,8 @@ namespace BusinessLogicLayer.Services
                 if (!string.IsNullOrEmpty(request.Style))
                     query = query.Where(ds => ds.Style.Contains(request.Style));
 
-                if (!string.IsNullOrEmpty(request.Province))
-                    query = query.Where(ds => ds.Province.Contains(request.Province));
+                if (!string.IsNullOrEmpty(request.Sublocation))
+                    query = query.Where(ds => ds.Sublocation.Contains(request.Sublocation));
 
                 if (!string.IsNullOrEmpty(request.CategoryName))
                     query = query.Where(ds => ds.DecorCategory.CategoryName.Contains(request.CategoryName));
@@ -839,7 +854,7 @@ namespace BusinessLogicLayer.Services
                     Id = ds.Id,
                     Style = ds.Style,
                     Description = ds.Description,
-                    Province = ds.Province,
+                    Sublocation = ds.Sublocation,
                     CreateAt = ds.CreateAt,
                     AccountId = ds.AccountId,
                     FavoriteCount = 0,
@@ -868,5 +883,49 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
+        public async Task<BaseResponse> ChangeStartDateAsync(int decorServiceId, ChangeStartDateRequest request, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var decorService = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => ds.Id == decorServiceId && ds.AccountId == accountId)
+                    .FirstOrDefaultAsync();
+
+                if (decorService == null)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Decor service not found or you do not have permission to modify it."
+                    };
+                }
+
+                if (request.StartDate < DateTime.Now.Date)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "Start date cannot be in the past."
+                    };
+                }
+
+                decorService.StartDate = request.StartDate;
+                _unitOfWork.DecorServiceRepository.Update(decorService);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Start date updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error updating start date.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
     }
 }

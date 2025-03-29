@@ -10,7 +10,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
     public class DecorServiceFilterRequest
     {
         public string? Style { get; set; }
-        public string? Province { get; set; }
+        public string? Sublocation { get; set; }
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
         public int? DecorCategoryId { get; set; }

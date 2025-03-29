@@ -1,7 +1,9 @@
-﻿using BusinessLogicLayer.Interfaces;
+﻿using System.Security.Claims;
+using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
+using DataAccessObject.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,15 +30,35 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginated")]
-        public async Task<IActionResult> GetPaginatedDecorService([FromQuery]DecorServiceFilterRequest request)
+        public async Task<IActionResult> GetPaginatedDecorService([FromQuery] DecorServiceFilterRequest request)
         {
-            var result = await  _decorServiceService.GetFilterDecorServicesAsync(request);
-
-            if (result.Success)
+            try
             {
-                return Ok(result);
+                int? accountId = null;
+
+                // ✅ Lấy AccountId từ Token nếu user đăng nhập
+                if (User.Identity.IsAuthenticated)
+                {
+                    var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (accountIdClaim != null)
+                    {
+                        accountId = int.Parse(accountIdClaim.Value);
+                    }
+                }
+
+                var response = await _decorServiceService.GetFilterDecorServicesAsync(request, accountId);
+
+                if (!response.Success)
+                {
+                    return BadRequest(response);
+                }
+
+                return Ok(response);
             }
-            return BadRequest(result.Message);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "Internal Server Error", Error = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]
@@ -129,14 +151,14 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchMultiCriteria(
         [FromQuery] string? Style,
-        [FromQuery] string? Province,
+        [FromQuery] string? Sublocation,
         [FromQuery] string? CategoryName,
         [FromQuery] List<string>? SeasonNames) // Nhận danh sách thay vì string đơn lẻ
         {
             var request = new SearchDecorServiceRequest
             {
                 Style = Style,
-                Province = Province,
+                Sublocation = Sublocation,
                 CategoryName = CategoryName,
                 SeasonNames = SeasonNames
             };
@@ -145,6 +167,21 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success)
                 return Ok(result);
             return BadRequest(result);
+        }
+        
+        [HttpPut("change-startdate/{decorServiceId}")]
+        public async Task<IActionResult> ChangeStartDate(int decorServiceId, [FromBody] ChangeStartDateRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            int accountId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+
+            var response = await _decorServiceService.ChangeStartDateAsync(decorServiceId, request, accountId);
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
         }
     }
 }

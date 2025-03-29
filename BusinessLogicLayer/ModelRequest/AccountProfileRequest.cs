@@ -80,4 +80,10 @@ namespace BusinessLogicLayer.ModelRequest
         [Required(ErrorMessage = "Phone is required")]
         public string? Phone { get; set; }
     }
+
+    public class UpdateLocationRequest
+    {
+        [DefaultValue("Tp.HoChiMinh")]
+        public string Location { get; set; }
+    }
 }

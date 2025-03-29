@@ -114,6 +114,37 @@ namespace SeasonalHomeDecorAPI.Controllers
                 }
                 return BadRequest(response.Message);
             }
-        }      
+        }
+
+        [HttpPut("update-location")]
+        public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Lấy user id từ token (claims)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            if (!int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return BadRequest("Invalid user ID.");
+            }
+
+            var result = await _accountProfileService.UpdateLocationAsync(userId, request);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
+        }
     }
 }
