@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLogicLayer.ModelResponse
 {
-    public class SupportResponse : BaseResponse
+    public class SupportResponse
     {
         public int Id { get; set; }
         public string Subject { get; set; }

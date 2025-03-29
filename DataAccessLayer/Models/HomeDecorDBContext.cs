@@ -353,13 +353,19 @@ namespace DataAccessObject.Models
                 .HasOne(md => md.Quotation)
                 .WithMany(q => q.MaterialDetails)
                 .HasForeignKey(md => md.QuotationId)
-                .OnDelete(DeleteBehavior.Cascade); ;
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ConstructionDetail>()
                 .HasOne(cd => cd.Quotation)
                 .WithMany(q => q.ConstructionDetails)
                 .HasForeignKey(cd => cd.QuotationId)
-                .OnDelete(DeleteBehavior.Cascade); ;
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Support>()
+                .HasOne(s => s.Booking)
+                .WithMany(b => b.Supports)
+                .HasForeignKey(s => s.BookingId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)

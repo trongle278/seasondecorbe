@@ -10,8 +10,9 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface ISupportService
     {
-        Task<SupportReplyResponse> AddReplyAsync(AddSupportReplyRequest request, bool isAdmin);
-        Task<SupportResponse> CreateTicketAsync(CreateSupportRequest request);
-        Task<SupportResponse> GetTicketByIdAsync(int id);
+        Task<BaseResponse<SupportReplyResponse>> AddReplyAsync(AddSupportReplyRequest request, int accountId, bool isAdmin);
+        Task<BaseResponse<SupportResponse>> CreateTicketAsync(CreateSupportRequest request, int accountId);
+        Task<BaseResponse<SupportResponse>> GetTicketByIdAsync(int id);
+        Task<BaseResponse<List<SupportResponse>>> GetAllTicketsAsync(int? bookingId, int? accountId);
     }
 }

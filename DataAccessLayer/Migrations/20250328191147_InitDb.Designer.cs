@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250327132549_InitDb")]
+    [Migration("20250328191147_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1287,6 +1287,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
 
@@ -1307,6 +1310,8 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("BookingId");
 
                     b.HasIndex("TicketTypeId");
 
@@ -1929,6 +1934,12 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
+                        .WithMany("Supports")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("DataAccessObject.Models.TicketType", "TicketType")
                         .WithMany("Supports")
                         .HasForeignKey("TicketTypeId")
@@ -1936,6 +1947,8 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
+
+                    b.Navigation("Booking");
 
                     b.Navigation("TicketType");
                 });
@@ -2072,6 +2085,8 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("Review")
                         .IsRequired();
+
+                    b.Navigation("Supports");
 
                     b.Navigation("Trackings");
                 });

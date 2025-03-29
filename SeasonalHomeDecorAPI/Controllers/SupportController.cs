@@ -23,66 +23,35 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         // POST: api/Support/create-ticket
+        /// <summary>
+        /// Tạo Ticket mới
+        /// </summary>
         [HttpPost("create-ticket")]
-        public async Task<IActionResult> CreateTicket([FromForm] CreateSupportRequest request)
+        public async Task<ActionResult<BaseResponse<SupportResponse>>> CreateTicket([FromForm] CreateSupportRequest request)
         {
-            try
-            {
-                // Lấy userId từ token
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(new { message = "User ID not found in token." });
-                }
+            int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-                if (!int.TryParse(userIdClaim.Value, out int accountId))
-                {
-                    return BadRequest(new { message = "Invalid user ID in token." });
-                }
+            var response = await _supportService.CreateTicketAsync(request, accountId);
+            if (!response.Success)
+                return BadRequest(response);
 
-                // Nếu không tìm thấy tài khoản trong DB, coi đó là admin và gán accountId = -1
-                var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
-                request.AccountId = account == null ? -1 : accountId;
-
-                var response = await _supportService.CreateTicketAsync(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(response);
         }
 
-        // POST: api/Support/reply-ticket
+        /// <summary>
+        /// Thêm Reply vào Ticket
+        /// </summary>
         [HttpPost("reply-ticket")]
-        public async Task<IActionResult> ReplyTicket([FromForm] AddSupportReplyRequest request)
+        public async Task<ActionResult<BaseResponse<SupportReplyResponse>>> AddReply([FromForm] AddSupportReplyRequest request)
         {
-            try
-            {
-                // Lấy userId từ token và gán vào request
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(new { message = "User ID not found in token." });
-                }
+            int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            bool isAdmin = User.IsInRole("Admin");
 
-                if (!int.TryParse(userIdClaim.Value, out int accountId))
-                {
-                    return BadRequest(new { message = "Invalid user ID in token." });
-                }
-                request.AccountId = accountId;
+            var response = await _supportService.AddReplyAsync(request, accountId, isAdmin);
+            if (!response.Success)
+                return BadRequest(response);
 
-                // Kiểm tra tài khoản từ DB; nếu không tìm thấy thì coi đó là admin
-                var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
-                bool isAdmin = account == null || account.RoleId == 1;
-
-                var replyResponse = await _supportService.AddReplyAsync(request, isAdmin);
-                return Ok(replyResponse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(response);
         }
 
         // GET: api/Support/{id}

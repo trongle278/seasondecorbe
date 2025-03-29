@@ -25,9 +25,9 @@ namespace BusinessLogicLayer.Services
             _mapper = mapper;
         }
 
-        public async Task<SupportResponse> CreateTicketAsync(CreateSupportRequest request)
+        public async Task<BaseResponse<SupportResponse>> CreateTicketAsync(CreateSupportRequest request, int accountId)
         {
-            var response = new SupportResponse();
+            var response = new BaseResponse<SupportResponse>();
             try
             {
                 var ticket = new Support
@@ -35,9 +35,65 @@ namespace BusinessLogicLayer.Services
                     Subject = request.Subject,
                     Description = request.Description,
                     CreateAt = DateTime.UtcNow,
-                    AccountId = request.AccountId,  // -1 if admin
+                    AccountId = accountId,
                     TicketTypeId = request.TicketTypeId,
+                    BookingId = request.BookingId,
                     TicketStatus = Support.TicketStatusEnum.Pending,
+                    TicketAttachments = new List<TicketAttachment>()
+                };
+
+                if (request.Attachments != null && request.Attachments.Any())
+                {
+                    foreach (var file in request.Attachments)
+                    {
+                        using (var stream = file.OpenReadStream())
+                        {
+                            string fileUrl = await _cloudinaryService.UploadFileAsync(stream, file.FileName, file.ContentType);
+                            ticket.TicketAttachments.Add(new TicketAttachment
+                            {
+                                FileName = file.FileName,
+                                FileUrl = fileUrl,
+                                UploadedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
+
+                await _unitOfWork.SupportRepository.InsertAsync(ticket);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Data = _mapper.Map<SupportResponse>(ticket);
+                response.Message = "Ticket created successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "An error occurred while creating the ticket.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<SupportReplyResponse>> AddReplyAsync(AddSupportReplyRequest request, int accountId, bool isAdmin)
+        {
+            var response = new BaseResponse<SupportReplyResponse>();
+            try
+            {
+                var ticket = await _unitOfWork.SupportRepository.GetByIdAsync(request.SupportId);
+                if (ticket == null)
+                {
+                    response.Success = false;
+                    response.Message = "Ticket not found.";
+                    return response;
+                }
+
+                var reply = new TicketReply
+                {
+                    Description = request.Description,
+                    CreateAt = DateTime.UtcNow,
+                    SupportId = request.SupportId,
+                    AccountId = accountId,
                     TicketAttachments = new List<TicketAttachment>()
                 };
 
@@ -54,100 +110,93 @@ namespace BusinessLogicLayer.Services
                                 FileUrl = fileUrl,
                                 UploadedAt = DateTime.UtcNow
                             };
-                            ticket.TicketAttachments.Add(attachment);
-                        }
-                    }
-                }
-
-                await _unitOfWork.SupportRepository.InsertAsync(ticket);
-                await _unitOfWork.CommitAsync();
-
-                response = _mapper.Map<SupportResponse>(ticket);
-                response.Success = true;
-                response.Message = "Ticket created successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "An error occurred while creating the ticket";
-                response.Errors.Add(ex.Message);
-            }
-            return response;
-        }
-
-        public async Task<SupportReplyResponse> AddReplyAsync(AddSupportReplyRequest request, bool isAdmin)
-        {
-            SupportReplyResponse replyResponse = null;
-            try
-            {
-                var ticket = await _unitOfWork.SupportRepository.GetByIdAsync(request.SupportId);
-                if (ticket == null)
-                    throw new Exception("Ticket not found");
-
-                var reply = new TicketReply
-                {
-                    Description = request.Description,
-                    CreateAt = DateTime.UtcNow,
-                    SupportId = request.SupportId,
-                    AccountId = request.AccountId,
-                    TicketAttachments = new List<TicketAttachment>()
-                };
-
-                if (request.Attachments != null && request.Attachments.Any())
-                {
-                    foreach (var file in request.Attachments)
-                    {
-                        using (var stream = file.OpenReadStream())
-                        {
-                            string fileUrl = await _cloudinaryService.UploadFileAsync(stream, file.FileName, file.ContentType);
-                            var attachment = new TicketAttachment
-                            {
-                                FileName = file.FileName,
-                                FileUrl = fileUrl,
-                                UploadedAt = DateTime.UtcNow,
-                                TicketReplyId = reply.Id
-                            };
                             reply.TicketAttachments.Add(attachment);
                         }
                     }
                 }
 
-                if (ticket.TicketReplies == null)
-                    ticket.TicketReplies = new List<TicketReply>();
+                ticket.TicketReplies ??= new List<TicketReply>();
                 ticket.TicketReplies.Add(reply);
-
                 ticket.TicketStatus = isAdmin ? Support.TicketStatusEnum.Solved : Support.TicketStatusEnum.Pending;
 
                 await _unitOfWork.CommitAsync();
-                replyResponse = _mapper.Map<SupportReplyResponse>(reply);
+
+                var mappedReply = new SupportReplyResponse
+                {
+                    Id = reply.Id,
+                    SupportId = reply.SupportId,
+                    AccountId = reply.AccountId,
+                    Description = reply.Description,
+                    CreateAt = reply.CreateAt,
+                    AttachmentUrls = reply.TicketAttachments.Select(a => a.FileUrl).ToList()
+                };
+
+                response.Success = true;
+                response.Data = mappedReply;
+                response.Message = "Reply added successfully.";
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while adding the reply: " + ex.Message);
+                response.Success = false;
+                response.Message = "An error occurred while adding the reply.";
+                response.Errors.Add(ex.Message);
             }
-            return replyResponse;
+            return response;
         }
 
-        public async Task<SupportResponse> GetTicketByIdAsync(int id)
+        /// <summary>
+        /// Lấy ticket theo ID
+        /// </summary>
+        public async Task<BaseResponse<SupportResponse>> GetTicketByIdAsync(int id)
         {
-            var response = new SupportResponse();
+            var response = new BaseResponse<SupportResponse>();
             try
             {
                 var ticket = await _unitOfWork.SupportRepository.GetByIdAsync(id);
                 if (ticket == null)
                 {
                     response.Success = false;
-                    response.Message = "Ticket not found";
+                    response.Message = "Ticket not found.";
                     return response;
                 }
-                response = _mapper.Map<SupportResponse>(ticket);
+
                 response.Success = true;
-                response.Message = "Ticket retrieved successfully";
+                response.Data = _mapper.Map<SupportResponse>(ticket);
+                response.Message = "Ticket retrieved successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "An error occurred while retrieving the ticket";
+                response.Message = "An error occurred while retrieving the ticket.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Lấy danh sách ticket (lọc theo user hoặc booking)
+        /// </summary>
+        public async Task<BaseResponse<List<SupportResponse>>> GetAllTicketsAsync(int? bookingId, int? accountId)
+        {
+            var response = new BaseResponse<List<SupportResponse>>();
+            try
+            {
+                var tickets = await _unitOfWork.SupportRepository.GetAllAsync();
+
+                if (bookingId.HasValue)
+                    tickets = tickets.Where(t => t.BookingId == bookingId.Value).ToList();
+
+                if (accountId.HasValue)
+                    tickets = tickets.Where(t => t.AccountId == accountId.Value).ToList();
+
+                response.Success = true;
+                response.Data = _mapper.Map<List<SupportResponse>>(tickets);
+                response.Message = "Tickets retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "An error occurred while retrieving tickets.";
                 response.Errors.Add(ex.Message);
             }
             return response;

@@ -11,17 +11,16 @@ namespace BusinessLogicLayer.ModelRequest
     {
         public string Subject { get; set; }
         public string Description { get; set; }
-        public int AccountId { get; set; }
         public int TicketTypeId { get; set; }
+        public int BookingId { get; set; }
         public IFormFile[]? Attachments { get; set; }
     }
 
     public class AddSupportReplyRequest
     {
         public int SupportId { get; set; }
-        public int AccountId { get; set; }
         public string Description { get; set; }
-        public IFormFile[] Attachments { get; set; }
+        public IFormFile[]? Attachments { get; set; }
     }
 
     public class TicketTypeRequest

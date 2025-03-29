@@ -33,6 +33,10 @@ namespace DataAccessObject.Models
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
+        public int BookingId { get; set; }
+        public Booking Booking { get; set; }
+
+
         public int TicketTypeId { get; set; }
         public TicketType TicketType { get; set; }
 
