@@ -148,14 +148,55 @@ namespace BusinessLogicLayer.Services
 
                 if (decorService == null)
                 {
-                    response.Message = "Invalid DecorServiceId. Please check your input.";
+                    response.Message = "Decorate service not exists";
                     return response;
                 }
+
+                /////------------------------------------------------------------------------------------------
+                // 🔹 Kiểm tra provider có đang bận không
+                var provider = await _unitOfWork.AccountRepository.Queryable()
+                    .FirstOrDefaultAsync(acc => acc.Id == decorService.AccountId);
+
+                if (provider == null)
+                {
+                    response.Message = "Service provider not found.";
+                    return response;
+                }
+
+                if (provider.ProviderStatus == Account.AccountStatus.Busy)
+                {
+                    response.Message = "The service provider is currently busy. Please try again later.";
+                    return response;
+                }
+                /////------------------------------------------------------------------------------------------
 
                 // 🔹 Kiểm tra nếu người tạo booking cũng là chủ của dịch vụ
                 if (decorService.AccountId == accountId)
                 {
                     response.Message = "You cannot create a booking for your own service.";
+                    return response;
+                }
+
+                /////------------------------------------------------------------------------------------------
+                // 🔹 Kiểm tra nếu đã có booking khác đang được xử lý (không phải canceled hoặc rejected)
+                // 🔹 Kiểm tra nếu đã có booking khác đang diễn ra
+                bool hasOngoingBooking = await _unitOfWork.BookingRepository.Queryable()
+                    .AnyAsync(b => b.AccountId == accountId &&
+                                   b.Status != Booking.BookingStatus.Canceled &&
+                                   b.Status != Booking.BookingStatus.Rejected &&
+                                   b.Status != Booking.BookingStatus.Completed);
+
+                if (hasOngoingBooking)
+                {
+                    response.Message = "You cannot create a new booking until your current booking is completed or canceled or rejected.";
+                    return response;
+                }
+                /////------------------------------------------------------------------------------------------
+
+                // 🔹 Kiểm tra ngày khảo sát hợp lệ
+                if (request.SurveyDate < DateTime.Today)
+                {
+                    response.Message = "Survey date must be in the future.";
                     return response;
                 }
 
@@ -166,10 +207,21 @@ namespace BusinessLogicLayer.Services
                     AddressId = request.AddressId,
                     DecorServiceId = request.DecorServiceId,
                     Status = Booking.BookingStatus.Pending,
-                    CreateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now
                 };
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
+                await _unitOfWork.CommitAsync();
+
+                // 🔹 Lưu thông tin khảo sát vào TimeSlot
+                var timeSlot = new TimeSlot
+                {
+                    BookingId = booking.Id,
+                    SurveyDate = request.SurveyDate,
+                    SurveyTime = request.SurveyTime
+                };
+
+                await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -198,7 +250,8 @@ namespace BusinessLogicLayer.Services
             // 🔹 Xác định trạng thái tiếp theo
             Booking.BookingStatus? newStatus = booking.Status switch
             {
-                Booking.BookingStatus.Pending => Booking.BookingStatus.Survey,
+                Booking.BookingStatus.Pending => Booking.BookingStatus.Accept,
+                Booking.BookingStatus.Accept => Booking.BookingStatus.Survey,
                 Booking.BookingStatus.Survey => Booking.BookingStatus.Confirm,
                 Booking.BookingStatus.Confirm when booking.DepositAmount > 0 => Booking.BookingStatus.DepositPaid,
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
@@ -217,9 +270,10 @@ namespace BusinessLogicLayer.Services
 
             switch (newStatus)
             {
+                case Booking.BookingStatus.Accept:
+                    break;
                 case Booking.BookingStatus.Survey:
                     break;
-
                 case Booking.BookingStatus.Confirm:
                     // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
                     var quotation = await _unitOfWork.QuotationRepository.Queryable()
@@ -298,6 +352,22 @@ namespace BusinessLogicLayer.Services
                         laborDetail.EstimatedCompletion = DateTime.Now;
                         _unitOfWork.BookingDetailRepository.Update(laborDetail);
                     }
+                    
+                    ///---------------------------------------------------------------------------------------
+                    // ✅ Lấy Provider từ `DecorService`
+                    var provider = await _unitOfWork.AccountRepository.Queryable()
+                        .FirstOrDefaultAsync(a => a.Id == _unitOfWork.DecorServiceRepository.Queryable()
+                            .Where(ds => ds.Id == booking.DecorServiceId)
+                            .Select(ds => ds.AccountId)
+                            .FirstOrDefault());
+
+                    if (provider != null)
+                    {
+                        // ✅ Cập nhật trạng thái Provider thành `Available`
+                        provider.ProviderStatus = Account.AccountStatus.Available;
+                        _unitOfWork.AccountRepository.Update(provider);
+                    }
+                    ///---------------------------------------------------------------------------------------
                     break;
             }
 
@@ -325,11 +395,57 @@ namespace BusinessLogicLayer.Services
                 response.Message = "Booking cannot be cancelled.";
                 return response;
             }
-            booking.Status = Booking.BookingStatus.Cancelled;
+            booking.Status = Booking.BookingStatus.Canceled;
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
             response.Success = true;
             response.Data = true;
+            return response;
+        }
+
+        public async Task<BaseResponse> RejectBookingAsync(int bookingId, int accountId, string reason)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                var service = await _unitOfWork.DecorServiceRepository.Queryable()
+                    .FirstOrDefaultAsync(ds => ds.Id == booking.DecorServiceId);
+
+                if (service == null || service.AccountId != accountId)
+                {
+                    response.Message = "You do not have permission to reject this booking.";
+                    return response;
+                }
+
+                if (booking.Status == Booking.BookingStatus.Canceled || booking.Status == Booking.BookingStatus.Rejected)
+                {
+                    response.Message = "This booking has already been canceled or rejected.";
+                    return response;
+                }
+
+                booking.Status = Booking.BookingStatus.Rejected;
+                booking.RejectReason = reason; // Lưu lý do reject
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking has been rejected successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to reject booking.";
+                response.Errors.Add(ex.Message);
+            }
             return response;
         }
 
@@ -352,12 +468,21 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // 🔹 Tính tổng chi phí booking
-                var totalAmount = await _unitOfWork.BookingDetailRepository.Queryable()
-                    .Where(bd => bd.BookingId == bookingId)
-                    .SumAsync(bd => bd.Cost);
+                // 🔹 Lấy báo giá của booking
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .FirstOrDefaultAsync(q => q.BookingId == bookingId);
 
-                var depositRate = 0.2m; // Đặt cọc 20% tổng chi phí
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                // 🔹 Tính tổng chi phí booking
+                var totalAmount = quotation.MaterialCost + quotation.ConstructionCost;
+
+                // 🔹 Lấy phần trăm đặt cọc từ báo giá, tối đa 20%
+                var depositRate = Math.Min(quotation.DepositPercentage, 20m) / 100m;
                 var depositAmount = totalAmount * depositRate;
 
                 // 🔹 Lấy Provider từ `DecorService`
@@ -385,6 +510,11 @@ namespace BusinessLogicLayer.Services
                 booking.Status = Booking.BookingStatus.DepositPaid;
                 booking.DepositAmount = depositAmount;
                 _unitOfWork.BookingRepository.Update(booking);
+
+                // 🔹 Chuyển trạng thái Provider sang "Busy"
+                provider.ProviderStatus = Account.AccountStatus.Busy;
+                _unitOfWork.AccountRepository.Update(provider);
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

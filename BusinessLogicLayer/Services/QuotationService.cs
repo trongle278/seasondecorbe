@@ -29,7 +29,7 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                // Validate booking exists and status
+                // 🔹 Kiểm tra booking có tồn tại không
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
                 if (booking == null)
                 {
@@ -43,7 +43,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Check if quotation already exists
+                // 🔹 Kiểm tra xem đã có báo giá chưa
                 var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
                     .FirstOrDefaultAsync(q => q.BookingId == bookingId);
 
@@ -57,12 +57,16 @@ namespace BusinessLogicLayer.Services
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
                 decimal totalConstructionCost = request.ConstructionTasks.Sum(c => c.Cost);
 
+                // 🔹 Kiểm tra phần trăm đặt cọc, tối đa 20%
+                var depositPercentage = Math.Min(request.DepositPercentage, 20m);
+
                 // Create quotation
                 var quotation = new Quotation
                 {
                     BookingId = bookingId,
                     MaterialCost = totalMaterialCost,
                     ConstructionCost = totalConstructionCost,
+                    DepositPercentage = depositPercentage,
                     CreatedAt = DateTime.Now
                 };
 

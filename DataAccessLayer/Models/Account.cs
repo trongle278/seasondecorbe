@@ -22,7 +22,6 @@ namespace DataAccessObject.Models
         public bool? Gender { get; set; }
         public string? Phone {  get; set; }
         public string? Avatar { get; set; }
-        public string? Status { get; set; }
         public bool IsDisable { get; set; }
         public bool IsVerified { get; set; } = false;
         public string? VerificationToken { get; set; }
@@ -61,5 +60,12 @@ namespace DataAccessObject.Models
         public bool? ProviderVerified { get; set; }
         public virtual ICollection<Product> Products { get; set; }
         public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
+        
+        public AccountStatus ProviderStatus { get; set; } // Trạng thái tài khoản
+        public enum AccountStatus
+        {
+            Available,    // Đang rảnh (có thể nhận job)           
+            Busy        // Đang bận (có job)          
+        }
     }
 }

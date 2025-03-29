@@ -18,5 +18,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<bool>> CancelBookingAsync(int bookingId);
         Task<BaseResponse> ProcessDepositAsync(int bookingId);
         Task<BaseResponse> ProcessFinalPaymentAsync(int bookingId);
+        Task<BaseResponse> RejectBookingAsync(int bookingId, int accountId, string reason);
     }
 }

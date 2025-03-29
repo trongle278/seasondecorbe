@@ -58,6 +58,15 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpPut("reject/{bookingId}")]
+        public async Task<IActionResult> RejectBooking(int bookingId, [FromBody] RejectBookingRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.RejectBookingAsync(bookingId, accountId, request.Reason);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+
         [HttpPost("deposit/{bookingId}")]
         public async Task<IActionResult> ProcessDeposit(int bookingId)
         {
@@ -71,6 +80,5 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _bookingService.ProcessFinalPaymentAsync(bookingId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
-
     }
 }

@@ -19,16 +19,18 @@ namespace DataAccessObject.Models
         public DateTime CreateAt { get; set; }
         public enum BookingStatus
         {
-            Pending,            // Khi khách hàng tạo booking
-            Survey,             // Provider đã xác nhận và sắp xếp khảo sát
-            Confirm,            // Khi customer đồng ý các điều khoản và chốt hợp đồng
-            DepositPaid,        // Đã thanh toán đặt cọc
-            Preparing,          // Chuẩn bị nguyên liệu
-            InTransit,          // Nguyên liệu được chuyển đến chỗ khách hàng
-            Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)
-            ConstructionPayment,// Thanh toán thi công
-            Completed,          // Dự án hoàn thành
-            Cancelled           // Booking bị hủy
+            Pending,            // Khi khách hàng tạo booking0
+            Accept,             // Provider chấp nhận booking1
+            Survey,             // Provider đã xác nhận và sắp xếp khảo sát2
+            Confirm,            // Khi customer đồng ý các điều khoản và chốt hợp đồng3
+            DepositPaid,        // Đã thanh toán đặt cọc4
+            Preparing,          // Chuẩn bị nguyên liệu5
+            InTransit,          // Nguyên liệu được chuyển đến chỗ khách hàng6
+            Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)7
+            ConstructionPayment,// Thanh toán thi công8
+            Completed,          // Dự án hoàn thành9
+            Canceled,          // Booking bị hủy
+            Rejected            // Booking bị từ chối
         }
 
         public BookingStatus Status { get; set; }
@@ -52,6 +54,8 @@ namespace DataAccessObject.Models
 
         public int QuotationId { get; set; }
         public Quotation Quotation { get; set; }
+
+        public string? RejectReason { get; set; } // Lưu lý do reject
 
         //public int ContractId { get; set; }
         //public Contract Contract { get; set; }

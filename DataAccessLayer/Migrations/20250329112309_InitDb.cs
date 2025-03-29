@@ -137,7 +137,6 @@ namespace DataAccessObject.Migrations
                     Gender = table.Column<bool>(type: "bit", nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDisable = table.Column<bool>(type: "bit", nullable: false),
                     IsVerified = table.Column<bool>(type: "bit", nullable: false),
                     VerificationToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -154,7 +153,8 @@ namespace DataAccessObject.Migrations
                     BusinessAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsProvider = table.Column<bool>(type: "bit", nullable: true),
-                    ProviderVerified = table.Column<bool>(type: "bit", nullable: true)
+                    ProviderVerified = table.Column<bool>(type: "bit", nullable: true),
+                    ProviderStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -524,7 +524,8 @@ namespace DataAccessObject.Migrations
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     DecorServiceId = table.Column<int>(type: "int", nullable: false),
                     AddressId = table.Column<int>(type: "int", nullable: false),
-                    QuotationId = table.Column<int>(type: "int", nullable: false)
+                    QuotationId = table.Column<int>(type: "int", nullable: false),
+                    RejectReason = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -760,6 +761,7 @@ namespace DataAccessObject.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     MaterialCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ConstructionCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DepositPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -842,6 +844,27 @@ namespace DataAccessObject.Migrations
                         name: "FK_Supports_TicketTypes_TicketTypeId",
                         column: x => x.TicketTypeId,
                         principalTable: "TicketTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TimeSlots",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    SurveyDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SurveyTime = table.Column<TimeSpan>(type: "time", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TimeSlots", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TimeSlots_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1328,6 +1351,11 @@ namespace DataAccessObject.Migrations
                 column: "SupportId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TimeSlots_BookingId",
+                table: "TimeSlots",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Trackings_BookingId",
                 table: "Trackings",
                 column: "BookingId");
@@ -1401,6 +1429,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "TicketAttachments");
+
+            migrationBuilder.DropTable(
+                name: "TimeSlots");
 
             migrationBuilder.DropTable(
                 name: "Trackings");

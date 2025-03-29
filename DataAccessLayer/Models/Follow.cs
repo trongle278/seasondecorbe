@@ -22,6 +22,6 @@ namespace DataAccessObject.Models
         public virtual Account Following { get; set; }
 
         public bool IsNotify { get; set; } = true;  // tuỳ chọn, nếu cần cài đặt thông báo
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

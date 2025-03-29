@@ -42,6 +42,7 @@ namespace Repository.UnitOfWork
         IQuotationRepository QuotationRepository { get; }
         IMaterialDetailRepository MaterialDetailRepository { get; }
         IConstructionDetailRepository ConstructionDetailRepository { get; }
+        ITimeSlotRepository TimeSlotRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

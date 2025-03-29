@@ -79,6 +79,9 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ProviderStatus")
+                        .HasColumnType("int");
+
                     b.Property<bool?>("ProviderVerified")
                         .HasColumnType("bit");
 
@@ -92,9 +95,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Slug")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("SubscriptionId")
@@ -203,6 +203,9 @@ namespace DataAccessObject.Migrations
 
                     b.Property<int>("QuotationId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RejectReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -1041,6 +1044,9 @@ namespace DataAccessObject.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("DepositPercentage")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("MaterialCost")
                         .HasColumnType("decimal(18,2)");
 
@@ -1396,6 +1402,30 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TicketTypes");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SurveyDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("SurveyTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("TimeSlots");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Tracking", b =>
@@ -1987,6 +2017,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Support");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Tracking", b =>

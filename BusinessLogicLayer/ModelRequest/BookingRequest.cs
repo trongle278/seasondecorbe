@@ -12,6 +12,8 @@ namespace BusinessLogicLayer.ModelRequest
     {
         public int DecorServiceId { get; set; }
         public int AddressId { get; set; }
+        public DateTime SurveyDate { get; set; } // Ngày khảo sát
+        public TimeSpan SurveyTime { get; set; } // Giờ khảo sát
     }
 
     /// <summary>
@@ -38,6 +40,7 @@ namespace BusinessLogicLayer.ModelRequest
         [Required(ErrorMessage = "Construction tasks list is required")]
         [MinLength(1, ErrorMessage = "At least one construction task is required")]
         public List<ConstructionItemRequest> ConstructionTasks { get; set; }
+        public decimal DepositPercentage { get; set; }
     }
 
     public class MaterialItemRequest
@@ -60,5 +63,10 @@ namespace BusinessLogicLayer.ModelRequest
         public int TrackingId { get; set; }
         public string? Note { get; set; }
         public string? ImageUrl { get; set; }
+    }
+
+    public class RejectBookingRequest
+    {
+        public string Reason { get; set; }
     }
 }

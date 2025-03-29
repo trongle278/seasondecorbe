@@ -69,7 +69,7 @@ namespace BusinessLogicLayer.Services
                 // Filter
                 Expression<Func<Account, bool>> filter = account =>
                     (!request.Gender.HasValue || account.Gender == request.Gender.Value) &&
-                    (string.IsNullOrEmpty(request.Status) || account.Status.Contains(request.Status)) &&
+                    //(string.IsNullOrEmpty(request.Status) || account.Status.Contains(request.Status)) &&
                     (!request.IsVerified.HasValue || account.IsVerified == request.IsVerified.Value) &&
                     (!request.IsDisable.HasValue || account.IsDisable == request.IsDisable.Value);
 
