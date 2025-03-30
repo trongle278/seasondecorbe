@@ -29,7 +29,7 @@ namespace Repository.UnitOfWork
             CartRepository = new CartRepository(_context);
             CartItemRepository = new CartItemRepository(_context);
             OrderRepository = new OrderRepository(_context);
-            ProductOrderRepository = new ProductOrderRepository(_context);
+            ProductOrderRepository = new OrderDetailRepository(_context);
             TicketTypeRepository = new TicketTypeRepository(_context);
             SupportRepository = new SupportRepository(_context);
             NotificationRepository = new NotificationRepository(_context);
@@ -64,7 +64,7 @@ namespace Repository.UnitOfWork
         public ICartRepository CartRepository { get; private set; }
         public ICartItemRepository CartItemRepository { get; private set; }
         public IOrderRepository OrderRepository { get; private set; }
-        public IProductOrderRepository ProductOrderRepository { get; private set; }
+        public IOrderDetailRepository ProductOrderRepository { get; private set; }
         public ITicketTypeRepository TicketTypeRepository { get; private set; }
         public ISupportRepository SupportRepository { get; private set; }
         public INotificationRepository NotificationRepository { get; private set; }

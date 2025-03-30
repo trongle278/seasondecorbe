@@ -35,8 +35,9 @@ namespace DataAccessObject.Models
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
+        public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<CartItem> CartItems { get; set; }
-        public virtual ICollection<ProductOrder> ProductOrders { get; set; }
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<ProductImage>? ProductImages { get; set; }
     }
 }

@@ -47,8 +47,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -56,7 +56,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -64,7 +64,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {
@@ -132,8 +132,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -141,7 +141,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -149,7 +149,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {
@@ -196,8 +196,8 @@ namespace BusinessLogicLayer.Services
                                         .Include(p => p.ProductImages)
                                         .FirstOrDefaultAsync();
 
-                // Get productOrder of product
-                var productOrders = await _unitOfWork.ProductOrderRepository
+                // Get orderDetail of product
+                var orderDetails = await _unitOfWork.ProductOrderRepository
                                         .Query(po => po.ProductId == product.Id
                                                     && po.Order.Status == Order.OrderStatus.Completed)
                                         .Include(po => po.Order)
@@ -205,7 +205,7 @@ namespace BusinessLogicLayer.Services
                                         .ToListAsync();
 
                 // Get review of product
-                var reviews = productOrders
+                var reviews = orderDetails
                                 .SelectMany(po => po.Order.Reviews)
                                 .ToList();
 
@@ -216,14 +216,13 @@ namespace BusinessLogicLayer.Services
                 var totalRate = reviews.Sum(r => r.Rating);
 
                 // Calculate total sold
-                var totalSold = productOrders.Sum(oi => oi.Quantity);
+                var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                 // Mapping reviews to response
                 var reviewResponses = reviews.Select(r => new ReviewResponse
                 {
                     Rating = r.Rating,
                     Comment = r.Comment,
-                    Image = r.Image,
                     CreateAt = r.CreateAt,
                     UpdateAt = r.UpdateAt
                 }).ToList(); ;
@@ -307,8 +306,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -316,7 +315,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -324,7 +323,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {
@@ -404,8 +403,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -413,7 +412,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -421,7 +420,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {
@@ -485,8 +484,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -494,7 +493,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -502,7 +501,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {
@@ -586,8 +585,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -595,7 +594,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -603,7 +602,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {
@@ -892,8 +891,8 @@ namespace BusinessLogicLayer.Services
 
                 foreach (var product in products)
                 {
-                    // Get productOrder of product
-                    var productOrders = await _unitOfWork.ProductOrderRepository
+                    // Get orderDetail of product
+                    var orderDetails = await _unitOfWork.ProductOrderRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -901,7 +900,7 @@ namespace BusinessLogicLayer.Services
                                             .ToListAsync();
 
                     // Get review of product
-                    var reviews = productOrders
+                    var reviews = orderDetails
                                     .SelectMany(po => po.Order.Reviews)
                                     .ToList();
 
@@ -909,7 +908,7 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
 
                     // Calculate total sold
-                    var totalSold = productOrders.Sum(oi => oi.Quantity);
+                    var totalSold = orderDetails.Sum(oi => oi.Quantity);
 
                     var productResponse = new ProductListResponse
                     {

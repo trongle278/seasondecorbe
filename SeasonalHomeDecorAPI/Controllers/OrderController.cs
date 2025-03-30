@@ -2,6 +2,8 @@
 using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Order;
+using BusinessLogicLayer.ModelRequest.Pagination;
+using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +37,25 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
+            return BadRequest();
+        }
+
+        [HttpGet("getPaginatedList")]
+        public async Task<IActionResult> GetFilterProduct([FromQuery] OrderFilterRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _orderService.GetPaginate(request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
             return BadRequest();
         }
 

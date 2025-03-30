@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLogicLayer.ModelRequest.Order
 {
-    public class ProductOrderRequest
+    public class OrderDetailRequest
     {
         public int Id { get; set; }
         public string ProductName { get; set; }

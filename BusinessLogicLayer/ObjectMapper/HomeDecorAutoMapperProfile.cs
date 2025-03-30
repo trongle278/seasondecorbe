@@ -14,6 +14,8 @@ using BusinessLogicLayer.ModelResponse.Cart;
 using BusinessLogicLayer.ModelResponse.Order;
 using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Payment;
+using BusinessLogicLayer.ModelRequest.Review;
+using BusinessLogicLayer.ModelResponse.Review;
 
 namespace BusinessLogicLayer.ObjectMapper
 {
@@ -36,6 +38,7 @@ namespace BusinessLogicLayer.ObjectMapper
             AddressProfile();
             DecorServiceProfile();
             WalletProfile();
+            ReviewProfile();
         }
 
         private void AccountProfile()
@@ -173,10 +176,10 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<OrderRequest, Order>();
             CreateMap<Order, OrderResponse>()
-                .ForMember(dest => dest.ProductOrders, opt => opt.MapFrom(src => src.ProductOrders));
+                .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
 
-            CreateMap<ProductOrderRequest, ProductOrder>();
-            CreateMap<ProductOrder, ProductOrderResponse>();
+            CreateMap<OrderDetailRequest, OrderDetail>();
+            CreateMap<OrderDetail, OrderDetailResponse>();
         }
 
         private void NotificationProfile()
@@ -237,6 +240,39 @@ namespace BusinessLogicLayer.ObjectMapper
         private void WalletProfile()
         {
             CreateMap<WalletTransaction, TransactionsResponse>();
+        }
+
+        private void ReviewProfile()
+        {
+            CreateMap<ReviewOrderRequest, Review>();
+            CreateMap<Product, ReviewResponse>();
+
+            CreateMap<UpdateOrderReviewRequest, Product>();
+            CreateMap<Product, ReviewResponse>();
+
+            CreateMap<ReviewBookingRequest, Review>();
+            CreateMap<Product, ReviewResponse>();
+
+            CreateMap<UpdateBookingReviewRequest, Product>();
+            CreateMap<Product, ReviewResponse>();
+
+            CreateMap<ReviewRequest, Review>()
+                .ForMember(dest => dest.ReviewImages, opt => opt.MapFrom(src =>
+                    src.Images != null ? src.Images.Select(url => new ReviewImage { ImageUrl = url }).ToList()
+                                          : new List<ReviewImage>()));
+            CreateMap<Review, ReviewResponse>()
+                .ForMember(dest => dest.Images, opt => opt.MapFrom(src =>
+                    src.ReviewImages != null ? src.ReviewImages.Select(pi => pi.ImageUrl).ToList()
+                                              : new List<string>()));
+
+            CreateMap<ProductDetailRequest, Product>()
+                .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src =>
+                    src.ImageUrls != null ? src.ImageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList()
+                                          : new List<ProductImage>()));
+            CreateMap<Product, ProductDetailResponse>()
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
+                    src.ProductImages != null ? src.ProductImages.Select(pi => pi.ImageUrl).ToList()
+                                              : new List<string>()));
         }
     }
 }

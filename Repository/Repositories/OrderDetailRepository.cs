@@ -9,9 +9,9 @@ using Repository.Interfaces;
 
 namespace Repository.Repositories
 {
-    public class ProductOrderRepository : GenericRepository<ProductOrder>, IProductOrderRepository
+    public class OrderDetailRepository : GenericRepository<OrderDetail>, IOrderDetailRepository
     {
-        public ProductOrderRepository(HomeDecorDBContext context) : base(context)
+        public OrderDetailRepository(HomeDecorDBContext context) : base(context)
         {
         }
     }

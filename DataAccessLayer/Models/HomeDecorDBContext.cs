@@ -44,9 +44,10 @@ namespace DataAccessObject.Models
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<ProductOrder> ProductOrders { get; set; }
+        public DbSet<OrderDetail> ProductOrders { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<ReviewImage> ReviewImages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Support> Supports { get; set; }
@@ -190,6 +191,13 @@ namespace DataAccessObject.Models
                 .HasForeignKey<Review>(r => r.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Configure 1-N relationship between DecorService and Review
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.DecorService)
+                .WithMany(ds => ds.Reviews)
+                .HasForeignKey(r => r.ServiceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             // Configure 1-1 relationship between User and Cart
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Cart)
@@ -242,15 +250,15 @@ namespace DataAccessObject.Models
 
             // Configure 1-N relationship between Order and ProductOrder
             modelBuilder.Entity<Order>()
-                .HasMany(o => o.ProductOrders)
+                .HasMany(o => o.OrderDetails)
                 .WithOne(po => po.Order)
                 .HasForeignKey(po => po.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure 1-N relationship between Product and ProductOrder
-            modelBuilder.Entity<ProductOrder>()
+            modelBuilder.Entity<OrderDetail>()
                 .HasOne(po => po.Product)
-                .WithMany(p => p.ProductOrders)
+                .WithMany(p => p.OrderDetails)
                 .HasForeignKey(po => po.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
@@ -264,8 +272,22 @@ namespace DataAccessObject.Models
             // Configure 1-N relationship between Order and Review
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.Reviews)
-                .WithOne(f => f.Order)
-                .HasForeignKey(f => f.OrderId)
+                .WithOne(r => r.Order)
+                .HasForeignKey(r => r.OrderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure 1-N relationship between Product and Review
+            modelBuilder.Entity<Product>()
+                .HasMany(p => p.Reviews)
+                .WithOne(r => r.Product)
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure 1-N relationship between Review and ReviewImage
+            modelBuilder.Entity<Review>()
+                .HasMany(r => r.ReviewImages)
+                .WithOne(ri => ri.Review)
+                .HasForeignKey(ri => ri.ReviewId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Subscription and Account

@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest.Order;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Order;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
@@ -47,6 +51,54 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<OrderResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<Order, bool>> filter = order =>
+                    string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode);
+
+                // Sort
+                Expression<Func<Order, object>> orderByExpression = request.SortBy switch
+                {
+                    "OrderCode" => order => order.OrderCode,
+                    "OrderDate" => order => order.OrderDate,
+                    _ => order => order.Id
+                };
+
+                // Get paginated data and filter
+                (IEnumerable<Order> orders, int totalCount) = await _unitOfWork.OrderRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending
+                );
+
+                var order = _mapper.Map<List<OrderResponse>>(orders);
+
+                var pageResult = new PageResult<OrderResponse>
+                {
+                    Data = order,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Order list retrieved successfully";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving order list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
         public async Task<BaseResponse> GetOrderById(int id)
         {
             var response = new BaseResponse();
@@ -54,7 +106,7 @@ namespace BusinessLogicLayer.Services
             {
                 var order = await _unitOfWork.OrderRepository
                                             .Query(o => o.Id == id)
-                                            .Include(o => o.ProductOrders)
+                                            .Include(o => o.OrderDetails)
                                             .FirstOrDefaultAsync();
 
                 if (order == null)
@@ -135,7 +187,7 @@ namespace BusinessLogicLayer.Services
                     OrderDate = DateTime.Now.ToLocalTime(),
                     TotalPrice = orderItems.Sum(item => item.UnitPrice),
                     Status = Order.OrderStatus.Pending,
-                    ProductOrders = orderItems.Select(item => new ProductOrder
+                    OrderDetails = orderItems.Select(item => new OrderDetail
                     {
                         ProductId = item.ProductId,
                         ProductName = item.ProductName,
@@ -236,7 +288,7 @@ namespace BusinessLogicLayer.Services
             {
                 var order = await _unitOfWork.OrderRepository
                                             .Query(o => o.Id == id)
-                                            .Include(o => o.ProductOrders)
+                                            .Include(o => o.OrderDetails)
                                             .FirstOrDefaultAsync();
 
                 if (order == null)
@@ -258,7 +310,7 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.OrderRepository.Update(order);
 
                 // Update Product quantity
-                foreach (var productOrder in order.ProductOrders)
+                foreach (var productOrder in order.OrderDetails)
                 {
                     var product = await _unitOfWork.ProductRepository.GetByIdAsync(productOrder.ProductId);
                     if (product != null)

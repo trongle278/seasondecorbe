@@ -37,7 +37,7 @@ namespace DataAccessObject.Models
         public Address Address { get; set; }
 
         public virtual ICollection<Review> Reviews { get; set; }
-        public virtual ICollection<ProductOrder> ProductOrders { get; set; }
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; }
     }
 }
