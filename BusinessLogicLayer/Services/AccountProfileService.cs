@@ -167,7 +167,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                    .Query(a => a.Id == accountId && a.IsProvider == true)
+                    .Query(a => a.Id == accountId)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
