@@ -21,6 +21,26 @@ namespace SeasonalHomeDecorAPI.Controllers
             _bookingService = bookingService;
         }
 
+        [HttpGet("getPaginatedBookingsForCustomer")]
+        [Authorize] // Bắt buộc đăng nhập để xem danh sách Booking
+        public async Task<IActionResult> GetPaginatedBookingsForCustomer([FromQuery] BookingFilterRequest request)
+        {
+            // Lấy accountId từ token
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var result = await _bookingService.GetPaginatedBookingsForCustomerAsync(request, accountId);
+            return Ok(result);
+        }
+
+        [HttpGet("getPaginatedBookingsForProvider")]
+        public async Task<IActionResult> GetPaginatedBookingsForProvider([FromQuery] BookingFilterRequest request)
+        {
+            // Lấy providerId từ token (vì đối với provider, accountId chính là providerId)
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _bookingService.GetPaginatedBookingsForProviderAsync(request, providerId);
+            return Ok(result);
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
