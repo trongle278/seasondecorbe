@@ -89,6 +89,7 @@ namespace BusinessLogicLayer.Services
                     Slug = GenerateDefaultSlug(),
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
+                    Location = "",
                     RoleId = 3, // Customer role
                     IsVerified = false,
                     VerificationToken = otp,
@@ -375,6 +376,7 @@ namespace BusinessLogicLayer.Services
                         LastName = lastName,
                         Password = "",
                         Avatar = avatar,
+                        Location = "",
                         IsVerified = true,
                         RoleId = 3,
                         SubscriptionId = 1,

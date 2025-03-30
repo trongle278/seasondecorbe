@@ -177,6 +177,7 @@ namespace BusinessLogicLayer.Services
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
                     Phone = request.Phone,
+                    Location = "",
                     IsVerified = true,
                     RoleId = 3, //Customer
                     Slug = GenerateDefaultSlug(),
