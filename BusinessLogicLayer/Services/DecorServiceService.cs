@@ -42,7 +42,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => ds.Id == id)
+                    .Query(ds => ds.Id == id && ds.StartDate <= DateTime.Now)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -122,7 +122,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var services = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => !ds.IsDeleted)
+                    .Query(ds => !ds.IsDeleted && ds.StartDate <= DateTime.Now)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -218,7 +218,7 @@ namespace BusinessLogicLayer.Services
 
                 // Then get the decor service for this account
                 var decorService = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => ds.AccountId == account.Id && !ds.IsDeleted)
+                    .Query(ds => ds.AccountId == account.Id && !ds.IsDeleted && ds.StartDate <= DateTime.Now)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -321,6 +321,7 @@ namespace BusinessLogicLayer.Services
                 // ✅ Nếu user chưa đăng nhập, hoặc không có Location, thì không lọc theo Sublocation
                 Expression<Func<DecorService, bool>> filter = decorService =>
                     decorService.IsDeleted == false &&
+                    decorService.StartDate <= DateTime.Now && // Thêm điều kiện StartDate
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
                     (string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&

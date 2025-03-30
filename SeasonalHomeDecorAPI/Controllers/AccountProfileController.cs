@@ -117,6 +117,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("update-location")]
+        [Authorize]
         public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationRequest request)
         {
             if (!ModelState.IsValid)
