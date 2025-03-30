@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
 using DataAccessObject.Models;
 
 namespace BusinessLogicLayer.Interfaces
@@ -19,5 +20,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> ProcessDepositAsync(int bookingId);
         Task<BaseResponse> ProcessFinalPaymentAsync(int bookingId);
         Task<BaseResponse> RejectBookingAsync(int bookingId, int accountId, string reason);
+        Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId);
+        Task<BaseResponse<PageResult<BookingResponseForProvider>>> GetPaginatedBookingsForProviderAsync(BookingFilterRequest request, int providerId);
     }
 }

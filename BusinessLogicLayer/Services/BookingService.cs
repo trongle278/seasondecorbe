@@ -9,6 +9,8 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using System.Linq.Expressions;
 
 namespace BusinessLogicLayer.Services
 {
@@ -23,6 +25,220 @@ namespace BusinessLogicLayer.Services
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
             _trackingService = trackingService;
+        }
+
+        public async Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId)
+        {
+            var response = new BaseResponse<PageResult<BookingResponse>>();
+            try
+            {
+                // 🔹 Filter Condition
+                Expression<Func<Booking, bool>> filter = booking =>
+                    booking.AccountId == accountId &&
+                    (string.IsNullOrEmpty(request.Status) || booking.Status.ToString().Contains(request.Status)) &&
+                    (!request.DecorServiceId.HasValue || booking.DecorServiceId == request.DecorServiceId.Value);
+
+                // 🔹 Sorting Condition
+                Expression<Func<Booking, object>> orderByExpression = request.SortBy switch
+                {
+                    "BookingCode" => booking => booking.BookingCode,
+                    "Status" => booking => booking.Status,
+                    _ => booking => booking.CreateAt // Mặc định: Booking mới nhất
+                };
+
+                // 🔹 Includes (Lấy thêm thông tin)
+                Func<IQueryable<Booking>, IQueryable<Booking>> customQuery = query => query
+                    .Include(b => b.DecorService)
+                        .ThenInclude(ds => ds.DecorImages) // Hình ảnh
+                    .Include(b => b.DecorService.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season) // Season
+                    .Include(b => b.DecorService.Account) // Provider
+                    .Include(b => b.BookingDetails); // Booking details
+
+
+                // 🔹 Get paginated data & filter
+                (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    null,
+                    customQuery
+                );
+
+                // 🔹 Convert to DTO
+                var bookingResponses = bookings.Select(booking => new BookingResponse
+                {
+                    BookingId = booking.Id,
+                    BookingCode = booking.BookingCode,
+                    TotalPrice = booking.TotalPrice,
+                    Status = booking.Status.ToString(),
+                    CreatedAt = booking.CreateAt,
+
+                    // ⭐ Thông tin DecorService
+                    DecorService = new DecorServiceDTO
+                    {
+                        Id = booking.DecorService.Id,
+                        Style = booking.DecorService.Style,
+                        BasePrice = booking.DecorService.BasePrice,
+                        Description = booking.DecorService.Description,
+                        // ⭐ Hình ảnh decor
+                        Images = booking.DecorService.DecorImages.Select(di => new DecorImageResponse
+                        {
+                            Id = di.Id,
+                            ImageURL = di.ImageURL
+                        }).ToList(),
+
+                        // ⭐ Danh sách mùa decor
+                        Seasons = booking.DecorService.DecorServiceSeasons.Select(ds => new SeasonResponse
+                        {
+                            Id = ds.Season.Id,
+                            SeasonName = ds.Season.SeasonName
+                        }).ToList()
+                    },
+
+                    // ⭐ Thông tin Provider
+                    Provider = new ProviderResponse
+                    {
+                        Id = booking.DecorService.Account.Id,
+                        BusinessName = booking.DecorService.Account.BusinessName,
+                        Avatar = booking.DecorService.Account.Avatar
+                    },
+
+                    // ⭐ Booking Details
+                    BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
+                    {
+                        Id = bd.Id,
+                        ServiceItem = bd.ServiceItem,
+                        Cost = bd.Cost,
+                        EstimatedCompletion = bd.EstimatedCompletion
+                    }).ToList()
+                }).ToList();
+
+                // 🔹 Return result
+                response.Success = true;
+                response.Data = new PageResult<BookingResponse>
+                {
+                    Data = bookingResponses,
+                    TotalCount = totalCount
+                };
+                response.Message = "Bookings retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving bookings.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<BookingResponseForProvider>>> GetPaginatedBookingsForProviderAsync(BookingFilterRequest request, int providerId)
+        {
+            var response = new BaseResponse<PageResult<BookingResponseForProvider>>();
+            try
+            {
+                // 🔹 Filter: Lấy booking mà dịch vụ được tạo bởi provider (DecorService.AccountId == providerId)
+                Expression<Func<Booking, bool>> filter = booking =>
+                    booking.DecorService.AccountId == providerId &&
+                    (string.IsNullOrEmpty(request.Status) || booking.Status.ToString().Contains(request.Status)) &&
+                    (!request.DecorServiceId.HasValue || booking.DecorServiceId == request.DecorServiceId.Value);
+
+                // 🔹 Sorting: Mặc định sắp xếp theo CreateAt giảm dần (Booking mới nhất trước)
+                Expression<Func<Booking, object>> orderByExpression = request.SortBy switch
+                {
+                    "BookingCode" => booking => booking.BookingCode,
+                    "Status" => booking => booking.Status,
+                    _ => booking => booking.CreateAt
+                };
+
+                // 🔹 Include: Sử dụng custom query để include các thông tin cần thiết
+                Func<IQueryable<Booking>, IQueryable<Booking>> customQuery = query => query
+                    .Include(b => b.DecorService)
+                        .ThenInclude(ds => ds.DecorImages) // Hình ảnh decor
+                    .Include(b => b.DecorService.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season) // Season
+                    .Include(b => b.Account) // Customer (khách hàng đặt booking)
+                    .Include(b => b.BookingDetails); // Booking details
+
+                // 🔹 Get paginated data & filter
+                (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    null,
+                    customQuery
+                );
+
+                // 🔹 Map dữ liệu thành DTO theo góc nhìn của Provider
+                var bookingResponses = bookings.Select(booking => new BookingResponseForProvider
+                {
+                    BookingId = booking.Id,
+                    BookingCode = booking.BookingCode,
+                    TotalPrice = booking.TotalPrice,
+                    Status = booking.Status.ToString(),
+                    CreatedAt = booking.CreateAt,
+
+                    // Thông tin DecorService (không thay đổi)
+                    DecorService = new DecorServiceDTO
+                    {
+                        Id = booking.DecorService.Id,
+                        Style = booking.DecorService.Style,
+                        BasePrice = booking.DecorService.BasePrice,
+                        Description = booking.DecorService.Description,
+                        ImageUrls = booking.DecorService.DecorImages?.Select(di => di.ImageURL).ToList() ?? new List<string>(),
+                        Images = booking.DecorService.DecorImages?.Select(di => new DecorImageResponse
+                        {
+                            Id = di.Id,
+                            ImageURL = di.ImageURL
+                        }).ToList() ?? new List<DecorImageResponse>(),
+                        Seasons = booking.DecorService.DecorServiceSeasons?
+                            .Where(ds => ds.Season != null)
+                            .Select(ds => new SeasonResponse
+                            {
+                                Id = ds.Season.Id,
+                                SeasonName = ds.Season.SeasonName
+                            }).ToList() ?? new List<SeasonResponse>()
+                    },
+
+                    // Thông tin Customer (khách hàng đặt booking)
+                    Customer = new CustomerResponse
+                    {
+                        Id = booking.Account.Id,
+                        FullName = $"{booking.Account.FirstName} {booking.Account.LastName}",
+                        Email = booking.Account.Email,
+                        Phone = booking.Account.Phone,
+                        Avatar = booking.Account.Avatar
+                    },
+
+                    // Chi tiết Booking
+                    BookingDetails = booking.BookingDetails?.Select(bd => new BookingDetailResponse
+                    {
+                        Id = bd.Id,
+                        ServiceItem = bd.ServiceItem,
+                        Cost = bd.Cost,
+                        EstimatedCompletion = bd.EstimatedCompletion
+                    }).ToList() ?? new List<BookingDetailResponse>()
+                }).ToList();
+
+                response.Success = true;
+                response.Data = new PageResult<BookingResponseForProvider>
+                {
+                    Data = bookingResponses,
+                    TotalCount = totalCount
+                };
+                response.Message = "Bookings retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving bookings.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
         }
 
         public async Task<BaseResponse<List<BookingResponse>>> GetBookingsByUserAsync(int accountId)
@@ -359,7 +575,7 @@ namespace BusinessLogicLayer.Services
                         laborDetail.EstimatedCompletion = DateTime.Now;
                         _unitOfWork.BookingDetailRepository.Update(laborDetail);
                     }
-                    
+
                     ///---------------------------------------------------------------------------------------
                     // ✅ Lấy Provider từ `DecorService`
                     var provider = await _unitOfWork.AccountRepository.Queryable()

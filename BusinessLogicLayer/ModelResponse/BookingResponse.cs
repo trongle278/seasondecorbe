@@ -25,4 +25,25 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal Cost { get; set; }
         public DateTime EstimatedCompletion { get; set; }
     }
+
+    public class BookingResponseForProvider
+    {
+        public int BookingId { get; set; }
+        public string BookingCode { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DecorServiceDTO DecorService { get; set; }
+        public CustomerResponse Customer { get; set; }
+        public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
+    }
+
+    public class CustomerResponse
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string Avatar { get; set; }
+    }
 }
