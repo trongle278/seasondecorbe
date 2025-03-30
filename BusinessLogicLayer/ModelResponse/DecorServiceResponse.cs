@@ -30,6 +30,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int AccountId { get; set; }
         public int DecorCategoryId { get; set; }
         public string CategoryName { get; set; }
+        public DateTime StartDate { get; set; }
         public int FavoriteCount { get; set; }
         public List<string> ImageUrls { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();

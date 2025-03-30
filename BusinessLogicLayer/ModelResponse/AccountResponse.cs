@@ -20,6 +20,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Address { get; set; }
         public string? Avatar { get; set; }
         public string? Status { get; set; }
+        public string? Location { get; set; }
         public int RoleId { get; set; }
         public bool IsProvider { get; set; }
         public bool ProviderVerified { get; set; }
