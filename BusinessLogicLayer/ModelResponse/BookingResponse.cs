@@ -33,7 +33,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int BookingId { get; set; }
         public string BookingCode { get; set; }
         public decimal TotalPrice { get; set; }
-        public string Status { get; set; }
+        public int Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }

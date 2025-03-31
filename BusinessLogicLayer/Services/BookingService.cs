@@ -192,7 +192,7 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = booking.Status.ToString(),
+                    Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
 
                     // Thông tin DecorService (không thay đổi)
