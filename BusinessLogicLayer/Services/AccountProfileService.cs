@@ -179,16 +179,26 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                if (string.IsNullOrWhiteSpace(request.Location) && string.IsNullOrEmpty(request.ProvinceCode))
+                if (string.IsNullOrWhiteSpace(request.Location))
                 {
                     return new BaseResponse
                     {
                         Success = false,
-                        Message = "Location or ProvinceCode cannot be empty."
+                        Message = "Location cannot be empty."
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.ProvinceCode))
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Message = "ProvinceCode cannot be empty."
                     };
                 }
 
                 account.Location = request.Location;
+                account.ProvinceCode = request.ProvinceCode;
                 _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();
 
