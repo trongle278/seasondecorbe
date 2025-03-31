@@ -61,6 +61,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Product> Products { get; set; }
         public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
         public string? Location { get; set; }
+        public string? ProvinceCode { get; set; }
         public AccountStatus ProviderStatus { get; set; } // Trạng thái tài khoản
         public enum AccountStatus
         {

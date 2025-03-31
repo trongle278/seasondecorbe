@@ -83,7 +83,10 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class UpdateLocationRequest
     {
-        [DefaultValue("Tp.HoChiMinh")]
+        [DefaultValue("Hanoi")]
         public string Location { get; set; }
+        
+        [DefaultValue("01")]
+        public string ProvinceCode { get; set; }
     }
 }

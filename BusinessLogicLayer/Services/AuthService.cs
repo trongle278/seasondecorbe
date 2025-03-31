@@ -90,6 +90,7 @@ namespace BusinessLogicLayer.Services
                     DateOfBirth = request.DateOfBirth,
                     Gender = request.Gender,
                     Location = "",
+                    ProvinceCode = "",
                     RoleId = 3, // Customer role
                     IsVerified = false,
                     VerificationToken = otp,
@@ -377,6 +378,7 @@ namespace BusinessLogicLayer.Services
                         Password = "",
                         Avatar = avatar,
                         Location = "",
+                        ProvinceCode = "",
                         IsVerified = true,
                         RoleId = 3,
                         SubscriptionId = 1,

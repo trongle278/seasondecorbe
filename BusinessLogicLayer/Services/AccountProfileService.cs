@@ -175,16 +175,16 @@ namespace BusinessLogicLayer.Services
                     return new BaseResponse
                     {
                         Success = false,
-                        Message = "Only a provider can update their location."
+                        Message = "Account not exists"
                     };
                 }
 
-                if (string.IsNullOrWhiteSpace(request.Location))
+                if (string.IsNullOrWhiteSpace(request.Location) && string.IsNullOrEmpty(request.ProvinceCode))
                 {
                     return new BaseResponse
                     {
                         Success = false,
-                        Message = "Location cannot be empty."
+                        Message = "Location or ProvinceCode cannot be empty."
                     };
                 }
 
