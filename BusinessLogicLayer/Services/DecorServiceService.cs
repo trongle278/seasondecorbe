@@ -827,7 +827,7 @@ namespace BusinessLogicLayer.Services
             var response = new DecorServiceListResponse();
             try
             {
-                var query = _unitOfWork.DecorServiceRepository.Query(ds => !ds.IsDeleted);
+                var query = _unitOfWork.DecorServiceRepository.Query(ds => !ds.IsDeleted && ds.StartDate <= DateTime.Now);
 
                 if (!string.IsNullOrEmpty(request.Style))
                     query = query.Where(ds => ds.Style.Contains(request.Style));
@@ -857,6 +857,7 @@ namespace BusinessLogicLayer.Services
                     Description = ds.Description,
                     Sublocation = ds.Sublocation,
                     CreateAt = ds.CreateAt,
+                    StartDate = ds.StartDate,
                     AccountId = ds.AccountId,
                     FavoriteCount = 0,
                     CategoryName = ds.DecorCategory.CategoryName,
