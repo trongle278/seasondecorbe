@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,13 @@ namespace BusinessLogicLayer.ModelRequest
 {
     public class CreateBookingRequest
     {
+        [DefaultValue("1")]
         public int DecorServiceId { get; set; }
+        [DefaultValue("1")]
         public int AddressId { get; set; }
+        [DefaultValue("2025-04-30")]
         public DateTime SurveyDate { get; set; } // Ngày khảo sát
+        [DefaultValue("09:30:00")]
         public TimeSpan SurveyTime { get; set; } // Giờ khảo sát
     }
 

@@ -73,7 +73,7 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = booking.Status.ToString(),
+                    Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
 
                     // ⭐ Thông tin DecorService
@@ -107,13 +107,26 @@ namespace BusinessLogicLayer.Services
                     },
 
                     // ⭐ Booking Details
-                    BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
-                    {
-                        Id = bd.Id,
-                        ServiceItem = bd.ServiceItem,
-                        Cost = bd.Cost,
-                        EstimatedCompletion = bd.EstimatedCompletion
-                    }).ToList()
+                    //BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
+                    //{
+                    //    Id = bd.Id,
+                    //    ServiceItem = bd.ServiceItem,
+                    //    Cost = bd.Cost,
+                    //    EstimatedCompletion = bd.EstimatedCompletion
+                    //}).ToList()
+
+                    // 🆕 **Gộp BookingDetails vào Booking**
+                    ServiceItems = booking.BookingDetails.Any()
+                        ? string.Join(", ", booking.BookingDetails.Select(bd => bd.ServiceItem))
+                        : "No Service Items",
+
+                    Cost = booking.BookingDetails.Any()
+                        ? booking.BookingDetails.Sum(bd => bd.Cost)
+                        : 0,
+
+                    EstimatedCompletion = booking.BookingDetails.Any()
+                        ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
+                        : null
                 }).ToList();
 
                 // 🔹 Return result
@@ -215,13 +228,24 @@ namespace BusinessLogicLayer.Services
                     },
 
                     // Chi tiết Booking
-                    BookingDetails = booking.BookingDetails?.Select(bd => new BookingDetailResponse
-                    {
-                        Id = bd.Id,
-                        ServiceItem = bd.ServiceItem,
-                        Cost = bd.Cost,
-                        EstimatedCompletion = bd.EstimatedCompletion
-                    }).ToList() ?? new List<BookingDetailResponse>()
+                    //BookingDetails = booking.BookingDetails?.Select(bd => new BookingDetailResponse
+                    //{
+                    //    Id = bd.Id,
+                    //    ServiceItem = bd.ServiceItem,
+                    //    Cost = bd.Cost,
+                    //    EstimatedCompletion = bd.EstimatedCompletion
+                    //}).ToList() ?? new List<BookingDetailResponse>()
+                    ServiceItems = booking.BookingDetails.Any()
+                        ? string.Join(", ", booking.BookingDetails.Select(bd => bd.ServiceItem))
+                        : "No Service Items",
+
+                    Cost = booking.BookingDetails.Any()
+                        ? booking.BookingDetails.Sum(bd => bd.Cost)
+                        : 0,
+
+                    EstimatedCompletion = booking.BookingDetails.Any()
+                        ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
+                        : null
                 }).ToList();
 
                 response.Success = true;
@@ -257,7 +281,7 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = booking.Status.ToString(),
+                    Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
 
                     // ⭐ Thông tin DecorService
@@ -313,7 +337,7 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = booking.Status.ToString(),
+                    Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
 
                     DecorService = new DecorServiceDTO
@@ -331,13 +355,13 @@ namespace BusinessLogicLayer.Services
                         Avatar = booking.DecorService.Account.Avatar,
                     },
 
-                    BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
-                    {
-                        Id = bd.Id,
-                        ServiceItem = bd.ServiceItem,
-                        Cost = bd.Cost,
-                        EstimatedCompletion = bd.EstimatedCompletion
-                    }).ToList()
+                    //BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
+                    //{
+                    //    Id = bd.Id,
+                    //    ServiceItem = bd.ServiceItem,
+                    //    Cost = bd.Cost,
+                    //    EstimatedCompletion = bd.EstimatedCompletion
+                    //}).ToList()
                 };
 
                 response.Success = true;
