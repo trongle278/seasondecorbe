@@ -83,6 +83,8 @@ namespace BusinessLogicLayer.Services
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
+                        StartDate = booking.DecorService.StartDate,
+
                         // ⭐ Hình ảnh decor
                         Images = booking.DecorService.DecorImages.Select(di => new DecorImageResponse
                         {
@@ -202,7 +204,8 @@ namespace BusinessLogicLayer.Services
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
-                        ImageUrls = booking.DecorService.DecorImages?.Select(di => di.ImageURL).ToList() ?? new List<string>(),
+                        StartDate = booking.DecorService.StartDate,
+                        //ImageUrls = booking.DecorService.DecorImages?.Select(di => di.ImageURL).ToList() ?? new List<string>(),
                         Images = booking.DecorService.DecorImages?.Select(di => new DecorImageResponse
                         {
                             Id = di.Id,
@@ -290,7 +293,8 @@ namespace BusinessLogicLayer.Services
                         Id = booking.DecorService.Id,
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
-                        Description = booking.DecorService.Description
+                        Description = booking.DecorService.Description,
+                        StartDate = booking.DecorService.StartDate 
                     },
 
                     // ⭐ Thêm thông tin Provider
@@ -345,7 +349,8 @@ namespace BusinessLogicLayer.Services
                         Id = booking.DecorService.Id,
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
-                        Description = booking.DecorService.Description
+                        Description = booking.DecorService.Description,
+                        StartDate = booking.DecorService.StartDate
                     },
 
                     Provider = new ProviderResponse
