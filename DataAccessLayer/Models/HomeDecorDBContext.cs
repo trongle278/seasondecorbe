@@ -68,6 +68,7 @@ namespace DataAccessObject.Models
         public DbSet<MaterialDetail> MaterialDetails { get; set; }
         public DbSet<ConstructionDetail> ConstructionDetails { get; set; }
         public DbSet<TimeSlot> TimeSlots { get; set; }
+        public DbSet<CancelType> CancelTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -449,6 +450,16 @@ namespace DataAccessObject.Models
 
             modelBuilder.Entity<Setting>().HasData(
                 new Setting { Id = 1, Commission = (decimal)0.4 }
+            );
+
+            modelBuilder.Entity<CancelType>().HasData(
+                new CancelType { Id = 1, Type = "ChangedMind" },
+                new CancelType { Id = 2, Type = "FoundBetterOption" },
+                new CancelType { Id = 3, Type = "ScheduleConflict" },
+                new CancelType { Id = 4, Type = "UnexpectedEvent" },
+                new CancelType { Id = 5, Type = "WrongAddress" },
+                new CancelType { Id = 6, Type = "ProviderUnresponsive" },
+                new CancelType { Id = 7, Type = "Other" }
             );
         }
     }

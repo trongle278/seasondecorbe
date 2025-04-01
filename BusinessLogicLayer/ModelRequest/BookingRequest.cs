@@ -73,7 +73,8 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class CancelBookingRequest
     {
-        public CancelReasonType CancelType { get; set; }
+        [Required(ErrorMessage = "CancelTypeId is required.")]
+        public int CancelTypeId { get; set; }
         public string? CancelReason { get; set; }
     }
 

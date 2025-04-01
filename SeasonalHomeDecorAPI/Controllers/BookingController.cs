@@ -79,12 +79,11 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _bookingService.ChangeBookingStatusAsync(bookingId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
-
-        [HttpPost("requestCancel/{bookingId}")]
+        [HttpPut("requestCancel/{bookingId}")]
         public async Task<IActionResult> RequestCancellation(int bookingId, [FromBody] CancelBookingRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _bookingService.RequestCancelBookingAsync(bookingId, accountId, request);
+            var response = await _bookingService.RequestCancellationAsync(bookingId, accountId, request.CancelTypeId, request.CancelReason);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 

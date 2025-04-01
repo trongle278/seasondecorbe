@@ -36,17 +36,9 @@ namespace DataAccessObject.Models
 
         public BookingStatus Status { get; set; }
 
-        public enum CancelReasonType
-        {
-            ChangedMind,          // Khách hàng đổi ý, không muốn tiếp tục
-            FoundBetterOption,    // Tìm thấy dịch vụ khác tốt hơn
-            ScheduleConflict,     // Lịch trình không phù hợp, không thể tiếp nhận dịch vụ
-            UnexpectedEvent,      // Có sự kiện bất ngờ (bận việc, vấn đề cá nhân, tài chính...)
-            WrongAddress,         // Chọn nhầm địa chỉ hoặc sai thông tin đặt chỗ
-            ProviderUnresponsive, // Nhà cung cấp phản hồi chậm hoặc không hợp tác
-            Other                 // Lý do khác
-        }
-        public CancelReasonType? CancelType { get; set; }
+
+        public int? CancelTypeId { get; set; }
+        public virtual CancelType CancelType { get; set; }  // Navigation property
 
         public int AccountId { get; set; }
         public Account Account { get; set; }

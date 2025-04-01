@@ -18,7 +18,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<BookingResponse>> GetBookingDetailsAsync(int bookingId);
         Task<BaseResponse> CreateBookingAsync(CreateBookingRequest request, int accountId);
         Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId);
-        Task<BaseResponse> RequestCancelBookingAsync(int bookingId, int accountId, CancelBookingRequest request);
+        Task<BaseResponse> RequestCancellationAsync(int bookingId, int accountId, int cancelTypeId, string? cancelReason);
         Task<BaseResponse> ApproveCancellationAsync(int bookingId, int providerId);
         Task<BaseResponse> RevokeCancellationRequestAsync(int bookingId, int accountId);
         Task<BaseResponse> ProcessDepositAsync(int bookingId);

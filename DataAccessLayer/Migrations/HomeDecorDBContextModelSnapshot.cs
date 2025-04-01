@@ -201,7 +201,7 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("CancelReason")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CancelType")
+                    b.Property<int?>("CancelTypeId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreateAt")
@@ -230,6 +230,8 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AccountId");
 
                     b.HasIndex("AddressId");
+
+                    b.HasIndex("CancelTypeId");
 
                     b.HasIndex("DecorServiceId");
 
@@ -269,6 +271,60 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("BookingId");
 
                     b.ToTable("BookingDetails");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.CancelType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CancelTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Type = "ChangedMind"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Type = "FoundBetterOption"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Type = "ScheduleConflict"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Type = "UnexpectedEvent"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Type = "WrongAddress"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Type = "ProviderUnresponsive"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Type = "Other"
+                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
@@ -1628,6 +1684,10 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.CancelType", "CancelType")
+                        .WithMany("Bookings")
+                        .HasForeignKey("CancelTypeId");
+
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
                         .WithMany("Bookings")
                         .HasForeignKey("DecorServiceId")
@@ -1637,6 +1697,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Address");
+
+                    b.Navigation("CancelType");
 
                     b.Navigation("DecorService");
                 });
@@ -2200,6 +2262,11 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Supports");
 
                     b.Navigation("Trackings");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.CancelType", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>

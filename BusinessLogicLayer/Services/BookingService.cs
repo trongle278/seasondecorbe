@@ -35,45 +35,36 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<List<BookingResponse>>();
             try
             {
-                // Query all bookings with PendingCancellation status for the provider
                 var bookings = await _unitOfWork.BookingRepository.Queryable()
-                    .Where(b => b.Status == BookingStatus.PendingCancellation)
+                    .Where(b => b.Status == BookingStatus.PendingCancellation && b.DecorService.AccountId == providerId)
                     .Include(b => b.DecorService)
-                        .ThenInclude(ds => ds.Account) // Join with Provider
+                    .Include(b => b.CancelType) // Lấy thông tin loại hủy
                     .ToListAsync();
 
-                var result = bookings
-                    .Where(booking => booking.DecorService.AccountId == providerId) // Filter bookings for the specific provider
-                    .Select(booking => new BookingResponse
+                var result = bookings.Select(booking => new BookingResponse
+                {
+                    BookingId = booking.Id,
+                    BookingCode = booking.BookingCode,
+                    TotalPrice = booking.TotalPrice,
+                    Status = (int)booking.Status,
+                    CreatedAt = booking.CreateAt,
+
+                    DecorService = new DecorServiceDTO
                     {
-                        BookingId = booking.Id,
-                        BookingCode = booking.BookingCode,
-                        TotalPrice = booking.TotalPrice,
-                        Status = (int)booking.Status,
-                        CreatedAt = booking.CreateAt,
+                        Id = booking.DecorService.Id,
+                        Style = booking.DecorService.Style,
+                        BasePrice = booking.DecorService.BasePrice
+                    },
 
-                        // Include DecorService details
-                        DecorService = new DecorServiceDTO
-                        {
-                            Id = booking.DecorService.Id,
-                            Style = booking.DecorService.Style,
-                            BasePrice = booking.DecorService.BasePrice,
-                            Description = booking.DecorService.Description,
-                            StartDate = booking.DecorService.StartDate
-                        },
+                    Provider = new ProviderResponse
+                    {
+                        Id = booking.DecorService.Account.Id,
+                        BusinessName = booking.DecorService.Account.BusinessName
+                    },
 
-                        // Include Provider details
-                        Provider = new ProviderResponse
-                        {
-                            Id = booking.DecorService.Account.Id,
-                            BusinessName = booking.DecorService.Account.BusinessName,
-                            Avatar = booking.DecorService.Account.Avatar
-                        },
-
-                        // Additional fields for cancellation reason
-                        CancelType = (int)booking.CancelType,
-                        CancelReason = booking.CancelReason,
-                    }).ToList();
+                    CancelType = booking.CancelType.Type,
+                    CancelReason = booking.CancelReason,
+                }).ToList();
 
                 response.Success = true;
                 response.Data = result;
@@ -82,11 +73,12 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error retrieving pending cancellation bookings for provider.";
+                response.Message = "Error retrieving pending cancellation bookings.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
+
 
         public async Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId)
         {
@@ -698,7 +690,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RequestCancelBookingAsync(int bookingId, int accountId, CancelBookingRequest request)
+        public async Task<BaseResponse> RequestCancellationAsync(int bookingId, int accountId, int cancelTypeId, string? cancelReason)
         {
             var response = new BaseResponse();
             try
@@ -708,54 +700,55 @@ namespace BusinessLogicLayer.Services
 
                 if (booking == null)
                 {
+                    response.Success = false;
                     response.Message = "Booking not found.";
                     return response;
                 }
 
-                if (booking.Status == Booking.BookingStatus.Completed)
-                {
-                    response.Message = "Cannot cancel a completed booking.";
-                    return response;
-                }
-
-                if (booking.Status == Booking.BookingStatus.PendingCancellation)
-                {
-                    response.Message = "A cancellation request has already been submitted.";
-                    return response;
-                }
-
+                // Kiểm tra quyền
                 if (booking.AccountId != accountId)
                 {
-                    response.Message = "You do not have permission to cancel this booking.";
+                    response.Success = false;
+                    response.Message = "You are not authorized to request cancellation.";
                     return response;
                 }
 
-                // Nếu chọn "Other", bắt buộc phải có lý do hủy
-                if (request.CancelType == CancelReasonType.Other && string.IsNullOrWhiteSpace(request.CancelReason))
+                // Kiểm tra trạng thái hợp lệ để hủy
+                if (booking.Status != BookingStatus.Pending && 
+                    booking.Status != BookingStatus.Accept && 
+                    booking.Status != BookingStatus.Survey)
                 {
-                    response.Message = "You must provide a reason when selecting 'Other'.";
+                    response.Success = false;
+                    response.Message = "You can only request cancellation in Pending, Accepted, or Survey status.";
                     return response;
                 }
 
-                booking.Status = Booking.BookingStatus.PendingCancellation;
-                booking.CancelType = request.CancelType;
-                booking.CancelReason = request.CancelType == CancelReasonType.Other ? request.CancelReason : null;
+                if (cancelTypeId == 7 && string.IsNullOrEmpty(cancelReason))
+                {
+                    response.Success = false;
+                    response.Message = "Please provide a reason for cancellation when selecting 'Other'.";
+                    return response;
+                }
+
+                // Cập nhật trạng thái yêu cầu hủy
+                booking.Status = BookingStatus.PendingCancellation;
+                booking.CancelTypeId = cancelTypeId;
+                booking.CancelReason = cancelReason;
 
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Cancellation request sent to the provider.";
+                response.Message = "Cancellation request submitted successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Failed to send cancellation request.";
+                response.Message = "Error requesting cancellation.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
-
 
         public async Task<BaseResponse> ApproveCancellationAsync(int bookingId, int providerId)
         {
@@ -786,13 +779,12 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                booking.Status = Booking.BookingStatus.Canceled;
-
+                booking.Status = BookingStatus.Canceled;
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Booking has been canceled successfully.";
+                response.Message = "Booking cancellation approved.";
             }
             catch (Exception ex)
             {

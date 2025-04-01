@@ -10,6 +10,19 @@ namespace DataAccessObject.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "CancelTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CancelTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DecorCategories",
                 columns: table => new
                 {
@@ -155,6 +168,7 @@ namespace DataAccessObject.Migrations
                     IsProvider = table.Column<bool>(type: "bit", nullable: true),
                     ProviderVerified = table.Column<bool>(type: "bit", nullable: true),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProvinceCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProviderStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -523,10 +537,12 @@ namespace DataAccessObject.Migrations
                     DepositAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    CancelTypeId = table.Column<int>(type: "int", nullable: true),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     DecorServiceId = table.Column<int>(type: "int", nullable: false),
                     AddressId = table.Column<int>(type: "int", nullable: false),
                     QuotationId = table.Column<int>(type: "int", nullable: false),
+                    CancelReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RejectReason = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -544,6 +560,11 @@ namespace DataAccessObject.Migrations
                         principalTable: "Address",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Bookings_CancelTypes_CancelTypeId",
+                        column: x => x.CancelTypeId,
+                        principalTable: "CancelTypes",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Bookings_DecorServices_DecorServiceId",
                         column: x => x.DecorServiceId,
@@ -785,13 +806,14 @@ namespace DataAccessObject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    IsUpdated = table.Column<bool>(type: "bit", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    OrderId = table.Column<int>(type: "int", nullable: false)
+                    ServiceId = table.Column<int>(type: "int", nullable: true),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -808,9 +830,19 @@ namespace DataAccessObject.Migrations
                         principalTable: "Bookings",
                         principalColumn: "Id");
                     table.ForeignKey(
+                        name: "FK_Reviews_DecorServices_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "DecorServices",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Reviews_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Reviews_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
                         principalColumn: "Id");
                 });
 
@@ -966,6 +998,25 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ReviewImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReviewId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReviewImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReviewImages_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TicketReplies",
                 columns: table => new
                 {
@@ -1017,6 +1068,20 @@ namespace DataAccessObject.Migrations
                         column: x => x.TicketReplyId,
                         principalTable: "TicketReplies",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.InsertData(
+                table: "CancelTypes",
+                columns: new[] { "Id", "Type" },
+                values: new object[,]
+                {
+                    { 1, "ChangedMind" },
+                    { 2, "FoundBetterOption" },
+                    { 3, "ScheduleConflict" },
+                    { 4, "UnexpectedEvent" },
+                    { 5, "WrongAddress" },
+                    { 6, "ProviderUnresponsive" },
+                    { 7, "Other" }
                 });
 
             migrationBuilder.InsertData(
@@ -1079,7 +1144,14 @@ namespace DataAccessObject.Migrations
                     { 7, "Valentine" },
                     { 8, "Halloween" },
                     { 9, "Easter" },
-                    { 10, "Birthday" },
+                    { 10, "Birthday" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Seasons",
+                columns: new[] { "Id", "SeasonName" },
+                values: new object[,]
+                {
                     { 11, "Wedding" },
                     { 12, "Anniversary" }
                 });
@@ -1123,6 +1195,11 @@ namespace DataAccessObject.Migrations
                 name: "IX_Bookings_AddressId",
                 table: "Bookings",
                 column: "AddressId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bookings_CancelTypeId",
+                table: "Bookings",
+                column: "CancelTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_DecorServiceId",
@@ -1302,6 +1379,11 @@ namespace DataAccessObject.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ReviewImages_ReviewId",
+                table: "ReviewImages",
+                column: "ReviewId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reviews_AccountId",
                 table: "Reviews",
                 column: "AccountId");
@@ -1316,6 +1398,16 @@ namespace DataAccessObject.Migrations
                 name: "IX_Reviews_OrderId",
                 table: "Reviews",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ProductId",
+                table: "Reviews",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ServiceId",
+                table: "Reviews",
+                column: "ServiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Supports_AccountId",
@@ -1424,7 +1516,7 @@ namespace DataAccessObject.Migrations
                 name: "ProductOrders");
 
             migrationBuilder.DropTable(
-                name: "Reviews");
+                name: "ReviewImages");
 
             migrationBuilder.DropTable(
                 name: "Settings");
@@ -1454,7 +1546,7 @@ namespace DataAccessObject.Migrations
                 name: "Quotation");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "TicketReplies");
@@ -1466,13 +1558,16 @@ namespace DataAccessObject.Migrations
                 name: "Wallets");
 
             migrationBuilder.DropTable(
-                name: "ProductCategories");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Supports");
 
             migrationBuilder.DropTable(
                 name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "ProductCategories");
 
             migrationBuilder.DropTable(
                 name: "Bookings");
@@ -1485,6 +1580,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Address");
+
+            migrationBuilder.DropTable(
+                name: "CancelTypes");
 
             migrationBuilder.DropTable(
                 name: "DecorServices");

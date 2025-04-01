@@ -19,7 +19,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DecorServiceDTO DecorService { get; set; } // Dịch vụ decor
         public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
-        public int? CancelType { get; set; }
+        public string CancelType { get; set; }
         public string? CancelReason { get; set; }
     }
     public class BookingDetailResponse
