@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccessObject.Models;
+using static DataAccessObject.Models.Booking;
 
 namespace BusinessLogicLayer.ModelRequest
 {
@@ -68,6 +69,12 @@ namespace BusinessLogicLayer.ModelRequest
         public int TrackingId { get; set; }
         public string? Note { get; set; }
         public string? ImageUrl { get; set; }
+    }
+
+    public class CancelBookingRequest
+    {
+        public CancelReasonType CancelType { get; set; }
+        public string? CancelReason { get; set; }
     }
 
     public class RejectBookingRequest

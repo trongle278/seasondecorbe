@@ -19,6 +19,8 @@ namespace BusinessLogicLayer.ModelResponse
         public DecorServiceDTO DecorService { get; set; } // Dịch vụ decor
         public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
+        public int? CancelType { get; set; }
+        public string? CancelReason { get; set; }
     }
     public class BookingDetailResponse
     {
@@ -50,5 +52,18 @@ namespace BusinessLogicLayer.ModelResponse
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Avatar { get; set; }
+    }
+
+    public class CancelBookingListResponse
+    {
+        public int Id { get; set; }
+        public int CustomerId { get; set; }
+        public string CustomerName { get; set; }  // Thêm tên khách hàng
+
+        public string Status { get; set; }  // Trạng thái booking (e.g., PendingCancellation)
+        public string CancelReason { get; set; }
+        public string CustomCancelReason { get; set; }  // Lý do hủy nếu là "Other"
+        public DateTime CreatedDate { get; set; }  // Ngày tạo booking
+        public DateTime? RequestedCancellationDate { get; set; }  // Ngày yêu cầu hủy
     }
 }

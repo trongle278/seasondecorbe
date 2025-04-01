@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250401131155_AddCancelType")]
+    partial class AddCancelType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,10 +200,7 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CancelReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CancelType")
+                    b.Property<int?>("CancelReason")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreateAt")

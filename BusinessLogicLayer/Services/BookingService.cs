@@ -11,6 +11,9 @@ using Repository.UnitOfWork;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using System.Linq.Expressions;
+using System.Drawing;
+using static DataAccessObject.Models.Booking;
+using Nest;
 
 namespace BusinessLogicLayer.Services
 {
@@ -25,6 +28,64 @@ namespace BusinessLogicLayer.Services
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
             _trackingService = trackingService;
+        }
+
+        public async Task<BaseResponse<List<BookingResponse>>> GetPendingCancellationBookingsForProviderAsync(int providerId)
+        {
+            var response = new BaseResponse<List<BookingResponse>>();
+            try
+            {
+                // Query all bookings with PendingCancellation status for the provider
+                var bookings = await _unitOfWork.BookingRepository.Queryable()
+                    .Where(b => b.Status == BookingStatus.PendingCancellation)
+                    .Include(b => b.DecorService)
+                        .ThenInclude(ds => ds.Account) // Join with Provider
+                    .ToListAsync();
+
+                var result = bookings
+                    .Where(booking => booking.DecorService.AccountId == providerId) // Filter bookings for the specific provider
+                    .Select(booking => new BookingResponse
+                    {
+                        BookingId = booking.Id,
+                        BookingCode = booking.BookingCode,
+                        TotalPrice = booking.TotalPrice,
+                        Status = (int)booking.Status,
+                        CreatedAt = booking.CreateAt,
+
+                        // Include DecorService details
+                        DecorService = new DecorServiceDTO
+                        {
+                            Id = booking.DecorService.Id,
+                            Style = booking.DecorService.Style,
+                            BasePrice = booking.DecorService.BasePrice,
+                            Description = booking.DecorService.Description,
+                            StartDate = booking.DecorService.StartDate
+                        },
+
+                        // Include Provider details
+                        Provider = new ProviderResponse
+                        {
+                            Id = booking.DecorService.Account.Id,
+                            BusinessName = booking.DecorService.Account.BusinessName,
+                            Avatar = booking.DecorService.Account.Avatar
+                        },
+
+                        // Additional fields for cancellation reason
+                        CancelType = (int)booking.CancelType,
+                        CancelReason = booking.CancelReason,
+                    }).ToList();
+
+                response.Success = true;
+                response.Data = result;
+                response.Message = "Pending cancellation bookings for provider retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving pending cancellation bookings for provider.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
         }
 
         public async Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId)
@@ -637,21 +698,152 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
-        public async Task<BaseResponse<bool>> CancelBookingAsync(int bookingId)
+        public async Task<BaseResponse> RequestCancelBookingAsync(int bookingId, int accountId, CancelBookingRequest request)
         {
-            var response = new BaseResponse<bool>();
-            var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
-            if (booking == null || (booking.Status != Booking.BookingStatus.Pending && booking.Status != Booking.BookingStatus.Survey))
+            var response = new BaseResponse();
+            try
             {
-                response.Message = "Booking cannot be cancelled.";
-                return response;
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                if (booking.Status == Booking.BookingStatus.Completed)
+                {
+                    response.Message = "Cannot cancel a completed booking.";
+                    return response;
+                }
+
+                if (booking.Status == Booking.BookingStatus.PendingCancellation)
+                {
+                    response.Message = "A cancellation request has already been submitted.";
+                    return response;
+                }
+
+                if (booking.AccountId != accountId)
+                {
+                    response.Message = "You do not have permission to cancel this booking.";
+                    return response;
+                }
+
+                // Nếu chọn "Other", bắt buộc phải có lý do hủy
+                if (request.CancelType == CancelReasonType.Other && string.IsNullOrWhiteSpace(request.CancelReason))
+                {
+                    response.Message = "You must provide a reason when selecting 'Other'.";
+                    return response;
+                }
+
+                booking.Status = Booking.BookingStatus.PendingCancellation;
+                booking.CancelType = request.CancelType;
+                booking.CancelReason = request.CancelType == CancelReasonType.Other ? request.CancelReason : null;
+
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Cancellation request sent to the provider.";
             }
-            booking.Status = Booking.BookingStatus.Canceled;
-            _unitOfWork.BookingRepository.Update(booking);
-            await _unitOfWork.CommitAsync();
-            response.Success = true;
-            response.Data = true;
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to send cancellation request.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+
+        public async Task<BaseResponse> ApproveCancellationAsync(int bookingId, int providerId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                var service = await _unitOfWork.DecorServiceRepository.Queryable()
+                    .FirstOrDefaultAsync(ds => ds.Id == booking.DecorServiceId);
+
+                if (service == null || service.AccountId != providerId)
+                {
+                    response.Message = "You do not have permission to approve this cancellation.";
+                    return response;
+                }
+
+                if (booking.Status != Booking.BookingStatus.PendingCancellation)
+                {
+                    response.Message = "No pending cancellation request to approve.";
+                    return response;
+                }
+
+                booking.Status = Booking.BookingStatus.Canceled;
+
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking has been canceled successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to approve cancellation.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse> RevokeCancellationRequestAsync(int bookingId, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                if (booking.AccountId != accountId)
+                {
+                    response.Message = "You do not have permission to revoke this cancellation request.";
+                    return response;
+                }
+
+                if (booking.Status != Booking.BookingStatus.PendingCancellation)
+                {
+                    response.Message = "There is no pending cancellation request to revoke.";
+                    return response;
+                }
+
+                booking.Status = Booking.BookingStatus.Pending;
+                booking.CancelReason = null;
+
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Cancellation request has been revoked.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to revoke cancellation request.";
+                response.Errors.Add(ex.Message);
+            }
             return response;
         }
 
@@ -674,7 +866,7 @@ namespace BusinessLogicLayer.Services
 
                 if (service == null || service.AccountId != accountId)
                 {
-                    response.Message = "You do not have permission to reject this booking.";
+                    response.Message = "You do not have permission to reject this booking.(You are customer)";
                     return response;
                 }
 

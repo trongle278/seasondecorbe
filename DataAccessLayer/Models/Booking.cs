@@ -29,11 +29,24 @@ namespace DataAccessObject.Models
             Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)7
             ConstructionPayment,// Thanh toán thi công8
             Completed,          // Dự án hoàn thành9
-            Canceled,          // Booking bị hủy
-            Rejected            // Booking bị từ chối
+            PendingCancellation, // Chờ provider duyệt hủy10
+            Canceled,          // Booking bị hủy11
+            Rejected           // Booking bị từ chối12
         }
 
         public BookingStatus Status { get; set; }
+
+        public enum CancelReasonType
+        {
+            ChangedMind,          // Khách hàng đổi ý, không muốn tiếp tục
+            FoundBetterOption,    // Tìm thấy dịch vụ khác tốt hơn
+            ScheduleConflict,     // Lịch trình không phù hợp, không thể tiếp nhận dịch vụ
+            UnexpectedEvent,      // Có sự kiện bất ngờ (bận việc, vấn đề cá nhân, tài chính...)
+            WrongAddress,         // Chọn nhầm địa chỉ hoặc sai thông tin đặt chỗ
+            ProviderUnresponsive, // Nhà cung cấp phản hồi chậm hoặc không hợp tác
+            Other                 // Lý do khác
+        }
+        public CancelReasonType? CancelType { get; set; }
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
@@ -55,6 +68,7 @@ namespace DataAccessObject.Models
         public int QuotationId { get; set; }
         public Quotation Quotation { get; set; }
 
+        public string? CancelReason { get; set; }
         public string? RejectReason { get; set; } // Lưu lý do reject
 
         //public int ContractId { get; set; }

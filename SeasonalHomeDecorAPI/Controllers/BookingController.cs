@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using BusinessLogicLayer.Interfaces;
+using static DataAccessObject.Models.Booking;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -49,6 +50,14 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpGet("getPendingCancellations")]
+        public async Task<IActionResult> GetPendingCancellationBookingsForProvider()
+        {
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.GetPendingCancellationBookingsForProviderAsync(providerId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
         [HttpGet("getBookingRequestList")]
         public async Task<IActionResult> GetBookingsByUser()
         {
@@ -71,10 +80,27 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpDelete("cancel/{bookingId}")]
-        public async Task<IActionResult> CancelBooking(int bookingId)
+        [HttpPost("requestCancel/{bookingId}")]
+        public async Task<IActionResult> RequestCancellation(int bookingId, [FromBody] CancelBookingRequest request)
         {
-            var response = await _bookingService.CancelBookingAsync(bookingId);
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.RequestCancelBookingAsync(bookingId, accountId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("approveCancellation/{bookingId}")]
+        public async Task<IActionResult> ApproveCancellation(int bookingId)
+        {
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.ApproveCancellationAsync(bookingId, providerId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("revokeCancellation/{bookingId}")]
+        public async Task<IActionResult> RevokeCancellation(int bookingId)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.RevokeCancellationRequestAsync(bookingId, accountId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
@@ -85,7 +111,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _bookingService.RejectBookingAsync(bookingId, accountId, request.Reason);
             return response.Success ? Ok(response) : BadRequest(response);
         }
-
 
         [HttpPost("deposit/{bookingId}")]
         public async Task<IActionResult> ProcessDeposit(int bookingId)
