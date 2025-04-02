@@ -38,6 +38,7 @@ namespace BusinessLogicLayer.Services
                 var bookings = await _unitOfWork.BookingRepository.Queryable()
                     .Where(b => b.Status == BookingStatus.PendingCancellation && b.DecorService.AccountId == providerId)
                     .Include(b => b.DecorService)
+                    .Include(b => b.Address)
                     .Include(b => b.CancelType) // Lấy thông tin loại hủy
                     .ToListAsync();
 
@@ -47,6 +48,7 @@ namespace BusinessLogicLayer.Services
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
                     Status = (int)booking.Status,
+                    Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
 
                     DecorService = new DecorServiceDTO
@@ -106,8 +108,8 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.DecorService.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season) // Season
                     .Include(b => b.DecorService.Account) // Provider
-                    .Include(b => b.BookingDetails); // Booking details
-
+                    .Include(b => b.BookingDetails) // Booking details
+                    .Include(b => b.Address);
 
                 // 🔹 Get paginated data & filter
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
@@ -126,7 +128,8 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = (int)booking.Status,
+                    Status = (int)booking.Status,                  
+                    Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
 
                     // ⭐ Thông tin DecorService
@@ -158,7 +161,9 @@ namespace BusinessLogicLayer.Services
                     {
                         Id = booking.DecorService.Account.Id,
                         BusinessName = booking.DecorService.Account.BusinessName,
-                        Avatar = booking.DecorService.Account.Avatar
+                        Avatar = booking.DecorService.Account.Avatar,
+                        Phone = booking.DecorService.Account.Phone,
+                        Slug = booking.DecorService.Account.Slug
                     },
 
                     // ⭐ Booking Details
@@ -228,7 +233,8 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.DecorService.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season) // Season
                     .Include(b => b.Account) // Customer (khách hàng đặt booking)
-                    .Include(b => b.BookingDetails); // Booking details
+                    .Include(b => b.BookingDetails) // Booking details
+                    .Include(b => b.Address);
 
                 // 🔹 Get paginated data & filter
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
@@ -247,8 +253,10 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = (int)booking.Status,
+                    Status = (int)booking.Status,                
+                    Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
+
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO
@@ -280,6 +288,7 @@ namespace BusinessLogicLayer.Services
                         FullName = $"{booking.Account.FirstName} {booking.Account.LastName}",
                         Email = booking.Account.Email,
                         Phone = booking.Account.Phone,
+                        Slug = booking.Account.Slug,
                         Avatar = booking.Account.Avatar
                     },
 
@@ -555,9 +564,8 @@ namespace BusinessLogicLayer.Services
             // 🔹 Xác định trạng thái tiếp theo
             Booking.BookingStatus? newStatus = booking.Status switch
             {
-                Booking.BookingStatus.Pending => Booking.BookingStatus.Accept,
-                Booking.BookingStatus.Accept => Booking.BookingStatus.Survey,
-                Booking.BookingStatus.Survey => Booking.BookingStatus.Confirm,
+                Booking.BookingStatus.Pending => Booking.BookingStatus.Planning,
+                Booking.BookingStatus.Planning => Booking.BookingStatus.Confirm,
                 Booking.BookingStatus.Confirm when booking.DepositAmount > 0 => Booking.BookingStatus.DepositPaid,
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
                 Booking.BookingStatus.Preparing => Booking.BookingStatus.InTransit,
@@ -575,9 +583,7 @@ namespace BusinessLogicLayer.Services
 
             switch (newStatus)
             {
-                case Booking.BookingStatus.Accept:
-                    break;
-                case Booking.BookingStatus.Survey:
+                case Booking.BookingStatus.Planning:
                     break;
                 case Booking.BookingStatus.Confirm:
                     // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
@@ -636,6 +642,17 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.Progressing:
+                    // ✅ Khi vào Progressing, tạo Tracking để lưu ảnh thi công
+                    var tracking = new Tracking
+                    {
+                        BookingId = bookingId,
+                        Status = Booking.BookingStatus.Progressing,
+                        Note = "Construction phase started.",
+                        CreatedAt = DateTime.Now
+                    };
+
+                    await _unitOfWork.TrackingRepository.InsertAsync(tracking);
+                    await _unitOfWork.CommitAsync();
                     break;
 
                 case Booking.BookingStatus.ConstructionPayment:
@@ -715,8 +732,7 @@ namespace BusinessLogicLayer.Services
 
                 // Kiểm tra trạng thái hợp lệ để hủy
                 if (booking.Status != BookingStatus.Pending && 
-                    booking.Status != BookingStatus.Accept && 
-                    booking.Status != BookingStatus.Survey)
+                    booking.Status != BookingStatus.Planning)
                 {
                     response.Success = false;
                     response.Message = "You can only request cancellation in Pending, Accepted, or Survey status.";

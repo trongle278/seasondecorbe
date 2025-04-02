@@ -12,6 +12,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string BookingCode { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
+        public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
@@ -36,6 +37,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string BookingCode { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
+        public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
@@ -52,6 +54,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Avatar { get; set; }
+        public string Slug { get; set; }
     }
 
     public class CancelBookingListResponse

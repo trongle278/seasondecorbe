@@ -20,8 +20,7 @@ namespace DataAccessObject.Models
         public enum BookingStatus
         {
             Pending,            // Khi khách hàng tạo booking0
-            Accept,             // Provider chấp nhận booking1
-            Survey,             // Provider đã xác nhận và sắp xếp khảo sát2
+            Planning,             // Provider đã xác nhận và sắp xếp khảo sát2
             Confirm,            // Khi customer đồng ý các điều khoản và chốt hợp đồng3
             DepositPaid,        // Đã thanh toán đặt cọc4
             Preparing,          // Chuẩn bị nguyên liệu5

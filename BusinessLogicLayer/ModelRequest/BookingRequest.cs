@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccessObject.Models;
+using Microsoft.AspNetCore.Http;
 using static DataAccessObject.Models.Booking;
 
 namespace BusinessLogicLayer.ModelRequest
@@ -62,14 +63,21 @@ namespace BusinessLogicLayer.ModelRequest
         public string TaskName { get; set; }
         public decimal Cost { get; set; }
         public string Unit { get; set; }
+        // Chỉ áp dụng khi đơn vị là "m²"
+        public decimal? Length { get; set; }
+        public decimal? Width { get; set; }
     }
 
     public class UpdateTrackingRequest
     {
-        public int TrackingId { get; set; }
+        [Required]
+        public int BookingId { get; set; } // ✅ Nhập BookingId thay vì TrackingId
+
         public string? Note { get; set; }
-        public string? ImageUrl { get; set; }
+
+        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
     }
+
 
     public class CancelBookingRequest
     {
