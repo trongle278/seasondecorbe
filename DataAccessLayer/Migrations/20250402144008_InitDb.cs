@@ -889,8 +889,7 @@ namespace DataAccessObject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    SurveyDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    SurveyTime = table.Column<TimeSpan>(type: "time", nullable: false)
+                    SurveyDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -912,7 +911,6 @@ namespace DataAccessObject.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -961,7 +959,9 @@ namespace DataAccessObject.Migrations
                     QuotationId = table.Column<int>(type: "int", nullable: false),
                     TaskName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Length = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1041,6 +1041,26 @@ namespace DataAccessObject.Migrations
                         column: x => x.SupportId,
                         principalTable: "Supports",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrackingImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TrackingId = table.Column<int>(type: "int", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrackingImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TrackingImages_Trackings_TrackingId",
+                        column: x => x.TrackingId,
+                        principalTable: "Trackings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1450,6 +1470,11 @@ namespace DataAccessObject.Migrations
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TrackingImages_TrackingId",
+                table: "TrackingImages",
+                column: "TrackingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Trackings_BookingId",
                 table: "Trackings",
                 column: "BookingId");
@@ -1528,7 +1553,7 @@ namespace DataAccessObject.Migrations
                 name: "TimeSlots");
 
             migrationBuilder.DropTable(
-                name: "Trackings");
+                name: "TrackingImages");
 
             migrationBuilder.DropTable(
                 name: "WalletTransactions");
@@ -1550,6 +1575,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "TicketReplies");
+
+            migrationBuilder.DropTable(
+                name: "Trackings");
 
             migrationBuilder.DropTable(
                 name: "PaymentTransactions");

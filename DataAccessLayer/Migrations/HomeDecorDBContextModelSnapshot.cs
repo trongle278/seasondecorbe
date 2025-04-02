@@ -1127,10 +1127,6 @@ namespace DataAccessObject.Migrations
                     b.Property<decimal>("MaterialCost")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("QuotationFilePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId")
@@ -1529,9 +1525,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<DateTime>("SurveyDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<TimeSpan>("SurveyTime")
-                        .HasColumnType("time");
 
                     b.HasKey("Id");
 

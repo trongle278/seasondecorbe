@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250402063713_AddTrackingImages")]
-    partial class AddTrackingImages
+    [Migration("20250402144008_InitDb")]
+    partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -469,6 +469,9 @@ namespace DataAccessObject.Migrations
                     b.Property<decimal>("Cost")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("Length")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("QuotationId")
                         .HasColumnType("int");
 
@@ -479,6 +482,9 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Width")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -1521,9 +1527,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<DateTime>("SurveyDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<TimeSpan>("SurveyTime")
-                        .HasColumnType("time");
 
                     b.HasKey("Id");
 
