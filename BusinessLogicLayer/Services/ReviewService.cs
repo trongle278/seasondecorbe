@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -11,6 +10,7 @@ using BusinessLogicLayer.ModelRequest.Review;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Review;
 using DataAccessObject.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Nest;
 using Repository.UnitOfWork;

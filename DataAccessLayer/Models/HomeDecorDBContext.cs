@@ -44,7 +44,7 @@ namespace DataAccessObject.Models
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderDetail> ProductOrders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReviewImage> ReviewImages { get; set; }
@@ -191,6 +191,7 @@ namespace DataAccessObject.Models
                 .HasOne(b => b.Review)
                 .WithOne(r => r.Booking)
                 .HasForeignKey<Review>(r => r.BookingId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between DecorService and Review
@@ -198,6 +199,7 @@ namespace DataAccessObject.Models
                 .HasOne(r => r.DecorService)
                 .WithMany(ds => ds.Reviews)
                 .HasForeignKey(r => r.ServiceId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-1 relationship between User and Cart
@@ -276,6 +278,7 @@ namespace DataAccessObject.Models
                 .HasMany(o => o.Reviews)
                 .WithOne(r => r.Order)
                 .HasForeignKey(r => r.OrderId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Product and Review
@@ -283,6 +286,7 @@ namespace DataAccessObject.Models
                 .HasMany(p => p.Reviews)
                 .WithOne(r => r.Product)
                 .HasForeignKey(r => r.ProductId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Review and ReviewImage

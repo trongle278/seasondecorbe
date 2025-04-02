@@ -20,7 +20,7 @@ namespace Repository.UnitOfWork
         ICartRepository CartRepository { get; }
         ICartItemRepository CartItemRepository { get; }
         IOrderRepository OrderRepository { get; }
-        IOrderDetailRepository ProductOrderRepository { get; }
+        IOrderDetailRepository OrderDetailRepository { get; }
         ITicketTypeRepository TicketTypeRepository { get; }
         ISupportRepository SupportRepository { get; }
         INotificationRepository NotificationRepository { get; }

@@ -48,7 +48,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -133,7 +133,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -197,7 +197,7 @@ namespace BusinessLogicLayer.Services
                                         .FirstOrDefaultAsync();
 
                 // Get orderDetail of product
-                var orderDetails = await _unitOfWork.ProductOrderRepository
+                var orderDetails = await _unitOfWork.OrderDetailRepository
                                         .Query(po => po.ProductId == product.Id
                                                     && po.Order.Status == Order.OrderStatus.Completed)
                                         .Include(po => po.Order)
@@ -310,7 +310,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -408,7 +408,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -490,7 +490,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -592,7 +592,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
@@ -899,7 +899,7 @@ namespace BusinessLogicLayer.Services
                 foreach (var product in products)
                 {
                     // Get orderDetail of product
-                    var orderDetails = await _unitOfWork.ProductOrderRepository
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)

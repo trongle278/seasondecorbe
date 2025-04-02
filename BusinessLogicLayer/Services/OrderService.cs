@@ -367,7 +367,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var orderProducts = await _unitOfWork.ProductOrderRepository.Queryable()
+                var orderProducts = await _unitOfWork.OrderDetailRepository.Queryable()
                                         .Where(po => po.OrderId == id)
                                         .ToListAsync();
 
