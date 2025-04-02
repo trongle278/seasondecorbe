@@ -32,33 +32,13 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getPaginated")]
         public async Task<IActionResult> GetPaginatedDecorService([FromQuery] DecorServiceFilterRequest request)
         {
-            try
+            var result = await _decorServiceService.GetFilterDecorServicesAsync(request);
+
+            if (result.Success)
             {
-                int? accountId = null;
-
-                // ✅ Lấy AccountId từ Token nếu user đăng nhập
-                if (User.Identity.IsAuthenticated)
-                {
-                    var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                    if (accountIdClaim != null)
-                    {
-                        accountId = int.Parse(accountIdClaim.Value);
-                    }
-                }
-
-                var response = await _decorServiceService.GetFilterDecorServicesAsync(request, accountId);
-
-                if (!response.Success)
-                {
-                    return BadRequest(response);
-                }
-
-                return Ok(response);
+                return Ok(result);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Success = false, Message = "Internal Server Error", Error = ex.Message });
-            }
+            return BadRequest(result.Message);
         }
 
         [HttpGet("{id}")]

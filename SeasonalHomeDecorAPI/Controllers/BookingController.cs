@@ -66,62 +66,62 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpGet("getBookingDetails/{bookingId}")]
-        public async Task<IActionResult> GetBookingDetails(int bookingId)
+        [HttpGet("getBookingDetails/{bookingCode}")]
+        public async Task<IActionResult> GetBookingDetails(string bookingCode, int providerId)
         {
-            var response = await _bookingService.GetBookingDetailsAsync(bookingId);
+            var response = await _bookingService.GetBookingDetailsForProviderAsync(bookingCode, providerId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("status/{bookingId}")]
-        public async Task<IActionResult> ChangeBookingStatus(int bookingId)
+        [HttpPut("status/{bookingCode}")]
+        public async Task<IActionResult> ChangeBookingStatus(string bookingCode)
         {
-            var response = await _bookingService.ChangeBookingStatusAsync(bookingId);
+            var response = await _bookingService.ChangeBookingStatusAsync(bookingCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
-        [HttpPut("requestCancel/{bookingId}")]
-        public async Task<IActionResult> RequestCancellation(int bookingId, [FromBody] CancelBookingRequest request)
+        [HttpPut("requestCancel/{bookingCode}")]
+        public async Task<IActionResult> RequestCancellation(string bookingCode, [FromBody] CancelBookingRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _bookingService.RequestCancellationAsync(bookingId, accountId, request.CancelTypeId, request.CancelReason);
+            var response = await _bookingService.RequestCancellationAsync(bookingCode, accountId, request.CancelTypeId, request.CancelReason);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("approveCancellation/{bookingId}")]
-        public async Task<IActionResult> ApproveCancellation(int bookingId)
+        [HttpPut("approveCancellation/{bookingCode}")]
+        public async Task<IActionResult> ApproveCancellation(string bookingCode)
         {
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _bookingService.ApproveCancellationAsync(bookingId, providerId);
+            var response = await _bookingService.ApproveCancellationAsync(bookingCode, providerId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("revokeCancellation/{bookingId}")]
-        public async Task<IActionResult> RevokeCancellation(int bookingId)
+        [HttpPut("revokeCancellation/{bookingCode}")]
+        public async Task<IActionResult> RevokeCancellation(string bookingCode)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _bookingService.RevokeCancellationRequestAsync(bookingId, accountId);
+            var response = await _bookingService.RevokeCancellationRequestAsync(bookingCode, accountId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("reject/{bookingId}")]
-        public async Task<IActionResult> RejectBooking(int bookingId, [FromBody] RejectBookingRequest request)
+        [HttpPut("reject/{bookingCode}")]
+        public async Task<IActionResult> RejectBooking(string bookingCode, [FromBody] RejectBookingRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _bookingService.RejectBookingAsync(bookingId, accountId, request.Reason);
+            var response = await _bookingService.RejectBookingAsync(bookingCode, accountId, request.Reason);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPost("deposit/{bookingId}")]
-        public async Task<IActionResult> ProcessDeposit(int bookingId)
+        [HttpPost("deposit/{bookingCode}")]
+        public async Task<IActionResult> ProcessDeposit(string bookingCode)
         {
-            var response = await _bookingService.ProcessDepositAsync(bookingId);
+            var response = await _bookingService.ProcessDepositAsync(bookingCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPost("payment/{bookingId}")]
-        public async Task<IActionResult> ProcessConstructionPayment(int bookingId)
+        [HttpPost("payment/{bookingCode}")]
+        public async Task<IActionResult> ProcessConstructionPayment(string bookingCode)
         {
-            var response = await _bookingService.ProcessFinalPaymentAsync(bookingId);
+            var response = await _bookingService.ProcessFinalPaymentAsync(bookingCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
     }

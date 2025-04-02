@@ -381,54 +381,66 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<BookingResponse>> GetBookingDetailsAsync(int bookingId)
+        public async Task<BaseResponse<BookingResponseForProvider>> GetBookingDetailsForProviderAsync(string bookingCode, int providerId)
         {
-            var response = new BaseResponse<BookingResponse>();
+            var response = new BaseResponse<BookingResponseForProvider>();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                     .Include(b => b.BookingDetails)
                     .Include(b => b.DecorService)
-                        .ThenInclude(ds => ds.Account) // ⭐ Join Provider
-                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+                        .ThenInclude(ds => ds.Account)
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.DecorService.AccountId == providerId);
 
                 if (booking == null)
                 {
-                    response.Message = "Booking not found.";
+                    response.Message = "Booking not found or does not belong to the provider.";
                     return response;
                 }
 
-                var bookingResponse = new BookingResponse
+                var bookingResponse = new BookingResponseForProvider
                 {
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
                     Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
-
                     DecorService = new DecorServiceDTO
                     {
                         Id = booking.DecorService.Id,
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
-                        StartDate = booking.DecorService.StartDate
+                        StartDate = booking.DecorService.StartDate,
+                        Images = booking.DecorService.DecorImages.Select(di => new DecorImageResponse
+                        {
+                            Id = di.Id,
+                            ImageURL = di.ImageURL
+                        }).ToList(),
+                        Seasons = booking.DecorService.DecorServiceSeasons.Select(ds => new SeasonResponse
+                        {
+                            Id = ds.Season.Id,
+                            SeasonName = ds.Season.SeasonName
+                        }).ToList()
                     },
-
-                    Provider = new ProviderResponse
+                    Customer = new CustomerResponse
                     {
-                        Id = booking.DecorService.Account.Id,
-                        BusinessName = booking.DecorService.Account.BusinessName,
-                        Avatar = booking.DecorService.Account.Avatar,
+                        Id = booking.Account.Id,
+                        FullName = $"{booking.Account.FirstName} {booking.Account.LastName}",
+                        Email = booking.Account.Email,
+                        Phone = booking.Account.Phone,
+                        Slug = booking.Account.Slug,
+                        Avatar = booking.Account.Avatar
                     },
-
-                    //BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
-                    //{
-                    //    Id = bd.Id,
-                    //    ServiceItem = bd.ServiceItem,
-                    //    Cost = bd.Cost,
-                    //    EstimatedCompletion = bd.EstimatedCompletion
-                    //}).ToList()
+                    ServiceItems = booking.BookingDetails.Any()
+                        ? string.Join(", ", booking.BookingDetails.Select(bd => bd.ServiceItem))
+                        : "No Service Items",
+                    Cost = booking.BookingDetails.Any()
+                        ? booking.BookingDetails.Sum(bd => bd.Cost)
+                        : 0,
+                    EstimatedCompletion = booking.BookingDetails.Any()
+                        ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
+                        : null
                 };
 
                 response.Success = true;
@@ -550,10 +562,12 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<bool>> ChangeBookingStatusAsync(int bookingId)
+        public async Task<BaseResponse<bool>> ChangeBookingStatusAsync(string bookingCode)
         {
             var response = new BaseResponse<bool>();
-            var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+            
+            var booking = await _unitOfWork.BookingRepository.Queryable()
+                .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
             if (booking == null)
             {
                 response.Message = "Booking not found.";
@@ -587,7 +601,7 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.Confirm:
                     // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
                     var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                        .FirstOrDefaultAsync(q => q.BookingId == bookingId);
+                        .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
                     if (quotation == null)
                     {
@@ -600,15 +614,15 @@ namespace BusinessLogicLayer.Services
 
                     // Kiểm tra nếu BookingDetail đã tồn tại
                     var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .Where(bd => bd.BookingId == bookingId)
+                        .Where(bd => bd.BookingId == booking.Id)
                         .ToListAsync();
 
                     if (!existingDetails.Any())
                     {
                         var bookingDetails = new List<BookingDetail>
                 {
-                    new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
-                    new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Thi công", Cost = quotation.ConstructionCost }
+                    new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
+                    new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Thi công", Cost = quotation.ConstructionCost }
                 };
 
                         await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
@@ -631,7 +645,7 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.InTransit:
                     // ✅ Khi chuyển sang `InTransit`, cập nhật EstimatedCompletion cho `Chi Phí Nguyên liệu`
                     var materialDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .FirstOrDefaultAsync(bd => bd.BookingId == bookingId && bd.ServiceItem == "Chi Phí Nguyên liệu");
+                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Chi Phí Nguyên liệu");
 
                     if (materialDetail != null)
                     {
@@ -644,7 +658,7 @@ namespace BusinessLogicLayer.Services
                     // ✅ Khi vào Progressing, tạo Tracking để lưu ảnh thi công
                     var tracking = new Tracking
                     {
-                        BookingId = bookingId,
+                        BookingId = booking.Id,
                         Status = Booking.BookingStatus.Progressing,
                         Note = "Construction phase started.",
                         CreatedAt = DateTime.Now
@@ -666,7 +680,7 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.Completed:
                     // ✅ Khi chuyển sang `Completed`, cập nhật EstimatedCompletion cho `Chi Phí Thi công`
                     var laborDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .FirstOrDefaultAsync(bd => bd.BookingId == bookingId && bd.ServiceItem == "Chi Phí Thi công");
+                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Chi Phí Thi công");
 
                     if (laborDetail != null)
                     {
@@ -706,13 +720,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RequestCancellationAsync(int bookingId, int accountId, int cancelTypeId, string? cancelReason)
+        public async Task<BaseResponse> RequestCancellationAsync(string bookingCode, int accountId, int cancelTypeId, string? cancelReason)
         {
             var response = new BaseResponse();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+                        .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
                 if (booking == null)
                 {
@@ -765,13 +779,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> ApproveCancellationAsync(int bookingId, int providerId)
+        public async Task<BaseResponse> ApproveCancellationAsync(string bookingCode, int providerId)
         {
             var response = new BaseResponse();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
                 if (booking == null)
                 {
@@ -810,13 +824,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RevokeCancellationRequestAsync(int bookingId, int accountId)
+        public async Task<BaseResponse> RevokeCancellationRequestAsync(string bookingCode, int accountId)
         {
             var response = new BaseResponse();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
                 if (booking == null)
                 {
@@ -854,13 +868,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RejectBookingAsync(int bookingId, int accountId, string reason)
+        public async Task<BaseResponse> RejectBookingAsync(string bookingCode, int accountId, string reason)
         {
             var response = new BaseResponse();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
                 if (booking == null)
                 {
@@ -873,7 +887,7 @@ namespace BusinessLogicLayer.Services
 
                 if (service == null || service.AccountId != accountId)
                 {
-                    response.Message = "You do not have permission to reject this booking.(You are customer)";
+                    response.Message = "You do not have permission to reject this booking.";
                     return response;
                 }
 
@@ -900,14 +914,16 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> ProcessDepositAsync(int bookingId)
+        public async Task<BaseResponse> ProcessDepositAsync(string bookingCode)
         {
             var response = new BaseResponse();
 
             try
             {
                 // 🔹 Lấy thông tin booking
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
                 if (booking == null)
                 {
                     response.Message = "Booking not found.";
@@ -921,7 +937,7 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Lấy báo giá của booking
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == bookingId);
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
                 if (quotation == null)
                 {
@@ -982,12 +998,14 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> ProcessFinalPaymentAsync(int bookingId)
+        public async Task<BaseResponse> ProcessFinalPaymentAsync(string bookingCode)
         {
             var response = new BaseResponse();
             try
             {
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
                 if (booking == null)
                 {
                     response.Message = "Booking not found.";
@@ -1053,7 +1071,7 @@ namespace BusinessLogicLayer.Services
         #region
         private string GenerateBookingCode()
         {
-            return "BKG-" + DateTime.UtcNow.Ticks;
+            return "BKG" + DateTime.Now.Ticks;
         }
         #endregion
     }

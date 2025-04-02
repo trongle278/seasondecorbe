@@ -27,13 +27,15 @@ namespace BusinessLogicLayer.Services
         /// <summary>
         /// Tạo báo giá cho một booking
         /// </summary>
-        public async Task<BaseResponse> CreateQuotationAsync(int bookingId, CreateQuotationRequest request)
+        public async Task<BaseResponse> CreateQuotationAsync(string bookingCode, CreateQuotationRequest request)
         {
             var response = new BaseResponse();
             try
             {
-                // 🔹 Kiểm tra booking có tồn tại không
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+                // 🔹 Tìm booking theo BookingCode
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
                 if (booking == null)
                 {
                     response.Message = "Booking not found.";
@@ -48,7 +50,7 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Kiểm tra xem đã có báo giá chưa
                 var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == bookingId);
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
                 if (existingQuotation != null)
                 {
@@ -56,22 +58,22 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Calculate totals
+                // Tạo mã báo giá mới
+                var quotationCode = $"QUOTE-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}";
+
+                // Tính tổng chi phí
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
-                //decimal totalConstructionCost = request.ConstructionTasks.Sum(c => c.Cost);
                 decimal totalConstructionCost = request.ConstructionTasks.Sum(c =>
-                        c.Unit == "m2"
-                        ? (c.Cost * ((c.Length ?? 0m) * (c.Width ?? 0m)))
-                        : c.Cost);
+                    c.Unit == "m2" ? (c.Cost * ((c.Length ?? 0m) * (c.Width ?? 0m))) : c.Cost);
 
-
-                // 🔹 Kiểm tra phần trăm đặt cọc, tối đa 20%
+                // Giới hạn đặt cọc tối đa 20%
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
 
-                // Create quotation
+                // Tạo báo giá
                 var quotation = new Quotation
                 {
-                    BookingId = bookingId,
+                    BookingId = booking.Id, // 🔹 Lưu booking ID
+                    QuotationCode = quotationCode,
                     MaterialCost = totalMaterialCost,
                     ConstructionCost = totalConstructionCost,
                     DepositPercentage = depositPercentage,
@@ -79,9 +81,9 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                await _unitOfWork.CommitAsync(); // Save quotation first to get Id
+                await _unitOfWork.CommitAsync(); // Lưu báo giá để lấy ID
 
-                // Create material details
+                // Thêm chi tiết vật liệu
                 var materialDetails = request.Materials.Select(m => new MaterialDetail
                 {
                     QuotationId = quotation.Id,
@@ -93,7 +95,7 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
 
-                // Create construction details
+                // Thêm chi tiết công trình
                 var constructionDetails = request.ConstructionTasks.Select(c => new ConstructionDetail
                 {
                     QuotationId = quotation.Id,
@@ -124,65 +126,111 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        /// <summary>
-        /// Lấy báo giá theo BookingId
-        /// </summary>
-        public async Task<BaseResponse<QuotationDetailResponse>> GetQuotationDetailAsync(int bookingId)
+        public async Task<BaseResponse> UploadQuotationFileAsync(string bookingCode, IFormFile quotationFile)
         {
-            var response = new BaseResponse<QuotationDetailResponse>();
+            var response = new BaseResponse();
             try
             {
-                // Lấy quotation kèm theo chi tiết
-                var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .Include(q => q.MaterialDetails)
-                    .Include(q => q.ConstructionDetails)
-                    .FirstOrDefaultAsync(q => q.BookingId == bookingId);
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
-                if (quotation == null)
+                if (booking == null)
                 {
-                    response.Message = "Quotation not found for this booking.";
+                    response.Message = "Booking not found.";
                     return response;
                 }
 
-                // Map sang response DTO
-                var quotationDetail = new QuotationDetailResponse
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+
+                if (quotation == null)
                 {
-                    Id = quotation.Id,
-                    BookingId = quotation.BookingId,
-                    MaterialCost = quotation.MaterialCost,
-                    ConstructionCost = quotation.ConstructionCost,
-                    CreatedAt = quotation.CreatedAt,
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
 
-                    Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
-                    {
-                        Id = m.Id,
-                        MaterialName = m.MaterialName,
-                        Quantity = m.Quantity,
-                        Cost = m.Cost,
-                        Category = m.Category
-                    }).ToList(),
+                if (quotationFile == null || quotationFile.Length == 0)
+                {
+                    response.Message = "Invalid file.";
+                    return response;
+                }
 
-                    ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
-                    {
-                        Id = c.Id,
-                        TaskName = c.TaskName,
-                        Cost = c.Cost,
-                        Unit = c.Unit
-                    }).ToList()
-                };
+                using var stream = quotationFile.OpenReadStream();
+                var filePath = await _cloudinaryService.UploadFileAsync(
+                    stream,
+                    quotationFile.FileName,
+                    quotationFile.ContentType
+                );
+
+                quotation.QuotationFilePath = filePath;
+                _unitOfWork.QuotationRepository.Update(quotation);
+                await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Quotation details retrieved successfully.";
-                response.Data = quotationDetail;
+                response.Message = "Quotation file uploaded successfully.";
+                response.Data = new { FilePath = filePath };
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Failed to retrieve quotation details.";
+                response.Message = "Failed to upload quotation file.";
                 response.Errors.Add(ex.Message);
             }
             return response;
         }
+
+        /// <summary>
+        /// Lấy báo giá theo BookingId
+        /// </summary>
+        public async Task<BaseResponse> GetQuotationByBookingCodeAsync(string bookingCode)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                var materialDetails = await _unitOfWork.MaterialDetailRepository.Queryable()
+                    .Where(m => m.QuotationId == quotation.Id)
+                    .ToListAsync();
+
+                var constructionDetails = await _unitOfWork.ConstructionDetailRepository.Queryable()
+                    .Where(c => c.QuotationId == quotation.Id)
+                    .ToListAsync();
+
+                response.Success = true;
+                response.Message = "Quotation retrieved successfully.";
+                response.Data = new
+                {
+                    Quotation = quotation,
+                    MaterialDetails = materialDetails,
+                    ConstructionDetails = constructionDetails
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to retrieve quotation.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
 
         public async Task<BaseResponse> ConfirmQuotationAsync(int bookingId)
         {
