@@ -19,7 +19,8 @@ namespace DataAccessObject.Models
 
         public string TaskName { get; set; } // Ví dụ: "Sơn tường", "Lắp đặt đèn"
         public decimal Cost { get; set; } // Chi phí nhân công cho hạng mục này
-
-        public string Unit { get; set; } // Đơn vị tính (m2, bộ, công, ...)
+        public string Unit { get; set; } // Đơn vị tính (m2, cái, ...)
+        public decimal? Length { get; set; }
+        public decimal? Width { get; set; }
     }
 }

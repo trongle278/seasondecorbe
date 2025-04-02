@@ -9,16 +9,19 @@ using Repository.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace BusinessLogicLayer.Services
 {
     public class QuotationService: IQuotationService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public QuotationService(IUnitOfWork unitOfWork)
+        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
+            _cloudinaryService = cloudinaryService;
         }
 
         /// <summary>
@@ -37,9 +40,9 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                if (booking.Status != Booking.BookingStatus.Survey)
+                if (booking.Status != Booking.BookingStatus.Planning)
                 {
-                    response.Message = "Quotation can only be created during the Survey phase.";
+                    response.Message = "Quotation can only be created during the Planning phase.";
                     return response;
                 }
 
@@ -55,7 +58,12 @@ namespace BusinessLogicLayer.Services
 
                 // Calculate totals
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
-                decimal totalConstructionCost = request.ConstructionTasks.Sum(c => c.Cost);
+                //decimal totalConstructionCost = request.ConstructionTasks.Sum(c => c.Cost);
+                decimal totalConstructionCost = request.ConstructionTasks.Sum(c =>
+                        c.Unit == "m2"
+                        ? (c.Cost * ((c.Length ?? 0m) * (c.Width ?? 0m)))
+                        : c.Cost);
+
 
                 // 🔹 Kiểm tra phần trăm đặt cọc, tối đa 20%
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
