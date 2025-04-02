@@ -58,7 +58,8 @@ namespace BusinessLogicLayer.Services
             {
                 // Filter
                 Expression<Func<Order, bool>> filter = order =>
-                    string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode);
+                    (string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode)) &&
+                    (order.Status == request.Status);
 
                 // Sort
                 Expression<Func<Order, object>> orderByExpression = request.SortBy switch
