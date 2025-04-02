@@ -19,9 +19,9 @@ namespace DataAccessObject.Models
 
         [EnumDataType(typeof(Booking.BookingStatus))]
         public Booking.BookingStatus Status { get; set; } // Trạng thái của booking tại thời điểm này
-
         public string? Note { get; set; } // Ghi chú (nếu có)
-        public string? ImageUrl { get; set; } // Link ảnh minh họa cho giai đoạn này
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public virtual ICollection<TrackingImage> TrackingImages { get; set; } = new List<TrackingImage>();
     }
 }
+

@@ -532,7 +532,6 @@ namespace BusinessLogicLayer.Services
                 {
                     BookingId = booking.Id,
                     SurveyDate = request.SurveyDate,
-                    SurveyTime = request.SurveyTime
                 };
 
                 await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);

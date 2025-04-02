@@ -69,6 +69,7 @@ namespace DataAccessObject.Models
         public DbSet<ConstructionDetail> ConstructionDetails { get; set; }
         public DbSet<TimeSlot> TimeSlots { get; set; }
         public DbSet<CancelType> CancelTypes { get; set; }
+        public DbSet<TrackingImage> TrackingImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -19,8 +19,6 @@ namespace BusinessLogicLayer.ModelRequest
         public int AddressId { get; set; }
         [DefaultValue("2025-04-30")]
         public DateTime SurveyDate { get; set; } // Ngày khảo sát
-        [DefaultValue("09:30:00")]
-        public TimeSpan SurveyTime { get; set; } // Giờ khảo sát
     }
 
     /// <summary>
