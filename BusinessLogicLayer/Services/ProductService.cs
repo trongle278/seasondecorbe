@@ -202,6 +202,7 @@ namespace BusinessLogicLayer.Services
                                                     && po.Order.Status == Order.OrderStatus.Completed)
                                         .Include(po => po.Order)
                                             .ThenInclude(o => o.Reviews)
+                                            .ThenInclude(r => r.ReviewImages)
                                         .ToListAsync();
 
                 // Get review of product
@@ -224,7 +225,9 @@ namespace BusinessLogicLayer.Services
                     Rating = r.Rating,
                     Comment = r.Comment,
                     CreateAt = r.CreateAt,
-                    UpdateAt = r.UpdateAt
+                    Images = r.ReviewImages?.FirstOrDefault()?.ImageUrl != null
+                            ? new List<string> { r.ReviewImages.FirstOrDefault()?.ImageUrl }
+                            : new List<string>()
                 }).ToList(); ;
 
                 // Get follower
@@ -312,6 +315,7 @@ namespace BusinessLogicLayer.Services
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
+                                                .ThenInclude(r => r.ReviewImages)
                                             .ToListAsync();
 
                     // Get review of product
@@ -409,6 +413,7 @@ namespace BusinessLogicLayer.Services
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
+                                                .ThenInclude(r => r.ReviewImages)
                                             .ToListAsync();
 
                     // Get review of product
@@ -490,6 +495,7 @@ namespace BusinessLogicLayer.Services
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
+                                                .ThenInclude(r => r.ReviewImages)
                                             .ToListAsync();
 
                     // Get review of product
@@ -591,6 +597,7 @@ namespace BusinessLogicLayer.Services
                                                         && po.Order.Status == Order.OrderStatus.Completed)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
+                                                .ThenInclude(r => r.ReviewImages)
                                             .ToListAsync();
 
                     // Get review of product

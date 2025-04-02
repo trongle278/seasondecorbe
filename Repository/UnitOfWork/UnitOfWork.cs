@@ -38,6 +38,7 @@ namespace Repository.UnitOfWork
             DecorServiceRepository = new DecorServiceRepository(_context);
             AddressRepository = new AddressRepository(_context);
             ReviewRepository = new ReviewRepository(_context);
+            ReviewImageRepository = new ReviewImageRepository(_context);
             BookingRepository = new BookingRepository(_context);
             WalletRepository = new WalletRepository(_context);
             WalletTransactionRepository = new WalletTransactionRepository(_context);
@@ -73,6 +74,7 @@ namespace Repository.UnitOfWork
         public IDecorServiceRepository DecorServiceRepository { get; private set; }
         public IAddressRepository AddressRepository { get; private set; }   
         public IReviewRepository ReviewRepository { get; private set; }
+        public IReviewImageRepository ReviewImageRepository { get; private set; }
         public IBookingRepository BookingRepository { get; private set; }
         public IWalletRepository WalletRepository { get; }
         public IPaymentTransactionRepository PaymentTransactionRepository { get; }

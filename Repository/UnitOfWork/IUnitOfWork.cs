@@ -29,6 +29,7 @@ namespace Repository.UnitOfWork
         IDecorServiceRepository DecorServiceRepository { get; }
         IAddressRepository AddressRepository { get; }
         IReviewRepository ReviewRepository { get; }
+        IReviewImageRepository ReviewImageRepository { get; }
         IBookingRepository BookingRepository { get; }
         IWalletRepository WalletRepository { get; }
         IPaymentTransactionRepository PaymentTransactionRepository { get; }

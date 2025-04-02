@@ -16,8 +16,8 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> GetReviewByProductId(int productId);
         Task<BaseResponse> CreateOrderReview(ReviewOrderRequest request);
         Task<BaseResponse> CreateBookingReview(ReviewBookingRequest request);
-        Task<BaseResponse> UpdateOrderReview(UpdateOrderReviewRequest request);
-        Task<BaseResponse> UpdateBookingReview(UpdateBookingReviewRequest request);
+        Task<BaseResponse> UpdateOrderReview(int id, int productId, int orderId, UpdateOrderReviewRequest request);
+        Task<BaseResponse> UpdateBookingReview(int id, int serviceId, int bookingId, UpdateBookingReviewRequest request);
         Task<BaseResponse> DeleteReview(int id);
     }
 }

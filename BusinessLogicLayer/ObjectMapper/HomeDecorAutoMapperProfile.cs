@@ -245,34 +245,24 @@ namespace BusinessLogicLayer.ObjectMapper
         private void ReviewProfile()
         {
             CreateMap<ReviewOrderRequest, Review>();
-            CreateMap<Product, ReviewResponse>();
+            CreateMap<Product, ProductReviewResponse>();
 
             CreateMap<UpdateOrderReviewRequest, Product>();
-            CreateMap<Product, ReviewResponse>();
+            CreateMap<Product, UpdateProductReviewResponse>();
 
             CreateMap<ReviewBookingRequest, Review>();
-            CreateMap<Product, ReviewResponse>();
+            CreateMap<Product, ServiceReviewResponse>();
 
             CreateMap<UpdateBookingReviewRequest, Product>();
-            CreateMap<Product, ReviewResponse>();
+            CreateMap<Product, UpdateServiceReviewResponse>();
 
-            CreateMap<ReviewRequest, Review>()
-                .ForMember(dest => dest.ReviewImages, opt => opt.MapFrom(src =>
-                    src.Images != null ? src.Images.Select(url => new ReviewImage { ImageUrl = url }).ToList()
-                                          : new List<ReviewImage>()));
+            CreateMap<ReviewRequest, Review>();
             CreateMap<Review, ReviewResponse>()
                 .ForMember(dest => dest.Images, opt => opt.MapFrom(src =>
                     src.ReviewImages != null ? src.ReviewImages.Select(pi => pi.ImageUrl).ToList()
-                                              : new List<string>()));
-
-            CreateMap<ProductDetailRequest, Product>()
-                .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src =>
-                    src.ImageUrls != null ? src.ImageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList()
-                                          : new List<ProductImage>()));
-            CreateMap<Product, ProductDetailResponse>()
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
-                    src.ProductImages != null ? src.ProductImages.Select(pi => pi.ImageUrl).ToList()
-                                              : new List<string>()));
+                                              : new List<string>()))
+                .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src =>
+                    src.IsUpdated ? src.UpdateAt : src.CreateAt));
         }
     }
 }
