@@ -229,6 +229,9 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<Address, AddressResponse>()
                 .ForMember(dest => dest.AddressType, opt => opt.MapFrom(src => src.Type.ToString()));
+            
+            CreateMap<Address, OrderAddressResponse>()
+                .ForMember(dest => dest.AddressType, opt => opt.MapFrom(src => src.Type.ToString()));
         }
 
         private void DecorServiceProfile() 

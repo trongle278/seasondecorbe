@@ -108,6 +108,7 @@ namespace BusinessLogicLayer.Services
                 var order = await _unitOfWork.OrderRepository
                                             .Query(o => o.Id == id)
                                             .Include(o => o.OrderDetails)
+                                            .Include(o => o.Address)
                                             .FirstOrDefaultAsync();
 
                 if (order == null)
@@ -152,7 +153,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var address = await _unitOfWork.AddressRepository
-                                                .Query(a => a.Id == addressId)
+                                                .Query(a => a.Id == addressId && a.IsDelete == false)
                                                 .FirstOrDefaultAsync();
 
                 if (address == null)
@@ -221,9 +222,12 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.CommitAsync();
 
+                var orderResponse = _mapper.Map<OrderResponse>(order);
+                orderResponse.Address = _mapper.Map<OrderAddressResponse>(address);
+
                 response.Success = true;
                 response.Message = "Order created successfully.";
-                response.Data = _mapper.Map<OrderResponse>(order);
+                response.Data = orderResponse;
             }
             catch (Exception ex)
             {
