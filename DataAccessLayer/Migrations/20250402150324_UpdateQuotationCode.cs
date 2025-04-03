@@ -19,7 +19,7 @@ namespace DataAccessObject.Migrations
                 name: "QuotationFilePath",
                 table: "Quotation",
                 type: "nvarchar(max)",
-                nullable: false,
+                nullable: true,
                 defaultValue: "");
         }
 

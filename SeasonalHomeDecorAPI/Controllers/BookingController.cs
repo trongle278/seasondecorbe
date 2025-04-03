@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using BusinessLogicLayer.Interfaces;
 using static DataAccessObject.Models.Booking;
+using CloudinaryDotNet;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -66,11 +67,29 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpGet("getBookingDetails/{bookingCode}")]
-        public async Task<IActionResult> GetBookingDetails(string bookingCode, int providerId)
+        [HttpGet("getBookingDetailsForProvider/{bookingCode}")]
+        public async Task<IActionResult> GetBookingDetailsForProvider(string bookingCode)
         {
-            var response = await _bookingService.GetBookingDetailsForProviderAsync(bookingCode, providerId);
-            return response.Success ? Ok(response) : BadRequest(response);
+            try
+            {
+                var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var response = await _bookingService.GetBookingDetailsForProviderAsync(bookingCode, accountId);
+
+                if (!response.Success)
+                {
+                    return BadRequest(response);
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse<List<BookingDetailResponse>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
         [HttpPut("status/{bookingCode}")]

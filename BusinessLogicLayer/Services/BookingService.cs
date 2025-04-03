@@ -81,7 +81,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
         public async Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId)
         {
             var response = new BaseResponse<PageResult<BookingResponse>>();
@@ -103,6 +102,7 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Includes (Lấy thêm thông tin)
                 Func<IQueryable<Booking>, IQueryable<Booking>> customQuery = query => query
+                    .AsSplitQuery()
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.DecorImages) // Hình ảnh
                     .Include(b => b.DecorService.DecorServiceSeasons)
@@ -228,6 +228,7 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Include: Sử dụng custom query để include các thông tin cần thiết
                 Func<IQueryable<Booking>, IQueryable<Booking>> customQuery = query => query
+                    .AsSplitQuery()
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.DecorImages) // Hình ảnh decor
                     .Include(b => b.DecorService.DecorServiceSeasons)
@@ -381,76 +382,57 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<BookingResponseForProvider>> GetBookingDetailsForProviderAsync(string bookingCode, int providerId)
+        public async Task<BaseResponse<List<BookingDetailResponse>>> GetBookingDetailsAsync(string bookingCode, int accountId)
         {
-            var response = new BaseResponse<BookingResponseForProvider>();
+            var response = new BaseResponse<List<BookingDetailResponse>>();
             try
             {
+                // Get booking with related data
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .Include(b => b.BookingDetails)
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.Account)
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.DecorService.AccountId == providerId);
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
                 if (booking == null)
                 {
-                    response.Message = "Booking not found or does not belong to the provider.";
+                    response.Success = false;
+                    response.Message = "Booking not found";
                     return response;
                 }
 
-                var bookingResponse = new BookingResponseForProvider
+                // Verify access rights
+                if (booking.DecorService.AccountId != accountId ||
+                    !booking.DecorService.Account.IsProvider.GetValueOrDefault())
                 {
-                    BookingId = booking.Id,
-                    BookingCode = booking.BookingCode,
-                    TotalPrice = booking.TotalPrice,
-                    Status = (int)booking.Status,
-                    CreatedAt = booking.CreateAt,
-                    DecorService = new DecorServiceDTO
-                    {
-                        Id = booking.DecorService.Id,
-                        Style = booking.DecorService.Style,
-                        BasePrice = booking.DecorService.BasePrice,
-                        Description = booking.DecorService.Description,
-                        StartDate = booking.DecorService.StartDate,
-                        Images = booking.DecorService.DecorImages.Select(di => new DecorImageResponse
-                        {
-                            Id = di.Id,
-                            ImageURL = di.ImageURL
-                        }).ToList(),
-                        Seasons = booking.DecorService.DecorServiceSeasons.Select(ds => new SeasonResponse
-                        {
-                            Id = ds.Season.Id,
-                            SeasonName = ds.Season.SeasonName
-                        }).ToList()
-                    },
-                    Customer = new CustomerResponse
-                    {
-                        Id = booking.Account.Id,
-                        FullName = $"{booking.Account.FirstName} {booking.Account.LastName}",
-                        Email = booking.Account.Email,
-                        Phone = booking.Account.Phone,
-                        Slug = booking.Account.Slug,
-                        Avatar = booking.Account.Avatar
-                    },
-                    ServiceItems = booking.BookingDetails.Any()
-                        ? string.Join(", ", booking.BookingDetails.Select(bd => bd.ServiceItem))
-                        : "No Service Items",
-                    Cost = booking.BookingDetails.Any()
-                        ? booking.BookingDetails.Sum(bd => bd.Cost)
-                        : 0,
-                    EstimatedCompletion = booking.BookingDetails.Any()
-                        ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
-                        : null
-                };
+                    response.Success = false;
+                    response.Message = "Access denied. Only the service provider can view booking details";
+                    return response;
+                }
+
+                // Get booking details
+                var bookingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
+                    .Where(bd => bd.BookingId == booking.Id)
+                    .OrderBy(bd => bd.Id)
+                    .ToListAsync();
+
+                var result = bookingDetails.Select(bd => new BookingDetailResponse
+                {
+                    Id = bd.Id,
+                    ServiceItem = bd.ServiceItem,
+                    Cost = bd.Cost,
+                    EstimatedCompletion = bd.EstimatedCompletion,
+                }).ToList();
 
                 response.Success = true;
-                response.Data = bookingResponse;
-                response.Message = "Booking details retrieved successfully.";
+                response.Data = result;
+                response.Message = result.Count > 0
+                    ? "Booking details retrieved successfully"
+                    : "No details found for this booking";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error retrieving booking details.";
+                response.Message = "An error occurred while retrieving booking details";
                 response.Errors.Add(ex.Message);
             }
             return response;

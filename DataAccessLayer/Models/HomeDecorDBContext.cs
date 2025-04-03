@@ -75,6 +75,10 @@ namespace DataAccessObject.Models
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Quotation>()
+                .Property(q => q.QuotationFilePath)
+                .IsRequired(false);
+
             // Configure 1-N relationship between Role and Account
             modelBuilder.Entity<Account>()
                 .HasOne(a => a.Role)

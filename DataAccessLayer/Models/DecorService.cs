@@ -27,6 +27,13 @@ namespace DataAccessObject.Models
         public int DecorCategoryId { get; set; }
         public DecorCategory DecorCategory { get; set; }
         public DateTime StartDate { get; set; }
+        //public enum DecorServiceStatus
+        //{
+        //    Available,
+        //    NotAvailable
+        //}
+
+        //public DecorServiceStatus Status { get; set; }
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<DecorImage>? DecorImages { get; set; }
         // Quan hệ Many-to-Many với Season

@@ -20,7 +20,7 @@ namespace DataAccessObject.Models
         public decimal MaterialCost { get; set; } // Chi phí nguyên liệu
         public decimal ConstructionCost { get; set; } // Chi phí thi công
         public decimal DepositPercentage { get; set; }
-        public string QuotationFilePath { get; set; }
+        public string? QuotationFilePath { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
