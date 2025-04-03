@@ -453,6 +453,13 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // 🔹 Kiểm tra nếu service đã không còn available
+                if (decorService.Status == DecorService.DecorServiceStatus.NotAvailable)
+                {
+                    response.Message = "This service is currently not available for booking.";
+                    return response;
+                }
+
                 /////------------------------------------------------------------------------------------------
                 // 🔹 Kiểm tra provider có đang bận không
                 var provider = await _unitOfWork.AccountRepository.Queryable()
@@ -529,6 +536,7 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
+                decorService.Status = DecorService.DecorServiceStatus.NotAvailable;
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -792,6 +800,7 @@ namespace BusinessLogicLayer.Services
 
                 booking.Status = BookingStatus.Canceled;
                 _unitOfWork.BookingRepository.Update(booking);
+                service.Status = DecorService.DecorServiceStatus.Available;
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

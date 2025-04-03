@@ -42,7 +42,10 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => ds.Id == id && ds.StartDate <= DateTime.Now)
+                    .Query(ds => ds.Id == id && 
+                           ds.StartDate <= DateTime.Now &&
+                           ds.Status == DecorService.DecorServiceStatus.Available)
+
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -122,7 +125,10 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var services = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => !ds.IsDeleted && ds.StartDate <= DateTime.Now)
+                    .Query(ds => !ds.IsDeleted && 
+                           ds.StartDate <= DateTime.Now &&
+                           ds.Status == DecorService.DecorServiceStatus.Available)
+
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -216,14 +222,16 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Then get the decor service for this account
                 var decorService = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => ds.AccountId == account.Id && !ds.IsDeleted && ds.StartDate <= DateTime.Now)
+                    .Query(ds => ds.AccountId == account.Id &&
+                        !ds.IsDeleted &&
+                        ds.StartDate <= DateTime.Now &&
+                        ds.Status == DecorService.DecorServiceStatus.Available)
+
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
-
                     .Include(ds => ds.Account)
                         .ThenInclude(a => a.Followers)
                     .Include(ds => ds.Account)
@@ -322,6 +330,7 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<DecorService, bool>> filter = decorService =>
                     decorService.IsDeleted == false &&
                     decorService.StartDate <= DateTime.Now && // Thêm điều kiện StartDate
+                    decorService.Status == DecorService.DecorServiceStatus.Available && // Chỉ lấy những service Available
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
                     //(string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
                     (string.IsNullOrEmpty(request.Sublocation) || decorService.Sublocation.Contains(request.Sublocation)) &&
@@ -428,7 +437,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
         public async Task<BaseResponse> CreateDecorServiceAsync(CreateDecorServiceRequest request, int accountId)
         {
             var response = new BaseResponse();
@@ -468,6 +476,7 @@ namespace BusinessLogicLayer.Services
                     DecorCategoryId = request.DecorCategoryId,
                     CreateAt = DateTime.Now,
                     StartDate = request.StartDate,
+                    Status = DecorService.DecorServiceStatus.Available,
                     DecorImages = new List<DecorImage>(),
                     DecorServiceSeasons = new List<DecorServiceSeason>()
                 };
@@ -828,7 +837,9 @@ namespace BusinessLogicLayer.Services
             var response = new DecorServiceListResponse();
             try
             {
-                var query = _unitOfWork.DecorServiceRepository.Query(ds => !ds.IsDeleted && ds.StartDate <= DateTime.Now);
+                var query = _unitOfWork.DecorServiceRepository.Query(ds => !ds.IsDeleted &&
+                    ds.StartDate <= DateTime.Now &&
+                    ds.Status == DecorService.DecorServiceStatus.Available);
 
                 if (!string.IsNullOrEmpty(request.Style))
                     query = query.Where(ds => ds.Style.Contains(request.Style));
@@ -915,6 +926,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 decorService.StartDate = request.StartDate;
+                decorService.Status = DecorService.DecorServiceStatus.Available;
                 _unitOfWork.DecorServiceRepository.Update(decorService);
                 await _unitOfWork.CommitAsync();
 
