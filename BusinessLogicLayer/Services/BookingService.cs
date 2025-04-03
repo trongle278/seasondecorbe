@@ -382,7 +382,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<List<BookingDetailResponse>>> GetBookingDetailsAsync(string bookingCode, int accountId)
+        public async Task<BaseResponse<List<BookingDetailResponse>>> GetBookingDetailsForProviderAsync(string bookingCode, int accountId)
         {
             var response = new BaseResponse<List<BookingDetailResponse>>();
             try
