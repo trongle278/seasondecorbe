@@ -59,7 +59,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Tạo mã báo giá mới
-                var quotationCode = $"QUOTE{DateTime.Now:yyyyMMdd}{new Random().Next(1000, 9999)}";
+                var quotationCode = $"QU{DateTime.Now:yyyyMMdd}{new Random().Next(1000, 9999)}";
 
                 // Tính tổng chi phí
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);

@@ -55,6 +55,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; }
         public virtual ICollection<Support> Supports { get; set; } = new List<Support>();
+        public virtual ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
 
         public int QuotationId { get; set; }
         public Quotation Quotation { get; set; }

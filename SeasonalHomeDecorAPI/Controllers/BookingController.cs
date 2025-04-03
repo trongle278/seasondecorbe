@@ -73,7 +73,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             try
             {
                 var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-                var response = await _bookingService.GetBookingDetailsForProviderAsync(bookingCode, accountId);
+                var response = await _bookingService.GetBookingDetailForProviderAsync(bookingCode, accountId);
 
                 if (!response.Success)
                 {
@@ -83,7 +83,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new BaseResponse<List<BookingDetailResponse>>
+                return StatusCode(500, new BaseResponse<List<BookingDetailForProviderResponse>>
                 {
                     Success = false,
                     Message = "Internal server error",
