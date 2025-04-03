@@ -20,4 +20,18 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
         public string SortBy { get; set; } = "";
         public bool Descending { get; set; } = false;
     }
+
+    public class ProviderServiceFilterRequest
+    {
+        public string? Style { get; set; }
+        public string? Sublocation { get; set; }
+        public int? MinPrice { get; set; }
+        public int? MaxPrice { get; set; }
+        public int? DecorCategoryId { get; set; }
+        public List<int>? SeasonIds { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string SortBy { get; set; } = "";
+        public bool Descending { get; set; } = false;
+    }
 }

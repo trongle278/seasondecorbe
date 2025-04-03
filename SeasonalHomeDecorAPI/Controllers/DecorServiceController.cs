@@ -59,6 +59,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return NotFound(result.Message);
         }
 
+        [HttpGet("getDecorServiceListByProvider")]
+        [Authorize]
+        public async Task<IActionResult> GetMyServices([FromQuery] DecorServiceFilterRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var result = await _decorServiceService.GetDecorServiceListByProvider(accountId, request);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         [HttpPost("add")]
         [Authorize]
         public async Task<IActionResult> CreateDecorService([FromForm] CreateDecorServiceRequest request)
