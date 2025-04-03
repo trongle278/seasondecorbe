@@ -1,5 +1,7 @@
-﻿using BusinessLogicLayer.Interfaces;
+﻿using System.Security.Claims;
+using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,6 +41,26 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var response = await _quotationService.GetQuotationByBookingCodeAsync(bookingCode);
             return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("getPaginatedQuotationsForCustomer")]
+        public async Task<IActionResult> GetPaginatedQuotationsForCustomerAsync([FromQuery] QuotationFilterRequest request)
+        {
+            // Lấy accountId từ token
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var result = await _quotationService.GetPaginatedQuotationsForCustomerAsync(request, accountId);
+            return Ok(result);
+        }
+
+        [HttpGet("getPaginatedQuotationsForProvider")]
+        public async Task<IActionResult> GetPaginatedQuotationsForProviderAsync([FromQuery] QuotationFilterRequest request)
+        {
+            // Lấy accountId từ token
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var result = await _quotationService.GetPaginatedQuotationsForCustomerAsync(request, providerId);
+            return Ok(result);
         }
     }
 }

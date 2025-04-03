@@ -29,6 +29,7 @@ namespace BusinessLogicLayer.ModelResponse
         public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
         public DateTime? SurveyDate { get; set; }
         public string Address { get; set; }
+        public DecorServiceDTO DecorService { get; set; }
         public CustomerResponse Customer { get; set; }
     }
 

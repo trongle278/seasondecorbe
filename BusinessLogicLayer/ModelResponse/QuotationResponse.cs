@@ -37,4 +37,23 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal Cost { get; set; }
         public string Unit { get; set; }
     }
+
+    public class QuotationResponse
+    {
+        public int Id { get; set; }
+        public string QuotationCode { get; set; }
+        public decimal MaterialCost { get; set; }
+        public decimal ConstructionCost { get; set; }
+        public decimal DepositPercentage { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string FilePath { get; set; }
+        public List<MaterialDetailResponse> MaterialDetails { get; set; }
+        public List<ConstructionDetailResponse> ConstructionDetails { get; set; }
+        //public BookingInfoResponse BookingInfo { get; set; }
+    }
+
+    public class QuotationResponseForProvider : QuotationResponse
+    {
+        public CustomerResponse Customer { get; set; }
+    }
 }

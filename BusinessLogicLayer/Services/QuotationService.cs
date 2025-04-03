@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.Interfaces;
 using Microsoft.AspNetCore.Http;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using System.Linq.Expressions;
 
 namespace BusinessLogicLayer.Services
 {
@@ -231,7 +233,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
         public async Task<BaseResponse> ConfirmQuotationAsync(int bookingId)
         {
             var response = new BaseResponse();
@@ -280,6 +281,145 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-    }
+        public async Task<BaseResponse<PageResult<QuotationResponse>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId)
+        {
+            var response = new BaseResponse<PageResult<QuotationResponse>>();
+            try
+            {
+                // Filter condition
+                Expression<Func<Quotation, bool>> filter = q =>
+                    q.Booking.AccountId == accountId;
 
+                // Sorting
+                Expression<Func<Quotation, object>> orderByExpression = request.SortBy switch
+                {
+                    "QuotationCode" => q => q.QuotationCode,
+                    "TotalCost" => q => (q.MaterialCost + q.ConstructionCost),
+                    _ => q => q.CreatedAt
+                };
+
+                // Includes
+                Func<IQueryable<Quotation>, IQueryable<Quotation>> customQuery = query => query
+                    .AsSplitQuery()
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Address)
+                    .Include(q => q.MaterialDetails)
+                    .Include(q => q.ConstructionDetails);
+
+                // Get paginated data
+                (IEnumerable<Quotation> quotations, int totalCount) =
+                    await _unitOfWork.QuotationRepository.GetPagedAndFilteredAsync(
+                        filter,
+                        request.PageIndex,
+                        request.PageSize,
+                        orderByExpression,
+                        request.Descending,
+                        null,
+                        customQuery);
+
+                // Map to DTO
+                var quotationResponses = quotations.Select(q => new QuotationResponse
+                {
+                    Id = q.Id,
+                    QuotationCode = q.QuotationCode,
+                    MaterialCost = q.MaterialCost,
+                    ConstructionCost = q.ConstructionCost,
+                    DepositPercentage = q.DepositPercentage,
+                    CreatedAt = q.CreatedAt,
+                    FilePath = q.QuotationFilePath,
+                    MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
+                    {
+                        MaterialName = m.MaterialName,
+                        Quantity = m.Quantity,
+                        Cost = m.Cost,
+                        Category = m.Category
+                    }).ToList(),
+                    ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    {
+                        TaskName = c.TaskName,
+                        Cost = c.Cost,
+                        Unit = c.Unit
+                    }).ToList(),
+                }).ToList();
+
+                response.Success = true;
+                response.Data = new PageResult<QuotationResponse>
+                {
+                    Data = quotationResponses,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving quotations";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<QuotationResponseForProvider>>> GetPaginatedQuotationsForProviderAsync(QuotationFilterRequest request, int providerId)
+        {
+            var response = new BaseResponse<PageResult<QuotationResponseForProvider>>();
+            try
+            {
+                // Filter condition
+                Expression<Func<Quotation, bool>> filter = q =>
+                    q.Booking.DecorService.AccountId == providerId; 
+
+                // Includes (additional customer info for provider view)
+                Func<IQueryable<Quotation>, IQueryable<Quotation>> customQuery = query => query
+                    .AsSplitQuery()
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Address)
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Account)
+                    .Include(q => q.MaterialDetails)
+                    .Include(q => q.ConstructionDetails);
+
+                // Same pagination logic as customer method
+                (IEnumerable<Quotation> quotations, int totalCount) =
+                    await _unitOfWork.QuotationRepository.GetPagedAndFilteredAsync(
+                        filter,
+                        request.PageIndex,
+                        request.PageSize,
+                        q => q.CreatedAt, // Default sorting
+                        request.Descending,
+                        null,
+                        customQuery);
+
+                // Map to DTO with additional customer info
+                var quotationResponses = quotations.Select(q => new QuotationResponseForProvider
+                {
+                    // All properties from QuotationResponse
+                    Id = q.Id,
+                    QuotationCode = q.QuotationCode,
+                    // ... (same mapping as customer method)
+
+                    // Additional provider-specific info
+                    Customer = new CustomerResponse
+                    {
+                        Id = q.Booking.Account.Id,
+                        FullName = $"{q.Booking.Account.FirstName} {q.Booking.Account.LastName}",
+                        Phone = q.Booking.Account.Phone,
+                        Email = q.Booking.Account.Email
+                    }
+                }).ToList();
+
+                response.Success = true;
+                response.Data = new PageResult<QuotationResponseForProvider>
+                {
+                    Data = quotationResponses,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving provider quotations";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+    }
 }

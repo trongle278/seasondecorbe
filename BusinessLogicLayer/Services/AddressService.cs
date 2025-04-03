@@ -53,7 +53,19 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                // Nếu set mặc định => bỏ mặc định của các địa chỉ cũ
+                // Check current address count
+                var addressCount = await _unitOfWork.AddressRepository
+                    .Query(a => a.AccountId == userAccountId && !a.IsDelete)
+                    .CountAsync();
+
+                if (addressCount >= 3)
+                {
+                    response.Success = false;
+                    response.Message = "Each account can have a maximum of 3 addresses.";
+                    return response;
+                }
+
+                // If setting as default => unset default for old addresses
                 if (request.IsDefault)
                 {
                     var addresses = await _unitOfWork.AddressRepository
@@ -68,7 +80,7 @@ namespace BusinessLogicLayer.Services
 
                 var newAddress = new Address
                 {
-                    AccountId = userAccountId, // Lấy từ token
+                    AccountId = userAccountId,
                     FullName = request.FullName,
                     Phone = request.Phone,
                     Type = request.Type,
@@ -91,7 +103,7 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error creating address.";
+                response.Message = "Failed to create address.";
                 response.Errors.Add(ex.Message);
             }
             return response;
