@@ -298,32 +298,33 @@ namespace BusinessLogicLayer.Services
         }
 
 
-        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request, int? accountId)
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
             try
             {
-                string? userLocation = null;
+                //string? userLocation = null;
 
-                // ✅ Nếu user đăng nhập, lấy Location từ Account
-                if (accountId.HasValue)
-                {
-                    var userAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId.Value);
-                    if (userAccount != null && !string.IsNullOrEmpty(userAccount.Location))
-                    {
-                        userLocation = userAccount.Location;
-                    }
-                }
+                //// ✅ Nếu user đăng nhập, lấy Location từ Account
+                //if (accountId.HasValue)
+                //{
+                //    var userAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId.Value);
+                //    if (userAccount != null && !string.IsNullOrEmpty(userAccount.Location))
+                //    {
+                //        userLocation = userAccount.Location;
+                //    }
+                //}
 
-                // ✅ Nếu user có chọn Sublocation, dùng Sublocation. Nếu không có, dùng Location từ Account.
-                string locationFilter = !string.IsNullOrEmpty(request.Sublocation) ? request.Sublocation : userLocation;
+                //// ✅ Nếu user có chọn Sublocation, dùng Sublocation. Nếu không có, dùng Location từ Account.
+                //string locationFilter = !string.IsNullOrEmpty(request.Sublocation) ? request.Sublocation : userLocation;
 
                 // ✅ Nếu user chưa đăng nhập, hoặc không có Location, thì không lọc theo Sublocation
                 Expression<Func<DecorService, bool>> filter = decorService =>
                     decorService.IsDeleted == false &&
                     decorService.StartDate <= DateTime.Now && // Thêm điều kiện StartDate
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
-                    (string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
+                    //(string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
+                    (string.IsNullOrEmpty(request.Sublocation) || decorService.Sublocation.Contains(request.Sublocation)) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
                     (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);

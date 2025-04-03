@@ -47,6 +47,12 @@ namespace BusinessLogicLayer.ModelRequest
         public List<ConstructionItemRequest> ConstructionTasks { get; set; }
         public decimal DepositPercentage { get; set; }
     }
+            
+    public class UploadQuotationFile
+    {
+        [Required(ErrorMessage = "QuotationFile is required")]
+        public IFormFile QuotationFile { get; set; }
+    }
 
     public class MaterialItemRequest
     {

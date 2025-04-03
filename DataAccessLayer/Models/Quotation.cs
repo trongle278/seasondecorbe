@@ -12,6 +12,7 @@ namespace DataAccessObject.Models
     {
         [Key]
         public int Id { get; set; }
+        public string QuotationCode { get; set; }
 
         [ForeignKey("Booking")]
         public int BookingId { get; set; }
@@ -19,6 +20,7 @@ namespace DataAccessObject.Models
         public decimal MaterialCost { get; set; } // Chi phí nguyên liệu
         public decimal ConstructionCost { get; set; } // Chi phí thi công
         public decimal DepositPercentage { get; set; }
+        public string? QuotationFilePath { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }

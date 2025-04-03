@@ -12,7 +12,7 @@ namespace DataAccessObject.Models
         public int ChatId { get; set; }
         public string FileName { get; set; }
         public string FileUrl { get; set; }
-        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
 
         // Navigation property
         public virtual Chat Chat { get; set; }

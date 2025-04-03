@@ -20,21 +20,25 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Tạo báo giá cho một booking
         /// </summary>
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateQuotation([FromQuery] int bookingId, [FromBody] CreateQuotationRequest request)
+        [HttpPost("createQuotationByBookingCode/{bookingCode}")]
+        public async Task<IActionResult> CreateQuotation(string bookingCode, CreateQuotationRequest request)
         {
-            var response = await _quotationService.CreateQuotationAsync(bookingId, request);
+            var response = await _quotationService.CreateQuotationAsync(bookingCode, request);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        /// <summary>
-        /// Lấy báo giá theo BookingId
-        /// </summary>
-        [HttpGet("getQuotationByBookingId/{bookingId}")]
-        public async Task<IActionResult> GetQuotationByBookingId(int bookingId)
+        [HttpPost("uploadQuotationFileByBookingCode/{bookingCode}")]
+        public async Task<IActionResult> UploadQuotationFile(string bookingCode, IFormFile quotationFile)
         {
-            var response = await _quotationService.GetQuotationDetailAsync(bookingId);
-            return response.Success ? Ok(response) : NotFound(response);
+            var response = await _quotationService.UploadQuotationFileAsync(bookingCode, quotationFile);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("getQuotationByBookingId/{bookingCode}")]
+        public async Task<IActionResult> GetQuotation(string bookingCode)
+        {
+            var response = await _quotationService.GetQuotationByBookingCodeAsync(bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
     }
 }
