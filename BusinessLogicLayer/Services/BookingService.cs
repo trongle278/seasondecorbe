@@ -414,13 +414,13 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Get the first booking detail (assuming there's at least one)
-                var bookingDetail = booking.BookingDetails.FirstOrDefault();
-                if (bookingDetail == null)
-                {
-                    response.Success = false;
-                    response.Message = "No booking details found";
-                    return response;
-                }
+                //var bookingDetail = booking.BookingDetails.FirstOrDefault();
+                //if (bookingDetail == null)
+                //{
+                //    response.Success = false;
+                //    response.Message = "No booking details found";
+                //    return response;
+                //}
 
                 // Map to response object
                 response.Data = new BookingDetailForProviderResponse
@@ -555,7 +555,7 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
-                decorService.Status = DecorService.DecorServiceStatus.NotAvailable;
+                //decorService.Status = DecorService.DecorServiceStatus.NotAvailable;
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -576,6 +576,7 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<bool>();
             
             var booking = await _unitOfWork.BookingRepository.Queryable()
+                .Include(b => b.DecorService)// thêm Decorservice để set trạng thái dịch vụ
                 .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
             if (booking == null)
             {
@@ -603,9 +604,29 @@ namespace BusinessLogicLayer.Services
                 return response;
             }
 
+            // Lấy thông tin Provider
+            var provider = await _unitOfWork.AccountRepository.Queryable()
+                        .FirstOrDefaultAsync(a => a.Id == _unitOfWork.DecorServiceRepository.Queryable()
+                            .Where(ds => ds.Id == booking.DecorServiceId)
+                            .Select(ds => ds.AccountId)
+                            .FirstOrDefault());
+
             switch (newStatus)
             {
                 case Booking.BookingStatus.Planning:
+                    // Chuyển Provider sang trạng thái Busy khi bắt đầu Planning
+                    if (provider != null)
+                    {
+                        provider.ProviderStatus = Account.AccountStatus.Busy;
+                        _unitOfWork.AccountRepository.Update(provider);
+                    }
+
+                    // Cập nhật trạng thái DecorService thành NotAvailable
+                    if (booking.DecorService != null)
+                    {
+                        booking.DecorService.Status = DecorService.DecorServiceStatus.NotAvailable;
+                        _unitOfWork.DecorServiceRepository.Update(booking.DecorService);
+                    }
                     break;
                 case Booking.BookingStatus.Confirm:
                     // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
@@ -699,16 +720,16 @@ namespace BusinessLogicLayer.Services
 
                     ///---------------------------------------------------------------------------------------
                     // ✅ Lấy Provider từ `DecorService`
-                    var provider = await _unitOfWork.AccountRepository.Queryable()
-                        .FirstOrDefaultAsync(a => a.Id == _unitOfWork.DecorServiceRepository.Queryable()
-                            .Where(ds => ds.Id == booking.DecorServiceId)
-                            .Select(ds => ds.AccountId)
-                            .FirstOrDefault());
+                    //var provider = await _unitOfWork.AccountRepository.Queryable()
+                    //    .FirstOrDefaultAsync(a => a.Id == _unitOfWork.DecorServiceRepository.Queryable()
+                    //        .Where(ds => ds.Id == booking.DecorServiceId)
+                    //        .Select(ds => ds.AccountId)
+                    //        .FirstOrDefault());
 
                     if (provider != null)
                     {
                         // ✅ Cập nhật trạng thái Provider thành `Available`
-                        provider.ProviderStatus = Account.AccountStatus.Available;
+                        provider.ProviderStatus = Account.AccountStatus.Idle;
                         _unitOfWork.AccountRepository.Update(provider);
                     }
                     ///---------------------------------------------------------------------------------------

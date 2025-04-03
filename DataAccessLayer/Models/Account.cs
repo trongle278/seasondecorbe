@@ -65,7 +65,7 @@ namespace DataAccessObject.Models
         public AccountStatus ProviderStatus { get; set; } // Trạng thái tài khoản
         public enum AccountStatus
         {
-            Available,    // Đang rảnh (có thể nhận job)           
+            Idle,    // Đang rảnh (có thể nhận job)           
             Busy        // Đang bận (có job)          
         }
     }
