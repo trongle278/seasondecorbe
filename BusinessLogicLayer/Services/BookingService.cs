@@ -988,8 +988,8 @@ namespace BusinessLogicLayer.Services
                 booking.DepositAmount = depositAmount;
                 _unitOfWork.BookingRepository.Update(booking);
 
-                // 🔹 Chuyển trạng thái Provider sang "Busy"
-                provider.ProviderStatus = Account.AccountStatus.Busy;
+                //// 🔹 Chuyển trạng thái Provider sang "Busy"
+                //provider.ProviderStatus = Account.AccountStatus.Busy;
                 _unitOfWork.AccountRepository.Update(provider);
 
                 await _unitOfWork.CommitAsync();

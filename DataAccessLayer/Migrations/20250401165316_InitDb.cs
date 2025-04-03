@@ -890,7 +890,6 @@ namespace DataAccessObject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     SurveyDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    SurveyTime = table.Column<TimeSpan>(type: "time", nullable: false)
                 },
                 constraints: table =>
                 {
