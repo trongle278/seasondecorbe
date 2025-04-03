@@ -382,15 +382,19 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<List<BookingDetailResponse>>> GetBookingDetailsForProviderAsync(string bookingCode, int accountId)
+        public async Task<BaseResponse<BookingDetailForProviderResponse>> GetBookingDetailForProviderAsync(string bookingCode, int accountId)
         {
-            var response = new BaseResponse<List<BookingDetailResponse>>();
+            var response = new BaseResponse<BookingDetailForProviderResponse>();
             try
             {
-                // Get booking with related data
+                // Get booking with all related data
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.Account)
+                    .Include(b => b.Account) // Customer info
+                    .Include(b => b.TimeSlots) // Survey times
+                    .Include(b => b.Address) // Address
+                    .Include(b => b.BookingDetails) // Booking details
                     .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
                 if (booking == null)
@@ -409,31 +413,46 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Get booking details
-                var bookingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
-                    .Where(bd => bd.BookingId == booking.Id)
-                    .OrderBy(bd => bd.Id)
-                    .ToListAsync();
-
-                var result = bookingDetails.Select(bd => new BookingDetailResponse
+                // Get the first booking detail (assuming there's at least one)
+                var bookingDetail = booking.BookingDetails.FirstOrDefault();
+                if (bookingDetail == null)
                 {
-                    Id = bd.Id,
-                    ServiceItem = bd.ServiceItem,
-                    Cost = bd.Cost,
-                    EstimatedCompletion = bd.EstimatedCompletion,
-                }).ToList();
+                    response.Success = false;
+                    response.Message = "No booking details found";
+                    return response;
+                }
+
+                // Map to response object
+                response.Data = new BookingDetailForProviderResponse
+                {
+                    BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
+                    {
+                        Id = bd.Id,
+                        ServiceItem = bd.ServiceItem,
+                        Cost = bd.Cost,
+                        EstimatedCompletion = bd.EstimatedCompletion,
+                    }).ToList(),
+                    SurveyDate = booking.TimeSlots.FirstOrDefault()?.SurveyDate,
+                    Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
+                    Customer = new CustomerResponse
+                    {
+                        Id = booking.Account.Id,
+                        FullName = $"{booking.Account.FirstName} {booking.Account.LastName}".Trim(),
+                        Email = booking.Account.Email,
+                        Phone = booking.Account.Phone,
+                        Avatar = booking.Account.Avatar
+                    }
+                };
 
                 response.Success = true;
-                response.Data = result;
-                response.Message = result.Count > 0
-                    ? "Booking details retrieved successfully"
-                    : "No details found for this booking";
+                response.Message = "Booking details retrieved successfully";
             }
             catch (Exception ex)
             {
                 response.Success = false;
                 response.Message = "An error occurred while retrieving booking details";
                 response.Errors.Add(ex.Message);
+                
             }
             return response;
         }

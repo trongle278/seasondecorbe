@@ -23,12 +23,21 @@ namespace BusinessLogicLayer.ModelResponse
         public string CancelType { get; set; }
         public string? CancelReason { get; set; }
     }
+    
+    public class BookingDetailForProviderResponse
+    {
+        public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
+        public DateTime? SurveyDate { get; set; }
+        public string Address { get; set; }
+        public CustomerResponse Customer { get; set; }
+    }
+
     public class BookingDetailResponse
     {
         public int Id { get; set; }
         public string ServiceItem { get; set; }
         public decimal Cost { get; set; }
-        public DateTime EstimatedCompletion { get; set; }
+        public DateTime EstimatedCompletion { get; set; }       
     }
 
     public class BookingResponseForProvider
