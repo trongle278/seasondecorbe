@@ -983,7 +983,7 @@ namespace DataAccessObject.Migrations
                     MaterialName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Category = table.Column<int>(type: "int", nullable: false)
+                    Category = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {

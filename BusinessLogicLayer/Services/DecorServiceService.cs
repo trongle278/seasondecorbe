@@ -526,16 +526,6 @@ namespace BusinessLogicLayer.Services
                         Id = dss.Season.Id,
                         SeasonName = dss.Season.SeasonName
                     }).ToList();
-
-                    dtos[i].Provider = new ProviderResponse
-                    {
-                        Id = service.Account.Id,
-                        BusinessName = service.Account.BusinessName,
-                        Avatar = service.Account.Avatar,
-                        JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
-                        FollowersCount = service.Account.Followers?.Count ?? 0,
-                        FollowingsCount = service.Account.Followings?.Count ?? 0
-                    };
                 }
 
                 // 8. Return paginated result

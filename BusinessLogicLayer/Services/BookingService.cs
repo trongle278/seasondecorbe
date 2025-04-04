@@ -139,6 +139,7 @@ namespace BusinessLogicLayer.Services
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
+                        Status = (int)booking.DecorService.Status,
                         StartDate = booking.DecorService.StartDate,
 
                         // ⭐ Hình ảnh decor
@@ -268,6 +269,7 @@ namespace BusinessLogicLayer.Services
                         Description = booking.DecorService.Description,
                         StartDate = booking.DecorService.StartDate,
                         //ImageUrls = booking.DecorService.DecorImages?.Select(di => di.ImageURL).ToList() ?? new List<string>(),
+                        Status = (int)booking.DecorService.Status,
                         Images = booking.DecorService.DecorImages?.Select(di => new DecorImageResponse
                         {
                             Id = di.Id,
@@ -357,6 +359,7 @@ namespace BusinessLogicLayer.Services
                         Style = booking.DecorService.Style,
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
+                        Status = (int)booking.DecorService.Status,
                         StartDate = booking.DecorService.StartDate 
                     },
 
