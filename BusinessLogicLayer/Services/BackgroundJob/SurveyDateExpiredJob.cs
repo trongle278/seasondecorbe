@@ -27,10 +27,10 @@ namespace BusinessLogicLayer.Services.BackgroundJob
         {
             try
             {
-
                 // Lấy các timeslot mà ngày khảo sát đã quá hạn + booking đang ở trạng thái chờ
                 var expiredTimeSlots = await _unitOfWork.TimeSlotRepository.Queryable()
                     .Include(ts => ts.Booking)
+                        .ThenInclude(b => b.DecorService)
                     .Where(ts =>
                         ts.SurveyDate < DateTime.Now &&
                         ts.Booking.Status == BookingStatus.Pending)
@@ -39,8 +39,21 @@ namespace BusinessLogicLayer.Services.BackgroundJob
                 foreach (var timeSlot in expiredTimeSlots)
                 {
                     var booking = timeSlot.Booking;
+
+                    // Hủy đơn
                     booking.Status = BookingStatus.Canceled;
                     booking.CancelReason = "Survey date expired";
+
+                    // Trừ điểm provider nếu có
+                    var providerId = booking.DecorService?.AccountId;
+                    if (providerId.HasValue)
+                    {
+                        var providerAccount = await _unitOfWork.AccountRepository.GetByIdAsync(providerId.Value);
+                        if (providerAccount != null)
+                        {
+                            providerAccount.Reputation = Math.Max(0, providerAccount.Reputation - 10); // Tránh âm điểm
+                        }
+                    }
                 }
 
                 if (expiredTimeSlots.Any())

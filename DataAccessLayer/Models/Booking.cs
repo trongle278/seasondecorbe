@@ -20,17 +20,19 @@ namespace DataAccessObject.Models
         public enum BookingStatus
         {
             Pending,            // Khi khách hàng tạo booking0
-            Planning,             // Provider đã xác nhận và sắp xếp khảo sát2
-            Confirm,            // Khi customer đồng ý các điều khoản và chốt hợp đồng3
-            DepositPaid,        // Đã thanh toán đặt cọc4
-            Preparing,          // Chuẩn bị nguyên liệu5
-            InTransit,          // Nguyên liệu được chuyển đến chỗ khách hàng6
-            Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)7
-            ConstructionPayment,// Thanh toán thi công8
-            Completed,          // Dự án hoàn thành9
-            PendingCancellation, // Chờ provider duyệt hủy10
-            Canceled,          // Booking bị hủy11
-            Rejected           // Booking bị từ chối12
+            Planning,           // Provider đã xác nhận và sắp xếp khảo sát1
+            Quoting,            // Provider báo giá2
+            Contracting,        // Provider soạn hợp đồng3
+            Confirm,            // Khi customer đồng ý các điều khoản và chốt hợp đồng4
+            DepositPaid,        // Đã thanh toán đặt cọc5
+            Preparing,          // Chuẩn bị nguyên liệu6
+            InTransit,          // Nguyên liệu được chuyển đến chỗ khách hàng7
+            Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)8
+            ConstructionPayment,// Thanh toán thi công9
+            Completed,          // Dự án hoàn thành10
+            PendingCancellation, // Chờ provider duyệt hủy11
+            Canceled,          // Booking bị hủy12
+            Rejected           // Booking bị từ chối13
         }
 
         public BookingStatus Status { get; set; }

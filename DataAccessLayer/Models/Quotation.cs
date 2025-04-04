@@ -21,6 +21,12 @@ namespace DataAccessObject.Models
         public decimal ConstructionCost { get; set; } // Chi phí thi công
         public decimal DepositPercentage { get; set; }
         public string? QuotationFilePath { get; set; }
+        public QuotationStatus Status { get; set; }
+        public enum QuotationStatus
+        {
+            Confirmed,    // Đồng ý bảng báo giá         
+            Denied        // Từ chối bảng báo giá        
+        }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }

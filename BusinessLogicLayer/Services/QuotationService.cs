@@ -92,7 +92,7 @@ namespace BusinessLogicLayer.Services
                     MaterialName = m.MaterialName,
                     Quantity = m.Quantity,
                     Cost = m.Cost,
-                    Category = m.Category
+                    //Category = m.Category
                 }).ToList();
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
@@ -233,6 +233,8 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+
+        //phải thêm logic +TotalPrice bên bảng Booking vào nữa
         public async Task<BaseResponse> ConfirmQuotationAsync(int bookingId)
         {
             var response = new BaseResponse();
@@ -243,7 +245,7 @@ namespace BusinessLogicLayer.Services
 
                 if (quotation == null)
                 {
-                    response.Message = "Quotation not found.";
+                    response.Message = "Quotation not found. Please create a quotation first.";
                     return response;
                 }
 
@@ -262,11 +264,12 @@ namespace BusinessLogicLayer.Services
                 // Tạo BookingDetail từ báo giá
                 var bookingDetails = new List<BookingDetail>
         {
-            new BookingDetail { BookingId = bookingId, ServiceItem = "Nguyên liệu", Cost = quotation.MaterialCost },
-            new BookingDetail { BookingId = bookingId, ServiceItem = "Thi công", Cost = quotation.ConstructionCost }
+            new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
+            new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Thi Công", Cost = quotation.ConstructionCost }
         };
 
                 await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
+                quotation.Status = Quotation.QuotationStatus.Confirmed; //chuyển sang trạng thái confirm
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -332,7 +335,7 @@ namespace BusinessLogicLayer.Services
                         MaterialName = m.MaterialName,
                         Quantity = m.Quantity,
                         Cost = m.Cost,
-                        Category = m.Category
+                        //Category = m.Category
                     }).ToList(),
                     ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
                     {

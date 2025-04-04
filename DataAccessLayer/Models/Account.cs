@@ -20,7 +20,7 @@ namespace DataAccessObject.Models
         public string? Slug { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public bool? Gender { get; set; }
-        public string? Phone {  get; set; }
+        public string? Phone { get; set; }
         public string? Avatar { get; set; }
         public bool IsDisable { get; set; }
         public bool IsVerified { get; set; } = false;
@@ -46,7 +46,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
-        public virtual ICollection<Address> Addresses { get; set; }= new List<Address>();
+        public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public virtual ICollection<DecorService> DecorServices { get; set; }
         public ICollection<DeviceToken> DeviceTokens { get; set; }
         public virtual Wallet Wallet { get; set; }
@@ -68,5 +68,7 @@ namespace DataAccessObject.Models
             Idle,    // Đang rảnh (có thể nhận job)           
             Busy        // Đang bận (có job)          
         }
+
+        public int Reputation { get; set; }
     }
 }

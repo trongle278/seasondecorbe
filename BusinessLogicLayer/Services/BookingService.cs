@@ -651,6 +651,8 @@ namespace BusinessLogicLayer.Services
             Booking.BookingStatus? newStatus = booking.Status switch
             {
                 Booking.BookingStatus.Pending => Booking.BookingStatus.Planning,
+                //Booking.BookingStatus.Planning => Booking.BookingStatus.Quoting,
+                //Booking.BookingStatus.Quoting => Booking.BookingStatus.Contracting,
                 Booking.BookingStatus.Planning => Booking.BookingStatus.Confirm,
                 Booking.BookingStatus.Confirm when booking.DepositAmount > 0 => Booking.BookingStatus.DepositPaid,
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
@@ -691,6 +693,7 @@ namespace BusinessLogicLayer.Services
                         _unitOfWork.DecorServiceRepository.Update(booking.DecorService);
                     }
                     break;
+
                 case Booking.BookingStatus.Confirm:
                     // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
                     var quotation = await _unitOfWork.QuotationRepository.Queryable()
@@ -793,6 +796,11 @@ namespace BusinessLogicLayer.Services
                     {
                         // ✅ Cập nhật trạng thái Provider thành `Available`
                         provider.ProviderStatus = Account.AccountStatus.Idle;
+                        _unitOfWork.AccountRepository.Update(provider);
+
+                        // ✅ Cộng điểm uy tín (+5), tối đa 100
+                        provider.Reputation = Math.Min(100, provider.Reputation + 5);
+
                         _unitOfWork.AccountRepository.Update(provider);
                     }
                     ///---------------------------------------------------------------------------------------

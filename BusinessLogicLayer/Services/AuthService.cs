@@ -97,6 +97,7 @@ namespace BusinessLogicLayer.Services
                     VerificationTokenExpiry = DateTime.Now.AddMinutes(15),
                     SubscriptionId = 1,
                     JoinedDate = DateTime.Now,
+                    Reputation = 100
                 };
 
                 account.Password = HashPassword(account, request.Password);
@@ -383,7 +384,8 @@ namespace BusinessLogicLayer.Services
                         RoleId = 3,
                         SubscriptionId = 1,
                         Slug = GenerateDefaultSlug(),
-                        JoinedDate = DateTime.Now
+                        JoinedDate = DateTime.Now,
+                        Reputation = 100
                     };
 
                     await _unitOfWork.AccountRepository.InsertAsync(account);

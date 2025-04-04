@@ -182,7 +182,8 @@ namespace BusinessLogicLayer.Services
                     IsVerified = true,
                     RoleId = 3, //Customer
                     Slug = GenerateDefaultSlug(),
-                    IsDisable = false
+                    IsDisable = false,
+                    Reputation = 100
                 };
 
                 account.Password = _passwordHasher.HashPassword(account, request.Password);
