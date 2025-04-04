@@ -763,6 +763,9 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Cost")
                         .HasColumnType("decimal(18,2)");
 
@@ -2180,7 +2183,7 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Booking", "Booking")
-                        .WithMany("TimeSlots")
+                        .WithMany()
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2295,8 +2298,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Supports");
-
-                    b.Navigation("TimeSlots");
 
                     b.Navigation("Trackings");
                 });

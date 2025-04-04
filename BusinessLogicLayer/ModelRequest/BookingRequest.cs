@@ -59,6 +59,7 @@ namespace BusinessLogicLayer.ModelRequest
         public string MaterialName { get; set; }
         public int Quantity { get; set; }
         public decimal Cost { get; set; }
+        public MaterialDetail.MaterialCategory Category { get; set; }
     }
 
     public class ConstructionItemRequest
