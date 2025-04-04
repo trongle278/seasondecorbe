@@ -9,12 +9,12 @@ using Repository.UnitOfWork;
 
 namespace BusinessLogicLayer.Services
 {
-    public class AccountCleanupJob : IJob
+    public class AccountCleanupService : IJob
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<AccountCleanupJob> _logger;
+        private readonly ILogger<AccountCleanupService> _logger;
 
-        public AccountCleanupJob(IUnitOfWork unitOfWork, ILogger<AccountCleanupJob> logger)
+        public AccountCleanupService(IUnitOfWork unitOfWork, ILogger<AccountCleanupService> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
