@@ -607,7 +607,15 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
-                decorService.Status = DecorService.DecorServiceStatus.NotAvailable;
+                await _unitOfWork.CommitAsync();
+
+                var timeSlot = new TimeSlot
+                {
+                    BookingId = booking.Id,
+                    SurveyDate = request.SurveyDate,
+                };
+
+                await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
