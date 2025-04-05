@@ -22,13 +22,5 @@ namespace DataAccessObject.Models
         public int Quantity { get; set; } // Số lượng nguyên liệu
 
         public decimal Cost { get; set; } // Giá tiền của nguyên liệu đó (đơn giá)
-
-        public MaterialCategory Category { get; set; } // Loại nguyên liệu (Nguyên liệu hoặc Nội thất)
-
-        public enum MaterialCategory
-        {
-            RawMaterial,  // Nguyên liệu (sơn, giấy dán tường, ...)
-            Furniture     // Nội thất (bàn ghế, đèn, ...)
-        }
     }
 }

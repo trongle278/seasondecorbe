@@ -430,6 +430,15 @@ namespace BusinessLogicLayer.Services
                 // Map to response object
                 response.Data = new BookingDetailForProviderResponse
                 {
+                    BookingCode = booking.BookingCode,
+                    TotalPrice = booking.TotalPrice,
+                    Status = (int)booking.Status,
+                    CreatedAt = booking.CreateAt,
+                    DepositAmount = booking.DepositAmount,
+                    CancelType = booking.CancelType?.Type,
+                    CancelReason = booking.CancelReason,
+                    RejectReason = booking.RejectReason,
+
                     BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
                     {
                         Id = bd.Id,
@@ -447,7 +456,6 @@ namespace BusinessLogicLayer.Services
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
                         StartDate = booking.DecorService.StartDate,
-                        //ImageUrls = booking.DecorService.DecorImages?.Select(di => di.ImageURL).ToList() ?? new List<string>(),
                         Images = booking.DecorService.DecorImages?.Select(di => new DecorImageResponse
                         {
                             Id = di.Id,

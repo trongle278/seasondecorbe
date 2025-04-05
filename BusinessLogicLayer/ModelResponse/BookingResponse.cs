@@ -26,6 +26,15 @@ namespace BusinessLogicLayer.ModelResponse
     
     public class BookingDetailForProviderResponse
     {
+        public string BookingCode { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public decimal DepositAmount { get; set; }
+        public string CancelType { get; set; }
+        public string CancelReason { get; set; }
+        public string RejectReason { get; set; }
+
         public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
         public DateTime? SurveyDate { get; set; }
         public string Address { get; set; }

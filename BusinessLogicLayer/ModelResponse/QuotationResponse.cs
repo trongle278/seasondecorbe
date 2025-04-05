@@ -27,7 +27,6 @@ namespace BusinessLogicLayer.ModelResponse
         public int Quantity { get; set; }
         public decimal Cost { get; set; }
         public decimal TotalCost => Quantity * Cost;
-        public MaterialDetail.MaterialCategory Category { get; set; }
     }
 
     public class ConstructionDetailResponse

@@ -92,7 +92,6 @@ namespace BusinessLogicLayer.Services
                     MaterialName = m.MaterialName,
                     Quantity = m.Quantity,
                     Cost = m.Cost,
-                    Category = m.Category
                 }).ToList();
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
@@ -332,7 +331,6 @@ namespace BusinessLogicLayer.Services
                         MaterialName = m.MaterialName,
                         Quantity = m.Quantity,
                         Cost = m.Cost,
-                        Category = m.Category
                     }).ToList(),
                     ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
                     {
