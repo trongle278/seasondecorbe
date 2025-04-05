@@ -17,6 +17,7 @@ using Nest;
 using BusinessLogicLayer.Utilities.Hub;
 using Quartz;
 using Quartz.AspNetCore;
+using BusinessLogicLayer.Services.BackgroundJob;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,15 +52,23 @@ builder.Services.AddSignalR(options =>
 // Đăng ký Quartz
 builder.Services.AddQuartz(q =>
 {
-    var jobKey = new JobKey("AccountCleanupService");
-    q.AddJob<AccountCleanupService>(opts => opts.WithIdentity(jobKey));
+    var jobKey = new JobKey("AccountCleanupJob");
+    q.AddJob<AccountCleanupJob>(opts => opts.WithIdentity(jobKey));
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
-        .WithIdentity("AccountCleanupServiceTrigger")
+        .WithIdentity("AccountCleanupJobTrigger")
         .WithSimpleSchedule(x => x
             .WithIntervalInHours(1) // Chạy mỗi 1 giờ
             .RepeatForever()));
 
+    var surveyJobKey = new JobKey("SurveyDateExpiredJob");
+    q.AddJob<SurveyDateExpiredJob>(opts => opts.WithIdentity(surveyJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(surveyJobKey)
+        .WithIdentity("SurveyDateExpiredTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(30) 
+            .RepeatForever()));
 }); 
 
 // Đăng ký dịch vụ Quartz background
@@ -208,7 +217,8 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
-builder.Services.AddScoped<AccountCleanupService>();
+builder.Services.AddScoped<AccountCleanupJob>();
+builder.Services.AddScoped<SurveyDateExpiredJob>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
@@ -226,7 +236,8 @@ using (var scope = app.Services.CreateScope())
 {
     var schedulerFactory = scope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
     var scheduler = await schedulerFactory.GetScheduler();
-    await scheduler.TriggerJob(new JobKey("AccountCleanupService"));
+    await scheduler.TriggerJob(new JobKey("AccountCleanupJob"));
+    await scheduler.TriggerJob(new JobKey("SurveyDateExpiredJob"));
 }
 
 // 12. Configure the HTTP request pipeline
