@@ -94,9 +94,15 @@ namespace DataAccessObject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
-                    Duration = table.Column<int>(type: "int", nullable: false)
+                    Duration = table.Column<int>(type: "int", nullable: false),
+                    AutoRenew = table.Column<bool>(type: "bit", nullable: false),
+                    VoucherCount = table.Column<int>(type: "int", nullable: false),
+                    PrioritySupport = table.Column<bool>(type: "bit", nullable: false),
+                    CommissionDiscount = table.Column<double>(type: "float", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -114,25 +120,6 @@ namespace DataAccessObject.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TicketTypes", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Vouchers",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    VoucherName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OfferCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    Discount = table.Column<int>(type: "int", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Vouchers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -169,7 +156,8 @@ namespace DataAccessObject.Migrations
                     ProviderVerified = table.Column<bool>(type: "bit", nullable: true),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProvinceCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ProviderStatus = table.Column<int>(type: "int", nullable: false)
+                    ProviderStatus = table.Column<int>(type: "int", nullable: false),
+                    Reputation = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -185,6 +173,34 @@ namespace DataAccessObject.Migrations
                         column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Vouchers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VoucherName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OfferCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Discount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    MinValue = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MaxDiscount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    SubscriptionId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Vouchers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Vouchers_Subscriptions_SubscriptionId",
+                        column: x => x.SubscriptionId,
+                        principalTable: "Subscriptions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -212,34 +228,6 @@ namespace DataAccessObject.Migrations
                         name: "FK_Address_Accounts_AccountId",
                         column: x => x.AccountId,
                         principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Carts",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TotalItem = table.Column<int>(type: "int", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: false),
-                    VoucherId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Carts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Carts_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Carts_Vouchers_VoucherId",
-                        column: x => x.VoucherId,
-                        principalTable: "Vouchers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -314,7 +302,8 @@ namespace DataAccessObject.Migrations
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     DecorCategoryId = table.Column<int>(type: "int", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -462,6 +451,34 @@ namespace DataAccessObject.Migrations
                         name: "FK_Wallets_Accounts_AccountId",
                         column: x => x.AccountId,
                         principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Carts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TotalItem = table.Column<int>(type: "int", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    VoucherId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Carts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Carts_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Carts_Vouchers_VoucherId",
+                        column: x => x.VoucherId,
+                        principalTable: "Vouchers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -646,6 +663,53 @@ namespace DataAccessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FavoriteProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FavoriteProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FavoriteProducts_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_FavoriteProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductImage",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductImage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductImage_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CartItems",
                 columns: table => new
                 {
@@ -672,26 +736,6 @@ namespace DataAccessObject.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProductImage",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductImage", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProductImage_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -781,10 +825,13 @@ namespace DataAccessObject.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    QuotationCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     MaterialCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ConstructionCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DepositPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    QuotationFilePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -810,10 +857,10 @@ namespace DataAccessObject.Migrations
                     UpdateAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsUpdated = table.Column<bool>(type: "bit", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
-                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    BookingId = table.Column<int>(type: "int", nullable: true),
                     ServiceId = table.Column<int>(type: "int", nullable: true),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false)
+                    OrderId = table.Column<int>(type: "int", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -889,7 +936,7 @@ namespace DataAccessObject.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    SurveyDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SurveyDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -911,7 +958,6 @@ namespace DataAccessObject.Migrations
                     BookingId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -960,7 +1006,9 @@ namespace DataAccessObject.Migrations
                     QuotationId = table.Column<int>(type: "int", nullable: false),
                     TaskName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Length = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Width = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -983,7 +1031,7 @@ namespace DataAccessObject.Migrations
                     MaterialName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Category = table.Column<int>(type: "int", nullable: true)
+                    Category = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1040,6 +1088,26 @@ namespace DataAccessObject.Migrations
                         column: x => x.SupportId,
                         principalTable: "Supports",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrackingImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TrackingId = table.Column<int>(type: "int", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrackingImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TrackingImages_Trackings_TrackingId",
+                        column: x => x.TrackingId,
+                        principalTable: "Trackings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1149,21 +1217,17 @@ namespace DataAccessObject.Migrations
             migrationBuilder.InsertData(
                 table: "Seasons",
                 columns: new[] { "Id", "SeasonName" },
-                values: new object[,]
-                {
-                    { 11, "Wedding" },
-                    { 12, "Anniversary" }
-                });
+                values: new object[] { 11, "Wedding" });
+
+            migrationBuilder.InsertData(
+                table: "Seasons",
+                columns: new[] { "Id", "SeasonName" },
+                values: new object[] { 12, "Anniversary" });
 
             migrationBuilder.InsertData(
                 table: "Settings",
                 columns: new[] { "Id", "Commission" },
                 values: new object[] { 1, 0.4m });
-
-            migrationBuilder.InsertData(
-                table: "Subscriptions",
-                columns: new[] { "Id", "Description", "Duration", "Name", "Price" },
-                values: new object[] { 1, "Normal Package", 999, "Basic", 0.0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_RoleId",
@@ -1287,6 +1351,16 @@ namespace DataAccessObject.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FavoriteProducts_AccountId",
+                table: "FavoriteProducts",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FavoriteProducts_ProductId",
+                table: "FavoriteProducts",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FavoriteServices_AccountId",
                 table: "FavoriteServices",
                 column: "AccountId");
@@ -1322,6 +1396,16 @@ namespace DataAccessObject.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderDetails_OrderId",
+                table: "OrderDetails",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderDetails_ProductId",
+                table: "OrderDetails",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_AccountId",
                 table: "Orders",
                 column: "AccountId");
@@ -1349,16 +1433,6 @@ namespace DataAccessObject.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ProductImage_ProductId",
                 table: "ProductImage",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_OrderId",
-                table: "OrderDetails",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_ProductId",
-                table: "OrderDetails",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
@@ -1391,7 +1465,8 @@ namespace DataAccessObject.Migrations
                 name: "IX_Reviews_BookingId",
                 table: "Reviews",
                 column: "BookingId",
-                unique: true);
+                unique: true,
+                filter: "[BookingId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_OrderId",
@@ -1449,9 +1524,19 @@ namespace DataAccessObject.Migrations
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TrackingImages_TrackingId",
+                table: "TrackingImages",
+                column: "TrackingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Trackings_BookingId",
                 table: "Trackings",
                 column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vouchers_SubscriptionId",
+                table: "Vouchers",
+                column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wallets_AccountId",
@@ -1497,6 +1582,9 @@ namespace DataAccessObject.Migrations
                 name: "DeviceTokens");
 
             migrationBuilder.DropTable(
+                name: "FavoriteProducts");
+
+            migrationBuilder.DropTable(
                 name: "FavoriteServices");
 
             migrationBuilder.DropTable(
@@ -1509,10 +1597,10 @@ namespace DataAccessObject.Migrations
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "ProductImage");
+                name: "OrderDetails");
 
             migrationBuilder.DropTable(
-                name: "OrderDetails");
+                name: "ProductImage");
 
             migrationBuilder.DropTable(
                 name: "ReviewImages");
@@ -1527,7 +1615,7 @@ namespace DataAccessObject.Migrations
                 name: "TimeSlots");
 
             migrationBuilder.DropTable(
-                name: "Trackings");
+                name: "TrackingImages");
 
             migrationBuilder.DropTable(
                 name: "WalletTransactions");
@@ -1549,6 +1637,9 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "TicketReplies");
+
+            migrationBuilder.DropTable(
+                name: "Trackings");
 
             migrationBuilder.DropTable(
                 name: "PaymentTransactions");

@@ -34,7 +34,6 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                // 🔹 Tìm booking theo BookingCode
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                     .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
@@ -44,60 +43,74 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                if (booking.Status != Booking.BookingStatus.Planning)
+                if (booking.Status != Booking.BookingStatus.Quoting)
                 {
-                    response.Message = "Quotation can only be created during the Planning phase.";
+                    response.Message = "Quotation can only be created during the Quoting phase.";
                     return response;
                 }
 
-                // 🔹 Kiểm tra xem đã có báo giá chưa
+                // Kiểm tra báo giá hiện có
                 var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
                     .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
-                if (existingQuotation != null)
+                // Nếu đã có báo giá và không ở trạng thái Denied thì không cho tạo mới
+                if (existingQuotation != null && existingQuotation.Status != Quotation.QuotationStatus.Denied)
                 {
-                    response.Message = "Quotation already exists for this booking.";
+                    response.Message = existingQuotation.Status == Quotation.QuotationStatus.Confirmed
+                        ? "Quotation already confirmed. Cannot create new one."
+                        : "Quotation already exists for this booking.";
                     return response;
                 }
 
                 // Tạo mã báo giá mới
                 var quotationCode = $"QU{DateTime.Now:yyyyMMdd}{new Random().Next(1000, 9999)}";
 
-                // Tính tổng chi phí
+                // Tính toán chi phí
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
                 decimal totalConstructionCost = request.ConstructionTasks.Sum(c =>
                     c.Unit == "m2" ? (c.Cost * ((c.Length ?? 0m) * (c.Width ?? 0m))) : c.Cost);
 
-                // Giới hạn đặt cọc tối đa 20%
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
 
-                // Tạo báo giá
-                var quotation = new Quotation
+                // Tạo báo giá mới hoặc cập nhật báo giá cũ nếu đã bị từ chối
+                var quotation = existingQuotation ?? new Quotation { BookingId = booking.Id };
+
+                quotation.QuotationCode = quotationCode;
+                quotation.MaterialCost = totalMaterialCost;
+                quotation.ConstructionCost = totalConstructionCost;
+                quotation.DepositPercentage = depositPercentage;
+                quotation.CreatedAt = DateTime.Now;
+                quotation.Status = Quotation.QuotationStatus.Pending; // Reset về trạng thái chờ
+
+                if (existingQuotation == null)
                 {
-                    BookingId = booking.Id, // 🔹 Lưu booking ID
-                    QuotationCode = quotationCode,
-                    MaterialCost = totalMaterialCost,
-                    ConstructionCost = totalConstructionCost,
-                    DepositPercentage = depositPercentage,
-                    CreatedAt = DateTime.Now
-                };
+                    await _unitOfWork.QuotationRepository.InsertAsync(quotation);
+                }
+                else
+                {
+                    _unitOfWork.QuotationRepository.Update(quotation);
+                }
 
-                await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                await _unitOfWork.CommitAsync(); // Lưu báo giá để lấy ID
+                await _unitOfWork.CommitAsync();
 
-                // Thêm chi tiết vật liệu
+                // Xóa chi tiết cũ nếu đang cập nhật báo giá bị từ chối
+                if (existingQuotation != null)
+                {
+                    await DeleteQuotationDetails(quotation.Id);
+                }
+
+                // Thêm chi tiết vật liệu mới
                 var materialDetails = request.Materials.Select(m => new MaterialDetail
                 {
                     QuotationId = quotation.Id,
                     MaterialName = m.MaterialName,
                     Quantity = m.Quantity,
                     Cost = m.Cost,
-                    //Category = m.Category
                 }).ToList();
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
 
-                // Thêm chi tiết công trình
+                // Thêm chi tiết công trình mới
                 var constructionDetails = request.ConstructionTasks.Select(c => new ConstructionDetail
                 {
                     QuotationId = quotation.Id,
@@ -111,7 +124,9 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Quotation created successfully.";
+                response.Message = existingQuotation != null
+                    ? "Quotation updated successfully after previous denial."
+                    : "Quotation created successfully.";
                 response.Data = new
                 {
                     Quotation = quotation,
@@ -256,6 +271,9 @@ namespace BusinessLogicLayer.Services
                     response.Message = "Quotation not found. Please create a quotation first.";
                     return response;
                 }
+
+                // ✅ Cập nhật `TotalPrice` trong `Booking`
+                booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
 
                 if (isConfirmed)
                 {

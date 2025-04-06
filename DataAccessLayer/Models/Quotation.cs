@@ -24,6 +24,7 @@ namespace DataAccessObject.Models
         public QuotationStatus Status { get; set; }
         public enum QuotationStatus
         {
+            Pending,
             Confirmed,    // Đồng ý bảng báo giá         
             Denied        // Từ chối bảng báo giá        
         }

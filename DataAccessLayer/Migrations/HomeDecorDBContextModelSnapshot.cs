@@ -703,6 +703,32 @@ namespace DataAccessObject.Migrations
                     b.ToTable("DeviceTokens");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("FavoriteProducts");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
                 {
                     b.Property<int>("Id")
@@ -1181,7 +1207,7 @@ namespace DataAccessObject.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Rating")
+                    b.Property<int>("Rate")
                         .HasColumnType("int");
 
                     b.Property<int?>("ServiceId")
@@ -1373,12 +1399,17 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("AutoRenew")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("CommissionDiscount")
+                        .HasColumnType("float");
 
                     b.Property<int>("Duration")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1387,19 +1418,21 @@ namespace DataAccessObject.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<bool>("PrioritySupport")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoucherCount")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Subscriptions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Normal Package",
-                            Duration = 999,
-                            Name = "Basic",
-                            Price = 0.0
-                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>
@@ -1604,18 +1637,21 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("Discount")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("MaxDiscount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinValue")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("OfferCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -1623,11 +1659,19 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.Property<string>("VoucherName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("Vouchers");
                 });
@@ -1905,6 +1949,25 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("FavoriteProducts")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Product", "Product")
+                        .WithMany("FavoriteProducts")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
@@ -2219,6 +2282,16 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Tracking");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
+                        .WithMany("Vouchers")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Subscription");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -2261,6 +2334,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("DecorServices");
 
                     b.Navigation("DeviceTokens");
+
+                    b.Navigation("FavoriteProducts");
 
                     b.Navigation("FavoriteServices");
 
@@ -2361,6 +2436,8 @@ namespace DataAccessObject.Migrations
                 {
                     b.Navigation("CartItems");
 
+                    b.Navigation("FavoriteProducts");
+
                     b.Navigation("OrderDetails");
 
                     b.Navigation("ProductImages");
@@ -2398,6 +2475,8 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
                 {
                     b.Navigation("Accounts");
+
+                    b.Navigation("Vouchers");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>

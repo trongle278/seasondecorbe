@@ -641,6 +641,7 @@ namespace BusinessLogicLayer.Services
             var booking = await _unitOfWork.BookingRepository.Queryable()
                 .Include(b => b.DecorService)// thêm Decorservice để set trạng thái dịch vụ
                 .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
             if (booking == null)
             {
                 response.Message = "Booking not found.";
@@ -694,36 +695,21 @@ namespace BusinessLogicLayer.Services
                     }
                     break;
 
-                case Booking.BookingStatus.Confirm:
-                    // 🔹 Khi booking chuyển sang Confirm, tạo BookingDetail từ Quotation
+                case Booking.BookingStatus.Quoting:
+                    break;
+
+                case Booking.BookingStatus.Contracting:
                     var quotation = await _unitOfWork.QuotationRepository.Queryable()
                         .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
-                    if (quotation == null)
+                    if (quotation == null || quotation.Status != Quotation.QuotationStatus.Confirmed)
                     {
-                        response.Message = "Quotation not found. Please create a quotation first.";
+                        response.Message = "Quotation must be confirmed before moving to Contracting.";
                         return response;
                     }
+                    break;
 
-                    // ✅ Cập nhật `TotalPrice` trong `Booking`
-                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
-
-                    // Kiểm tra nếu BookingDetail đã tồn tại
-                    var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .Where(bd => bd.BookingId == booking.Id)
-                        .ToListAsync();
-
-                    if (!existingDetails.Any())
-                    {
-                        var bookingDetails = new List<BookingDetail>
-                {
-                    new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
-                    new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Thi công", Cost = quotation.ConstructionCost }
-                };
-
-                        await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
-                        await _unitOfWork.CommitAsync();
-                    }
+                case Booking.BookingStatus.Confirm:
                     break;
 
                 case Booking.BookingStatus.DepositPaid:

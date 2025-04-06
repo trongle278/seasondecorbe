@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    [Migration("20250403083334_FixQuotationFilePath")]
-    partial class FixQuotationFilePath
+    [Migration("20250406114539_InitDb")]
+    partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -92,6 +92,9 @@ namespace DataAccessObject.Migrations
 
                     b.Property<string>("ProvinceCode")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Reputation")
+                        .HasColumnType("int");
 
                     b.Property<string>("ResetPasswordToken")
                         .HasColumnType("nvarchar(max)");
@@ -630,6 +633,9 @@ namespace DataAccessObject.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<string>("Style")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -697,6 +703,32 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AccountId");
 
                     b.ToTable("DeviceTokens");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("FavoriteProducts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
@@ -909,7 +941,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductOrders");
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
@@ -1136,6 +1168,9 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("QuotationFilePath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId")
@@ -1156,7 +1191,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("BookingId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("Comment")
@@ -1170,14 +1204,12 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int?>("OrderId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<int?>("ProductId")
-                        .IsRequired()
                         .HasColumnType("int");
 
-                    b.Property<int>("Rating")
+                    b.Property<int>("Rate")
                         .HasColumnType("int");
 
                     b.Property<int?>("ServiceId")
@@ -1191,7 +1223,8 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AccountId");
 
                     b.HasIndex("BookingId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[BookingId] IS NOT NULL");
 
                     b.HasIndex("OrderId");
 
@@ -1368,12 +1401,17 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("AutoRenew")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("CommissionDiscount")
+                        .HasColumnType("float");
 
                     b.Property<int>("Duration")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1382,19 +1420,21 @@ namespace DataAccessObject.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<bool>("PrioritySupport")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoucherCount")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Subscriptions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Normal Package",
-                            Duration = 999,
-                            Name = "Basic",
-                            Price = 0.0
-                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>
@@ -1599,18 +1639,21 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("Discount")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("MaxDiscount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinValue")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("OfferCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -1618,11 +1661,19 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.Property<string>("VoucherName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
 
                     b.ToTable("Vouchers");
                 });
@@ -1902,6 +1953,25 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("FavoriteProducts")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessObject.Models.Product", "Product")
+                        .WithMany("FavoriteProducts")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -2077,20 +2147,17 @@ namespace DataAccessObject.Migrations
                     b.HasOne("DataAccessObject.Models.Booking", "Booking")
                         .WithOne("Review")
                         .HasForeignKey("DataAccessObject.Models.Review", "BookingId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("DataAccessObject.Models.Order", "Order")
                         .WithMany("Reviews")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("DataAccessObject.Models.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("DataAccessObject.Models.DecorService", "DecorService")
                         .WithMany("Reviews")
@@ -2187,7 +2254,7 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Booking", "Booking")
-                        .WithMany()
+                        .WithMany("TimeSlots")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2215,6 +2282,16 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Tracking");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
+                        .WithMany("Vouchers")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
@@ -2260,6 +2337,8 @@ namespace DataAccessObject.Migrations
 
                     b.Navigation("DeviceTokens");
 
+                    b.Navigation("FavoriteProducts");
+
                     b.Navigation("FavoriteServices");
 
                     b.Navigation("Followers");
@@ -2302,6 +2381,8 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Supports");
+
+                    b.Navigation("TimeSlots");
 
                     b.Navigation("Trackings");
                 });
@@ -2357,6 +2438,8 @@ namespace DataAccessObject.Migrations
                 {
                     b.Navigation("CartItems");
 
+                    b.Navigation("FavoriteProducts");
+
                     b.Navigation("OrderDetails");
 
                     b.Navigation("ProductImages");
@@ -2394,6 +2477,8 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
                 {
                     b.Navigation("Accounts");
+
+                    b.Navigation("Vouchers");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Support", b =>
