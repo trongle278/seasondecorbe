@@ -233,15 +233,23 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
-        //phải thêm logic +TotalPrice bên bảng Booking vào nữa
-        public async Task<BaseResponse> ConfirmQuotationAsync(int bookingId)
+        public async Task<BaseResponse> ConfirmQuotationAsync(string bookingCode, bool isConfirmed)
         {
             var response = new BaseResponse();
             try
             {
+                // Tìm booking dựa trên bookingCode
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found with the provided code.";
+                    return response;
+                }
+
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == bookingId);
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
                 if (quotation == null)
                 {
@@ -249,39 +257,75 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Kiểm tra nếu BookingDetail đã tồn tại
-                var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
-                    .Where(bd => bd.BookingId == bookingId)
-                    .ToListAsync();
-
-                if (existingDetails.Any())
+                if (isConfirmed)
                 {
-                    response.Message = "Booking details already exist.";
-                    response.Success = true;
-                    return response;
+                    // Kiểm tra nếu BookingDetail đã tồn tại
+                    var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
+                        .Where(bd => bd.BookingId == booking.Id)
+                        .ToListAsync();
+
+                    if (existingDetails.Any())
+                    {
+                        response.Message = "Booking details already exist.";
+                        response.Success = true;
+                        return response;
+                    }
+
+                    // Tạo BookingDetail từ báo giá
+                    var bookingDetails = new List<BookingDetail>
+            {
+                new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
+                new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Thi Công", Cost = quotation.ConstructionCost }
+            };
+
+                    await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
+                    quotation.Status = Quotation.QuotationStatus.Confirmed;
+                    response.Message = "Quotation confirmed and booking details created.";
+                }
+                else
+                {
+                    // Trường hợp từ chối báo giá
+                    quotation.Status = Quotation.QuotationStatus.Denied;
+
+                    // Xóa các chi tiết liên quan nếu cần
+                    await DeleteQuotationDetails(quotation.Id);
+
+                    response.Message = "Quotation has been denied. You can now create a new quotation.";
                 }
 
-                // Tạo BookingDetail từ báo giá
-                var bookingDetails = new List<BookingDetail>
-        {
-            new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
-            new BookingDetail { BookingId = bookingId, ServiceItem = "Chi Phí Thi Công", Cost = quotation.ConstructionCost }
-        };
-
-                await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
-                quotation.Status = Quotation.QuotationStatus.Confirmed; //chuyển sang trạng thái confirm
                 await _unitOfWork.CommitAsync();
-
                 response.Success = true;
-                response.Message = "Quotation confirmed and booking details created.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Failed to confirm quotation.";
+                response.Message = isConfirmed ? "Failed to confirm quotation." : "Failed to deny quotation.";
                 response.Errors.Add(ex.Message);
             }
             return response;
+        }
+
+        private async Task DeleteQuotationDetails(int quotationId)
+        {
+            // Xóa material details
+            var materialDetails = await _unitOfWork.MaterialDetailRepository.Queryable()
+                .Where(m => m.QuotationId == quotationId)
+                .ToListAsync();
+
+            if (materialDetails.Any())
+            {
+                _unitOfWork.MaterialDetailRepository.RemoveRange(materialDetails);
+            }
+
+            // Xóa construction details
+            var constructionDetails = await _unitOfWork.ConstructionDetailRepository.Queryable()
+                .Where(c => c.QuotationId == quotationId)
+                .ToListAsync();
+
+            if (constructionDetails.Any())
+            {
+                _unitOfWork.ConstructionDetailRepository.RemoveRange(constructionDetails);
+            }
         }
 
         public async Task<BaseResponse<PageResult<QuotationResponse>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId)
