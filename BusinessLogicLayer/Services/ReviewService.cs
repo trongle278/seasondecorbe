@@ -14,6 +14,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Nest;
 using Repository.UnitOfWork;
+using BusinessLogicLayer.ModelResponse.Product;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using BusinessLogicLayer.ModelRequest.Pagination;
 
 namespace BusinessLogicLayer.Services
 {
@@ -40,6 +43,70 @@ namespace BusinessLogicLayer.Services
                 response.Success = true;
                 response.Message = "Review list retrieved successfully";
                 response.Data = _mapper.Map<List<ReviewResponse>>(review);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving review list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByAccount(ReviewFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<ReviewResponse>>();
+            try
+            {
+                var account = await _unitOfWork.AccountRepository
+                                                .Query(a => a.Id == request.accountId)
+                                                .FirstOrDefaultAsync();
+
+                if (account == null)
+                {
+                    response.Success = false;
+                    response.Message = "Account not found";
+                    return response;
+                }
+
+                // Filter
+                Expression<Func<Review, bool>> filter = review =>
+                    review.AccountId == request.accountId &&
+                    (!request.Rate.HasValue || review.Rate == request.Rate);
+
+                // Sort
+                Expression<Func<Review, object>> orderByExpression = request.SortBy switch
+                {
+                    "CreateAt" => review => review.CreateAt,
+                    "UpdateAt" => review => review.UpdateAt ?? review.CreateAt,
+                    _ => review => review.Id
+                };
+
+                // Include Images
+                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages };
+
+                // Get paginated data and filter
+                (IEnumerable<Review> reviews, int totalCount) = await _unitOfWork.ReviewRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var reviewResponses = _mapper.Map<List<ReviewResponse>>(reviews);
+
+                var pageResult = new PageResult<ReviewResponse>
+                {
+                    Data = reviewResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Review list retrieved successfully";
+                response.Data = pageResult;
             }
             catch (Exception ex)
             {
@@ -161,7 +228,7 @@ namespace BusinessLogicLayer.Services
                     AccountId = request.AccountId,
                     OrderId = request.OrderId,
                     ProductId = request.ProductId,
-                    Rating = request.Rating,
+                    Rate = request.Rate,
                     Comment = request.Comment,
                     CreateAt = DateTime.UtcNow.ToLocalTime(),
                     IsUpdated = false,
@@ -232,7 +299,7 @@ namespace BusinessLogicLayer.Services
                     AccountId = request.AccountId,
                     BookingId = request.BookingId,
                     ServiceId = request.ServiceId,
-                    Rating = request.Rating,
+                    Rate = request.Rate,
                     Comment = request.Comment,
                     CreateAt = DateTime.UtcNow.ToLocalTime(),
                     IsUpdated = false,
@@ -309,7 +376,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                review.Rating = request.Rating;
+                review.Rate = request.Rate;
                 review.Comment = request.Comment;
                 review.UpdateAt = DateTime.UtcNow.ToLocalTime();
                 review.IsUpdated = true;
@@ -389,7 +456,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                review.Rating = request.Rating;
+                review.Rate = request.Rate;
                 review.Comment = request.Comment;
                 review.UpdateAt = DateTime.UtcNow.ToLocalTime();
                 review.IsUpdated = true;

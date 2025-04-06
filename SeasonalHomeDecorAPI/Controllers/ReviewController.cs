@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelRequest.Product;
 using BusinessLogicLayer.ModelRequest.Review;
 using BusinessLogicLayer.Services;
@@ -51,6 +52,19 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             return Ok(result);
+        }
+
+        [HttpGet("getReviewByAccount")]
+        public async Task<IActionResult> GetReviewByAccountId([FromQuery] ReviewFilterRequest request)
+        {
+            var result = await _reviewService.GetReviewByAccount(request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest();
         }
 
         [HttpGet("getReviewByService/{id}")]

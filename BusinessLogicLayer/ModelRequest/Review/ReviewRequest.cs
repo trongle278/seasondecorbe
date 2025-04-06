@@ -12,7 +12,7 @@ namespace BusinessLogicLayer.ModelRequest.Review
     {
         [Required]
         [Range(1, 5, ErrorMessage = "Rate must between 1-5")]
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         [Required]
         public string Comment { get; set; }
         [Required]
@@ -24,7 +24,7 @@ namespace BusinessLogicLayer.ModelRequest.Review
     {
         [Required]
         [Range(1, 5, ErrorMessage = "Rate must between 1-5")]
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         [Required]
         public string Comment { get; set; }
         [Required]
@@ -40,7 +40,7 @@ namespace BusinessLogicLayer.ModelRequest.Review
     {
         [Required]
         [Range(1, 5, ErrorMessage = "Rate must between 1-5")]
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         [Required]
         public string Comment { get; set; }
         [Required]
@@ -56,7 +56,7 @@ namespace BusinessLogicLayer.ModelRequest.Review
     {
         [Required]
         [Range(1, 5, ErrorMessage = "Rate must between 1-5")]
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         [Required]
         public string Comment { get; set; }
         public List<IFormFile> Images { get; set; }
@@ -66,7 +66,7 @@ namespace BusinessLogicLayer.ModelRequest.Review
     {
         [Required]
         [Range(1, 5, ErrorMessage = "Rate must between 1-5")]
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         [Required]
         public string Comment { get; set; }
         public List<IFormFile> Images { get; set; }

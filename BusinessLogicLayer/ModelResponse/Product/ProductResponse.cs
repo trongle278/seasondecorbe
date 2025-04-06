@@ -53,6 +53,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public double Rate { get; set; }
         public int TotalRate { get; set; }
         public int TotalSold { get; set; }
+        public int FavoriteCount { get; set; }
         public string? Description { get; set; }
         public decimal ProductPrice { get; set; }
         public int? Quantity { get; set; }

@@ -61,6 +61,7 @@ namespace DataAccessObject.Models
         public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<FavoriteService> FavoriteServices { get; set; }
+        public DbSet<FavoriteProduct> FavoriteProducts { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
         public DbSet<Setting> Settings { get; set; }
         public DbSet<BookingDetail> BookingDetails { get; set; }
@@ -249,6 +250,14 @@ namespace DataAccessObject.Models
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure 1-N relationship between Subscription and Voucher
+            modelBuilder.Entity<Voucher>()
+                .HasOne(v => v.Subscription)
+                .WithMany(s => s.Vouchers)
+                .HasForeignKey(v => v.SubscriptionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Configure 1-N relationship between User and Order
             modelBuilder.Entity<Account>()
                 .HasMany(a => a.Orders)
@@ -370,6 +379,18 @@ namespace DataAccessObject.Models
                 .HasForeignKey(f => f.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<FavoriteProduct>()
+                .HasOne(f => f.Product)
+                .WithMany(d => d.FavoriteProducts)
+                .HasForeignKey(f => f.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FavoriteProduct>()
+                .HasOne(f => f.Account)
+                .WithMany(a => a.FavoriteProducts)
+                .HasForeignKey(f => f.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Address)
                 .WithMany(a => a.Bookings)
@@ -408,10 +429,6 @@ namespace DataAccessObject.Models
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Provider" },
                 new Role { Id = 3, RoleName = "Customer" }
-            );      
-
-            modelBuilder.Entity<Subscription>().HasData(
-                new Subscription { Id = 1, Name = "Basic", Description = "Normal Package", Price = 0, Duration = 999 }
             );
 
             modelBuilder.Entity<ProductCategory>().HasData(

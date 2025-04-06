@@ -61,7 +61,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -146,7 +146,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -211,10 +211,10 @@ namespace BusinessLogicLayer.Services
                                 .ToList();
 
                 // Calculate average rate
-                var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                 // Calculate total rate
-                var totalRate = reviews.Sum(r => r.Rating);
+                var totalRate = reviews.Sum(r => r.Rate);
 
                 // Calculate total sold
                 var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -222,7 +222,7 @@ namespace BusinessLogicLayer.Services
                 // Mapping reviews to response
                 var reviewResponses = reviews.Select(r => new ReviewResponse
                 {
-                    Rating = r.Rating,
+                    Rate = r.Rate,
                     Comment = r.Comment,
                     CreateAt = r.CreateAt,
                     Images = r.ReviewImages?.FirstOrDefault()?.ImageUrl != null
@@ -324,7 +324,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -422,7 +422,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -504,7 +504,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -606,7 +606,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -912,7 +912,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);

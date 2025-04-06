@@ -15,10 +15,17 @@ namespace DataAccessObject.Models
         public int Id { get; set; }
         public string VoucherName { get; set; }
         public string OfferCode { get; set; }
-        public int Quantity { get; set; }
-        public int Discount { get; set; }
+        public decimal Discount { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public enum DiscountType
+        {
+            Percentage,
+            Amount
+        }
+        public DiscountType Type { get; set; }
+        public decimal? MinValue { get; set; }
+        public decimal? MaxDiscount { get; set; }
         public enum VoucherStatus
         {
             Valid,
@@ -26,6 +33,10 @@ namespace DataAccessObject.Models
             Expired
         }
         public VoucherStatus Status { get; set; }
+
+        public int? SubscriptionId { get; set; }
+        public Subscription Subscription { get; set; }
+
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Cart> Carts { get; set; }
     }

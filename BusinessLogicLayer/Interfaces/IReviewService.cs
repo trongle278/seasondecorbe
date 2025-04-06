@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelRequest.Review;
+using BusinessLogicLayer.ModelResponse.Pagination;
+using BusinessLogicLayer.ModelResponse.Review;
+using BusinessLogicLayer.ModelRequest.Pagination;
 
 namespace BusinessLogicLayer.Interfaces
 {
@@ -12,6 +15,7 @@ namespace BusinessLogicLayer.Interfaces
     {
         Task<BaseResponse> GetReviewList();
         Task<BaseResponse> GetReviewById(int id);
+        Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByAccount(ReviewFilterRequest request);
         Task<BaseResponse> GetReviewByServiceId(int serviceId);
         Task<BaseResponse> GetReviewByProductId(int productId);
         Task<BaseResponse> CreateOrderReview(ReviewOrderRequest request);

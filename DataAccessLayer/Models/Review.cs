@@ -13,7 +13,7 @@ namespace DataAccessObject.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }

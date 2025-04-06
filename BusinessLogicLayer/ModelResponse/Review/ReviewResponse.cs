@@ -10,7 +10,7 @@ namespace BusinessLogicLayer.ModelResponse.Review
     public class ReviewResponse
     {
         public int id { get; set; }
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime CreateAt { get; set; }
         public List<string> Images { get; set; }
@@ -20,7 +20,7 @@ namespace BusinessLogicLayer.ModelResponse.Review
     {
         public int id { get; set; }
         public int ProductId { get; set; }
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime CreateAt { get; set; }
         public List<string> Images { get; set; }
@@ -30,7 +30,7 @@ namespace BusinessLogicLayer.ModelResponse.Review
     {
         public int id { get; set; }
         public int ServiceId { get; set; }
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime CreateAt { get; set; }
         public List<string> Images { get; set; }
@@ -40,7 +40,7 @@ namespace BusinessLogicLayer.ModelResponse.Review
     {
         public int id { get; set; }
         public int ProductId { get; set; }
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime? UpdateAt { get; set; }
         public bool IsUpdated { get; set; }
@@ -51,7 +51,7 @@ namespace BusinessLogicLayer.ModelResponse.Review
     {
         public int id { get; set; }
         public int ServiceId { get; set; }
-        public int Rating { get; set; }
+        public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime? UpdateAt { get; set; }
         public bool IsUpdated { get; set; }

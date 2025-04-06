@@ -46,6 +46,7 @@ namespace Repository.UnitOfWork
             SettingRepository = new SettingRepository(_context);
             ContactRepository = new ContactRepository(_context);
             FavoriteServiceRepository = new FavoriteServiceRepository(_context);
+            FavoriteProductRepository = new FavoriteProductRepository(_context);
             SeasonRepository = new SeasonRepository(_context);
             BookingDetailRepository = new BookingDetailRepository(_context);
             TrackingRepository = new TrackingRepository(_context);
@@ -81,6 +82,7 @@ namespace Repository.UnitOfWork
         public IWalletTransactionRepository WalletTransactionRepository { get; }
         public IContactRepository ContactRepository { get; private set; }
         public IFavoriteServiceRepository FavoriteServiceRepository { get; private set; }
+        public IFavoriteProductRepository FavoriteProductRepository { get; private set; }
         public ISeasonRepository SeasonRepository { get; private set; }
         public ISettingRepository SettingRepository { get; private set; }
         public IBookingDetailRepository BookingDetailRepository { get; private set; }

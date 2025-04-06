@@ -9,32 +9,32 @@ namespace DataAccessObject.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_ProductOrders_Orders_OrderId",
-                table: "ProductOrders");
+                name: "FK_OrderDetails_Orders_OrderId",
+                table: "OrderDetails");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_ProductOrders_Products_ProductId",
-                table: "ProductOrders");
+                name: "FK_OrderDetails_Products_ProductId",
+                table: "OrderDetails");
 
             migrationBuilder.DropIndex(
                 name: "IX_Reviews_BookingId",
                 table: "Reviews");
 
             migrationBuilder.DropPrimaryKey(
-                name: "PK_ProductOrders",
-                table: "ProductOrders");
+                name: "PK_OrderDetails",
+                table: "OrderDetails");
 
             migrationBuilder.RenameTable(
-                name: "ProductOrders",
+                name: "OrderDetails",
                 newName: "OrderDetails");
 
             migrationBuilder.RenameIndex(
-                name: "IX_ProductOrders_ProductId",
+                name: "IX_OrderDetails_ProductId",
                 table: "OrderDetails",
                 newName: "IX_OrderDetails_ProductId");
 
             migrationBuilder.RenameIndex(
-                name: "IX_ProductOrders_OrderId",
+                name: "IX_OrderDetails_OrderId",
                 table: "OrderDetails",
                 newName: "IX_OrderDetails_OrderId");
 
@@ -121,17 +121,17 @@ namespace DataAccessObject.Migrations
 
             migrationBuilder.RenameTable(
                 name: "OrderDetails",
-                newName: "ProductOrders");
+                newName: "OrderDetails");
 
             migrationBuilder.RenameIndex(
                 name: "IX_OrderDetails_ProductId",
-                table: "ProductOrders",
-                newName: "IX_ProductOrders_ProductId");
+                table: "OrderDetails",
+                newName: "IX_OrderDetails_ProductId");
 
             migrationBuilder.RenameIndex(
                 name: "IX_OrderDetails_OrderId",
-                table: "ProductOrders",
-                newName: "IX_ProductOrders_OrderId");
+                table: "OrderDetails",
+                newName: "IX_OrderDetails_OrderId");
 
             migrationBuilder.AlterColumn<int>(
                 name: "ProductId",
@@ -164,8 +164,8 @@ namespace DataAccessObject.Migrations
                 oldNullable: true);
 
             migrationBuilder.AddPrimaryKey(
-                name: "PK_ProductOrders",
-                table: "ProductOrders",
+                name: "PK_OrderDetails",
+                table: "OrderDetails",
                 column: "Id");
 
             migrationBuilder.CreateIndex(
@@ -175,16 +175,16 @@ namespace DataAccessObject.Migrations
                 unique: true);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ProductOrders_Orders_OrderId",
-                table: "ProductOrders",
+                name: "FK_OrderDetails_Orders_OrderId",
+                table: "OrderDetails",
                 column: "OrderId",
                 principalTable: "Orders",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ProductOrders_Products_ProductId",
-                table: "ProductOrders",
+                name: "FK_OrderDetails_Products_ProductId",
+                table: "OrderDetails",
                 column: "ProductId",
                 principalTable: "Products",
                 principalColumn: "Id");
