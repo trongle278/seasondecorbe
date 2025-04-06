@@ -651,9 +651,9 @@ namespace BusinessLogicLayer.Services
             Booking.BookingStatus? newStatus = booking.Status switch
             {
                 Booking.BookingStatus.Pending => Booking.BookingStatus.Planning,
-                //Booking.BookingStatus.Planning => Booking.BookingStatus.Quoting,
-                //Booking.BookingStatus.Quoting => Booking.BookingStatus.Contracting,
-                Booking.BookingStatus.Planning => Booking.BookingStatus.Confirm,
+                Booking.BookingStatus.Planning => Booking.BookingStatus.Quoting,
+                Booking.BookingStatus.Quoting => Booking.BookingStatus.Contracting,
+                Booking.BookingStatus.Contracting => Booking.BookingStatus.Confirm,
                 Booking.BookingStatus.Confirm when booking.DepositAmount > 0 => Booking.BookingStatus.DepositPaid,
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
                 Booking.BookingStatus.Preparing => Booking.BookingStatus.InTransit,
@@ -783,14 +783,6 @@ namespace BusinessLogicLayer.Services
                         laborDetail.EstimatedCompletion = DateTime.Now;
                         _unitOfWork.BookingDetailRepository.Update(laborDetail);
                     }
-
-                    ///---------------------------------------------------------------------------------------
-                    // ✅ Lấy Provider từ `DecorService`
-                    //var provider = await _unitOfWork.AccountRepository.Queryable()
-                    //    .FirstOrDefaultAsync(a => a.Id == _unitOfWork.DecorServiceRepository.Queryable()
-                    //        .Where(ds => ds.Id == booking.DecorServiceId)
-                    //        .Select(ds => ds.AccountId)
-                    //        .FirstOrDefault());
 
                     if (provider != null)
                     {

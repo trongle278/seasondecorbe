@@ -17,7 +17,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string Address { get; set; }
         public bool IsProvider { get; set; }
         public bool ProviderVerified { get; set; }
-        public int Status { get; set; }
+        public int ProviderStatus { get; set; }
 
         public string JoinedDate { get; set; }
         public int FollowersCount { get; set; }

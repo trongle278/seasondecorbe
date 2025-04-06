@@ -62,5 +62,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _quotationService.GetPaginatedQuotationsForCustomerAsync(request, providerId);
             return Ok(result);
         }
+
+        [HttpPut("confirmQuotation/{bookingCode}")]
+        public async Task<IActionResult> ConfirmQuotation(string bookingCode, [FromBody] bool isConfirmed)
+        {
+            var response = await _quotationService.ConfirmQuotationAsync(bookingCode, isConfirmed);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }

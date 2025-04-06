@@ -72,7 +72,8 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<Account, ProviderResponse>()              
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.BusinessName))
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress));
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress))
+                .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus)); ;
 
             // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 
@@ -236,7 +237,8 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void DecorServiceProfile() 
         {
-            CreateMap<DecorService, DecorServiceDTO>();
+            CreateMap<DecorService, DecorServiceDTO>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status)); ;
             CreateMap<DecorImage, DecorImageResponse>();
         }
 
