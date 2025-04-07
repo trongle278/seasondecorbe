@@ -54,6 +54,7 @@ namespace Repository.UnitOfWork
             MaterialDetailRepository = new MaterialDetailRepository(_context);
             ConstructionDetailRepository = new ConstructionDetailRepository(_context);
             TimeSlotRepository = new TimeSlotRepository(_context);
+            ContractRepository = new ContractRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -91,6 +92,7 @@ namespace Repository.UnitOfWork
         public IMaterialDetailRepository MaterialDetailRepository { get; private set; }
         public IConstructionDetailRepository ConstructionDetailRepository { get; private set; }
         public ITimeSlotRepository TimeSlotRepository { get; private set; }
+        public IContractRepository ContractRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

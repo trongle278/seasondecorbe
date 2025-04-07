@@ -45,6 +45,7 @@ namespace Repository.UnitOfWork
         IMaterialDetailRepository MaterialDetailRepository { get; }
         IConstructionDetailRepository ConstructionDetailRepository { get; }
         ITimeSlotRepository TimeSlotRepository { get; }
+        IContractRepository ContractRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
