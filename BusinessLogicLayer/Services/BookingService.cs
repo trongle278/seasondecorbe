@@ -236,6 +236,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(dss => dss.Season) // Season
                     .Include(b => b.Account) // Customer (khách hàng đặt booking)
                     .Include(b => b.BookingDetails) // Booking details
+                    .Include(b => b.Quotations)
                     .Include(b => b.Address);
 
                 // 🔹 Get paginated data & filter
@@ -258,7 +259,7 @@ namespace BusinessLogicLayer.Services
                     Status = (int)booking.Status,                
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
-
+                    IsQuoteExisted = booking.Quotations.Any(),
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO
@@ -268,8 +269,7 @@ namespace BusinessLogicLayer.Services
                         BasePrice = booking.DecorService.BasePrice,
                         Description = booking.DecorService.Description,
                         StartDate = booking.DecorService.StartDate,
-                        //ImageUrls = booking.DecorService.DecorImages?.Select(di => di.ImageURL).ToList() ?? new List<string>(),
-                        Status = (int)booking.DecorService.Status,
+                        Status = (int)booking.DecorService.Status,                       
                         Images = booking.DecorService.DecorImages?.Select(di => new DecorImageResponse
                         {
                             Id = di.Id,

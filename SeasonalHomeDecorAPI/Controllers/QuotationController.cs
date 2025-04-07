@@ -61,7 +61,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             // Lấy accountId từ token
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-            var result = await _quotationService.GetPaginatedQuotationsForCustomerAsync(request, providerId);
+            var result = await _quotationService.GetPaginatedQuotationsForProviderAsync(request, providerId);
             return Ok(result);
         }
 
