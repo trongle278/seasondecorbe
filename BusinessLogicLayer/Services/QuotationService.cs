@@ -109,7 +109,7 @@ namespace BusinessLogicLayer.Services
                 }).ToList();
 
                 await _unitOfWork.ConstructionDetailRepository.InsertRangeAsync(constructionDetails);
-
+                quotation.isQuoteExisted = true;
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -293,6 +293,7 @@ namespace BusinessLogicLayer.Services
                 {
                     // Trường hợp từ chối báo giá
                     quotation.Status = Quotation.QuotationStatus.Denied;
+                    quotation.isQuoteExisted = false;
                     response.Message = "Quotation has been denied. You can now create a new quotation.";
                 }
 
@@ -388,7 +389,9 @@ namespace BusinessLogicLayer.Services
                     {
                         TaskName = c.TaskName,
                         Cost = c.Cost,
-                        Unit = c.Unit
+                        Unit = c.Unit,
+                        Length = c.Length,
+                        Width = c.Width
                     }).ToList(),
                 }).ToList();
 
@@ -444,13 +447,33 @@ namespace BusinessLogicLayer.Services
                     // All properties from QuotationResponse
                     Id = q.Id,
                     QuotationCode = q.QuotationCode,
-                    // ... (same mapping as customer method)
+                    MaterialCost = q.MaterialCost,
+                    ConstructionCost = q.ConstructionCost,
+                    DepositPercentage = q.DepositPercentage,
+                    CreatedAt = q.CreatedAt,
+                    FilePath = q.QuotationFilePath,
 
-                    // Additional provider-specific info
+                    MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
+                    {
+                        MaterialName = m.MaterialName,
+                        Quantity = m.Quantity,
+                        Cost = m.Cost,
+                        //Category = m.Category
+                    }).ToList(),
+                    
+                    ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    {
+                        TaskName = c.TaskName,
+                        Cost = c.Cost,
+                        Unit = c.Unit,
+                        Length = c.Length,
+                        Width = c.Width
+                    }).ToList(),
                     Customer = new CustomerResponse
                     {
                         Id = q.Booking.Account.Id,
                         FullName = $"{q.Booking.Account.FirstName} {q.Booking.Account.LastName}",
+                        Avatar = q.Booking.Account.Avatar,
                         Phone = q.Booking.Account.Phone,
                         Email = q.Booking.Account.Email
                     }

@@ -29,7 +29,7 @@ namespace DataAccessObject.Models
             Denied        // Từ chối bảng báo giá        
         }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
+        public bool isQuoteExisted { get; set; }
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
         public virtual ICollection<ConstructionDetail> ConstructionDetails { get; set; }
     }
