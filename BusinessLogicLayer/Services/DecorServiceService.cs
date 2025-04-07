@@ -444,7 +444,7 @@ namespace BusinessLogicLayer.Services
             {
                 // 1. Verify provider account
                 var isProvider = await _unitOfWork.AccountRepository
-                    .Query(a => a.Id == accountId && a.IsProvider == true)
+                    .Query(a => a.Id == accountId && a.ProviderVerified == true)
                     .AnyAsync();
 
                 if (!isProvider)
