@@ -49,15 +49,14 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Kiểm tra báo giá hiện có
+                // Kiểm tra nếu đã có báo giá và không phải bị từ chối thì không cho tạo
                 var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id && q.Status != Quotation.QuotationStatus.Denied);
 
-                // Nếu đã có báo giá và không ở trạng thái Denied thì không cho tạo mới
-                if (existingQuotation != null && existingQuotation.Status != Quotation.QuotationStatus.Denied)
+                if (existingQuotation != null)
                 {
                     response.Message = existingQuotation.Status == Quotation.QuotationStatus.Confirmed
-                        ? "Quotation already confirmed. Cannot create new one."
+                        ? "Quotation already confirmed. Cannot create a new one."
                         : "Quotation already exists for this booking.";
                     return response;
                 }
@@ -72,34 +71,22 @@ namespace BusinessLogicLayer.Services
 
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
 
-                // Tạo báo giá mới hoặc cập nhật báo giá cũ nếu đã bị từ chối
-                var quotation = existingQuotation ?? new Quotation { BookingId = booking.Id };
-
-                quotation.QuotationCode = quotationCode;
-                quotation.MaterialCost = totalMaterialCost;
-                quotation.ConstructionCost = totalConstructionCost;
-                quotation.DepositPercentage = depositPercentage;
-                quotation.CreatedAt = DateTime.Now;
-                quotation.Status = Quotation.QuotationStatus.Pending; // Reset về trạng thái chờ
-
-                if (existingQuotation == null)
+                // Tạo báo giá mới hoàn toàn
+                var quotation = new Quotation
                 {
-                    await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                }
-                else
-                {
-                    _unitOfWork.QuotationRepository.Update(quotation);
-                }
+                    BookingId = booking.Id,
+                    QuotationCode = quotationCode,
+                    MaterialCost = totalMaterialCost,
+                    ConstructionCost = totalConstructionCost,
+                    DepositPercentage = depositPercentage,
+                    CreatedAt = DateTime.Now,
+                    Status = Quotation.QuotationStatus.Pending
+                };
 
+                await _unitOfWork.QuotationRepository.InsertAsync(quotation);
                 await _unitOfWork.CommitAsync();
 
-                // Xóa chi tiết cũ nếu đang cập nhật báo giá bị từ chối
-                if (existingQuotation != null)
-                {
-                    await DeleteQuotationDetails(quotation.Id);
-                }
-
-                // Thêm chi tiết vật liệu mới
+                // Thêm chi tiết vật liệu
                 var materialDetails = request.Materials.Select(m => new MaterialDetail
                 {
                     QuotationId = quotation.Id,
@@ -110,13 +97,15 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
 
-                // Thêm chi tiết công trình mới
+                // Thêm chi tiết công trình
                 var constructionDetails = request.ConstructionTasks.Select(c => new ConstructionDetail
                 {
                     QuotationId = quotation.Id,
                     TaskName = c.TaskName,
                     Cost = c.Cost,
-                    Unit = c.Unit
+                    Unit = c.Unit,
+                    Length = c.Length,
+                    Width = c.Width
                 }).ToList();
 
                 await _unitOfWork.ConstructionDetailRepository.InsertRangeAsync(constructionDetails);
@@ -124,9 +113,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = existingQuotation != null
-                    ? "Quotation updated successfully after previous denial."
-                    : "Quotation created successfully.";
+                response.Message = "Quotation created successfully.";
                 response.Data = new
                 {
                     Quotation = quotation,
@@ -142,6 +129,7 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
 
         public async Task<BaseResponse> UploadQuotationFileAsync(string bookingCode, IFormFile quotationFile)
         {
@@ -264,7 +252,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id && q.Status == Quotation.QuotationStatus.Pending);
 
                 if (quotation == null)
                 {
@@ -298,16 +286,13 @@ namespace BusinessLogicLayer.Services
 
                     await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
                     quotation.Status = Quotation.QuotationStatus.Confirmed;
+                    booking.Status = Booking.BookingStatus.Contracting;
                     response.Message = "Quotation confirmed and booking details created.";
                 }
                 else
                 {
                     // Trường hợp từ chối báo giá
                     quotation.Status = Quotation.QuotationStatus.Denied;
-
-                    // Xóa các chi tiết liên quan nếu cần
-                    await DeleteQuotationDetails(quotation.Id);
-
                     response.Message = "Quotation has been denied. You can now create a new quotation.";
                 }
 
@@ -486,5 +471,65 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
+        public async Task<BaseResponse<QuotationDetailResponse>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId)
+        {
+            var response = new BaseResponse<QuotationDetailResponse>();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.MaterialDetails)
+                    .Include(q => q.ConstructionDetails)
+                    .Include(q => q.Booking) // cần để truy cập AccountId
+                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Booking.AccountId == customerId);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or access denied.";
+                    return response;
+                }
+
+                var result = new QuotationDetailResponse
+                {
+                    Id = quotation.Id,
+                    QuotationCode = quotation.QuotationCode,
+                    MaterialCost = quotation.MaterialCost,
+                    ConstructionCost = quotation.ConstructionCost,
+                    DepositPercentage = quotation.DepositPercentage,
+                    QuotationFilePath = quotation.QuotationFilePath,
+                    Status = (int)quotation.Status,
+                    CreatedAt = quotation.CreatedAt,
+                    
+                    Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
+                    {
+                        MaterialName = m.MaterialName,
+                        Quantity = m.Quantity,
+                        Cost = m.Cost
+                    }).ToList(),
+                    
+                    ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    {
+                        TaskName = c.TaskName,
+                        Cost = c.Cost,
+                        Unit = c.Unit,
+                        Length = c.Length,
+                        Width = c.Width
+                    }).ToList()
+                };
+
+                response.Success = true;
+                response.Message = "Quotation details retrieved successfully.";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to retrieve quotation details.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
     }
 }

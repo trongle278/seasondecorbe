@@ -44,7 +44,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginatedQuotationsForCustomer")]
-        public async Task<IActionResult> GetPaginatedQuotationsForCustomerAsync([FromQuery] QuotationFilterRequest request)
+        public async Task<IActionResult> GetPaginatedQuotationsForCustomer([FromQuery] QuotationFilterRequest request)
         {
             // Lấy accountId từ token
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
@@ -53,8 +53,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+
+
         [HttpGet("getPaginatedQuotationsForProvider")]
-        public async Task<IActionResult> GetPaginatedQuotationsForProviderAsync([FromQuery] QuotationFilterRequest request)
+        public async Task<IActionResult> GetPaginatedQuotationsForProvider([FromQuery] QuotationFilterRequest request)
         {
             // Lấy accountId từ token
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
@@ -67,6 +69,16 @@ namespace SeasonalHomeDecorAPI.Controllers
         public async Task<IActionResult> ConfirmQuotation(string bookingCode, [FromBody] bool isConfirmed)
         {
             var response = await _quotationService.ConfirmQuotationAsync(bookingCode, isConfirmed);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("getQuotationDetailByCustomer/{quotationCode}")]
+        public async Task<IActionResult> GetQuotationDetailByCustomer(string quotationCode)
+        {
+            // Lấy customerId từ token
+            var customerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var response = await _quotationService.GetQuotationDetailByCustomerAsync(quotationCode, customerId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
     }

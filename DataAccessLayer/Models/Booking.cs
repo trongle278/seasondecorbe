@@ -58,9 +58,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; }
         public virtual ICollection<Support> Supports { get; set; } = new List<Support>();
         public virtual ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
-
-        public int QuotationId { get; set; }
-        public Quotation Quotation { get; set; }
+        public ICollection<Quotation> Quotations { get; set; } = new List<Quotation>();
 
         public string? CancelReason { get; set; }
         public string? RejectReason { get; set; } // Lưu lý do reject

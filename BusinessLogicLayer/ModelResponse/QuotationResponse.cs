@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccessObject.Models;
+using static DataAccessObject.Models.Quotation;
 
 namespace BusinessLogicLayer.ModelResponse
 {
@@ -11,8 +12,12 @@ namespace BusinessLogicLayer.ModelResponse
     {
         public int Id { get; set; }
         public int BookingId { get; set; }
+        public string QuotationCode { get; set; }
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
+        public decimal DepositPercentage { get; set; }
+        public string? QuotationFilePath { get; set; }
+        public int Status { get; set; }
         public decimal TotalCost => MaterialCost + ConstructionCost;
         public DateTime CreatedAt { get; set; }
 
@@ -36,6 +41,8 @@ namespace BusinessLogicLayer.ModelResponse
         public string TaskName { get; set; }
         public decimal Cost { get; set; }
         public string Unit { get; set; }
+        public decimal? Length { get; set; }
+        public decimal? Width { get; set; }
     }
 
     public class QuotationResponse

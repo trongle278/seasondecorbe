@@ -421,6 +421,11 @@ namespace DataAccessObject.Models
                 .HasForeignKey(s => s.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Quotation>()
+                .HasOne(q => q.Booking)
+                .WithMany(b => b.Quotations)
+                .HasForeignKey(q => q.BookingId);
+
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)
                 .HasColumnType("decimal(18,2)");
