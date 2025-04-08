@@ -378,6 +378,8 @@ namespace BusinessLogicLayer.Services
                     DepositPercentage = q.DepositPercentage,
                     CreatedAt = q.CreatedAt,
                     FilePath = q.QuotationFilePath,
+                    Status = (int)q.Status,
+                    IsQuoteExisted = q.isQuoteExisted,
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
                     {
                         MaterialName = m.MaterialName,
@@ -451,6 +453,8 @@ namespace BusinessLogicLayer.Services
                     ConstructionCost = q.ConstructionCost,
                     DepositPercentage = q.DepositPercentage,
                     CreatedAt = q.CreatedAt,
+                    Status = (int)q.Status,
+                    IsQuoteExisted = q.isQuoteExisted,
                     FilePath = q.QuotationFilePath,
 
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
@@ -519,25 +523,26 @@ namespace BusinessLogicLayer.Services
                     MaterialCost = quotation.MaterialCost,
                     ConstructionCost = quotation.ConstructionCost,
                     DepositPercentage = quotation.DepositPercentage,
-                    QuotationFilePath = quotation.QuotationFilePath,
+                    QuotationFilePath = quotation.QuotationFilePath,    
                     Status = (int)quotation.Status,
+                    IsQuoteExisted = quotation.isQuoteExisted,
                     CreatedAt = quotation.CreatedAt,
                     
-                    Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
-                    {
-                        MaterialName = m.MaterialName,
-                        Quantity = m.Quantity,
-                        Cost = m.Cost
-                    }).ToList(),
+                    //Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
+                    //{
+                    //    MaterialName = m.MaterialName,
+                    //    Quantity = m.Quantity,
+                    //    Cost = m.Cost
+                    //}).ToList(),
                     
-                    ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
-                    {
-                        TaskName = c.TaskName,
-                        Cost = c.Cost,
-                        Unit = c.Unit,
-                        Length = c.Length,
-                        Width = c.Width
-                    }).ToList()
+                    //ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    //{
+                    //    TaskName = c.TaskName,
+                    //    Cost = c.Cost,
+                    //    Unit = c.Unit,
+                    //    Length = c.Length,
+                    //    Width = c.Width
+                    //}).ToList()
                 };
 
                 response.Success = true;
