@@ -30,6 +30,7 @@ namespace DataAccessObject.Models
         }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool isQuoteExisted { get; set; }
+        public Contract? Contract { get; set; }
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
         public virtual ICollection<ConstructionDetail> ConstructionDetails { get; set; }
     }
