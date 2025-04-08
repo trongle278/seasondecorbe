@@ -184,57 +184,57 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        /// <summary>
-        /// Lấy báo giá theo BookingId
-        /// </summary>
-        public async Task<BaseResponse> GetQuotationByBookingCodeAsync(string bookingCode)
-        {
-            var response = new BaseResponse();
-            try
-            {
-                var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+        ///// <summary>
+        ///// Lấy báo giá theo BookingId
+        ///// </summary>
+        //public async Task<BaseResponse> GetQuotationByBookingCodeAsync(string bookingCode)
+        //{
+        //    var response = new BaseResponse();
+        //    try
+        //    {
+        //        var booking = await _unitOfWork.BookingRepository.Queryable()
+        //            .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
-                if (booking == null)
-                {
-                    response.Message = "Booking not found.";
-                    return response;
-                }
+        //        if (booking == null)
+        //        {
+        //            response.Message = "Booking not found.";
+        //            return response;
+        //        }
 
-                var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+        //        var quotation = await _unitOfWork.QuotationRepository.Queryable()
+        //            .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
 
-                if (quotation == null)
-                {
-                    response.Message = "Quotation not found.";
-                    return response;
-                }
+        //        if (quotation == null)
+        //        {
+        //            response.Message = "Quotation not found.";
+        //            return response;
+        //        }
 
-                var materialDetails = await _unitOfWork.MaterialDetailRepository.Queryable()
-                    .Where(m => m.QuotationId == quotation.Id)
-                    .ToListAsync();
+        //        var materialDetails = await _unitOfWork.MaterialDetailRepository.Queryable()
+        //            .Where(m => m.QuotationId == quotation.Id)
+        //            .ToListAsync();
 
-                var constructionDetails = await _unitOfWork.ConstructionDetailRepository.Queryable()
-                    .Where(c => c.QuotationId == quotation.Id)
-                    .ToListAsync();
+        //        var constructionDetails = await _unitOfWork.ConstructionDetailRepository.Queryable()
+        //            .Where(c => c.QuotationId == quotation.Id)
+        //            .ToListAsync();
 
-                response.Success = true;
-                response.Message = "Quotation retrieved successfully.";
-                response.Data = new
-                {
-                    Quotation = quotation,
-                    MaterialDetails = materialDetails,
-                    ConstructionDetails = constructionDetails
-                };
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "Failed to retrieve quotation.";
-                response.Errors.Add(ex.Message);
-            }
-            return response;
-        }
+        //        response.Success = true;
+        //        response.Message = "Quotation retrieved successfully.";
+        //        response.Data = new
+        //        {
+        //            Quotation = quotation,
+        //            MaterialDetails = materialDetails,
+        //            ConstructionDetails = constructionDetails
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.Message = "Failed to retrieve quotation.";
+        //        response.Errors.Add(ex.Message);
+        //    }
+        //    return response;
+        //}
 
         public async Task<BaseResponse> ConfirmQuotationAsync(string bookingCode, bool isConfirmed)
         {

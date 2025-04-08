@@ -36,13 +36,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpGet("getQuotationByBookingId/{bookingCode}")]
-        public async Task<IActionResult> GetQuotation(string bookingCode)
-        {
-            var response = await _quotationService.GetQuotationByBookingCodeAsync(bookingCode);
-            return response.Success ? Ok(response) : BadRequest(response);
-        }
-
         [HttpGet("getPaginatedQuotationsForCustomer")]
         public async Task<IActionResult> GetPaginatedQuotationsForCustomer([FromQuery] QuotationFilterRequest request)
         {
@@ -52,8 +45,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _quotationService.GetPaginatedQuotationsForCustomerAsync(request, accountId);
             return Ok(result);
         }
-
-
 
         [HttpGet("getPaginatedQuotationsForProvider")]
         public async Task<IActionResult> GetPaginatedQuotationsForProvider([FromQuery] QuotationFilterRequest request)
