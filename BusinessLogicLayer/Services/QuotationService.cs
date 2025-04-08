@@ -527,22 +527,22 @@ namespace BusinessLogicLayer.Services
                     Status = (int)quotation.Status,
                     IsQuoteExisted = quotation.isQuoteExisted,
                     CreatedAt = quotation.CreatedAt,
-                    
-                    //Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
-                    //{
-                    //    MaterialName = m.MaterialName,
-                    //    Quantity = m.Quantity,
-                    //    Cost = m.Cost
-                    //}).ToList(),
-                    
-                    //ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
-                    //{
-                    //    TaskName = c.TaskName,
-                    //    Cost = c.Cost,
-                    //    Unit = c.Unit,
-                    //    Length = c.Length,
-                    //    Width = c.Width
-                    //}).ToList()
+
+                    Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
+                    {
+                        MaterialName = m.MaterialName,
+                        Quantity = m.Quantity,
+                        Cost = m.Cost
+                    }).ToList(),
+
+                    ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    {
+                        TaskName = c.TaskName,
+                        Cost = c.Cost,
+                        Unit = c.Unit,
+                        Length = c.Length,
+                        Width = c.Width
+                    }).ToList()
                 };
 
                 response.Success = true;
