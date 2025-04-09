@@ -33,6 +33,7 @@ namespace BusinessLogicLayer.Services
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
         }
+
         public async Task<BaseResponse<string>> GetContractContentAsync(string contractCode)
         {
             var response = new BaseResponse<string>();
@@ -236,7 +237,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
         public async Task<BaseResponse<string>> VerifyContractSignatureAsync(string signatureToken)
         {
             var response = new BaseResponse<string>();
@@ -299,6 +299,42 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public async Task<BaseResponse<string>> GetContractFileAsync(string contractCode)
+        {
+            var response = new BaseResponse<string>();
+
+            try
+            {
+                var contract = await _unitOfWork.ContractRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found.";
+                    return response;
+                }
+
+                if (string.IsNullOrWhiteSpace(contract.ContractFilePath))
+                {
+                    response.Message = "No contract file has been uploaded.";
+                    return response;
+                }
+
+                response.Success = true;
+                response.Message = "Contract file URL retrieved successfully.";
+                response.Data = contract.ContractFilePath;
+            }
+            catch (Exception ex)
+            {
+                response.Message = "Failed to get contract file.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
 
         #region Template
 

@@ -47,5 +47,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _contractService.VerifyContractSignatureAsync(signatureToken);
             return response.Success ? Ok(response) : BadRequest(response);
         }
+
+        [HttpGet("getContractFile/{contractCode}")]
+        public async Task<IActionResult> GetContractFile(string contractCode)
+        {
+            var response = await _contractService.GetContractFileAsync(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }

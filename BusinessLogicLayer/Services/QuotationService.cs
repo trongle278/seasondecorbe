@@ -393,6 +393,7 @@ namespace BusinessLogicLayer.Services
                     FilePath = q.QuotationFilePath,
                     Status = (int)q.Status,
                     IsQuoteExisted = q.isQuoteExisted,
+                    IsContractExisted = q.Contract.isContractExisted,
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
                     {
                         MaterialName = m.MaterialName,
@@ -479,6 +480,7 @@ namespace BusinessLogicLayer.Services
                     CreatedAt = q.CreatedAt,
                     Status = (int)q.Status,
                     IsQuoteExisted = q.isQuoteExisted,
+                    IsContractExisted = q.Contract.isContractExisted,
                     FilePath = q.QuotationFilePath,
 
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
@@ -550,6 +552,7 @@ namespace BusinessLogicLayer.Services
                     QuotationFilePath = quotation.QuotationFilePath,    
                     Status = (int)quotation.Status,
                     IsQuoteExisted = quotation.isQuoteExisted,
+                    IsContractExisted = quotation.Contract.isContractExisted,
                     CreatedAt = quotation.CreatedAt,
 
                     Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse

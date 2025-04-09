@@ -20,6 +20,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Status { get; set; }
         public decimal TotalCost => MaterialCost + ConstructionCost;
         public bool IsQuoteExisted { get; set; }
+        public bool IsContractExisted { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public List<MaterialDetailResponse> Materials { get; set; }
@@ -54,6 +55,7 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal ConstructionCost { get; set; }
         public decimal DepositPercentage { get; set; }
         public bool IsQuoteExisted { get; set; }
+        public bool IsContractExisted { get; set; }
         public DateTime CreatedAt { get; set; }
         public int Status { get; set; }
         public string FilePath { get; set; }
