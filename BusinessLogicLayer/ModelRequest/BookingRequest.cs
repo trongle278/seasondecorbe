@@ -97,7 +97,7 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class BookingFilterRequest
     {
-        public string? Status { get; set; }
+        public BookingStatus? Status { get; set; }
         public int? DecorServiceId { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;

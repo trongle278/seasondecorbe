@@ -89,7 +89,7 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Filter Condition
                 Expression<Func<Booking, bool>> filter = booking =>
                     booking.AccountId == accountId &&
-                    (string.IsNullOrEmpty(request.Status) || booking.Status.ToString().Contains(request.Status)) &&
+                    ((!request.Status.HasValue || booking.Status == request.Status.Value)) &&
                     (!request.DecorServiceId.HasValue || booking.DecorServiceId == request.DecorServiceId.Value);
 
                 // 🔹 Sorting Condition
@@ -216,7 +216,7 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Filter: Lấy booking mà dịch vụ được tạo bởi provider (DecorService.AccountId == providerId)
                 Expression<Func<Booking, bool>> filter = booking =>
                     booking.DecorService.AccountId == providerId &&
-                    (string.IsNullOrEmpty(request.Status) || booking.Status.ToString().Contains(request.Status)) &&
+                    ((!request.Status.HasValue || booking.Status == request.Status.Value)) &&
                     (!request.DecorServiceId.HasValue || booking.DecorServiceId == request.DecorServiceId.Value);
 
                 // 🔹 Sorting: Mặc định sắp xếp theo CreateAt giảm dần (Booking mới nhất trước)

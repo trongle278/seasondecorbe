@@ -27,6 +27,9 @@ namespace BusinessLogicLayer.Services.BackgroundJob
         {
             try
             {
+                // Chờ 10 giây để app và DB ổn định
+                await Task.Delay(10000);
+
                 // Lấy các timeslot mà ngày khảo sát đã quá hạn + booking đang ở trạng thái chờ
                 var expiredTimeSlots = await _unitOfWork.TimeSlotRepository.Queryable()
                     .Include(ts => ts.Booking)

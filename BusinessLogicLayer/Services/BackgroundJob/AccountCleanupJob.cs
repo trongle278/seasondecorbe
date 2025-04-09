@@ -22,6 +22,9 @@ namespace BusinessLogicLayer.Services
 
         public async Task Execute(IJobExecutionContext context)
         {
+            // Chờ 10 giây để app và DB ổn định
+            await Task.Delay(10000);
+
             var unverifiedAccounts = _unitOfWork.AccountRepository
                 .Query(a => !a.IsVerified && a.VerificationTokenExpiry < DateTime.Now)
                 .ToList();
