@@ -236,36 +236,36 @@ namespace BusinessLogicLayer.Services
         //    return response;
         //}
 
-        public async Task<BaseResponse> ConfirmQuotationAsync(string bookingCode, bool isConfirmed)
+        public async Task<BaseResponse> ConfirmQuotationAsync(string quotationCode, bool isConfirmed)
         {
             var response = new BaseResponse();
             try
             {
-                // Tìm booking dựa trên bookingCode
-                var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
-
-                if (booking == null)
-                {
-                    response.Message = "Booking not found with the provided code.";
-                    return response;
-                }
-
+                // Tìm quotation theo mã
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id && q.Status == Quotation.QuotationStatus.Pending);
+                    .Include(q => q.Booking)
+                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending);
 
                 if (quotation == null)
                 {
-                    response.Message = "Quotation not found. Please create a quotation first.";
+                    response.Message = "Quotation not found or already processed.";
                     return response;
                 }
 
-                // ✅ Cập nhật `TotalPrice` trong `Booking`
+                var booking = quotation.Booking;
+
+                if (booking == null)
+                {
+                    response.Message = "Associated booking not found.";
+                    return response;
+                }
+
+                // ✅ Cập nhật tổng chi phí booking
                 booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
 
                 if (isConfirmed)
                 {
-                    // Kiểm tra nếu BookingDetail đã tồn tại
+                    // Check nếu BookingDetail đã tồn tại
                     var existingDetails = await _unitOfWork.BookingDetailRepository.Queryable()
                         .Where(bd => bd.BookingId == booking.Id)
                         .ToListAsync();
@@ -277,7 +277,7 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
 
-                    // Tạo BookingDetail từ báo giá
+                    // Tạo BookingDetail mới
                     var bookingDetails = new List<BookingDetail>
             {
                 new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
@@ -285,15 +285,18 @@ namespace BusinessLogicLayer.Services
             };
 
                     await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
+
                     quotation.Status = Quotation.QuotationStatus.Confirmed;
                     booking.Status = Booking.BookingStatus.Contracting;
+
                     response.Message = "Quotation confirmed and booking details created.";
                 }
                 else
                 {
-                    // Trường hợp từ chối báo giá
+                    // Từ chối báo giá
                     quotation.Status = Quotation.QuotationStatus.Denied;
                     quotation.isQuoteExisted = false;
+
                     response.Message = "Quotation has been denied. You can now create a new quotation.";
                 }
 
@@ -306,6 +309,7 @@ namespace BusinessLogicLayer.Services
                 response.Message = isConfirmed ? "Failed to confirm quotation." : "Failed to deny quotation.";
                 response.Errors.Add(ex.Message);
             }
+
             return response;
         }
 

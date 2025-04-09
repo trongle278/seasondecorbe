@@ -56,10 +56,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("confirmQuotation/{bookingCode}")]
-        public async Task<IActionResult> ConfirmQuotation(string bookingCode, [FromBody] bool isConfirmed)
+        [HttpPut("confirmQuotation/{quotationCode}")]
+        public async Task<IActionResult> ConfirmQuotation(string quotationCode, [FromBody] bool isConfirmed)
         {
-            var response = await _quotationService.ConfirmQuotationAsync(bookingCode, isConfirmed);
+            var response = await _quotationService.ConfirmQuotationAsync(quotationCode, isConfirmed);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
