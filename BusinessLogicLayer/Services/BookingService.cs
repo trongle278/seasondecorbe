@@ -531,8 +531,8 @@ namespace BusinessLogicLayer.Services
 
                 if (provider.ProviderStatus == Account.AccountStatus.Busy)
                 {
-                    response.Message = "The service provider is currently busy. Please try again later.";
-                    return response;
+                    response.Message = "The provider is currently busy. Yours has been added to the queue!";
+                    //return response;
                 }
 
                 //🔹 Kiểm tra nếu người tạo booking cũng là chủ của dịch vụ
