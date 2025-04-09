@@ -339,6 +339,7 @@ namespace BusinessLogicLayer.Services
                 response.Data = new ContractFileResponse
                 {
                     ContractCode = contract.ContractCode,
+                    Status = (int)contract.Status,
                     IsSigned = contract.isSigned,
                     FileUrl = contract.ContractFilePath
                 };

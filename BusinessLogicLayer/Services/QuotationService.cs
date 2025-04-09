@@ -395,6 +395,7 @@ namespace BusinessLogicLayer.Services
                     Status = (int)q.Status,
                     IsQuoteExisted = q.isQuoteExisted,
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
+                    IsSigned = q.Contract != null && q.Contract.isSigned == true,
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
                     {
                         MaterialName = m.MaterialName,
@@ -483,6 +484,7 @@ namespace BusinessLogicLayer.Services
                     Status = (int)q.Status,
                     IsQuoteExisted = q.isQuoteExisted,
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
+                    IsSigned = q.Contract != null && q.Contract.isSigned == true,
                     FilePath = q.QuotationFilePath,
 
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
@@ -556,6 +558,7 @@ namespace BusinessLogicLayer.Services
                     Status = (int)quotation.Status,
                     IsQuoteExisted = quotation.isQuoteExisted,
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
+                    IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
                     CreatedAt = quotation.CreatedAt,
 
                     Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse

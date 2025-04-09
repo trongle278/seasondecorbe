@@ -11,7 +11,7 @@ namespace DataAccessObject.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public int ContactId { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow.ToLocalTime();
+        public DateTime CreatedAt { get; set; } = DateTime.Now.ToLocalTime();
 
         // Navigation Properties
         public virtual Account User { get; set; }
