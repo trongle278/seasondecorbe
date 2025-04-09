@@ -730,7 +730,7 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.InTransit:
                     // ✅ Khi chuyển sang `InTransit`, cập nhật EstimatedCompletion cho `Chi Phí Nguyên liệu`
                     var materialDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Chi Phí Nguyên liệu");
+                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Materials Cost");
 
                     if (materialDetail != null)
                     {
@@ -765,7 +765,7 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.Completed:
                     // ✅ Khi chuyển sang `Completed`, cập nhật EstimatedCompletion cho `Chi Phí Thi công`
                     var laborDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Chi Phí Thi công");
+                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Construction Cost");
 
                     if (laborDetail != null)
                     {
