@@ -12,6 +12,7 @@ using BusinessLogicLayer.Interfaces;
 using Microsoft.AspNetCore.Http;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using System.Linq.Expressions;
+using CloudinaryDotNet.Actions;
 
 namespace BusinessLogicLayer.Services
 {
@@ -343,12 +344,15 @@ namespace BusinessLogicLayer.Services
             {
                 // Filter condition
                 Expression<Func<Quotation, bool>> filter = q =>
-                    q.Booking.AccountId == accountId;
-
+                    q.Booking.AccountId == accountId &&
+                    (string.IsNullOrEmpty(request.QuotationCode) || q.QuotationCode.Contains(request.QuotationCode)) &&
+                    (!request.Status.HasValue || q.Status == request.Status.Value);
+                    
                 // Sorting
                 Expression<Func<Quotation, object>> orderByExpression = request.SortBy switch
                 {
                     "QuotationCode" => q => q.QuotationCode,
+                    "Status" => q => q.Status,
                     "TotalCost" => q => (q.MaterialCost + q.ConstructionCost),
                     _ => q => q.CreatedAt
                 };
@@ -424,7 +428,18 @@ namespace BusinessLogicLayer.Services
             {
                 // Filter condition
                 Expression<Func<Quotation, bool>> filter = q =>
-                    q.Booking.DecorService.AccountId == providerId; 
+                    q.Booking.DecorService.AccountId == providerId &&
+                    (string.IsNullOrEmpty(request.QuotationCode) || q.QuotationCode.Contains(request.QuotationCode)) &&
+                    (!request.Status.HasValue || q.Status == request.Status.Value);
+
+                // Sorting
+                Expression<Func<Quotation, object>> orderByExpression = request.SortBy switch
+                {
+                    "QuotationCode" => q => q.QuotationCode,
+                    "Status" => q => q.Status,
+                    "TotalCost" => q => (q.MaterialCost + q.ConstructionCost),
+                    _ => q => q.CreatedAt
+                };
 
                 // Includes (additional customer info for provider view)
                 Func<IQueryable<Quotation>, IQueryable<Quotation>> customQuery = query => query
