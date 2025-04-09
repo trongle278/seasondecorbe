@@ -575,6 +575,8 @@ namespace BusinessLogicLayer.Services
                     .Where(b => b.AccountId == accountId &&
                               (b.Status == BookingStatus.Pending ||
                                b.Status == BookingStatus.Planning ||
+                               b.Status == BookingStatus.Quoting ||
+                               b.Status == BookingStatus.Contracting ||
                                b.Status == BookingStatus.Confirm ||
                                b.Status == BookingStatus.DepositPaid ||
                                b.Status == BookingStatus.Preparing ||
@@ -592,9 +594,10 @@ namespace BusinessLogicLayer.Services
                 //}
 
                 // 6. Address Availability Check
-                if (activeBookings.Any(b => b.AddressId == request.AddressId))
+                bool isAddressInUse = activeBookings.Any(b => b.AddressId == request.AddressId);
+                if (isAddressInUse)
                 {
-                    response.Message = "This address is already associated with an active booking";
+                    response.Message = "This address is currently in use for another booking. Please choose a different one.";
                     return response;
                 }
 
