@@ -300,9 +300,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<string>> GetContractFileAsync(string quotationCode)
+        public async Task<BaseResponse<ContractFileResponse>> GetContractFileAsync(string quotationCode)
         {
-            var response = new BaseResponse<string>();
+            var response = new BaseResponse<ContractFileResponse>();
 
             try
             {
@@ -334,7 +334,11 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Contract file URL retrieved successfully.";
-                response.Data = contract.ContractFilePath;
+                response.Data = new ContractFileResponse
+                {
+                    ContractCode = contract.ContractCode,
+                    FileUrl = contract.ContractFilePath
+                };
             }
             catch (Exception ex)
             {
@@ -466,16 +470,16 @@ Home Seasonal Decoration System
                 // Tiêu đề hợp đồng (Căn giữa)
                 document.Add(new Paragraph("SEASONAL HOME DECORATION SERVICE CONTRACT")
                     .SetFont(boldFont)
-                    .SetFontSize(16)
+                    .SetFontSize(13)
                     .SetTextAlignment(TextAlignment.CENTER)
                     .SetMarginBottom(10));
 
                 // Ngày ký (Căn phải)
                 document.Add(new Paragraph($"Date: {DateTime.Now:dd/MM/yyyy}")
                     .SetFont(regularFont)
-                    .SetFontSize(12)
+                    .SetFontSize(8)
                     .SetTextAlignment(TextAlignment.RIGHT)
-                    .SetMarginBottom(20));
+                    .SetMarginBottom(10));
 
                 // Phân tích nội dung hợp đồng theo từng dòng
                 var lines = termOfUseContent.Split('\n');
@@ -492,26 +496,26 @@ Home Seasonal Decoration System
                     {
                         para = new Paragraph(line)
                             .SetFont(boldFont)
-                            .SetFontSize(12)
+                            .SetFontSize(10)
                             .SetTextAlignment(TextAlignment.LEFT)
-                            .SetMarginTop(10)
-                            .SetMarginBottom(5);
+                            .SetMarginTop(7)
+                            .SetMarginBottom(3);
                     }
                     else if (line.StartsWith("-") || line.StartsWith("+") || line.StartsWith("•"))
                     {
                         para = new Paragraph(line)
                             .SetFont(regularFont)
-                            .SetFontSize(12)
+                            .SetFontSize(10)
                             .SetTextAlignment(TextAlignment.LEFT)
-                            .SetMarginBottom(3);
+                            .SetMarginBottom(2);
                     }
                     else
                     {
                         para = new Paragraph(line)
                             .SetFont(regularFont)
-                            .SetFontSize(12)
+                            .SetFontSize(10)
                             .SetTextAlignment(TextAlignment.JUSTIFIED)
-                            .SetMarginBottom(6);
+                            .SetMarginBottom(4);
                     }
 
                     document.Add(para);

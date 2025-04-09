@@ -20,4 +20,10 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime CreatedAt { get; set; }
         public string TermOfUseContent { get; set; }
     }
+
+    public class ContractFileResponse
+    {
+        public string ContractCode { get; set; }
+        public string FileUrl { get; set; }
+    }
 }
