@@ -15,9 +15,9 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> CreateQuotationAsync(string bookingCode, CreateQuotationRequest request);
         Task<BaseResponse> UploadQuotationFileAsync(string bookingCode, IFormFile quotationFile);
         //Task<BaseResponse> GetQuotationByBookingCodeAsync(string bookingCode);
-        Task<BaseResponse<PageResult<QuotationResponse>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId);
+        Task<BaseResponse<PageResult<QuotationResponseForCustomer>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId);
         Task<BaseResponse<PageResult<QuotationResponseForProvider>>> GetPaginatedQuotationsForProviderAsync(QuotationFilterRequest request, int providerId);
-        Task<BaseResponse<QuotationDetailResponse>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId);
+        Task<BaseResponse<QuotationDetailResponseForCustomer>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId);
         Task<BaseResponse> ConfirmQuotationAsync(string quotationCode, bool isConfirmed);
     }
 }

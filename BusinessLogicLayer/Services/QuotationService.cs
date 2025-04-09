@@ -342,9 +342,9 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse<PageResult<QuotationResponse>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId)
+        public async Task<BaseResponse<PageResult<QuotationResponseForCustomer>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId)
         {
-            var response = new BaseResponse<PageResult<QuotationResponse>>();
+            var response = new BaseResponse<PageResult<QuotationResponseForCustomer>>();
             try
             {
                 // Filter condition
@@ -367,6 +367,9 @@ namespace BusinessLogicLayer.Services
                     .AsSplitQuery()
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.Address)
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService)
+                            .ThenInclude(ds => ds.Account)
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.ConstructionDetails)
                     .Include(q => q.Contract);
@@ -383,10 +386,11 @@ namespace BusinessLogicLayer.Services
                         customQuery);
 
                 // Map to DTO
-                var quotationResponses = quotations.Select(q => new QuotationResponse
+                var quotationResponses = quotations.Select(q => new QuotationResponseForCustomer
                 {
                     Id = q.Id,
                     QuotationCode = q.QuotationCode,
+                    Style = q.Booking.DecorService.Style,
                     MaterialCost = q.MaterialCost,
                     ConstructionCost = q.ConstructionCost,
                     DepositPercentage = q.DepositPercentage,
@@ -396,6 +400,7 @@ namespace BusinessLogicLayer.Services
                     IsQuoteExisted = q.isQuoteExisted,
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     IsSigned = q.Contract != null && q.Contract.isSigned == true,
+
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
                     {
                         MaterialName = m.MaterialName,
@@ -403,6 +408,7 @@ namespace BusinessLogicLayer.Services
                         Cost = m.Cost,
                         //Category = m.Category
                     }).ToList(),
+
                     ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
                     {
                         TaskName = c.TaskName,
@@ -411,10 +417,16 @@ namespace BusinessLogicLayer.Services
                         Length = c.Length,
                         Width = c.Width
                     }).ToList(),
+
+                    Provider = new ProviderResponse
+                    {
+                        BusinessName = q.Booking.DecorService.Account.BusinessName,
+                        Avatar = q.Booking.DecorService.Account.Avatar,
+                    },
                 }).ToList();
 
                 response.Success = true;
-                response.Data = new PageResult<QuotationResponse>
+                response.Data = new PageResult<QuotationResponseForCustomer>
                 {
                     Data = quotationResponses,
                     TotalCount = totalCount
@@ -456,6 +468,8 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.Address)
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.Account)
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService)
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.ConstructionDetails)
                     .Include(q => q.Contract);
@@ -476,6 +490,7 @@ namespace BusinessLogicLayer.Services
                 {
                     // All properties from QuotationResponse
                     Id = q.Id,
+                    Style = q.Booking.DecorService.Style,
                     QuotationCode = q.QuotationCode,
                     MaterialCost = q.MaterialCost,
                     ConstructionCost = q.ConstructionCost,
@@ -529,15 +544,16 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<QuotationDetailResponse>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId)
+        public async Task<BaseResponse<QuotationDetailResponseForCustomer>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId)
         {
-            var response = new BaseResponse<QuotationDetailResponse>();
+            var response = new BaseResponse<QuotationDetailResponseForCustomer>();
             try
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.ConstructionDetails)
-                    .Include(q => q.Booking) // cần để truy cập AccountId
+                    .Include(q => q.Booking)// cần để truy cập AccountId
+                        .ThenInclude(b => b.DecorService).ThenInclude(ds => ds.Account)
                     .Include(q => q.Contract)
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Booking.AccountId == customerId);
 
@@ -547,10 +563,11 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var result = new QuotationDetailResponse
+                var result = new QuotationDetailResponseForCustomer
                 {
                     Id = quotation.Id,
                     QuotationCode = quotation.QuotationCode,
+                    Style = quotation.Booking.DecorService.Style,
                     MaterialCost = quotation.MaterialCost,
                     ConstructionCost = quotation.ConstructionCost,
                     DepositPercentage = quotation.DepositPercentage,
@@ -575,7 +592,13 @@ namespace BusinessLogicLayer.Services
                         Unit = c.Unit,
                         Length = c.Length,
                         Width = c.Width
-                    }).ToList()
+                    }).ToList(),
+
+                    Provider = new ProviderResponse
+                    {
+                        BusinessName = quotation.Booking.DecorService.Account.BusinessName,
+                        Avatar = quotation.Booking.DecorService.Account.Avatar,
+                    },
                 };
 
                 response.Success = true;

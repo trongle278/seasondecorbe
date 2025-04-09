@@ -13,6 +13,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public int BookingId { get; set; }
         public string QuotationCode { get; set; }
+        public string Style { get; set; }
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
         public decimal DepositPercentage { get; set; }
@@ -52,6 +53,7 @@ namespace BusinessLogicLayer.ModelResponse
     {
         public int Id { get; set; }
         public string QuotationCode { get; set; }
+        public string Style { get; set; }
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
         public decimal DepositPercentage { get; set; }
@@ -63,7 +65,16 @@ namespace BusinessLogicLayer.ModelResponse
         public string FilePath { get; set; }
         public List<MaterialDetailResponse> MaterialDetails { get; set; }
         public List<ConstructionDetailResponse> ConstructionDetails { get; set; }
-        //public BookingInfoResponse BookingInfo { get; set; }
+    }
+
+    public class QuotationResponseForCustomer : QuotationResponse 
+    {
+        public ProviderResponse Provider { get; set; }
+    }
+
+    public class QuotationDetailResponseForCustomer : QuotationDetailResponse
+    {
+        public ProviderResponse Provider { get; set; }
     }
 
     public class QuotationResponseForProvider : QuotationResponse
