@@ -369,7 +369,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.Address)
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.ConstructionDetails)
-                    .Include(q => q.Contract); ;
+                    .Include(q => q.Contract);
 
                 // Get paginated data
                 (IEnumerable<Quotation> quotations, int totalCount) =
@@ -457,7 +457,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.Account)
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.ConstructionDetails)
-                    .Include(q => q.Contract); ;
+                    .Include(q => q.Contract);
 
                 // Same pagination logic as customer method
                 (IEnumerable<Quotation> quotations, int totalCount) =
@@ -536,6 +536,7 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.ConstructionDetails)
                     .Include(q => q.Booking) // cần để truy cập AccountId
+                    .Include(q => q.Contract)
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Booking.AccountId == customerId);
 
                 if (quotation == null)
@@ -554,7 +555,7 @@ namespace BusinessLogicLayer.Services
                     QuotationFilePath = quotation.QuotationFilePath,    
                     Status = (int)quotation.Status,
                     IsQuoteExisted = quotation.isQuoteExisted,
-                    IsContractExisted = quotation.Contract.isContractExisted,
+                    IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
                     CreatedAt = quotation.CreatedAt,
 
                     Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
