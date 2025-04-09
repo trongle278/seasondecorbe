@@ -368,7 +368,8 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.Address)
                     .Include(q => q.MaterialDetails)
-                    .Include(q => q.ConstructionDetails);
+                    .Include(q => q.ConstructionDetails)
+                    .Include(q => q.Contract); ;
 
                 // Get paginated data
                 (IEnumerable<Quotation> quotations, int totalCount) =
@@ -393,7 +394,7 @@ namespace BusinessLogicLayer.Services
                     FilePath = q.QuotationFilePath,
                     Status = (int)q.Status,
                     IsQuoteExisted = q.isQuoteExisted,
-                    IsContractExisted = q.Contract.isContractExisted,
+                    IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
                     {
                         MaterialName = m.MaterialName,
@@ -455,7 +456,8 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.Account)
                     .Include(q => q.MaterialDetails)
-                    .Include(q => q.ConstructionDetails);
+                    .Include(q => q.ConstructionDetails)
+                    .Include(q => q.Contract); ;
 
                 // Same pagination logic as customer method
                 (IEnumerable<Quotation> quotations, int totalCount) =
@@ -480,7 +482,7 @@ namespace BusinessLogicLayer.Services
                     CreatedAt = q.CreatedAt,
                     Status = (int)q.Status,
                     IsQuoteExisted = q.isQuoteExisted,
-                    IsContractExisted = q.Contract.isContractExisted,
+                    IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     FilePath = q.QuotationFilePath,
 
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
