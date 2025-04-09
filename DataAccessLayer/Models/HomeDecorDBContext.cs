@@ -71,6 +71,7 @@ namespace DataAccessObject.Models
         public DbSet<TimeSlot> TimeSlots { get; set; }
         public DbSet<CancelType> CancelTypes { get; set; }
         public DbSet<TrackingImage> TrackingImages { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -425,6 +426,11 @@ namespace DataAccessObject.Models
                 .HasOne(q => q.Booking)
                 .WithMany(b => b.Quotations)
                 .HasForeignKey(q => q.BookingId);
+
+            modelBuilder.Entity<Contract>()
+                .HasOne(c => c.Quotation)
+                .WithOne(q => q.Contract)
+                .HasForeignKey<Contract>(c => c.QuotationId);
 
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)

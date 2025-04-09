@@ -10,26 +10,26 @@ namespace DataAccessObject.Models
 {
     public class Contract
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        public string ContractCode { get; set; }
+        public int QuotationId { get; set; }
+        public Quotation Quotation { get; set; }
 
-        // Liên kết với Booking
-        [ForeignKey("Booking")]
-        public int BookingId { get; set; }
-        public virtual Booking Booking { get; set; }
-
-        // Đường dẫn nơi lưu file PDF hợp đồng
-        public string ContractFilePath { get; set; }
-
-        // Ngày hợp đồng được ký (nếu có)
+        public string TermOfUseContent { get; set; }
+        public string? ContractFilePath { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public ContractStatus Status { get; set; }
         public DateTime? SignedDate { get; set; }
+        public string? SignatureToken { get; set; }
+        public DateTime? SignatureTokenGeneratedAt { get; set; }
+        public bool isContractExisted { get; set; }
 
-        // Trạng thái hợp đồng (ví dụ: Pending, Signed, Cancelled)
-        public string Status { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public enum ContractStatus
+        {
+            Pending,
+            Signed,
+            Cancelled
+        }
     }
+
 }

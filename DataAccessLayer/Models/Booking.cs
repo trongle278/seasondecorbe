@@ -16,6 +16,7 @@ namespace DataAccessObject.Models
         public string BookingCode { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal DepositAmount { get; set; }
+        public DateTime? ConstructionDate { get; set; }
         public DateTime CreateAt { get; set; }
         public enum BookingStatus
         {

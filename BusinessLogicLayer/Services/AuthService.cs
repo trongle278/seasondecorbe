@@ -95,7 +95,6 @@ namespace BusinessLogicLayer.Services
                     IsVerified = false,
                     VerificationToken = otp,
                     VerificationTokenExpiry = DateTime.Now.AddMinutes(15),
-                    SubscriptionId = 1,
                     JoinedDate = DateTime.Now,
                     Reputation = 100
                 };
@@ -382,7 +381,6 @@ namespace BusinessLogicLayer.Services
                         ProvinceCode = "",
                         IsVerified = true,
                         RoleId = 3,
-                        SubscriptionId = 1,
                         Slug = GenerateDefaultSlug(),
                         JoinedDate = DateTime.Now,
                         Reputation = 100
