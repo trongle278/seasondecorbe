@@ -486,9 +486,9 @@ namespace BusinessLogicLayer.Services
                 Func<IQueryable<DecorService>, IQueryable<DecorService>> customQuery = query =>
                     query.AsSplitQuery()
                          .Include(ds => ds.DecorCategory)
-                         //.Include(ds => ds.DecorImages)
-                         //.Include(ds => ds.DecorServiceSeasons)
-                         //    .ThenInclude(dss => dss.Season)
+                         .Include(ds => ds.DecorImages)
+                         .Include(ds => ds.DecorServiceSeasons)
+                             .ThenInclude(dss => dss.Season)
                          .Include(ds => ds.FavoriteServices)
                          .Include(ds => ds.Account)
                             .ThenInclude(a => a.Followers)
