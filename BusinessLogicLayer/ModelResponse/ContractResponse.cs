@@ -24,6 +24,7 @@ namespace BusinessLogicLayer.ModelResponse
     public class ContractFileResponse
     {
         public string ContractCode { get; set; }
+        public bool? IsSigned { get; set; }
         public string FileUrl { get; set; }
     }
 }

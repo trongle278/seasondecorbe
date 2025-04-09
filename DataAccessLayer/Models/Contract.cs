@@ -23,12 +23,12 @@ namespace DataAccessObject.Models
         public string? SignatureToken { get; set; }
         public DateTime? SignatureTokenGeneratedAt { get; set; }
         public bool isContractExisted { get; set; }
+        public bool? isSigned { get; set; }
 
         public enum ContractStatus
         {
             Pending,
-            Signed,
-            Cancelled
+            Signed
         }
     }
 

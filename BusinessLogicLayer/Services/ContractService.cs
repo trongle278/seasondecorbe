@@ -110,7 +110,8 @@ namespace BusinessLogicLayer.Services
                     CreatedAt = DateTime.Now,
                     Status = Contract.ContractStatus.Pending,
                     TermOfUseContent = contractContent,
-                    isContractExisted = true
+                    isContractExisted = true,
+                    isSigned = false
                 };
 
                 await _unitOfWork.ContractRepository.InsertAsync(contract);
@@ -275,6 +276,7 @@ namespace BusinessLogicLayer.Services
                 // Cập nhật trạng thái là đã ký
                 contract.Status = Contract.ContractStatus.Signed;
                 contract.SignedDate = DateTime.Now;
+                contract.isSigned = true;
                 contract.SignatureToken = null;
                 contract.SignatureTokenGeneratedAt = null;
 
@@ -337,6 +339,7 @@ namespace BusinessLogicLayer.Services
                 response.Data = new ContractFileResponse
                 {
                     ContractCode = contract.ContractCode,
+                    IsSigned = contract.isSigned,
                     FileUrl = contract.ContractFilePath
                 };
             }
