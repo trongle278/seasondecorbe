@@ -278,11 +278,16 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
 
+                    decimal totalCost = quotation.MaterialCost + quotation.ConstructionCost;
+                    decimal depositAmount = (quotation.DepositPercentage / 100) * totalCost;
+
                     // Tạo BookingDetail mới
                     var bookingDetails = new List<BookingDetail>
             {
-                new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Nguyên liệu", Cost = quotation.MaterialCost },
-                new BookingDetail { BookingId = booking.Id, ServiceItem = "Chi Phí Thi Công", Cost = quotation.ConstructionCost }
+                new BookingDetail { BookingId = booking.Id, ServiceItem = "Materials Cost", Cost = quotation.MaterialCost },
+                new BookingDetail { BookingId = booking.Id, ServiceItem = "Construction Cost", Cost = quotation.ConstructionCost },
+                new BookingDetail { BookingId = booking.Id, ServiceItem = "Deposit (" + quotation.DepositPercentage + "%)", Cost = depositAmount },
+                new BookingDetail { BookingId = booking.Id, ServiceItem = "Total Cost", Cost = totalCost }
             };
 
                     await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
