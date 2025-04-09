@@ -100,6 +100,7 @@ namespace BusinessLogicLayer.Services
                         Id = decorService.Account.Id,
                         BusinessName = decorService.Account.BusinessName,
                         Avatar = decorService.Account.Avatar,
+                        Slug = decorService.Account.Slug,
                         JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
                         FollowersCount = decorService.Account.Followers?.Count ?? 0,
                         FollowingsCount = decorService.Account.Followings?.Count ?? 0
@@ -185,6 +186,7 @@ namespace BusinessLogicLayer.Services
                         Bio = service.Account.Bio,
                         Avatar = service.Account.Avatar,
                         Phone = service.Account.Phone,
+                        Slug = service.Account.Slug,
                         Address = service.Account.BusinessAddress,
                         JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
                         FollowersCount = service.Account.Followers?.Count ?? 0,
