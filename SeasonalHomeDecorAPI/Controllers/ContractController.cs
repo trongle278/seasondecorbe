@@ -48,10 +48,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpGet("getContractFile/{contractCode}")]
-        public async Task<IActionResult> GetContractFile(string contractCode)
+        [HttpGet("getContractFile/{quotationCode}")]
+        public async Task<IActionResult> GetContractFile(string quotationCode)
         {
-            var response = await _contractService.GetContractFileAsync(contractCode);
+            var response = await _contractService.GetContractFileAsync(quotationCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
     }

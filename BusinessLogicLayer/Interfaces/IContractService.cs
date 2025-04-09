@@ -15,7 +15,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<ContractResponse>> CreateContractByQuotationCodeAsync(string quotationCode, ContractRequest request);
         Task<BaseResponse<string>> RequestSignatureAsync(string contractCode);
         Task<BaseResponse<string>> VerifyContractSignatureAsync(string signatureToken);
-        Task<BaseResponse<string>> GetContractFileAsync(string contractCode);
-
+        Task<BaseResponse<string>> GetContractFileAsync(string quotationCode);
     }
 }

@@ -300,19 +300,29 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<string>> GetContractFileAsync(string contractCode)
+        public async Task<BaseResponse<string>> GetContractFileAsync(string quotationCode)
         {
             var response = new BaseResponse<string>();
 
             try
             {
+                var quotation = await _unitOfWork.QuotationRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
 
                 if (contract == null)
                 {
-                    response.Message = "Contract not found.";
+                    response.Message = "Contract not found for this quotation.";
                     return response;
                 }
 
@@ -334,6 +344,7 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
 
 
         #region Template
