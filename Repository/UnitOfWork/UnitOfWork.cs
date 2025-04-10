@@ -55,6 +55,8 @@ namespace Repository.UnitOfWork
             ConstructionDetailRepository = new ConstructionDetailRepository(_context);
             TimeSlotRepository = new TimeSlotRepository(_context);
             ContractRepository = new ContractRepository(_context);
+            SubscriptionRepository = new SubscriptionRepository(_context);
+            VoucherRepository = new VoucherRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -93,10 +95,14 @@ namespace Repository.UnitOfWork
         public IConstructionDetailRepository ConstructionDetailRepository { get; private set; }
         public ITimeSlotRepository TimeSlotRepository { get; private set; }
         public IContractRepository ContractRepository { get; private set; }
+        public ISubscriptionRepository SubscriptionRepository { get; private set; }
+        public IVoucherRepository VoucherRepository { get; private set; }
+
         public void Dispose()
         {
             _context.Dispose();
         }
+
         public async Task CommitAsync()
             => await _context.SaveChangesAsync();
 

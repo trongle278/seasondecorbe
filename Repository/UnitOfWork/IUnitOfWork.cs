@@ -46,6 +46,8 @@ namespace Repository.UnitOfWork
         IConstructionDetailRepository ConstructionDetailRepository { get; }
         ITimeSlotRepository TimeSlotRepository { get; }
         IContractRepository ContractRepository { get; }
+        ISubscriptionRepository SubscriptionRepository { get; }
+        IVoucherRepository VoucherRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

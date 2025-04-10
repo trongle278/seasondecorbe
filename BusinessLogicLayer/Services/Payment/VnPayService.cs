@@ -19,16 +19,19 @@ namespace KCP.Service.Service.Pay
 
         public static string VNPay(HttpContext context, VnPayRequest vnPayRequest)
         {
-            string vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve 
+            //string vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve
+            string vnp_Returnurl = $"https://season-decor.somee.com/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; //URL thanh toan cua VNPAY 
             string vnp_TmnCode = "ULVE3NUK"; //Ma định danh merchant kết nối (Terminal Id)
             string vnp_HashSecret = "REFWL616A23MJOFK118BV7GA6FBS0609"; //Secret Key
+
+            TimeZoneInfo vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
             //Get payment input
             var OrderId = DateTime.Now.Ticks; // Giả lập mã giao dịch hệ thống merchant gửi sang VNPAY
             var Amount = 100000; // Giả lập số tiền thanh toán hệ thống merchant gửi sang VNPAY 100,000 VND
             var Status = "0"; //0: Trạng thái thanh toán "chờ thanh toán" hoặc "Pending" khởi tạo giao dịch chưa có IPN
-            var CreatedDate = DateTime.Now;
+            var CreatedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
             //Save order to db
 
             //Build URL for VNPAY

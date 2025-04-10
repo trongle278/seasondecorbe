@@ -14,7 +14,7 @@ namespace DataAccessObject.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Name { get; set; }
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         public int Duration { get; set; } = 30;
         public bool AutoRenew { get; set; }
         public int VoucherCount { get; set; }

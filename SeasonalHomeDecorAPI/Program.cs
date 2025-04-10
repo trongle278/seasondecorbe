@@ -261,6 +261,8 @@ app.UseCors("AllowAll");
 app.UseAuthentication();    // Authentication
 app.UseAuthorization();     // Authorization
 
+app.UseWebSockets();
+
 // Map SignalR hub
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
