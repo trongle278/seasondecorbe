@@ -832,7 +832,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("QuotationId");
 
-                    b.ToTable("ConstructionDetails");
+                    b.ToTable("LaborDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.MaterialDetail", b =>
