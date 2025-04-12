@@ -52,7 +52,7 @@ namespace Repository.UnitOfWork
             TrackingRepository = new TrackingRepository(_context);
             QuotationRepository = new QuotationRepository(_context);
             MaterialDetailRepository = new MaterialDetailRepository(_context);
-            ConstructionDetailRepository = new ConstructionDetailRepository(_context);
+            LaborDetailRepository = new LaborDetailRepository(_context);
             TimeSlotRepository = new TimeSlotRepository(_context);
             ContractRepository = new ContractRepository(_context);
             SubscriptionRepository = new SubscriptionRepository(_context);
@@ -92,7 +92,7 @@ namespace Repository.UnitOfWork
         public ITrackingRepository TrackingRepository { get; private set; }
         public IQuotationRepository QuotationRepository { get; private set; }
         public IMaterialDetailRepository MaterialDetailRepository { get; private set; }
-        public IConstructionDetailRepository ConstructionDetailRepository { get; private set; }
+        public ILaborDetailRepository LaborDetailRepository { get; private set; }
         public ITimeSlotRepository TimeSlotRepository { get; private set; }
         public IContractRepository ContractRepository { get; private set; }
         public ISubscriptionRepository SubscriptionRepository { get; private set; }

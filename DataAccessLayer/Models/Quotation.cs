@@ -32,6 +32,6 @@ namespace DataAccessObject.Models
         public bool isQuoteExisted { get; set; }
         public Contract? Contract { get; set; }
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
-        public virtual ICollection<ConstructionDetail> ConstructionDetails { get; set; }
+        public virtual ICollection<LaborDetail> LaborDetails { get; set; }
     }
 }

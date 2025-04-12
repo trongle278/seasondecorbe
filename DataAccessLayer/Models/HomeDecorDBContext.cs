@@ -67,7 +67,7 @@ namespace DataAccessObject.Models
         public DbSet<BookingDetail> BookingDetails { get; set; }
         public DbSet<Tracking> Trackings { get; set; }
         public DbSet<MaterialDetail> MaterialDetails { get; set; }
-        public DbSet<ConstructionDetail> ConstructionDetails { get; set; }
+        public DbSet<LaborDetail> LaborDetails { get; set; }
         public DbSet<TimeSlot> TimeSlots { get; set; }
         public DbSet<CancelType> CancelTypes { get; set; }
         public DbSet<TrackingImage> TrackingImages { get; set; }
@@ -410,9 +410,9 @@ namespace DataAccessObject.Models
                 .HasForeignKey(md => md.QuotationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<ConstructionDetail>()
+            modelBuilder.Entity<LaborDetail>()
                 .HasOne(cd => cd.Quotation)
-                .WithMany(q => q.ConstructionDetails)
+                .WithMany(q => q.LaborDetails)
                 .HasForeignKey(cd => cd.QuotationId)
                 .OnDelete(DeleteBehavior.Cascade);
 

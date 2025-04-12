@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class ConstructionDetail
+    public class LaborDetail
     {
         [Key]
         public int Id { get; set; }
@@ -20,7 +20,6 @@ namespace DataAccessObject.Models
         public string TaskName { get; set; } // Ví dụ: "Sơn tường", "Lắp đặt đèn"
         public decimal Cost { get; set; } // Chi phí nhân công cho hạng mục này
         public string Unit { get; set; } // Đơn vị tính (m2, cái, ...)
-        public decimal? Length { get; set; }
-        public decimal? Width { get; set; }
+        public decimal? Area { get; set; }
     }
 }

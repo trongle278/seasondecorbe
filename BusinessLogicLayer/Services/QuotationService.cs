@@ -68,7 +68,7 @@ namespace BusinessLogicLayer.Services
                 // Tính toán chi phí
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
                 decimal totalConstructionCost = request.ConstructionTasks.Sum(c =>
-                    c.Unit == "m2" ? (c.Cost * ((c.Length ?? 0m) * (c.Width ?? 0m))) : c.Cost);
+                    c.Unit == "m2" ? (c.Cost * ((c.Area ?? 0m))) : c.Cost);
 
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
 
@@ -99,17 +99,16 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
 
                 // Thêm chi tiết công trình
-                var constructionDetails = request.ConstructionTasks.Select(c => new ConstructionDetail
+                var constructionDetails = request.ConstructionTasks.Select(c => new LaborDetail
                 {
                     QuotationId = quotation.Id,
                     TaskName = c.TaskName,
                     Cost = c.Cost,
                     Unit = c.Unit,
-                    Length = c.Length,
-                    Width = c.Width
+                    Area = c.Area
                 }).ToList();
 
-                await _unitOfWork.ConstructionDetailRepository.InsertRangeAsync(constructionDetails);
+                await _unitOfWork.LaborDetailRepository.InsertRangeAsync(constructionDetails);
                 quotation.isQuoteExisted = true;
                 await _unitOfWork.CommitAsync();
 
@@ -332,13 +331,13 @@ namespace BusinessLogicLayer.Services
             }
 
             // Xóa construction details
-            var constructionDetails = await _unitOfWork.ConstructionDetailRepository.Queryable()
+            var constructionDetails = await _unitOfWork.LaborDetailRepository.Queryable()
                 .Where(c => c.QuotationId == quotationId)
                 .ToListAsync();
 
             if (constructionDetails.Any())
             {
-                _unitOfWork.ConstructionDetailRepository.RemoveRange(constructionDetails);
+                _unitOfWork.LaborDetailRepository.RemoveRange(constructionDetails);
             }
         }
 
@@ -371,7 +370,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.DecorService)
                             .ThenInclude(ds => ds.Account)
                     .Include(q => q.MaterialDetails)
-                    .Include(q => q.ConstructionDetails)
+                    .Include(q => q.LaborDetails)
                     .Include(q => q.Contract);
 
                 // Get paginated data
@@ -409,13 +408,12 @@ namespace BusinessLogicLayer.Services
                         //Category = m.Category
                     }).ToList(),
 
-                    ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    ConstructionDetails = q.LaborDetails.Select(c => new ConstructionDetailResponse
                     {
                         TaskName = c.TaskName,
                         Cost = c.Cost,
                         Unit = c.Unit,
-                        Length = c.Length,
-                        Width = c.Width
+                        Area = c.Area
                     }).ToList(),
 
                     Provider = new ProviderResponse
@@ -471,7 +469,7 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.DecorService)
                     .Include(q => q.MaterialDetails)
-                    .Include(q => q.ConstructionDetails)
+                    .Include(q => q.LaborDetails)
                     .Include(q => q.Contract);
 
                 // Same pagination logic as customer method
@@ -510,13 +508,12 @@ namespace BusinessLogicLayer.Services
                         //Category = m.Category
                     }).ToList(),
                     
-                    ConstructionDetails = q.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    ConstructionDetails = q.LaborDetails.Select(c => new ConstructionDetailResponse
                     {
                         TaskName = c.TaskName,
                         Cost = c.Cost,
                         Unit = c.Unit,
-                        Length = c.Length,
-                        Width = c.Width
+                        Area = c.Area
                     }).ToList(),
                     Customer = new CustomerResponse
                     {
@@ -551,7 +548,7 @@ namespace BusinessLogicLayer.Services
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.MaterialDetails)
-                    .Include(q => q.ConstructionDetails)
+                    .Include(q => q.LaborDetails)
                     .Include(q => q.Booking)// cần để truy cập AccountId
                         .ThenInclude(b => b.DecorService).ThenInclude(ds => ds.Account)
                     .Include(q => q.Contract)
@@ -585,13 +582,12 @@ namespace BusinessLogicLayer.Services
                         Cost = m.Cost
                     }).ToList(),
 
-                    ConstructionTasks = quotation.ConstructionDetails.Select(c => new ConstructionDetailResponse
+                    ConstructionTasks = quotation.LaborDetails.Select(c => new ConstructionDetailResponse
                     {
                         TaskName = c.TaskName,
                         Cost = c.Cost,
                         Unit = c.Unit,
-                        Length = c.Length,
-                        Width = c.Width
+                        Area = c.Area
                     }).ToList(),
 
                     Provider = new ProviderResponse

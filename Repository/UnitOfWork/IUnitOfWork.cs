@@ -43,7 +43,7 @@ namespace Repository.UnitOfWork
         ITrackingRepository TrackingRepository { get; }
         IQuotationRepository QuotationRepository { get; }
         IMaterialDetailRepository MaterialDetailRepository { get; }
-        IConstructionDetailRepository ConstructionDetailRepository { get; }
+        ILaborDetailRepository LaborDetailRepository { get; }
         ITimeSlotRepository TimeSlotRepository { get; }
         IContractRepository ContractRepository { get; }
         ISubscriptionRepository SubscriptionRepository { get; }

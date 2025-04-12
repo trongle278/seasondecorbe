@@ -68,8 +68,7 @@ namespace BusinessLogicLayer.ModelRequest
         public decimal Cost { get; set; }
         public string Unit { get; set; }
         // Chỉ áp dụng khi đơn vị là "m²"
-        public decimal? Length { get; set; }
-        public decimal? Width { get; set; }
+        public decimal? Area { get; set; }
     }
 
     public class UpdateTrackingRequest

@@ -45,8 +45,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string TaskName { get; set; }
         public decimal Cost { get; set; }
         public string Unit { get; set; }
-        public decimal? Length { get; set; }
-        public decimal? Width { get; set; }
+        public decimal? Area { get; set; }
     }
 
     public class QuotationResponse

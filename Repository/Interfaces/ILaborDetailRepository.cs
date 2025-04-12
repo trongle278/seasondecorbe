@@ -8,7 +8,7 @@ using Repository.GenericRepository;
 
 namespace Repository.Interfaces
 {
-    public interface IConstructionDetailRepository : IGenericRepository<ConstructionDetail>
+    public interface ILaborDetailRepository : IGenericRepository<LaborDetail>
     {
     }
 }
