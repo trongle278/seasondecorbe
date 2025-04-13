@@ -17,6 +17,8 @@ using iText.Layout.Element;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
 using static DataAccessObject.Models.Booking;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace BusinessLogicLayer.Services
 {
@@ -69,6 +71,8 @@ namespace BusinessLogicLayer.Services
                             .ThenInclude(ds => ds.Account)
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.TimeSlots)
+                    .Include(q => q.LaborDetails)//thêm data vào pdf
+                    .Include(q => q.MaterialDetails)//thêm data vào pdf
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
 
                 if (quotation == null)
@@ -364,67 +368,97 @@ namespace BusinessLogicLayer.Services
             {
                 throw new Exception("Invalid quotation data. Customer or provider information is missing.");
             }
+
             return
         $@"
-1. PARTY INFORMATION
+1. PARTY INFORMATION:
    - Party A (Customer):
      + Full Name: {customer.LastName} {customer.FirstName}
      + Email: {customer.Email}
      + Phone Number: {customer.Phone}
 
-
    - Party B (Service Provider):
      + Service Name: {decorService?.Style}
-     + Responsible Person: {provider?.LastName} {provider?.FirstName}
+     + Representative: {provider?.LastName} {provider?.FirstName}
      + Contact Email: {provider?.Email}
      + Phone Number: {provider?.Phone}
 
-After agreeing on the quotation, the two parties enter into a construction contract with the following terms:
+After reaching an agreement on the quotation, the two parties enter into a construction contract with the following terms:
 
-2. SERVICE DETAILS
-   - Party B shall provide decoration services as requested by Party A at the address: {quotation.Booking.Address}
-   * The scope of work includes (from quotation):
-   {string.Join("\n", quotation.LaborDetails.Select((t, i) =>
-    $"     {i + 1}. {t.TaskName} - Unit: {t.Unit}" +
-    (t.Area.HasValue ? $" - Area: {t.Area} m²" : "") +
-    $" - Cost: {t.Cost:N0} VND"))}
+2. SERVICE DETAILS:
+   - Party B shall provide decoration services requested by Party A at the following address: {quotation.Booking.Address}
 
-   * The materials to be used in the project include:
-    {string.Join("\n", quotation.MaterialDetails.Select((m, i) =>
-    $"     {i + 1}. {m.MaterialName} - Quantity: {m.Quantity} - Category: {m.Category} - Unit Cost: {m.Cost:N0} VND"))}
+   * Scope of Work: Party B will carry out the following tasks:
 
-3. IMPLEMENTATION TIME
+
+   {(quotation.LaborDetails != null && quotation.LaborDetails.Any()
+            ? string.Join("\n", quotation.LaborDetails.Select((t, i) =>
+              $"     {i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.TaskName.ToLower())}:" +
+              $"{(t.Area.HasValue ? $" Area: {t.Area} sqm" : "")}" +
+              $" - Unit: {t.Unit}"))
+            : "     (No work items specified)")}
+
+   * Materials Used in the Project:
+
+
+   {(quotation.MaterialDetails != null && quotation.MaterialDetails.Any()
+            ? string.Join("\n", quotation.MaterialDetails.Select((m, i) =>
+              $"     {i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(m.MaterialName.ToLower())}:" +
+              $" - Quantity: {m.Quantity}"))
+            : "     (No materials specified)")}
+
+3. IMPLEMENTATION TIME:
    - Start Date: {quotation.Booking.ConstructionDate:dd/MM/yyyy}
-   - Expected Completion according to the request of customer: {quotation.Booking.ExpectedCompletion}
+   - Estimated Completion as per customer’s request: {quotation.Booking.ExpectedCompletion}
 
-4. COST AND PAYMENT
-   - Total Cost: {(quotation.MaterialCost + quotation.ConstructionCost):N0} VND
-   - Deposit ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.MaterialCost + quotation.ConstructionCost):N0} VND
-   - Final Payment: Remaining balance upon project completion
+4. COST AND PAYMENT: (Via platform wallet)
+   - Total Cost (includes materials, labor, and any additional costs): {(quotation.MaterialCost + quotation.ConstructionCost):N0} VND
+   - Deposit from Party A to Party B ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.MaterialCost + quotation.ConstructionCost):N0} VND
+   - Remaining Balance: Payable upon project completion
    {(quotation.Booking.AdditionalCost.HasValue ? $"- Additional Charges: {quotation.Booking.AdditionalCost:N0} VND (based on extra requests)" : "")}
 
-5. Responsibilities of the Parties
-   * Responsibilities of Party A:
-   - Provide necessary information, make payments on time, and cooperate during the construction process.
+5. FORCE MAJEURE:
+   - Force majeure refers to unforeseen events beyond the control of the parties and cannot be prevented despite all necessary measures.
+   - These include natural disasters (storms, floods, earthquakes, fires), war, terrorism, public unrest, strikes, transportation paralysis, government orders or legal changes beyond the control of the parties.
+   - In such events, the affected party shall not be liable for breach of contract.
+   - The affected party must promptly notify the other party to seek remedies and minimize damage.
+   - If the contract becomes impossible to perform, both parties shall negotiate solutions before contract termination.
+   - The implementation timeline shall be extended in accordance with the duration and consequences of the force majeure event.
 
-   * Responsibilities of Party B:
-   - Ensure the construction progress and handover as requested by Party A.
-   - Prepare necessary tools and equipment for the job.
-   - Take care of their own meals, water, medicine, and workers’ health.
-   - Ensure occupational safety during construction.
-   - Maintain overall hygiene.
-   - Provide warranty for the completed work. The warranty includes fixing or repairing abnormal errors caused by Party B.
+6. RIGHTS AND OBLIGATIONS OF THE PARTIES:
+   * Party A:
+     - Provide all necessary documents and site access.
+     - Coordinate and resolve arising issues during design and construction phases.
+     - Make payments to Party B in accordance with the contract.
 
-6. MODIFICATIONS & ADDITIONAL REQUESTS
+   * Party B:
+     - Ensure progress and timely handover of the project as agreed.
+     - Coordinate with Party A and deliver approved services.
+     - Provide all tools and equipment for execution.
+     - Be responsible for workers’ meals, water, medication, and health.
+     - Ensure the quality of provided materials.
+     - Maintain occupational safety during construction.
+     - Keep confidentiality of all related documents unless approved by Party A.
+     - Correct all errors resulting from Party B’s design responsibility.
+     - Maintain site cleanliness.
+     - If Party A requests design changes after quotation approval, Party A shall bear additional costs accordingly.
+     - The modification time is included in the contract period as agreed.
+     - Provide warranty for completed work.
+     - Assign Mr./Ms. {provider?.LastName} {provider?.FirstName} (Service Representative, Phone: {provider?.Phone}) as the point of contact with Party A.
 
-   - New requests must be agreed via chat
-   - They will be listed as appendix with cost and time impact
+7. MODIFICATIONS & ADDITIONAL REQUESTS:
+   - All new requests must be agreed via the chat system.
+   - They will be appended as a contract appendix with cost and time adjustments accordingly.
 
-7. GENERAL TERMS
-   - This contract is effective from the date of signing.
-   - Both parties commit to fully complying with the contract terms.
-   - Any disputes will be resolved through negotiation, or legal proceedings if necessary.";}
-        
+8. GENERAL TERMS:
+   - The contract is effective from the signing date until both parties complete the handover and liquidation.
+   - In the event of a dispute, both parties shall negotiate first before considering legal actions.
+   - Party B is responsible for providing all necessary documentation related to the project and will be held liable if insufficient.
+   - Party A agrees not to use the documents provided by Party B for other purposes outside the scope of this contract.
+   - Both parties commit to fully implementing the terms and conditions of this contract.";
+        }
+
+
         private string GenerateSignatureEmailContent(string contractCode, string token)
         {
             var verifyUrl = $"https://example.com/verify-signature?token={Uri.EscapeDataString(token)}";
@@ -473,64 +507,70 @@ Home Seasonal Decoration System
             try
             {
                 using var memoryStream = new MemoryStream();
-
-                var writerProperties = new WriterProperties();
-                using var writer = new PdfWriter(memoryStream, writerProperties);
-                using var pdf = new PdfDocument(writer);
-                using var document = new Document(pdf);
+                var writer = new PdfWriter(memoryStream);
+                var pdf = new PdfDocument(writer);
+                var document = new Document(pdf);
 
                 var regularFont = PdfFontFactory.CreateFont(StandardFonts.TIMES_ROMAN);
                 var boldFont = PdfFontFactory.CreateFont(StandardFonts.TIMES_BOLD);
 
-                // Tiêu đề hợp đồng (Căn giữa)
+                // Tiêu đề chính
                 document.Add(new Paragraph("SEASONAL HOME DECORATION SERVICE CONTRACT")
                     .SetFont(boldFont)
                     .SetFontSize(13)
                     .SetTextAlignment(TextAlignment.CENTER)
                     .SetMarginBottom(10));
 
-                // Ngày ký (Căn phải)
                 document.Add(new Paragraph($"Date: {DateTime.Now:dd/MM/yyyy}")
-                    .SetFont(regularFont)
-                    .SetFontSize(8)
-                    .SetTextAlignment(TextAlignment.RIGHT)
-                    .SetMarginBottom(10));
+                   .SetFont(regularFont)
+                   .SetFontSize(8)
+                   .SetTextAlignment(TextAlignment.RIGHT)
+                   .SetMarginBottom(10));
 
-                // Phân tích nội dung hợp đồng theo từng dòng
+                // Xử lý nội dung
                 var lines = termOfUseContent.Split('\n');
+                bool isServiceDetailsSection = false;
 
-                foreach (var rawLine in lines)
+                foreach (var line in lines)
                 {
-                    var line = rawLine.Trim();
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
                     Paragraph para;
 
-                    if (line.StartsWith("1.") || line.StartsWith("2.") || line.StartsWith("3.") ||
-                        line.StartsWith("4.") || line.StartsWith("5.") || line.StartsWith("6.") || line.StartsWith("7."))
+                    // Xác định section hiện tại
+                    if (line.StartsWith("2. SERVICE DETAILS:"))
+                    {
+                        isServiceDetailsSection = true;
+                    }
+                    else if (line.StartsWith("3. IMPLEMENTATION TIME:"))
+                    {
+                        isServiceDetailsSection = false;
+                    }
+
+                    // Xử lý format theo từng loại nội dung
+                    if (Regex.IsMatch(line, @"^\d+\.\s[A-Z]")) // Tiêu đề chính (1., 2., 3.)
                     {
                         para = new Paragraph(line)
                             .SetFont(boldFont)
-                            .SetFontSize(10)
-                            .SetTextAlignment(TextAlignment.LEFT)
-                            .SetMarginTop(7)
-                            .SetMarginBottom(3);
+                            .SetFontSize(12);
                     }
-                    else if (line.StartsWith("-") || line.StartsWith("+") || line.StartsWith("•"))
+                    else if (isServiceDetailsSection && Regex.IsMatch(line, @"^\s+\d+\.")) // Mục con trong SERVICE DETAILS
+                    {
+                        para = new Paragraph(line)
+                            .SetFont(regularFont) // QUAN TRỌNG: Đặt regularFont ở đây
+                            .SetFontSize(10);
+                    }
+                    else if (line.StartsWith("   *") || line.StartsWith("   -")) // Các bullet points
                     {
                         para = new Paragraph(line)
                             .SetFont(regularFont)
-                            .SetFontSize(10)
-                            .SetTextAlignment(TextAlignment.LEFT)
-                            .SetMarginBottom(2);
+                            .SetFontSize(10);
                     }
-                    else
+                    else // Nội dung thông thường
                     {
                         para = new Paragraph(line)
                             .SetFont(regularFont)
-                            .SetFontSize(10)
-                            .SetTextAlignment(TextAlignment.JUSTIFIED)
-                            .SetMarginBottom(4);
+                            .SetFontSize(10);
                     }
 
                     document.Add(para);
@@ -542,9 +582,10 @@ Home Seasonal Decoration System
             catch (Exception ex)
             {
                 Console.WriteLine($"PDF Generation Error: {ex}");
-                throw new Exception("Failed to generate PDF document", ex);
+                throw;
             }
         }
+
         #endregion
     }
 }

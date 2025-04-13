@@ -22,7 +22,6 @@ namespace BusinessLogicLayer.ModelRequest
 
         public string? Note { get; set; }
         public string? ExpectedCompletion { get; set; }
-        public decimal? AdditionalCost { get; set; }
     }
 
     public class UpdateBookingRequest

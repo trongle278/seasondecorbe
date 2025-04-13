@@ -609,6 +609,7 @@ namespace BusinessLogicLayer.Services
                     AddressId = request.AddressId,
                     DecorServiceId = request.DecorServiceId,
                     Status = BookingStatus.Pending,
+                    ExpectedCompletion = request.ExpectedCompletion,
                     CreateAt = DateTime.Now
                 };
 
