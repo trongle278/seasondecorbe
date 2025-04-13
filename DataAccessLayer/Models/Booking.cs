@@ -17,6 +17,11 @@ namespace DataAccessObject.Models
         public string? Note { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal DepositAmount { get; set; }
+        /// <summary>
+        /// Chi phí phát sinh riêng cho yêu cầu này (nếu có)
+        /// </summary>
+        public decimal? AdditionalCost { get; set; }
+        public string ExpectedCompletion { get; set; }
         public DateTime? ConstructionDate { get; set; }
         public DateTime CreateAt { get; set; }
         public enum BookingStatus
@@ -64,8 +69,5 @@ namespace DataAccessObject.Models
 
         public string? CancelReason { get; set; }
         public string? RejectReason { get; set; } // Lưu lý do reject
-
-        //public int ContractId { get; set; }
-        //public Contract Contract { get; set; }
     }
 }

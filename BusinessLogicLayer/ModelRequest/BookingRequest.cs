@@ -19,6 +19,19 @@ namespace BusinessLogicLayer.ModelRequest
         public int AddressId { get; set; }
         [DefaultValue("2025-04-30")]
         public DateTime SurveyDate { get; set; } // Ngày khảo sát
+
+        public string? Note { get; set; }
+        public string? ExpectedCompletion { get; set; }
+        public decimal? AdditionalCost { get; set; }
+    }
+
+    public class UpdateBookingRequest
+    {
+        public int? DecorServiceId { get; set; }
+        public int? AddressId { get; set; }
+        public DateTime? SurveyDate { get; set; }
+        public string? Note { get; set; }
+        public string? ExpectedCompletion { get; set; }
     }
 
     /// <summary>

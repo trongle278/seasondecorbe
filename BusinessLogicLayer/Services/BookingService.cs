@@ -637,6 +637,85 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse> UpdateBookingRequestAsync(string bookingCode, UpdateBookingRequest request, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .Include(b => b.TimeSlots)
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.AccountId == accountId);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found or access denied.";
+                    return response;
+                }
+
+                if (booking.Status != BookingStatus.Pending)
+                {
+                    response.Message = "Only bookings in 'Pending' status can be updated.";
+                    return response;
+                }
+
+                // Ghi chú yêu cầu
+                if (!string.IsNullOrWhiteSpace(request.Note))
+                    booking.Note = request.Note;
+
+                // Thời gian hoàn thành dự kiến
+                if (!string.IsNullOrWhiteSpace(request.ExpectedCompletion))
+                    booking.ExpectedCompletion = request.ExpectedCompletion;
+
+                // Cập nhật địa chỉ
+                if (request.AddressId.HasValue)
+                {
+                    var address = await _unitOfWork.AddressRepository.GetByIdAsync(request.AddressId.Value);
+                    if (address == null || address.AccountId != accountId || address.IsDelete)
+                    {
+                        response.Message = "Invalid address.";
+                        return response;
+                    }
+                    booking.AddressId = request.AddressId.Value;
+                }
+
+                // Cập nhật dịch vụ
+                if (request.DecorServiceId.HasValue)
+                {
+                    var newService = await _unitOfWork.DecorServiceRepository.GetByIdAsync(request.DecorServiceId.Value);
+                    if (newService == null || newService.Status != DecorService.DecorServiceStatus.Available)
+                    {
+                        response.Message = "Invalid or unavailable decor service.";
+                        return response;
+                    }
+                    booking.DecorServiceId = request.DecorServiceId.Value;
+                }
+
+                // Cập nhật ngày khảo sát
+                if (request.SurveyDate.HasValue)
+                {
+                    var slot = booking.TimeSlots.FirstOrDefault();
+                    if (slot != null)
+                    {
+                        slot.SurveyDate = request.SurveyDate.Value;
+                        _unitOfWork.TimeSlotRepository.Update(slot);
+                    }
+                }
+
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Booking updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to update booking.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
         public async Task<BaseResponse<bool>> ChangeBookingStatusAsync(string bookingCode)
         {
             var response = new BaseResponse<bool>();

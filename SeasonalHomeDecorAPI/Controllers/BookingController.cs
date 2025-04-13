@@ -51,6 +51,14 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpPut("updateBookingRequest/{bookingCode}")]
+        public async Task<IActionResult> UpdateBookingRequest(string bookingCode, [FromBody] UpdateBookingRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _bookingService.UpdateBookingRequestAsync(bookingCode, request, accountId);
+            return Ok(result);
+        }
+
         [HttpGet("getPendingCancellations")]
         public async Task<IActionResult> GetPendingCancellationBookingsForProvider()
         {

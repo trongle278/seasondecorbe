@@ -8,8 +8,8 @@
             "ASPNETCORE_ENVIRONMENT": "Development"
         },
         "dotnetRunMessages": true,
-        //"applicationUrl": "http://localhost:5297",
-        "applicationUrl": "https://season-decor.somee.com"
+        "applicationUrl": "http://localhost:5297"
+        //"applicationUrl": "https://season-decor.somee.com"
     },
     "IIS Express": {
       "commandName": "IISExpress",

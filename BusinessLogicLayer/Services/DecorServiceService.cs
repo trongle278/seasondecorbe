@@ -549,6 +549,118 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListForCustomerAsync(DecorServiceFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<DecorServiceDTO>>();
+            try
+            {
+                // 1. Build filter expression (giống GetFilterDecorServicesAsync nhưng không cần accountId)
+                Expression<Func<DecorService, bool>> filter = ds =>
+                    ds.IsDeleted == false &&
+                    ds.StartDate <= DateTime.Now &&
+                    ds.Status == DecorService.DecorServiceStatus.Available &&
+                    (string.IsNullOrEmpty(request.Style) || ds.Style.Contains(request.Style)) &&
+                    (string.IsNullOrEmpty(request.Sublocation) || ds.Sublocation.Contains(request.Sublocation)) &&
+                    (!request.DecorCategoryId.HasValue || ds.DecorCategoryId == request.DecorCategoryId.Value) &&
+                    (!request.MinPrice.HasValue || ds.BasePrice >= request.MinPrice.Value) &&
+                    (!request.MaxPrice.HasValue || ds.BasePrice <= request.MaxPrice.Value);
+
+                if (request.SeasonIds != null && request.SeasonIds.Any())
+                {
+                    filter = filter.And(ds =>
+                        ds.DecorServiceSeasons.Any(dss => request.SeasonIds.Contains(dss.SeasonId))
+                    );
+                }
+
+                // 2. Sorting config
+                Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
+                {
+                    "Style" => ds => ds.Style,
+                    "Sublocation" => ds => ds.Sublocation,
+                    "CreateAt" => ds => ds.CreateAt,
+                    "BasePrice" => ds => ds.BasePrice,
+                    "Favorite" => ds => ds.FavoriteServices.Count,
+                    _ => ds => ds.CreateAt
+                };
+
+                // 3. Include relationships
+                Func<IQueryable<DecorService>, IQueryable<DecorService>> customQuery = query =>
+                    query.AsSplitQuery()
+                         .Include(ds => ds.DecorCategory)
+                         .Include(ds => ds.DecorImages)
+                         .Include(ds => ds.DecorServiceSeasons)
+                             .ThenInclude(dss => dss.Season)
+                         .Include(ds => ds.FavoriteServices)
+                         .Include(ds => ds.Account)
+                            .ThenInclude(a => a.Followers)
+                         .Include(ds => ds.Account)
+                            .ThenInclude(a => a.Followings);
+
+                // 4. Get paginated data
+                (var services, int totalCount) = await _unitOfWork.DecorServiceRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    null,
+                    customQuery
+                );
+
+                // 5. Mapping to DTOs
+                var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
+
+                for (int i = 0; i < services.Count(); i++)
+                {
+                    var service = services.ElementAt(i);
+                    dtos[i].CategoryName = service.DecorCategory.CategoryName;
+                    dtos[i].FavoriteCount = service.FavoriteServices.Count;
+
+                    dtos[i].Images = service.DecorImages.Select(img => new DecorImageResponse
+                    {
+                        Id = img.Id,
+                        ImageURL = img.ImageURL
+                    }).ToList();
+
+                    dtos[i].Seasons = service.DecorServiceSeasons.Select(dss => new SeasonResponse
+                    {
+                        Id = dss.Season.Id,
+                        SeasonName = dss.Season.SeasonName
+                    }).ToList();
+
+                    dtos[i].Provider = new ProviderResponse
+                    {
+                        Id = service.Account.Id,
+                        BusinessName = service.Account.BusinessName,
+                        Bio = service.Account.Bio,
+                        Avatar = service.Account.Avatar,
+                        Phone = service.Account.Phone,
+                        Address = service.Account.BusinessAddress,
+                        Slug = service.Account.Slug,
+                        JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = service.Account.Followers?.Count ?? 0,
+                        FollowingsCount = service.Account.Followings?.Count ?? 0
+                    };
+                }
+
+                response.Data = new PageResult<DecorServiceDTO>
+                {
+                    Data = dtos,
+                    TotalCount = totalCount
+                };
+                response.Success = true;
+                response.Message = "Services retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving services";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
         public async Task<BaseResponse> CreateDecorServiceAsync(CreateDecorServiceRequest request, int accountId)
         {
             var response = new BaseResponse();

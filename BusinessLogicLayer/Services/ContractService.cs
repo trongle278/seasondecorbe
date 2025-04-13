@@ -353,10 +353,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
-
         #region Template
-
         private string GenerateTermOfUseContent(Quotation quotation)
         {
             var customer = quotation.Booking.Account;
@@ -367,10 +364,9 @@ namespace BusinessLogicLayer.Services
             {
                 throw new Exception("Invalid quotation data. Customer or provider information is missing.");
             }
-
             return
         $@"
-1. Party Information
+1. PARTY INFORMATION
    - Party A (Customer):
      + Full Name: {customer.LastName} {customer.FirstName}
      + Email: {customer.Email}
@@ -385,16 +381,27 @@ namespace BusinessLogicLayer.Services
 
 After agreeing on the quotation, the two parties enter into a construction contract with the following terms:
 
-2. Service Details
+2. SERVICE DETAILS
    - Party B shall provide decoration services as requested by Party A at the address: {quotation.Booking.Address}
+   * The scope of work includes (from quotation):
+   {string.Join("\n", quotation.LaborDetails.Select((t, i) =>
+    $"     {i + 1}. {t.TaskName} - Unit: {t.Unit}" +
+    (t.Area.HasValue ? $" - Area: {t.Area} m²" : "") +
+    $" - Cost: {t.Cost:N0} VND"))}
 
-3. Implementation Time
+   * The materials to be used in the project include:
+    {string.Join("\n", quotation.MaterialDetails.Select((m, i) =>
+    $"     {i + 1}. {m.MaterialName} - Quantity: {m.Quantity} - Category: {m.Category} - Unit Cost: {m.Cost:N0} VND"))}
+
+3. IMPLEMENTATION TIME
    - Start Date: {quotation.Booking.ConstructionDate:dd/MM/yyyy}
-   - Expected Completion: 3 - 5 working days
+   - Expected Completion according to the request of customer: {quotation.Booking.ExpectedCompletion}
 
-4. Cost and Payment
+4. COST AND PAYMENT
    - Total Cost: {(quotation.MaterialCost + quotation.ConstructionCost):N0} VND
    - Deposit ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.MaterialCost + quotation.ConstructionCost):N0} VND
+   - Final Payment: Remaining balance upon project completion
+   {(quotation.Booking.AdditionalCost.HasValue ? $"- Additional Charges: {quotation.Booking.AdditionalCost:N0} VND (based on extra requests)" : "")}
 
 5. Responsibilities of the Parties
    * Responsibilities of Party A:
@@ -408,12 +415,16 @@ After agreeing on the quotation, the two parties enter into a construction contr
    - Maintain overall hygiene.
    - Provide warranty for the completed work. The warranty includes fixing or repairing abnormal errors caused by Party B.
 
-6. General Terms
+6. MODIFICATIONS & ADDITIONAL REQUESTS
+
+   - New requests must be agreed via chat
+   - They will be listed as appendix with cost and time impact
+
+7. GENERAL TERMS
    - This contract is effective from the date of signing.
    - Both parties commit to fully complying with the contract terms.
-   - Any disputes will be resolved through negotiation, or legal proceedings if necessary.";
-        }
-
+   - Any disputes will be resolved through negotiation, or legal proceedings if necessary.";}
+        
         private string GenerateSignatureEmailContent(string contractCode, string token)
         {
             var verifyUrl = $"https://example.com/verify-signature?token={Uri.EscapeDataString(token)}";

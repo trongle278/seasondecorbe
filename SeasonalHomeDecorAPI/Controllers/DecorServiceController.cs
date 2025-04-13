@@ -61,11 +61,18 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpGet("getDecorServiceListByProvider")]
         [Authorize]
-        public async Task<IActionResult> GetMyServices([FromQuery] DecorServiceFilterRequest request)
+        public async Task<IActionResult> GetDecorServiceListByProvider([FromQuery] DecorServiceFilterRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var result = await _decorServiceService.GetDecorServiceListByProvider(accountId, request);
 
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("getDecorServiceListByCustomer")]
+        public async Task<IActionResult> GetDecorServiceListByCustomer([FromQuery] DecorServiceFilterRequest request)
+        {
+            var result = await _decorServiceService.GetDecorServiceListForCustomerAsync(request);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -128,15 +135,6 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             return BadRequest(result.Message);
         }
-
-        //[HttpGet("search")]
-        //public async Task<IActionResult> Search([FromQuery] string keyword)
-        //{
-        //    var result = await _decorServiceService.SearchDecorServices(keyword);
-        //    if (!result.Success)
-        //        return BadRequest(result);
-        //    return Ok(result);
-        //}
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchMultiCriteria(
