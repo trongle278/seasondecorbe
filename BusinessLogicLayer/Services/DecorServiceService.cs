@@ -549,8 +549,8 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListForCustomerAsync(DecorServiceFilterRequest request)
-        {
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListForCustomerAsync(int? providerId, DecorServiceFilterRequest request)
+         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
             try
             {
@@ -563,7 +563,8 @@ namespace BusinessLogicLayer.Services
                     (string.IsNullOrEmpty(request.Sublocation) || ds.Sublocation.Contains(request.Sublocation)) &&
                     (!request.DecorCategoryId.HasValue || ds.DecorCategoryId == request.DecorCategoryId.Value) &&
                     (!request.MinPrice.HasValue || ds.BasePrice >= request.MinPrice.Value) &&
-                    (!request.MaxPrice.HasValue || ds.BasePrice <= request.MaxPrice.Value);
+                    (!request.MaxPrice.HasValue || ds.BasePrice <= request.MaxPrice.Value) &&
+                    (!providerId.HasValue || ds.AccountId == providerId.Value);
 
                 if (request.SeasonIds != null && request.SeasonIds.Any())
                 {
@@ -1030,7 +1031,6 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
-
 
         public async Task<DecorServiceListResponse> SearchDecorServices(string keyword)
         {

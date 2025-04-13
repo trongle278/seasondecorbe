@@ -70,9 +70,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getDecorServiceListByCustomer")]
-        public async Task<IActionResult> GetDecorServiceListByCustomer([FromQuery] DecorServiceFilterRequest request)
+        public async Task<IActionResult> GetDecorServiceListByCustomer(int providerId, [FromQuery] DecorServiceFilterRequest request)
         {
-            var result = await _decorServiceService.GetDecorServiceListForCustomerAsync(request);
+            var result = await _decorServiceService.GetDecorServiceListForCustomerAsync(providerId, request);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
