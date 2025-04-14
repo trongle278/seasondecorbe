@@ -18,6 +18,7 @@ namespace DataAccessObject.Models
         public int Duration { get; set; } = 30;
         public bool AutoRenew { get; set; }
         public int VoucherCount { get; set; }
+        public int FreeRequestChange { get; set; }
         public bool PrioritySupport { get; set; }
         public double CommissionDiscount { get; set; }
         public DateTime? StartDate { get; set; }

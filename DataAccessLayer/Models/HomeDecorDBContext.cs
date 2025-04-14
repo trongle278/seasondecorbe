@@ -500,9 +500,9 @@ namespace DataAccessObject.Models
             );
 
             modelBuilder.Entity<Subscription>().HasData(
-                new Subscription { Id = 1, Name = "Silver", Price = 100000, Duration = 30, AutoRenew = false, VoucherCount = 3, PrioritySupport = false, CommissionDiscount = 1.5, Status = Subscription.SubscriptionStatus.Unsubcribed },
-                new Subscription { Id = 2, Name = "Gold", Price = 200000, Duration = 30, AutoRenew = false, VoucherCount = 5, PrioritySupport = true, CommissionDiscount = 3.25, Status = Subscription.SubscriptionStatus.Unsubcribed },
-                new Subscription { Id = 3, Name = "Platinum", Price = 500000, Duration = 30, AutoRenew = false, VoucherCount = 10, PrioritySupport = true, CommissionDiscount = 6.5, Status = Subscription.SubscriptionStatus.Unsubcribed }
+                new Subscription { Id = 1, Name = "Silver", Price = 100000, Duration = 30, AutoRenew = false, VoucherCount = 10, FreeRequestChange = 3, PrioritySupport = false, CommissionDiscount = 1.5, Status = Subscription.SubscriptionStatus.Unsubcribed },
+                new Subscription { Id = 2, Name = "Gold", Price = 200000, Duration = 30, AutoRenew = false, VoucherCount = 20, FreeRequestChange = 5, PrioritySupport = true, CommissionDiscount = 3.25, Status = Subscription.SubscriptionStatus.Unsubcribed },
+                new Subscription { Id = 3, Name = "Platinum", Price = 500000, Duration = 30, AutoRenew = false, VoucherCount = 40, FreeRequestChange = 10, PrioritySupport = true, CommissionDiscount = 6.5, Status = Subscription.SubscriptionStatus.Unsubcribed }
             );
         }
     }
