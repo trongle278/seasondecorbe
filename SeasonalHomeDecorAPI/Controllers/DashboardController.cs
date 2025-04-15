@@ -24,5 +24,13 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _dashboardService.GetProviderDashboardAsync(providerId);
             return Ok(result);
         }
+
+        [HttpGet("getMonthlyRevenue")]
+        public async Task<IActionResult> GetMonthlyRevenue()
+        {
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var result = await _dashboardService.GetMonthlyRevenueAsync(providerId);
+            return Ok(result);
+        }
     }
 }

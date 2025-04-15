@@ -10,5 +10,6 @@ namespace BusinessLogicLayer.Interfaces
     public interface IDashboardService
     {
         Task<BaseResponse<ProviderDashboardResponse>> GetProviderDashboardAsync(int providerId);
+        Task<BaseResponse<List<MonthlyRevenueResponse>>> GetMonthlyRevenueAsync(int providerId);
     }
 }
