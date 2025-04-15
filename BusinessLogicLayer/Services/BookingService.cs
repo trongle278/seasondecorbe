@@ -609,7 +609,6 @@ namespace BusinessLogicLayer.Services
                     AddressId = request.AddressId,
                     DecorServiceId = request.DecorServiceId,
                     Status = BookingStatus.Pending,
-                    ExpectedCompletion = request.ExpectedCompletion,
                     CreateAt = DateTime.Now
                 };
 
@@ -664,8 +663,7 @@ namespace BusinessLogicLayer.Services
                     booking.Note = request.Note;
 
                 // Thời gian hoàn thành dự kiến
-                if (!string.IsNullOrWhiteSpace(request.ExpectedCompletion))
-                    booking.ExpectedCompletion = request.ExpectedCompletion;
+                if (!string.IsNullOrWhiteSpace(request.ExpectedCompletion));
 
                 // Cập nhật địa chỉ
                 if (request.AddressId.HasValue)

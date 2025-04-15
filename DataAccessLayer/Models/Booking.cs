@@ -21,7 +21,6 @@ namespace DataAccessObject.Models
         /// Chi phí phát sinh riêng cho yêu cầu này (nếu có)
         /// </summary>
         public decimal? AdditionalCost { get; set; }
-        public string ExpectedCompletion { get; set; }
         public DateTime? ConstructionDate { get; set; }
         public DateTime CreateAt { get; set; }
         public enum BookingStatus

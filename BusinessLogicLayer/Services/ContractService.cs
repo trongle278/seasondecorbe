@@ -409,7 +409,6 @@ After reaching an agreement on the quotation, the two parties enter into a const
 
 3. IMPLEMENTATION TIME:
    - Start Date: {quotation.Booking.ConstructionDate:dd/MM/yyyy}
-   - Estimated Completion as per customer’s request: {quotation.Booking.ExpectedCompletion}
 
 4. COST AND PAYMENT: (Via platform wallet)
    - Total Cost (includes materials, labor, and any additional costs): {(quotation.MaterialCost + quotation.ConstructionCost):N0} VND
