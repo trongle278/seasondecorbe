@@ -46,5 +46,20 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return Redirect("http://localhost:3000/payment/failure");//trang thất bại
         }
+
+        [HttpGet("mobileReturn")]
+        public async Task<IActionResult> MobileReturn([FromQuery] VnPayResponse response, [FromQuery] int customerId)
+        {
+            if (response.vnp_TransactionStatus == "00")
+            {
+                if (customerId != 0)
+                {
+                    await _paymentService.TopUp(customerId, response.vnp_Amount);
+                }
+                // Xử lý đơn hàng (Cập nhật trạng thái đơn hàng thành "Đã thanh toán"
+                return Redirect("com.baymaxphan.seasondecormobileapp:/screens/payment/success");
+            }
+            return Redirect("com.baymaxphan.seasondecormobileapp:/screens/payment/failure");//trang thất bại
+        }
     }
 }
