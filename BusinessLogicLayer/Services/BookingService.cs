@@ -609,7 +609,8 @@ namespace BusinessLogicLayer.Services
                     AddressId = request.AddressId,
                     DecorServiceId = request.DecorServiceId,
                     Status = BookingStatus.Pending,
-                    ExpectedCompletion = request.ExpectedCompletion,
+                    //RequestChangeCount = 0, //số lần đổi yêu cầu
+                    //IsAdditionalFeeCharged = false,
                     CreateAt = DateTime.Now
                 };
 
@@ -647,6 +648,26 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.TimeSlots)
                     .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.AccountId == accountId);
 
+                //// Kiểm tra nếu là thành viên và còn lượt đổi miễn phí
+                //var customer = await _unitOfWork.AccountRepository
+                //    .Queryable()
+                //    .Include(a => a.Subscription)
+                //    .FirstOrDefaultAsync(a => a.Id == accountId);
+
+                //int freeChangesAllowed = customer?.Subscription?.MaxFreeRequestChanges ?? 0;
+                //bool isMember = customer?.Subscription != null && customer.Subscription.Status == Subscription.SubscriptionStatus.Subcribed;
+
+                //// Nếu đã vượt quá số lần đổi miễn phí
+                //if (!isMember || booking.RequestChangeCount >= freeChangesAllowed)
+                //{
+                //    booking.AdditionalCost = (booking.AdditionalCost ?? 0) + 50000; // ví dụ: 50k phí phát sinh
+                //    booking.IsAdditionalFeeCharged = true;
+                //}
+                //else
+                //{
+                //    booking.RequestChangeCount++;
+                //}
+
                 if (booking == null)
                 {
                     response.Message = "Booking not found or access denied.";
@@ -662,10 +683,6 @@ namespace BusinessLogicLayer.Services
                 // Ghi chú yêu cầu
                 if (!string.IsNullOrWhiteSpace(request.Note))
                     booking.Note = request.Note;
-
-                // Thời gian hoàn thành dự kiến
-                if (!string.IsNullOrWhiteSpace(request.ExpectedCompletion))
-                    booking.ExpectedCompletion = request.ExpectedCompletion;
 
                 // Cập nhật địa chỉ
                 if (request.AddressId.HasValue)

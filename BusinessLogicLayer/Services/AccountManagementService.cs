@@ -42,13 +42,20 @@ namespace BusinessLogicLayer.Services
         {
             try
             {
-                var accounts = await _unitOfWork.AccountRepository.GetAllAsync();
+                var accounts = (await _unitOfWork.AccountRepository.GetAllAsync())
+                    .Where(x => x.RoleId != 1) // bỏ admin
+                    .ToList();
 
+                // Trả về thêm dữ liệu liên quan như tổng số tài khoản, ví dụ
                 return new BaseResponse
                 {
                     Success = true,
                     Message = "Accounts retrieved successfully",
-                    Data = accounts
+                    Data = new
+                    {
+                        Accounts = accounts,
+                        TotalAccounts = accounts.Count() // Ví dụ: trả về tổng số tài khoản
+                    }
                 };
             }
             catch (Exception ex)
@@ -61,19 +68,19 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
         public async Task<BaseResponse<PageResult<AccountDTO>>> GetFilterAccountsAsync(AccountFilterRequest request)
         {
             var response = new BaseResponse<PageResult<AccountDTO>>();
             try
             {
-                // Filter
+                // Filter và sort như bình thường
                 Expression<Func<Account, bool>> filter = account =>
+                    account.RoleId != 1 &&
                     (!request.Gender.HasValue || account.Gender == request.Gender.Value) &&
-                    //(string.IsNullOrEmpty(request.Status) || account.Status.Contains(request.Status)) &&
                     (!request.IsVerified.HasValue || account.IsVerified == request.IsVerified.Value) &&
                     (!request.IsDisable.HasValue || account.IsDisable == request.IsDisable.Value);
 
-                // Sort
                 Expression<Func<Account, object>> orderByExpression = request.SortBy switch
                 {
                     "Email" => account => account.Email,
@@ -83,7 +90,7 @@ namespace BusinessLogicLayer.Services
                     _ => account => account.Id
                 };
 
-                // Get paginated data and filter
+                // Lấy dữ liệu đã phân trang và lọc
                 (IEnumerable<Account> accounts, int totalCount) = await _unitOfWork.AccountRepository.GetPagedAndFilteredAsync(
                     filter,
                     request.PageIndex,
@@ -103,6 +110,7 @@ namespace BusinessLogicLayer.Services
                 response.Success = true;
                 response.Message = "Accounts retrieved successfully";
                 response.Data = pageResult;
+
             }
             catch (Exception ex)
             {
@@ -384,7 +392,13 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = statusMessage
+                    Message = statusMessage,
+                    Data = new
+                    {
+                        AccountId = account.Id,
+                        IsDisabled = account.IsDisable,
+                        StatusMessage = statusMessage
+                    }
                 };
             }
             catch (Exception ex)
