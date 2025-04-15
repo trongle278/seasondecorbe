@@ -24,6 +24,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Reputation { get; set; }
         public string? ProvinceCode { get; set; }
         public int RoleId { get; set; }
+        public bool IsDisable { get; set; }
         public bool IsProvider { get; set; }
         public bool ProviderVerified { get; set; }
     }

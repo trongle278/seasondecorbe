@@ -358,6 +358,9 @@ namespace BusinessLogicLayer.Services
         }
 
         #region Template
+        //{quotation.Booking.ExpectedCompletion}
+
+        //{(quotation.Booking.AdditionalCost.HasValue? $"- Additional Charges: {quotation.Booking.AdditionalCost:N0} VND (based on extra requests)" : "")}
         private string GenerateTermOfUseContent(Quotation quotation)
         {
             var customer = quotation.Booking.Account;
@@ -409,12 +412,12 @@ After reaching an agreement on the quotation, the two parties enter into a const
 
 3. IMPLEMENTATION TIME:
    - Start Date: {quotation.Booking.ConstructionDate:dd/MM/yyyy}
+   - Estimated Completion as per customer’s request: 3 - 5 days
 
 4. COST AND PAYMENT: (Via platform wallet)
    - Total Cost (includes materials, labor, and any additional costs): {(quotation.MaterialCost + quotation.ConstructionCost):N0} VND
    - Deposit from Party A to Party B ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.MaterialCost + quotation.ConstructionCost):N0} VND
    - Remaining Balance: Payable upon project completion
-   {(quotation.Booking.AdditionalCost.HasValue ? $"- Additional Charges: {quotation.Booking.AdditionalCost:N0} VND (based on extra requests)" : "")}
 
 5. FORCE MAJEURE:
    - Force majeure refers to unforeseen events beyond the control of the parties and cannot be prevented despite all necessary measures.

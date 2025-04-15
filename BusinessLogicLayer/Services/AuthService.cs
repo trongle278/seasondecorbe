@@ -211,6 +211,15 @@ namespace BusinessLogicLayer.Services
                             Errors = new List<string> { "Invalid email or password" }
                         };
                     }
+
+                    if (adminAccount.IsDisable)
+                    {
+                        return new LoginResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { "Account is banned" }
+                        };
+                    }
                 }
                 else
                 {
@@ -258,6 +267,16 @@ namespace BusinessLogicLayer.Services
                 {
                     Success = false,
                     Errors = new List<string> { "Invalid email or password" }
+                };
+            }
+
+            // Kiểm tra tài khoản có bị ban không
+            if (account.IsDisable)
+            {
+                return new LoginResponse
+                {
+                    Success = false,
+                    Errors = new List<string> { "Account is banned" }
                 };
             }
 
@@ -389,12 +408,22 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.AccountRepository.InsertAsync(account);
                     await _unitOfWork.CommitAsync();
                     isNewUser = true;
-                   
+
                     account = await _unitOfWork.AccountRepository
                         .Query(a => a.Email == email)
                         .Include(a => a.Role)
                         .Include(a => a.Wallet)
                         .FirstOrDefaultAsync();
+                }
+
+                // Kiểm tra tài khoản có bị ban không
+                if (account.IsDisable)
+                {
+                    return new GoogleLoginResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Account is banned" }
+                    };
                 }
 
                 if (isNewUser)
@@ -440,6 +469,7 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
 
         public async Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
         {

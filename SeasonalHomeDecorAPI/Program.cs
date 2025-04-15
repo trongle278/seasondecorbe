@@ -223,6 +223,7 @@ builder.Services.AddScoped<SurveyDateExpiredJob>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // 11. Build the application
 var app = builder.Build();

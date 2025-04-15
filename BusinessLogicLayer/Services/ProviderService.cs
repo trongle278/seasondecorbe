@@ -199,6 +199,7 @@ namespace BusinessLogicLayer.Services
                 account.Bio = request.Bio;
                 account.Phone = request.Phone;
                 account.BusinessAddress = request.Address;
+                account.RoleId = 2;
 
                 _unitOfWork.AccountRepository.Update(account);
                 await _unitOfWork.CommitAsync();

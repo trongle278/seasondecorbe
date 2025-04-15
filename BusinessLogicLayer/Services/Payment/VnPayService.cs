@@ -19,8 +19,8 @@ namespace KCP.Service.Service.Pay
 
         public static string VNPay(HttpContext context, VnPayRequest vnPayRequest)
         {
-            //string vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve
-            string vnp_Returnurl = $"https://season-decor.somee.com/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve
+            string vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve
+            //string vnp_Returnurl = $"https://season-decor.somee.com/api/Payment/return?customerId={vnPayRequest.CustomerId}"; //URL nhan ket qua tra ve
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; //URL thanh toan cua VNPAY 
             string vnp_TmnCode = "ULVE3NUK"; //Ma định danh merchant kết nối (Terminal Id)
             string vnp_HashSecret = "REFWL616A23MJOFK118BV7GA6FBS0609"; //Secret Key

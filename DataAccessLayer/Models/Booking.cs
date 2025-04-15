@@ -17,10 +17,10 @@ namespace DataAccessObject.Models
         public string? Note { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal DepositAmount { get; set; }
-        /// <summary>
-        /// Chi phí phát sinh riêng cho yêu cầu này (nếu có)
-        /// </summary>
-        public decimal? AdditionalCost { get; set; }
+        //public int RequestChangeCount { get; set; }// số lần đã đổi yêu cầu
+        //public bool IsAdditionalFeeCharged { get; set; } // có bị tính phí phát sinh không
+        //public decimal? AdditionalCost { get; set; }   // Chi phí phát sinh riêng
+        //public string ExpectedCompletion { get; set; }
         public DateTime? ConstructionDate { get; set; }
         public DateTime CreateAt { get; set; }
         public enum BookingStatus

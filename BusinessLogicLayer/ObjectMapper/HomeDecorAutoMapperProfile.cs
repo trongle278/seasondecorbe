@@ -43,7 +43,10 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void AccountProfile()
         {
-            CreateMap<Account, AccountDTO>();
+            CreateMap<Account, AccountDTO>()
+                .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => src.IsProvider))
+                .ForMember(dest => dest.ProviderVerified, opt => opt.MapFrom(src => src.ProviderVerified))
+                .ForMember(dest => dest.IsDisable, opt => opt.MapFrom(src => src.IsDisable));
             CreateMap<CreateAccountRequest, Account>();
             CreateMap<UpdateAccountRequest, Account>();
         }
