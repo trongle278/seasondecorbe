@@ -256,11 +256,6 @@ namespace BusinessLogicLayer.Services
                 switch (order.Status)
                 {
                     case Order.OrderStatus.OrderPayment:
-                        order.Status = Order.OrderStatus.Processing;
-                        _unitOfWork.OrderRepository.Update(order);
-                        break;
-
-                    case Order.OrderStatus.Processing:
                         order.Status = Order.OrderStatus.Shipping;
                         _unitOfWork.OrderRepository.Update(order);
                         break;

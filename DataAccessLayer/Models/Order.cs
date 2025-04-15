@@ -23,7 +23,6 @@ namespace DataAccessObject.Models
         {
             Pending,
             OrderPayment,
-            Processing,
             Shipping,
             Completed,
             Cancelled
