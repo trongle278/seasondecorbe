@@ -7,7 +7,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
@@ -18,6 +18,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getProviderDashboard")]
+        [Authorize]
         public async Task<IActionResult> GetProviderDashboard()
         {
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -26,6 +27,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getMonthlyRevenue")]
+        [Authorize]
         public async Task<IActionResult> GetMonthlyRevenue()
         {
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -34,6 +36,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getTopCustomerSpendingRanking")]
+        [Authorize]
         public async Task<IActionResult> GetTopCustomerSpendingRanking()
         {
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -41,6 +44,18 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
+        [HttpGet("getAdminDashboard")]
+        public async Task<IActionResult> GetAdminDashboard()
+        {
+            var result = await _dashboardService.GetAdminDashboardAsync();
+            return Ok(result);
+        }
 
+        [HttpGet("getAdminMonthlyRevenue")]
+        public async Task<IActionResult> GetAdminMonthlyRevenue()
+        {
+            var result = await _dashboardService.GetAdminMonthlyRevenueAsync();
+            return Ok(result);
+        }
     }
 }

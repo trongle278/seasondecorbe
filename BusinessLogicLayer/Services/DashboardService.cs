@@ -175,7 +175,7 @@ namespace BusinessLogicLayer.Services
                     TotalBookingRevenue = totalBookingRevenue,
                     ThisWeekBookings = thisWeekBookingCount,
                     LastWeekBookings = lastWeekBookingCount,
-                    BookingGrowthRate = Math.Round(bookingGrowthPercent, 2),             
+                    BookingGrowthRate = Math.Round(bookingGrowthPercent, 2),
 
                     TotalRevenue = totalRevenue, // Tổng doanh thu sau hoa hồng
                     ThisWeekTotalRevenue = thisWeekTotalRevenue,
@@ -389,23 +389,21 @@ namespace BusinessLogicLayer.Services
                 var lastWeekStart = thisWeekStart.AddDays(-7);
                 var lastWeekEnd = thisWeekStart;
 
-                // Lấy tỷ lệ hoa hồng từ Setting (với giả sử chỉ có 1 bản ghi hoa hồng)
                 var commissionRate = await _unitOfWork.SettingRepository.Queryable()
                     .Select(s => s.Commission)
                     .FirstOrDefaultAsync();
 
-                // --- BOOKINGS --- Tính tổng bookings cho tất cả providers
                 var bookingsQuery = _unitOfWork.BookingRepository.Queryable();
-
                 var bookings = await bookingsQuery.ToListAsync();
 
                 var totalBookings = bookings.Count;
                 var completedBookings = bookings.Count(b => b.Status == Booking.BookingStatus.Completed);
                 var canceledBookings = bookings.Count(b => b.Status == Booking.BookingStatus.Canceled);
-                var totalBookingRevenue = bookings.Where(b => b.Status == Booking.BookingStatus.Completed).Sum(b => b.TotalPrice);
+                var totalBookingRevenue = bookings
+                    .Where(b => b.Status == Booking.BookingStatus.Completed)
+                    .Sum(b => b.TotalPrice);
 
-                // Áp dụng hoa hồng vào doanh thu bookings
-                totalBookingRevenue -= totalBookingRevenue * commissionRate;
+                totalBookingRevenue = totalBookingRevenue * commissionRate;
 
                 var bookingsThisWeek = bookings.Where(b => b.CreateAt >= thisWeekStart).ToList();
                 var bookingsLastWeek = bookings.Where(b => b.CreateAt >= lastWeekStart && b.CreateAt < lastWeekEnd).ToList();
@@ -413,22 +411,25 @@ namespace BusinessLogicLayer.Services
                 var thisWeekBookingCount = bookingsThisWeek.Count;
                 var lastWeekBookingCount = bookingsLastWeek.Count;
 
-                var thisWeekBookingRevenue = bookingsThisWeek.Where(b => b.Status == Booking.BookingStatus.Completed).Sum(b => b.TotalPrice);
-                var lastWeekBookingRevenue = bookingsLastWeek.Where(b => b.Status == Booking.BookingStatus.Completed).Sum(b => b.TotalPrice);
+                var thisWeekBookingRevenue = bookingsThisWeek
+                    .Where(b => b.Status == Booking.BookingStatus.Completed)
+                    .Sum(b => b.TotalPrice);
 
-                // Áp dụng hoa hồng vào doanh thu bookings trong tuần này và tuần trước
-                thisWeekBookingRevenue -= thisWeekBookingRevenue * commissionRate;
-                lastWeekBookingRevenue -= lastWeekBookingRevenue * commissionRate;
+                var lastWeekBookingRevenue = bookingsLastWeek
+                    .Where(b => b.Status == Booking.BookingStatus.Completed)
+                    .Sum(b => b.TotalPrice);
 
-                double bookingGrowthPercent = lastWeekBookingCount == 0
+                thisWeekBookingRevenue = thisWeekBookingRevenue * commissionRate;
+                lastWeekBookingRevenue = lastWeekBookingRevenue * commissionRate;
+
+                decimal bookingGrowthPercent = lastWeekBookingCount == 0
                     ? (thisWeekBookingCount > 0 ? 100 : 0)
-                    : ((double)(thisWeekBookingCount - lastWeekBookingCount) / lastWeekBookingCount) * 100;
+                    : ((decimal)(thisWeekBookingCount - lastWeekBookingCount) / lastWeekBookingCount) * 100;
 
-                double bookingRevenueGrowthPercent = lastWeekBookingRevenue == 0
+                decimal bookingRevenueGrowthPercent = lastWeekBookingRevenue == 0
                     ? (thisWeekBookingRevenue > 0 ? 100 : 0)
-                    : ((double)(thisWeekBookingRevenue - lastWeekBookingRevenue) / (double)lastWeekBookingRevenue) * 100;
+                    : ((thisWeekBookingRevenue - lastWeekBookingRevenue) / lastWeekBookingRevenue) * 100;
 
-                // --- SERVICES --- Tính dịch vụ yêu thích của tất cả provider
                 var services = await _unitOfWork.DecorServiceRepository.Queryable()
                     .Include(s => s.FavoriteServices)
                     .ToListAsync();
@@ -445,7 +446,6 @@ namespace BusinessLogicLayer.Services
                     })
                     .ToList();
 
-                // --- PRODUCTS --- Tổng sản phẩm bán được
                 var products = await _unitOfWork.ProductRepository.Queryable()
                     .Include(p => p.OrderDetails)
                     .ToListAsync();
@@ -462,10 +462,9 @@ namespace BusinessLogicLayer.Services
                     })
                     .ToList();
 
-                // --- ORDERS --- Tính tổng đơn hàng của tất cả provider
                 var orderDetails = await _unitOfWork.OrderDetailRepository.Queryable()
                     .Include(od => od.Order)
-                    .Where(od => od.Product.AccountId != null) // Tất cả sản phẩm từ provider
+                    .Where(od => od.Product.AccountId != null)
                     .ToListAsync();
 
                 var relatedOrders = orderDetails.Select(od => od.Order).Distinct().ToList();
@@ -474,8 +473,7 @@ namespace BusinessLogicLayer.Services
                     .Where(o => o.Status == Order.OrderStatus.Completed)
                     .Sum(o => o.TotalPrice);
 
-                // Áp dụng hoa hồng vào doanh thu sản phẩm
-                totalOrderRevenue -= totalOrderRevenue * commissionRate;
+                totalOrderRevenue = totalOrderRevenue * commissionRate;
 
                 var ordersThisWeek = relatedOrders.Where(o => o.OrderDate >= thisWeekStart).ToList();
                 var ordersLastWeek = relatedOrders.Where(o => o.OrderDate >= lastWeekStart && o.OrderDate < lastWeekEnd).ToList();
@@ -483,29 +481,32 @@ namespace BusinessLogicLayer.Services
                 var thisWeekOrderCount = ordersThisWeek.Count;
                 var lastWeekOrderCount = ordersLastWeek.Count;
 
-                var thisWeekOrderRevenue = ordersThisWeek.Where(o => o.Status == Order.OrderStatus.Completed).Sum(o => o.TotalPrice);
-                var lastWeekOrderRevenue = ordersLastWeek.Where(o => o.Status == Order.OrderStatus.Completed).Sum(o => o.TotalPrice);
+                var thisWeekOrderRevenue = ordersThisWeek
+                    .Where(o => o.Status == Order.OrderStatus.Completed)
+                    .Sum(o => o.TotalPrice);
 
-                // Áp dụng hoa hồng vào doanh thu orders trong tuần này và tuần trước
-                thisWeekOrderRevenue -= thisWeekOrderRevenue * commissionRate;
-                lastWeekOrderRevenue -= lastWeekOrderRevenue * commissionRate;
+                var lastWeekOrderRevenue = ordersLastWeek
+                    .Where(o => o.Status == Order.OrderStatus.Completed)
+                    .Sum(o => o.TotalPrice);
 
-                double orderGrowthPercent = lastWeekOrderCount == 0
+                thisWeekOrderRevenue = thisWeekOrderRevenue * commissionRate;
+                lastWeekOrderRevenue = lastWeekOrderRevenue * commissionRate;
+
+                decimal orderGrowthPercent = lastWeekOrderCount == 0
                     ? (thisWeekOrderCount > 0 ? 100 : 0)
-                    : ((double)(thisWeekOrderCount - lastWeekOrderCount) / lastWeekOrderCount) * 100;
+                    : ((decimal)(thisWeekOrderCount - lastWeekOrderCount) / lastWeekOrderCount) * 100;
 
-                double orderRevenueGrowthPercent = lastWeekOrderRevenue == 0
+                decimal orderRevenueGrowthPercent = lastWeekOrderRevenue == 0
                     ? (thisWeekOrderRevenue > 0 ? 100 : 0)
-                    : ((double)(thisWeekOrderRevenue - lastWeekOrderRevenue) / (double)lastWeekOrderRevenue) * 100;
+                    : ((thisWeekOrderRevenue - lastWeekOrderRevenue) / lastWeekOrderRevenue) * 100;
 
-                // --- RESPONSE ---
-                var totalRevenue = totalBookingRevenue + totalOrderRevenue; // Tổng doanh thu sau khi trừ hoa hồng
+                var totalRevenue = totalBookingRevenue + totalOrderRevenue;
 
                 response.Success = true;
                 response.Data = new AdminDashboardResponse
                 {
                     TotalRevenue = totalRevenue,
-                    RevenueGrowthPercentage = bookingRevenueGrowthPercent + orderRevenueGrowthPercent, // Tỷ lệ tăng trưởng doanh thu
+                    RevenueGrowthPercentage = (double)bookingRevenueGrowthPercent + (double)orderRevenueGrowthPercent,
                     TotalAccounts = await _unitOfWork.AccountRepository.Queryable().CountAsync(),
                     TotalCustomers = await _unitOfWork.AccountRepository.Queryable().CountAsync(a => a.Role.Id == 3),
                     TotalProviders = await _unitOfWork.AccountRepository.Queryable().CountAsync(a => a.Role.Id == 2),
@@ -525,6 +526,74 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Message = "Failed to load admin dashboard.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<List<MonthlyRevenueResponse>>> GetAdminMonthlyRevenueAsync()
+        {
+            var response = new BaseResponse<List<MonthlyRevenueResponse>>();
+            try
+            {
+                var now = DateTime.Now;
+                var currentYear = now.Year;
+
+                // Lấy tỷ lệ commission từ bảng Setting
+                var commissionRate = await _unitOfWork.SettingRepository.Queryable()
+                    .Select(s => s.Commission)
+                    .FirstOrDefaultAsync();
+
+                // Lấy tất cả giao dịch thành công trong năm hiện tại
+                var transactions = await _unitOfWork.PaymentTransactionRepository.Queryable()
+                    .Include(pt => pt.Booking)
+                    .Include(pt => pt.Order)
+                        .ThenInclude(o => o.OrderDetails)
+                            .ThenInclude(od => od.Product)
+                    .Where(pt =>
+                        pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
+                        pt.TransactionDate.Year == currentYear
+                    )
+                    .ToListAsync();
+
+                // Tạo danh sách doanh thu theo tháng
+                var monthlyRevenue = Enumerable.Range(1, 12).Select(month =>
+                {
+                    // Tổng doanh thu từ booking
+                    var bookingTotal = transactions
+                        .Where(t => t.TransactionDate.Month == month && t.Booking != null)
+                        .Select(t => t.Booking.TotalPrice)
+                        .Distinct() // tránh cộng trùng nhiều giao dịch 1 booking
+                        .Sum();
+
+                    // Tổng doanh thu từ order
+                    var orderTotal = transactions
+                        .Where(t => t.TransactionDate.Month == month && t.Order != null)
+                        .Select(t => new
+                        {
+                            t.Order.Id,
+                            t.Order.TotalPrice
+                        })
+                        .DistinctBy(o => o.Id)
+                        .Sum(o => o.TotalPrice);
+
+                    // Trừ phần commission cho admin
+                    var totalRevenue = (bookingTotal + orderTotal) * commissionRate;
+
+                    return new MonthlyRevenueResponse
+                    {
+                        Year = currentYear,
+                        Month = month,
+                        TotalRevenue = totalRevenue
+                    };
+                }).ToList();
+
+                response.Success = true;
+                response.Data = monthlyRevenue;
+            }
+            catch (Exception ex)
+            {
+                response.Message = "Failed to load monthly revenue.";
                 response.Errors.Add(ex.Message);
             }
 
