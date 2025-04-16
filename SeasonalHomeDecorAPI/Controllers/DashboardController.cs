@@ -40,5 +40,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _dashboardService.GetTopCustomerSpendingRankingAsync(providerId);
             return Ok(result);
         }
+
+
     }
 }

@@ -156,31 +156,36 @@ namespace BusinessLogicLayer.Services
 
                 // --- RESPONSE ---
                 var totalRevenue = totalBookingRevenue + totalOrderRevenue; // Tổng doanh thu sau khi trừ hoa hồng
+                var thisWeekTotalRevenue = thisWeekBookingRevenue + thisWeekOrderRevenue;
+                var lastWeekTotalRevenue = lastWeekBookingRevenue + lastWeekOrderRevenue;
+                double totalRevenueGrowthPercent = lastWeekTotalRevenue == 0
+                    ? (thisWeekTotalRevenue > 0 ? 100 : 0)
+                    : ((double)(thisWeekTotalRevenue - lastWeekTotalRevenue) / (double)lastWeekTotalRevenue) * 100;
 
                 response.Success = true;
                 response.Data = new ProviderDashboardResponse
                 {
                     TotalFollowers = totalFollowers,
                     TotalBookings = totalBookings,
+                    TotalServices = totalServices,
+                    TopServices = topServices,
                     ProcessingBookings = processingBookings,
                     CompletedBookings = completedBookings,
                     CanceledBookings = canceledBookings,
                     TotalBookingRevenue = totalBookingRevenue,
-                    TotalOrderRevenue = totalOrderRevenue,
+                    ThisWeekBookings = thisWeekBookingCount,
+                    LastWeekBookings = lastWeekBookingCount,
+                    BookingGrowthRate = Math.Round(bookingGrowthPercent, 2),             
 
                     TotalRevenue = totalRevenue, // Tổng doanh thu sau hoa hồng
-
-                    TotalServices = totalServices,
-                    TopServices = topServices,
+                    ThisWeekTotalRevenue = thisWeekTotalRevenue,
+                    LastWeekTotalRevenue = lastWeekTotalRevenue,
+                    TotalRevenueGrowthRate = Math.Round(totalRevenueGrowthPercent, 2),
 
                     TotalProducts = totalProducts,
                     TotalOrders = totalOrders,
                     TopProducts = topProducts,
-
-                    ThisWeekBookings = thisWeekBookingCount,
-                    LastWeekBookings = lastWeekBookingCount,
-                    BookingGrowthRate = Math.Round(bookingGrowthPercent, 2),
-
+                    TotalOrderRevenue = totalOrderRevenue,
                     ThisWeekOrders = thisWeekOrderCount,
                     LastWeekOrders = lastWeekOrderCount,
                     OrderGrowthRate = Math.Round(orderGrowthPercent, 2)
@@ -299,7 +304,7 @@ namespace BusinessLogicLayer.Services
                     )
                     .ToListAsync();
 
-                var customerRevenue = new Dictionary<int, (string FullName, string? Avatar, decimal Total)>();
+                var customerRevenue = new Dictionary<int, (string FullName, string Email, string? Avatar, decimal Total)>();
 
                 // Booking
                 var bookingGroups = transactions
@@ -312,12 +317,13 @@ namespace BusinessLogicLayer.Services
                     var revenue = bookingTotal * (1 - commissionRate);
                     var customer = group.First().Booking.Account;
                     var fullName = $"{customer.LastName} {customer.FirstName}";
+                    var email = customer.Email;
                     var avatar = customer.Avatar;
 
                     if (customerRevenue.ContainsKey(customer.Id))
-                        customerRevenue[customer.Id] = (fullName, avatar, customerRevenue[customer.Id].Total + revenue);
+                        customerRevenue[customer.Id] = (fullName, email, avatar, customerRevenue[customer.Id].Total + revenue);
                     else
-                        customerRevenue[customer.Id] = (fullName, avatar, revenue);
+                        customerRevenue[customer.Id] = (fullName, email, avatar, revenue);
                 }
 
                 // Order
@@ -340,12 +346,13 @@ namespace BusinessLogicLayer.Services
                     var revenue = orderTotal * (1 - commissionRate);
                     var customer = group.First().Account;
                     var fullName = $"{customer.LastName} {customer.FirstName}";
+                    var email = customer.Email;
                     var avatar = customer.Avatar;
 
                     if (customerRevenue.ContainsKey(customer.Id))
-                        customerRevenue[customer.Id] = (fullName, avatar, customerRevenue[customer.Id].Total + revenue);
+                        customerRevenue[customer.Id] = (fullName, email, avatar, customerRevenue[customer.Id].Total + revenue);
                     else
-                        customerRevenue[customer.Id] = (fullName, avatar, revenue);
+                        customerRevenue[customer.Id] = (fullName, email, avatar, revenue);
                 }
 
                 var top5 = customerRevenue
@@ -355,6 +362,7 @@ namespace BusinessLogicLayer.Services
                     {
                         CustomerId = x.Key,
                         FullName = x.Value.FullName,
+                        Email = x.Value.Email,
                         Avatar = x.Value.Avatar,
                         TotalSpending = x.Value.Total
                     }).ToList();

@@ -9,7 +9,12 @@ namespace BusinessLogicLayer.ModelResponse
     public class ProviderDashboardResponse
     {
         public decimal TotalRevenue { get; set; }
+        public decimal ThisWeekTotalRevenue { get; set; }
+        public decimal LastWeekTotalRevenue { get; set; }
+        public double TotalRevenueGrowthRate { get; set; }
+
         public int TotalFollowers { get; set; }
+
         public int TotalServices { get; set; }
         public int TotalBookings { get; set; }
         public int ProcessingBookings { get; set; }
