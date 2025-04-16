@@ -14,4 +14,15 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Avatar { get; set; }
         public decimal TotalSpending { get; set; }
     }
+
+    public class ProviderRatingRankingResponse
+    {
+        public int ProviderId { get; set; }
+        public string BusinessName { get; set; }
+        public string ProviderName { get; set; }
+        public string Email { get; set; }
+        public string? Avatar { get; set; }
+        public double AverageRating { get; set; }
+        public int TotalReviews { get; set; }
+    }
 }

@@ -14,5 +14,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<List<CustomerSpendingRankingResponse>>> GetTopCustomerSpendingRankingAsync(int providerId);
         Task<BaseResponse<AdminDashboardResponse>> GetAdminDashboardAsync();
         Task<BaseResponse<List<MonthlyRevenueResponse>>> GetAdminMonthlyRevenueAsync();
+        Task<BaseResponse<List<ProviderRatingRankingResponse>>> GetTopProviderRatingRankingAsync();
     }
 }

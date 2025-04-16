@@ -600,5 +600,49 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<List<ProviderRatingRankingResponse>>> GetTopProviderRatingRankingAsync()
+        {
+            var response = new BaseResponse<List<ProviderRatingRankingResponse>>();
+            try
+            {
+                var query = _unitOfWork.ReviewRepository.Queryable()
+                    .Where(r => r.DecorService != null && r.DecorService.AccountId != null)
+                    .GroupBy(r => new
+                    {
+                        ProviderId = r.DecorService.AccountId,
+                        Email = r.DecorService.Account.Email,
+                        Avatar = r.DecorService.Account.Avatar,
+                        ProviderName = r.DecorService.Account.LastName + " " + r.DecorService.Account.FirstName,
+                        BusinessName = r.DecorService.Account.BusinessName
+                    })
+                    .Select(g => new ProviderRatingRankingResponse
+                    {
+                        ProviderId = g.Key.ProviderId,
+                        BusinessName = g.Key.BusinessName,
+                        Email = g.Key.Email,
+                        Avatar = g.Key.Avatar,
+                        AverageRating = Math.Round(g.Average(x => x.Rate), 2),
+                        TotalReviews = g.Count()
+                    })
+                    .OrderByDescending(x => x.AverageRating)
+                    .ThenByDescending(x => x.TotalReviews)
+                    .Take(5);
+
+                var result = await query.ToListAsync();
+
+                response.Success = true;
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Lấy top provider theo đánh giá thất bại.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+
     }
 }

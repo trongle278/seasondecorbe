@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -55,6 +56,13 @@ namespace SeasonalHomeDecorAPI.Controllers
         public async Task<IActionResult> GetAdminMonthlyRevenue()
         {
             var result = await _dashboardService.GetAdminMonthlyRevenueAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("getTopProviderRatingRanking")]
+        public async Task<IActionResult> GetTopProviderRatingRanking()
+        {
+            var result = await _dashboardService.GetTopProviderRatingRankingAsync();
             return Ok(result);
         }
     }
