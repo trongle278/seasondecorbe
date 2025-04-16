@@ -233,7 +233,7 @@ namespace BusinessLogicLayer.Services
             }
             catch (Exception ex)
             {
-                response.Message = "Lỗi khi lấy doanh thu theo tháng.";
+                response.Message = "Failed to load monthly revenue.";
                 response.Errors.Add(ex.Message);
             }
 
