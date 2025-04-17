@@ -16,7 +16,7 @@ using CloudinaryDotNet.Actions;
 
 namespace BusinessLogicLayer.Services
 {
-    public class QuotationService: IQuotationService
+    public class QuotationService : IQuotationService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
@@ -63,7 +63,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Tạo mã báo giá mới
-                var quotationCode = $"QU{DateTime.Now:yyyyMMdd}{new Random().Next(1000, 9999)}";
+                var quotationCode = GenerateQuotationCode();
 
                 // Tính toán chi phí
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
@@ -129,7 +129,6 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
-
 
         public async Task<BaseResponse> UploadQuotationFileAsync(string bookingCode, IFormFile quotationFile)
         {
@@ -351,7 +350,7 @@ namespace BusinessLogicLayer.Services
                     q.Booking.AccountId == accountId &&
                     (string.IsNullOrEmpty(request.QuotationCode) || q.QuotationCode.Contains(request.QuotationCode)) &&
                     (!request.Status.HasValue || q.Status == request.Status.Value);
-                    
+
                 // Sorting
                 Expression<Func<Quotation, object>> orderByExpression = request.SortBy switch
                 {
@@ -507,7 +506,7 @@ namespace BusinessLogicLayer.Services
                         Cost = m.Cost,
                         //Category = m.Category
                     }).ToList(),
-                    
+
                     ConstructionDetails = q.LaborDetails.Select(c => new ConstructionDetailResponse
                     {
                         TaskName = c.TaskName,
@@ -568,7 +567,7 @@ namespace BusinessLogicLayer.Services
                     MaterialCost = quotation.MaterialCost,
                     ConstructionCost = quotation.ConstructionCost,
                     DepositPercentage = quotation.DepositPercentage,
-                    QuotationFilePath = quotation.QuotationFilePath,    
+                    QuotationFilePath = quotation.QuotationFilePath,
                     Status = (int)quotation.Status,
                     IsQuoteExisted = quotation.isQuoteExisted,
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
@@ -611,5 +610,14 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        #region
+        private static int _quotationCounter = 0;
+
+        private string GenerateQuotationCode()
+        {
+            _quotationCounter++;
+            return $"QU{_quotationCounter:D4}";
+        }
+        #endregion
     }
 }

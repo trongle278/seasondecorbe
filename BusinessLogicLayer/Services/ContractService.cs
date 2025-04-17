@@ -19,6 +19,8 @@ using iText.Kernel.Font;
 using static DataAccessObject.Models.Booking;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using iText.Kernel.Colors;
+using iText.Kernel.Pdf.Canvas.Draw;
 
 namespace BusinessLogicLayer.Services
 {
@@ -483,9 +485,11 @@ Home Seasonal Decoration System
         #endregion
 
         #region
+        private static int _contractCounter = 0;
         private string GenerateContractCode()
         {
-            return $"CON{DateTime.Now:yyyyMMddHHmmssfff}";
+            _contractCounter++;
+            return $"CON{_contractCounter:D4}";
         }
 
         private string GenerateSignatureToken(int customerId, string contractCode)
@@ -513,23 +517,26 @@ Home Seasonal Decoration System
                 var pdf = new PdfDocument(writer);
                 var document = new Document(pdf);
 
+                // Thiết lập font và margin
                 var regularFont = PdfFontFactory.CreateFont(StandardFonts.TIMES_ROMAN);
                 var boldFont = PdfFontFactory.CreateFont(StandardFonts.TIMES_BOLD);
+                document.SetMargins(50, 40, 50, 40);
 
-                // Tiêu đề chính
+                // Tiêu đề chính (giữ nguyên như code gốc)
                 document.Add(new Paragraph("SEASONAL HOME DECORATION SERVICE CONTRACT")
                     .SetFont(boldFont)
                     .SetFontSize(13)
                     .SetTextAlignment(TextAlignment.CENTER)
                     .SetMarginBottom(10));
 
+                // Ngày tháng (giữ nguyên)
                 document.Add(new Paragraph($"Date: {DateTime.Now:dd/MM/yyyy}")
                    .SetFont(regularFont)
                    .SetFontSize(8)
                    .SetTextAlignment(TextAlignment.RIGHT)
                    .SetMarginBottom(10));
 
-                // Xử lý nội dung
+                // Xử lý nội dung với định dạng tốt hơn
                 var lines = termOfUseContent.Split('\n');
                 bool isServiceDetailsSection = false;
 
@@ -538,8 +545,52 @@ Home Seasonal Decoration System
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
                     Paragraph para;
+                    float fontSize = 10;
+                    int leftIndent = 0;
 
-                    // Xác định section hiện tại
+                    // Tiêu đề chính (1., 2., 3.)
+                    if (Regex.IsMatch(line, @"^\d+\.\s[A-Z]"))
+                    {
+                        // Thêm khoảng trống trước mỗi section mới
+                        document.Add(new Paragraph(" ").SetMarginBottom(5));
+
+                        para = new Paragraph(line)
+                            .SetFont(boldFont)
+                            .SetFontSize(12)
+                            .SetMarginBottom(8);
+
+                        // Thêm đường kẻ ngang dưới tiêu đề
+                        document.Add(new LineSeparator(new SolidLine(0.5f))
+                            .SetMarginBottom(8));
+                    }
+                    // Mục con trong SERVICE DETAILS
+                    else if (isServiceDetailsSection && Regex.IsMatch(line, @"^\s+\d+\."))
+                    {
+                        para = new Paragraph(line)
+                            .SetFont(regularFont)
+                            .SetFontSize(fontSize)
+                            .SetMarginBottom(4);
+                        leftIndent = 15;
+                    }
+                    // Các bullet points
+                    else if (line.StartsWith("   *") || line.StartsWith("   -"))
+                    {
+                        para = new Paragraph(line.Trim())
+                            .SetFont(boldFont)
+                            .SetFontSize(fontSize)
+                            .SetMarginBottom(4);
+                        leftIndent = 10;
+                    }
+                    // Nội dung thông thường
+                    else
+                    {
+                        para = new Paragraph(line)
+                            .SetFont(regularFont)
+                            .SetFontSize(fontSize)
+                            .SetMarginBottom(6);
+                    }
+
+                    // Cập nhật trạng thái section
                     if (line.StartsWith("2. SERVICE DETAILS:"))
                     {
                         isServiceDetailsSection = true;
@@ -549,30 +600,9 @@ Home Seasonal Decoration System
                         isServiceDetailsSection = false;
                     }
 
-                    // Xử lý format theo từng loại nội dung
-                    if (Regex.IsMatch(line, @"^\d+\.\s[A-Z]")) // Tiêu đề chính (1., 2., 3.)
+                    if (leftIndent > 0)
                     {
-                        para = new Paragraph(line)
-                            .SetFont(boldFont)
-                            .SetFontSize(12);
-                    }
-                    else if (isServiceDetailsSection && Regex.IsMatch(line, @"^\s+\d+\.")) // Mục con trong SERVICE DETAILS
-                    {
-                        para = new Paragraph(line)
-                            .SetFont(regularFont) // QUAN TRỌNG: Đặt regularFont ở đây
-                            .SetFontSize(10);
-                    }
-                    else if (line.StartsWith("   *") || line.StartsWith("   -")) // Các bullet points
-                    {
-                        para = new Paragraph(line)
-                            .SetFont(regularFont)
-                            .SetFontSize(10);
-                    }
-                    else // Nội dung thông thường
-                    {
-                        para = new Paragraph(line)
-                            .SetFont(regularFont)
-                            .SetFontSize(10);
+                        para.SetPaddingLeft(leftIndent);
                     }
 
                     document.Add(para);
@@ -587,7 +617,6 @@ Home Seasonal Decoration System
                 throw;
             }
         }
-
         #endregion
     }
 }

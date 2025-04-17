@@ -3,6 +3,7 @@ using BusinessLogicLayer.Interfaces;
 using KCP.Service.Service.Pay;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Payment;
+using static DataAccessObject.Models.PaymentTransaction;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -29,6 +30,38 @@ namespace SeasonalHomeDecorAPI.Controllers
                 Message = "Payment URL generated successfully",
                 Data = vnPayResult
             };
+            return Ok(response);
+        }
+
+        // Mobile application payment endpoint
+        [HttpPost("top-up-mobile")]
+        public IActionResult TopUpMobile([FromBody] VnPayRequest request)
+        {
+            // Set transaction type and status if not already set
+            if (request.TransactionType == 0)
+            {
+                request.TransactionType = EnumTransactionType.TopUp;
+            }
+
+            if (request.TransactionStatus == 0)
+            {
+                request.TransactionStatus = EnumTransactionStatus.Pending;
+            }
+
+            // Generate the payment URL for mobile
+            var vnPayResult = VNPayService.VNPay(HttpContext, request, true);
+
+            var response = new BaseResponse
+            {
+                Success = true,
+                Message = "Mobile payment URL generated successfully",
+                Data = new
+                {
+                    PaymentUrl = vnPayResult,
+                    CustomerId = request.CustomerId
+                }
+            };
+
             return Ok(response);
         }
 

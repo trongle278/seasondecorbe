@@ -427,9 +427,11 @@ namespace BusinessLogicLayer.Services
         }
 
         #region
+        private static int _orderCounter = 0;
         private string GenerateOrderCode()
         {
-            return "ODR-" + DateTime.UtcNow.Ticks;
+            _orderCounter++;
+            return $"ORD{_orderCounter:D4}";
         }
         #endregion
     }
