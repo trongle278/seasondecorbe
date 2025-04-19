@@ -250,6 +250,12 @@ namespace BusinessLogicLayer.Services
 
             try
             {
+                if (string.IsNullOrWhiteSpace(signatureToken))
+                {
+                    response.Message = "Signature token is required.";
+                    return response;
+                }
+
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
                     .Include(c => c.Quotation)
