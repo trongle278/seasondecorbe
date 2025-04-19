@@ -225,6 +225,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICancelTypeService, CancelTypeService>();
+builder.Services.AddHttpContextAccessor();
 
 // 11. Build the application
 var app = builder.Build();

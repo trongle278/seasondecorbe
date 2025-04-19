@@ -615,6 +615,15 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
+
+                // 🔹 Cập nhật trạng thái IsBooked cho account
+                var customerAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+                if (customerAccount != null)
+                {
+                    customerAccount.IsBooked = true;
+                    _unitOfWork.AccountRepository.Update(customerAccount);
+                }
+
                 await _unitOfWork.CommitAsync();
 
                 var timeSlot = new TimeSlot
@@ -940,6 +949,14 @@ namespace BusinessLogicLayer.Services
                         _unitOfWork.DecorServiceRepository.Update(booking.DecorService);
                     }
 
+                    // 🔹 Cập nhật IsBooked của customer
+                    var customer = await _unitOfWork.AccountRepository.GetByIdAsync(booking.AccountId);
+                    if (customer != null)
+                    {
+                        customer.IsBooked = false;
+                        _unitOfWork.AccountRepository.Update(customer);
+                    }
+
                     response.Message = "Booking has been canceled successfully.";
                 }
                 else if (booking.Status == BookingStatus.Planning)
@@ -998,7 +1015,17 @@ namespace BusinessLogicLayer.Services
 
                 booking.Status = BookingStatus.Canceled;
                 _unitOfWork.BookingRepository.Update(booking);
+
                 service.Status = DecorService.DecorServiceStatus.Available;
+
+                // 🔹 Cập nhật IsBooked của customer
+                var customer = await _unitOfWork.AccountRepository.GetByIdAsync(booking.AccountId);
+                if (customer != null)
+                {
+                    customer.IsBooked = false;
+                    _unitOfWork.AccountRepository.Update(customer);
+                }
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

@@ -241,7 +241,8 @@ namespace BusinessLogicLayer.ObjectMapper
         private void DecorServiceProfile() 
         {
             CreateMap<DecorService, DecorServiceDTO>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status)); ;
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.IsBooked, opt => opt.MapFrom(src => src.Account.IsBooked));
             CreateMap<DecorImage, DecorImageResponse>();
         }
 

@@ -36,26 +36,23 @@ namespace BusinessLogicLayer.Services
             _elasticClientService = elasticClientService;
         }
 
-        public async Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id)
+        public async Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id, int accountId)
         {
             var response = new DecorServiceResponse();
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
-                    .Query(ds => ds.Id == id && 
+                    .Query(ds => ds.Id == id &&
                            ds.StartDate <= DateTime.Now &&
                            ds.Status == DecorService.DecorServiceStatus.Available)
-
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
                         .ThenInclude(dss => dss.Season)
-
                     .Include(ds => ds.Account)
                         .ThenInclude(a => a.Followers)
                     .Include(ds => ds.Account)
                         .ThenInclude(a => a.Followings)
-
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -68,7 +65,7 @@ namespace BusinessLogicLayer.Services
                     // Map các trường cơ bản của DecorService sang DecorServiceDTO
                     var dto = _mapper.Map<DecorServiceDTO>(decorService);
 
-                    //Hiện Category Name
+                    // Hiện Category Name
                     dto.CategoryName = decorService.DecorCategory.CategoryName;
 
                     // Hiện số lượng yêu thích
@@ -105,6 +102,16 @@ namespace BusinessLogicLayer.Services
                         FollowersCount = decorService.Account.Followers?.Count ?? 0,
                         FollowingsCount = decorService.Account.Followings?.Count ?? 0
                     };
+
+                    // Get IsBooked value from Account entity
+                    var account = await _unitOfWork.AccountRepository
+                        .Query(a => a.Id == accountId)
+                        .FirstOrDefaultAsync();
+
+                    if (account != null)
+                    {
+                        dto.IsBooked = account.IsBooked ?? false;
+                    }
 
                     response.Success = true;
                     response.Data = dto;

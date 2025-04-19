@@ -27,5 +27,8 @@ namespace BusinessLogicLayer.ModelResponse
         public int Status { get; set; }
         public bool? IsSigned { get; set; }
         public string FileUrl { get; set; }
+        public string BookingCode { get; set; }
+        public string Note { get; set; }
+        public decimal DepositAmount { get; set; }
     }
 }

@@ -42,12 +42,16 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetDecorService(int id)
+        [Authorize]
+        public async Task<IActionResult> GetDecorServiceById(int id)
         {
-            var result = await _decorServiceService.GetDecorServiceByIdAsync(id);
-            if (result.Success)
-                return Ok(result);
-            return NotFound(result.Message);
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var result = await _decorServiceService.GetDecorServiceByIdAsync(id, accountId);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
         }
 
         [HttpGet("getDecorServiceByProvider/{slug}")]
