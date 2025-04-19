@@ -468,7 +468,7 @@ After reaching an agreement on the quotation, the two parties enter into a const
 
         private string GenerateSignatureEmailContent(string contractCode, string token)
         {
-            var verifyUrl = $"https://example.com/verify-signature?token={Uri.EscapeDataString(token)}";
+            var verifyUrl = $"http://localhost:3000/sign?token={Uri.EscapeDataString(token)}";
 
             return $@"
 📄 CONTRACT: {contractCode}
