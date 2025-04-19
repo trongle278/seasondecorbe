@@ -262,14 +262,13 @@ namespace BusinessLogicLayer.Services
                     .ThenInclude(q => q.Booking)
                     .FirstOrDefaultAsync(c => c.SignatureToken == signatureToken);
 
-                var booking = contract.Quotation?.Booking;
-                
-
                 if (contract == null)
                 {
                     response.Message = "Invalid or expired signature token.";
                     return response;
                 }
+
+                var booking = contract.Quotation?.Booking;
 
                 if (contract.Status != Contract.ContractStatus.Pending)
                 {
@@ -277,7 +276,6 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Optional: kiểm tra thời hạn của token nếu cần
                 if (contract.SignatureTokenGeneratedAt.HasValue &&
                     (DateTime.Now - contract.SignatureTokenGeneratedAt.Value).TotalHours > 24)
                 {
@@ -285,7 +283,6 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Cập nhật trạng thái là đã ký
                 contract.Status = Contract.ContractStatus.Signed;
                 contract.SignedDate = DateTime.Now;
                 contract.isSigned = true;

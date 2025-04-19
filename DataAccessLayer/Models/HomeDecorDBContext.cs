@@ -490,13 +490,13 @@ namespace DataAccessObject.Models
             );
 
             modelBuilder.Entity<CancelType>().HasData(
-                new CancelType { Id = 1, Type = "ChangedMind" },
-                new CancelType { Id = 2, Type = "FoundBetterOption" },
-                new CancelType { Id = 3, Type = "ScheduleConflict" },
-                new CancelType { Id = 4, Type = "UnexpectedEvent" },
-                new CancelType { Id = 5, Type = "WrongAddress" },
-                new CancelType { Id = 6, Type = "ProviderUnresponsive" },
-                new CancelType { Id = 7, Type = "Other" }
+                new CancelType { Id = 1, Type = "I have changed my mind" },
+                new CancelType { Id = 2, Type = "I found a better option" },
+                new CancelType { Id = 3, Type = "My schedule conflicted" },
+                new CancelType { Id = 4, Type = "An unexpected event occurred" },
+                new CancelType { Id = 5, Type = "The address was incorrect" },
+                new CancelType { Id = 6, Type = "I want to change my request" },
+                new CancelType { Id = 7, Type = "Other reason" }
             );
 
             modelBuilder.Entity<Subscription>().HasData(

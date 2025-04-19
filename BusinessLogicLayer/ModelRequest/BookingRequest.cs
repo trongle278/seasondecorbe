@@ -24,7 +24,6 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class UpdateBookingRequest
     {
-        public int? DecorServiceId { get; set; }
         public int? AddressId { get; set; }
         public DateTime? SurveyDate { get; set; }
         public string? Note { get; set; }

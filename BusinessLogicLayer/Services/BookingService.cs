@@ -684,7 +684,7 @@ namespace BusinessLogicLayer.Services
                 if (!string.IsNullOrWhiteSpace(request.Note))
                     booking.Note = request.Note;
 
-                // Cập nhật địa chỉ
+                // Cập nhật địa ch
                 if (request.AddressId.HasValue)
                 {
                     var address = await _unitOfWork.AddressRepository.GetByIdAsync(request.AddressId.Value);
@@ -694,18 +694,6 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
                     booking.AddressId = request.AddressId.Value;
-                }
-
-                // Cập nhật dịch vụ
-                if (request.DecorServiceId.HasValue)
-                {
-                    var newService = await _unitOfWork.DecorServiceRepository.GetByIdAsync(request.DecorServiceId.Value);
-                    if (newService == null || newService.Status != DecorService.DecorServiceStatus.Available)
-                    {
-                        response.Message = "Invalid or unavailable decor service.";
-                        return response;
-                    }
-                    booking.DecorServiceId = request.DecorServiceId.Value;
                 }
 
                 // Cập nhật ngày khảo sát
