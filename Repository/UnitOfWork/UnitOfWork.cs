@@ -57,6 +57,7 @@ namespace Repository.UnitOfWork
             ContractRepository = new ContractRepository(_context);
             SubscriptionRepository = new SubscriptionRepository(_context);
             VoucherRepository = new VoucherRepository(_context);
+            CancelTypeRepository = new CancelTypeRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -97,6 +98,7 @@ namespace Repository.UnitOfWork
         public IContractRepository ContractRepository { get; private set; }
         public ISubscriptionRepository SubscriptionRepository { get; private set; }
         public IVoucherRepository VoucherRepository { get; private set; }
+        public ICancelTypeRepository CancelTypeRepository { get; }
 
         public void Dispose()
         {
