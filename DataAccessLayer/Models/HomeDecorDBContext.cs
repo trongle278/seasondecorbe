@@ -72,6 +72,7 @@ namespace DataAccessObject.Models
         public DbSet<CancelType> CancelTypes { get; set; }
         public DbSet<TrackingImage> TrackingImages { get; set; }
         public DbSet<Contract> Contracts { get; set; }
+        public DbSet<ProductDetail> ProductDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -241,6 +242,13 @@ namespace DataAccessObject.Models
                 .HasOne(ci => ci.Product)
                 .WithMany(p => p.CartItems)
                 .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure 1-N relationship between Product and ProductDetail
+            modelBuilder.Entity<ProductDetail>()
+                .HasOne(pd => pd.Product)
+                .WithMany(p => p.ProductDetails)
+                .HasForeignKey(pd => pd.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Configure 1-N relationship between Voucher and Cart
@@ -414,6 +422,12 @@ namespace DataAccessObject.Models
                 .HasOne(cd => cd.Quotation)
                 .WithMany(q => q.LaborDetails)
                 .HasForeignKey(cd => cd.QuotationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductDetail>()
+                .HasOne(pd => pd.Quotation)
+                .WithMany(q => q.ProductDetails)
+                .HasForeignKey(pd => pd.QuotationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Support>()

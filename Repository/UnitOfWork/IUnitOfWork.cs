@@ -48,6 +48,7 @@ namespace Repository.UnitOfWork
         IContractRepository ContractRepository { get; }
         ISubscriptionRepository SubscriptionRepository { get; }
         IVoucherRepository VoucherRepository { get; }
+        IProductDetailRepository ProductDetailRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

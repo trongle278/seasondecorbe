@@ -19,6 +19,7 @@ namespace DataAccessObject.Models
         public virtual Booking Booking { get; set; }
         public decimal MaterialCost { get; set; } // Chi phí nguyên liệu
         public decimal ConstructionCost { get; set; } // Chi phí thi công
+        public decimal? ProductCost { get; set; }
         public decimal DepositPercentage { get; set; }
         public string? QuotationFilePath { get; set; }
         public QuotationStatus Status { get; set; }
@@ -33,5 +34,6 @@ namespace DataAccessObject.Models
         public Contract? Contract { get; set; }
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
         public virtual ICollection<LaborDetail> LaborDetails { get; set; }
+        public virtual ICollection<ProductDetail>? ProductDetails { get; set; }
     }
 }
