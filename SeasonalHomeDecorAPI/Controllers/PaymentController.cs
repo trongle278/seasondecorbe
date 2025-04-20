@@ -110,7 +110,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Lấy thông tin thanh toán số tiền còn lại.
         /// </summary>
-        [HttpGet("getFinalPaymentAsync/{quotationCode}")]
+        [HttpGet("getFinalPayment/{quotationCode}")]
         public async Task<IActionResult> GetFinalPayment(string quotationCode)
         {
             var result = await _paymentService.GetFinalPaymentAsync(quotationCode);
