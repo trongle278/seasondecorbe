@@ -317,7 +317,7 @@ namespace BusinessLogicLayer.Services
 
             try
             {
-                // Lấy thông tin Quotation theo QuotationCode
+                // Lấy Quotation
                 var quotation = await _unitOfWork.QuotationRepository
                     .Queryable()
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
@@ -328,7 +328,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Lấy thông tin Contract theo QuotationId
+                // Lấy Contract
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
                     .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
@@ -339,7 +339,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Lấy thông tin Booking thông qua Quotation
+                // Lấy Booking
                 var booking = await _unitOfWork.BookingRepository
                     .Queryable()
                     .FirstOrDefaultAsync(b => b.Id == quotation.BookingId);
@@ -356,7 +356,9 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Trả về thông tin
+                // ✅ Tính lại tiền đặt cọc theo tổng tiền * phần trăm đặt cọc
+                var depositAmount = booking.TotalPrice * (quotation.DepositPercentage / 100);
+
                 response.Success = true;
                 response.Message = "Contract file URL retrieved successfully.";
                 response.Data = new ContractFileResponse
@@ -365,8 +367,8 @@ namespace BusinessLogicLayer.Services
                     Status = (int)contract.Status,
                     IsSigned = contract.isSigned,
                     FileUrl = contract.ContractFilePath,
-                    BookingCode = booking.BookingCode, // Thêm BookingCode
-                    DepositAmount = booking.DepositAmount, // Thêm số tiền đặt cọc
+                    BookingCode = booking.BookingCode,
+                    DepositAmount = depositAmount, // ✅ Chỗ này lấy giá trị đã tính
                     Note = booking.Note
                 };
             }
@@ -378,7 +380,6 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
-
 
         #region Template
         //{quotation.Booking.ExpectedCompletion}
