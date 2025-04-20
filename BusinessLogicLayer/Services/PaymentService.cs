@@ -385,29 +385,20 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse<DepositPaymentResponse>> GetDepositPaymentAsync(string quotationCode)
+        public async Task<BaseResponse<DepositPaymentResponse>> GetDepositPaymentAsync(string contractCode)
         {
             var response = new BaseResponse<DepositPaymentResponse>();
 
             try
             {
-                var quotation = await _unitOfWork.QuotationRepository
-                    .Queryable()
-                    .Include(q => q.Booking)
-                        .ThenInclude(b => b.Address)
-                    .Include(q => q.Booking.Account)
-                    .Include(q => q.Booking.DecorService.Account)
-                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
-
-                if (quotation == null)
-                {
-                    response.Message = "Quotation not found.";
-                    return response;
-                }
-
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+                    .Include(c => c.Quotation)  // Bao gồm Quotation liên quan đến contract
+                    .ThenInclude(q => q.Booking)
+                        .ThenInclude(b => b.Address)
+                    .Include(c => c.Quotation.Booking.Account)
+                    .Include(c => c.Quotation.Booking.DecorService.Account)
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
 
                 if (contract == null)
                 {
@@ -415,6 +406,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var quotation = contract.Quotation;  // Lấy Quotation từ contract
                 var booking = quotation.Booking;
                 var customer = booking.Account;
                 var provider = booking.DecorService?.Account;
@@ -451,29 +443,20 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string quotationCode)
+        public async Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string contractCode)
         {
             var response = new BaseResponse<FinalPaymentResponse>();
 
             try
             {
-                var quotation = await _unitOfWork.QuotationRepository
-                    .Queryable()
-                    .Include(q => q.Booking)
-                        .ThenInclude(b => b.Address)
-                    .Include(q => q.Booking.Account)
-                    .Include(q => q.Booking.DecorService.Account)
-                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
-
-                if (quotation == null)
-                {
-                    response.Message = "Quotation not found.";
-                    return response;
-                }
-
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+                    .Include(c => c.Quotation)  // Bao gồm Quotation liên quan đến contract
+                    .ThenInclude(q => q.Booking)
+                        .ThenInclude(b => b.Address)
+                    .Include(c => c.Quotation.Booking.Account)
+                    .Include(c => c.Quotation.Booking.DecorService.Account)
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
 
                 if (contract == null)
                 {
@@ -481,6 +464,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var quotation = contract.Quotation;  // Lấy Quotation từ contract
                 var booking = quotation.Booking;
                 var customer = booking.Account;
                 var provider = booking.DecorService?.Account;

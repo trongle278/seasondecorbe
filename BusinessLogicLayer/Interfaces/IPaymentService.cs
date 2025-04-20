@@ -16,7 +16,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<bool> OrderPay(int customerId, int providerId, int orderId, decimal amount, decimal commissionRate);
         Task<bool> Refund(int accountId, decimal amount, int bookingId, int adminId);
 
-        Task<BaseResponse<DepositPaymentResponse>> GetDepositPaymentAsync(string quotationCode);
-        Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string quotationCode);
+        Task<BaseResponse<DepositPaymentResponse>> GetDepositPaymentAsync(string contractCode);
+        Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string contractCode);
     }
 }

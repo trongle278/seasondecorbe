@@ -4,6 +4,7 @@ using KCP.Service.Service.Pay;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Payment;
 using static DataAccessObject.Models.PaymentTransaction;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -98,10 +99,10 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Lấy thông tin thanh toán đặt cọc.
         /// </summary>
-        [HttpGet("getDepositPayment/{quotationCode}")]
-        public async Task<IActionResult> GetDepositPayment(string quotationCode)
+        [HttpGet("getDepositPayment/{contractCode}")]
+        public async Task<IActionResult> GetDepositPayment(string contractCode)
         {
-            var result = await _paymentService.GetDepositPaymentAsync(quotationCode);
+            var result = await _paymentService.GetDepositPaymentAsync(contractCode);
             if (!result.Success)
                 return BadRequest(result);
             return Ok(result);
@@ -110,10 +111,10 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Lấy thông tin thanh toán số tiền còn lại.
         /// </summary>
-        [HttpGet("getFinalPayment/{quotationCode}")]
-        public async Task<IActionResult> GetFinalPayment(string quotationCode)
+        [HttpGet("getFinalPayment/{contractCode}")]
+        public async Task<IActionResult> GetFinalPayment(string contractCode)
         {
-            var result = await _paymentService.GetFinalPaymentAsync(quotationCode);
+            var result = await _paymentService.GetFinalPaymentAsync(contractCode);
             if (!result.Success)
                 return BadRequest(result);
             return Ok(result);
