@@ -506,11 +506,9 @@ Home Seasonal Decoration System
         #endregion
 
         #region
-        private static int _contractCounter = 0;
         private string GenerateContractCode()
         {
-            _contractCounter++;
-            return $"CON{_contractCounter:D4}";
+            return "CON" + DateTime.Now.Ticks;
         }
 
         private string GenerateSignatureToken(int customerId, string contractCode)

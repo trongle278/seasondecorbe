@@ -611,12 +611,9 @@ namespace BusinessLogicLayer.Services
         }
 
         #region
-        private static int _quotationCounter = 0;
-
         private string GenerateQuotationCode()
         {
-            _quotationCounter++;
-            return $"QU{_quotationCounter:D4}";
+            return "QUO" + DateTime.Now.Ticks;
         }
         #endregion
     }

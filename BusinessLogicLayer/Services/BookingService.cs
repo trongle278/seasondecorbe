@@ -1285,11 +1285,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
         #region
-        private static int _bookingCounter = 0;
         private string GenerateBookingCode()
         {
-            _bookingCounter++;
-            return $"BKG{_bookingCounter:D4}";
+            return "BKG" + DateTime.Now.Ticks;
         }
         #endregion
     }
