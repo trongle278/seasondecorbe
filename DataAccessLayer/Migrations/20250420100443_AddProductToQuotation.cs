@@ -8,10 +8,6 @@ namespace DataAccessObject.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AdditionalCost",
-                table: "Bookings");
-
             migrationBuilder.AddColumn<decimal>(
                 name: "ProductCost",
                 table: "Quotation",
@@ -66,12 +62,6 @@ namespace DataAccessObject.Migrations
             migrationBuilder.DropColumn(
                 name: "ProductCost",
                 table: "Quotation");
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "AdditionalCost",
-                table: "Bookings",
-                type: "decimal(18,2)",
-                nullable: true);
         }
     }
 }
