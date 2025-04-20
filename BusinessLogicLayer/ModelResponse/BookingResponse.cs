@@ -12,14 +12,15 @@ namespace BusinessLogicLayer.ModelResponse
         public string BookingCode { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
+        public bool IsQuoteExisted { get; set; }
+        public bool IsContractSigned { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
         public DateTime? EstimatedCompletion { get; set; }
         public DecorServiceDTO DecorService { get; set; } // Dịch vụ decor
-        public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)
-        //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
+        public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)    
         public string CancelType { get; set; }
         public string? CancelReason { get; set; }
     }

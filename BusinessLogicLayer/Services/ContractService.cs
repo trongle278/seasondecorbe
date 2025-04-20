@@ -320,6 +320,10 @@ namespace BusinessLogicLayer.Services
                 // Lấy Quotation
                 var quotation = await _unitOfWork.QuotationRepository
                     .Queryable()
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Account) // Customer
+                    .Include(q => q.Booking.DecorService)
+                        .ThenInclude(ds => ds.Account) // Provider
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
 
                 if (quotation == null)
@@ -339,11 +343,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Lấy Booking
-                var booking = await _unitOfWork.BookingRepository
-                    .Queryable()
-                    .FirstOrDefaultAsync(b => b.Id == quotation.BookingId);
-
+                var booking = quotation.Booking;
                 if (booking == null)
                 {
                     response.Message = "Booking not found for this quotation.";
@@ -356,11 +356,23 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // ✅ Tính lại tiền đặt cọc theo tổng tiền * phần trăm đặt cọc
+                // ✅ Tính tiền đặt cọc
                 var depositAmount = booking.TotalPrice * (quotation.DepositPercentage / 100);
 
+                // Lấy thông tin Customer và Provider
+                var customer = booking.Account;
+                var provider = booking.DecorService?.Account;
+
+                // Nếu thiếu thông tin thì trả lỗi
+                if (customer == null || provider == null)
+                {
+                    response.Message = "Customer or Provider information is missing.";
+                    return response;
+                }
+
+                // ✅ Trả kết quả
                 response.Success = true;
-                response.Message = "Contract file URL retrieved successfully.";
+                response.Message = "Contract file URL and summary retrieved successfully.";
                 response.Data = new ContractFileResponse
                 {
                     ContractCode = contract.ContractCode,
@@ -368,8 +380,18 @@ namespace BusinessLogicLayer.Services
                     IsSigned = contract.isSigned,
                     FileUrl = contract.ContractFilePath,
                     BookingCode = booking.BookingCode,
-                    DepositAmount = depositAmount, // ✅ Chỗ này lấy giá trị đã tính
-                    Note = booking.Note
+                    DepositAmount = depositAmount,
+                    Note = booking.Note,
+
+                    CustomerName = $"{customer.LastName} {customer.FirstName}",
+                    CustomerEmail = customer.Email,
+                    CustomerPhone = customer.Phone,
+               
+                    BusinessName = provider.BusinessName,
+                    ProviderName = $"{provider.LastName} {provider.FirstName}",
+                    ProviderEmail = provider.Email,
+                    ProviderPhone = provider.Phone                  
+                    
                 };
             }
             catch (Exception ex)
@@ -380,6 +402,7 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
 
         #region Template
         //{quotation.Booking.ExpectedCompletion}

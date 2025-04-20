@@ -30,5 +30,13 @@ namespace BusinessLogicLayer.ModelResponse
         public string BookingCode { get; set; }
         public string Note { get; set; }
         public decimal DepositAmount { get; set; }
+        public string CustomerName { get; set; }
+        public string CustomerEmail { get; set; }
+        public string CustomerPhone { get; set; }
+
+        public string BusinessName { get; set; }
+        public string ProviderName { get; set; }
+        public string ProviderEmail { get; set; }
+        public string ProviderPhone { get; set; }
     }
 }

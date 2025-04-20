@@ -86,32 +86,33 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<PageResult<BookingResponse>>();
             try
             {
-                // 🔹 Filter Condition
+                // Filter Condition
                 Expression<Func<Booking, bool>> filter = booking =>
                     booking.AccountId == accountId &&
                     ((!request.Status.HasValue || booking.Status == request.Status.Value)) &&
                     (!request.DecorServiceId.HasValue || booking.DecorServiceId == request.DecorServiceId.Value);
 
-                // 🔹 Sorting Condition
+                // Sorting Condition
                 Expression<Func<Booking, object>> orderByExpression = request.SortBy switch
                 {
                     "BookingCode" => booking => booking.BookingCode,
                     "Status" => booking => booking.Status,
-                    _ => booking => booking.CreateAt // Mặc định: Booking mới nhất
+                    _ => booking => booking.CreateAt
                 };
 
-                // 🔹 Includes (Lấy thêm thông tin)
+                // Includes
                 Func<IQueryable<Booking>, IQueryable<Booking>> customQuery = query => query
                     .AsSplitQuery()
                     .Include(b => b.DecorService)
-                        .ThenInclude(ds => ds.DecorImages) // Hình ảnh
+                        .ThenInclude(ds => ds.DecorImages)
                     .Include(b => b.DecorService.DecorServiceSeasons)
-                        .ThenInclude(dss => dss.Season) // Season
-                    .Include(b => b.DecorService.Account) // Provider
-                    .Include(b => b.BookingDetails) // Booking details
-                    .Include(b => b.Address);
+                        .ThenInclude(dss => dss.Season)
+                    .Include(b => b.DecorService.Account)
+                    .Include(b => b.BookingDetails)
+                    .Include(b => b.Address)
+                    .Include(b => b.Quotations) // 🔥 Lấy thêm Quotations để check isQuoteExisted
+                        .ThenInclude(q => q.Contract); // 🔥 Lấy thêm Contract để check isContractExisted
 
-                // 🔹 Get paginated data & filter
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
                     filter,
                     request.PageIndex,
@@ -122,75 +123,69 @@ namespace BusinessLogicLayer.Services
                     customQuery
                 );
 
-                // 🔹 Convert to DTO
-                var bookingResponses = bookings.Select(booking => new BookingResponse
+                var bookingResponses = bookings.Select(booking =>
                 {
-                    BookingId = booking.Id,
-                    BookingCode = booking.BookingCode,
-                    TotalPrice = booking.TotalPrice,
-                    Status = (int)booking.Status,                  
-                    Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
-                    CreatedAt = booking.CreateAt,
+                    // 🔥 Lấy Quotation gần nhất (CreatedAt mới nhất)
+                    var latestQuotation = booking.Quotations
+                        .OrderByDescending(q => q.CreatedAt)
+                        .FirstOrDefault();
 
-                    // ⭐ Thông tin DecorService
-                    DecorService = new DecorServiceDTO
+                    return new BookingResponse
                     {
-                        Id = booking.DecorService.Id,
-                        Style = booking.DecorService.Style,
-                        BasePrice = booking.DecorService.BasePrice,
-                        Description = booking.DecorService.Description,
-                        Status = (int)booking.DecorService.Status,
-                        StartDate = booking.DecorService.StartDate,
+                        BookingId = booking.Id,
+                        BookingCode = booking.BookingCode,
+                        TotalPrice = booking.TotalPrice,
+                        Status = (int)booking.Status,
+                        Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
+                        CreatedAt = booking.CreateAt,
 
-                        // ⭐ Hình ảnh decor
-                        Images = booking.DecorService.DecorImages.Select(di => new DecorImageResponse
+                        DecorService = new DecorServiceDTO
                         {
-                            Id = di.Id,
-                            ImageURL = di.ImageURL
-                        }).ToList(),
+                            Id = booking.DecorService.Id,
+                            Style = booking.DecorService.Style,
+                            BasePrice = booking.DecorService.BasePrice,
+                            Description = booking.DecorService.Description,
+                            Status = (int)booking.DecorService.Status,
+                            StartDate = booking.DecorService.StartDate,
+                            Images = booking.DecorService.DecorImages.Select(di => new DecorImageResponse
+                            {
+                                Id = di.Id,
+                                ImageURL = di.ImageURL
+                            }).ToList(),
+                            Seasons = booking.DecorService.DecorServiceSeasons.Select(ds => new SeasonResponse
+                            {
+                                Id = ds.Season.Id,
+                                SeasonName = ds.Season.SeasonName
+                            }).ToList()
+                        },
 
-                        // ⭐ Danh sách mùa decor
-                        Seasons = booking.DecorService.DecorServiceSeasons.Select(ds => new SeasonResponse
+                        Provider = new ProviderResponse
                         {
-                            Id = ds.Season.Id,
-                            SeasonName = ds.Season.SeasonName
-                        }).ToList()
-                    },
+                            Id = booking.DecorService.Account.Id,
+                            BusinessName = booking.DecorService.Account.BusinessName,
+                            Avatar = booking.DecorService.Account.Avatar,
+                            Phone = booking.DecorService.Account.Phone,
+                            Slug = booking.DecorService.Account.Slug
+                        },
 
-                    // ⭐ Thông tin Provider
-                    Provider = new ProviderResponse
-                    {
-                        Id = booking.DecorService.Account.Id,
-                        BusinessName = booking.DecorService.Account.BusinessName,
-                        Avatar = booking.DecorService.Account.Avatar,
-                        Phone = booking.DecorService.Account.Phone,
-                        Slug = booking.DecorService.Account.Slug
-                    },
+                        ServiceItems = booking.BookingDetails.Any()
+                            ? string.Join(", ", booking.BookingDetails.Select(bd => bd.ServiceItem))
+                            : "No Service Items",
 
-                    // ⭐ Booking Details
-                    //BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
-                    //{
-                    //    Id = bd.Id,
-                    //    ServiceItem = bd.ServiceItem,
-                    //    Cost = bd.Cost,
-                    //    EstimatedCompletion = bd.EstimatedCompletion
-                    //}).ToList()
+                        Cost = booking.BookingDetails.Any()
+                            ? booking.BookingDetails.Sum(bd => bd.Cost)
+                            : 0,
 
-                    // 🆕 **Gộp BookingDetails vào Booking**
-                    ServiceItems = booking.BookingDetails.Any()
-                        ? string.Join(", ", booking.BookingDetails.Select(bd => bd.ServiceItem))
-                        : "No Service Items",
+                        EstimatedCompletion = booking.BookingDetails.Any()
+                            ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
+                            : null,
 
-                    Cost = booking.BookingDetails.Any()
-                        ? booking.BookingDetails.Sum(bd => bd.Cost)
-                        : 0,
-
-                    EstimatedCompletion = booking.BookingDetails.Any()
-                        ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
-                        : null
+                        // 🔥 Thêm isQuoteExisted và isContractExisted
+                        IsQuoteExisted = latestQuotation?.isQuoteExisted ?? false,
+                        IsContractSigned = latestQuotation?.Contract?.isSigned ?? false
+                    };
                 }).ToList();
 
-                // 🔹 Return result
                 response.Success = true;
                 response.Data = new PageResult<BookingResponse>
                 {
