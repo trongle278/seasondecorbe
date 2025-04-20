@@ -370,6 +370,11 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var timeslot = await _unitOfWork.TimeSlotRepository
+                    .Queryable()
+                    .Where(t => t.BookingId == booking.Id)
+                    .FirstOrDefaultAsync();
+
                 // ✅ Trả kết quả
                 response.Success = true;
                 response.Message = "Contract file URL and summary retrieved successfully.";
@@ -382,6 +387,8 @@ namespace BusinessLogicLayer.Services
                     BookingCode = booking.BookingCode,
                     DepositAmount = depositAmount,
                     Note = booking.Note ?? "",
+                    SurveyDate = timeslot.SurveyDate,
+                    ConstructionDate = booking.ConstructionDate,
 
                     CustomerName = $"{customer.LastName} {customer.FirstName}",
                     CustomerEmail = customer.Email,
@@ -402,7 +409,6 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
-
 
         #region Template
         //{quotation.Booking.ExpectedCompletion}

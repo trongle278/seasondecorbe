@@ -29,6 +29,8 @@ namespace BusinessLogicLayer.ModelResponse
         public string FileUrl { get; set; }
         public string BookingCode { get; set; }
         public string Note { get; set; }
+        public DateTime SurveyDate { get; set; }
+        public DateTime? ConstructionDate { get; set; }
         public decimal DepositAmount { get; set; }
         public string CustomerName { get; set; }
         public string CustomerEmail { get; set; }
