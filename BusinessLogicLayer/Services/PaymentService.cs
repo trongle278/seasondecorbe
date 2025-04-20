@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Payment;
 using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
@@ -381,6 +383,139 @@ namespace BusinessLogicLayer.Services
                     return false;
                 }
             }
+        }
+
+        public async Task<BaseResponse<DepositPaymentResponse>> GetDepositPaymentAsync(string quotationCode)
+        {
+            var response = new BaseResponse<DepositPaymentResponse>();
+
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository
+                    .Queryable()
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Address)
+                    .Include(q => q.Booking.Account)
+                    .Include(q => q.Booking.DecorService.Account)
+                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                var contract = await _unitOfWork.ContractRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found.";
+                    return response;
+                }
+
+                var booking = quotation.Booking;
+                var customer = booking.Account;
+                var provider = booking.DecorService?.Account;
+                var address = booking.Address;
+
+                var depositAmount = booking.TotalPrice * (quotation.DepositPercentage / 100);
+
+                response.Success = true;
+                response.Data = new DepositPaymentResponse
+                {
+                    QuotationCode = quotation.QuotationCode,
+                    ContractCode = contract.ContractCode,
+                    DepositAmount = depositAmount,
+
+                    CustomerName = $"{customer.LastName} {customer.FirstName}",
+                    CustomerEmail = customer.Email,
+                    CustomerPhone = customer.Phone,
+                    CustomerAddress = address != null
+                        ? $"{address.Detail}, {address.Street}, {address.Ward}, {address.District}, {address.Province}"
+                        : "",
+
+                    ProviderName = $"{provider.LastName} {provider.FirstName}",
+                    ProviderEmail = provider.Email,
+                    ProviderPhone = provider.Phone,
+                    ProviderAddress = provider.BusinessAddress ?? ""
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Message = "Failed to retrieve deposit payment info.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string quotationCode)
+        {
+            var response = new BaseResponse<FinalPaymentResponse>();
+
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository
+                    .Queryable()
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Address)
+                    .Include(q => q.Booking.Account)
+                    .Include(q => q.Booking.DecorService.Account)
+                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                var contract = await _unitOfWork.ContractRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found.";
+                    return response;
+                }
+
+                var booking = quotation.Booking;
+                var customer = booking.Account;
+                var provider = booking.DecorService?.Account;
+                var address = booking.Address;
+
+                var depositAmount = booking.TotalPrice * (quotation.DepositPercentage / 100);
+                var finalPayment = booking.TotalPrice - depositAmount;
+
+                response.Success = true;
+                response.Data = new FinalPaymentResponse
+                {
+                    QuotationCode = quotation.QuotationCode,
+                    ContractCode = contract.ContractCode,
+                    FinalPaymentAmount = finalPayment,
+
+                    CustomerName = $"{customer.LastName} {customer.FirstName}",
+                    CustomerEmail = customer.Email,
+                    CustomerPhone = customer.Phone,
+                    CustomerAddress = address != null
+                        ? $"{address.Detail}, {address.Street}, {address.Ward}, {address.District}, {address.Province}"
+                        : "",
+
+                    ProviderName = $"{provider.LastName} {provider.FirstName}",
+                    ProviderEmail = provider.Email,
+                    ProviderPhone = provider.Phone,
+                    ProviderAddress = provider.BusinessAddress ?? ""
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Message = "Failed to retrieve final payment info.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
         }
     }
 }

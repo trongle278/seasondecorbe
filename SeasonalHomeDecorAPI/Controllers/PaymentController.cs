@@ -94,5 +94,29 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return Redirect("com.baymaxphan.seasondecormobileapp:/screens/payment/failure");//trang thất bại
         }
+
+        /// <summary>
+        /// Lấy thông tin thanh toán đặt cọc.
+        /// </summary>
+        [HttpGet("getDepositPayment/{quotationCode}")]
+        public async Task<IActionResult> GetDepositPayment(string quotationCode)
+        {
+            var result = await _paymentService.GetDepositPaymentAsync(quotationCode);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy thông tin thanh toán số tiền còn lại.
+        /// </summary>
+        [HttpGet("getFinalPaymentAsync/{quotationCode}")]
+        public async Task<IActionResult> GetFinalPayment(string quotationCode)
+        {
+            var result = await _paymentService.GetFinalPaymentAsync(quotationCode);
+            if (!result.Success)
+                return BadRequest(result);
+            return Ok(result);
+        }
     }
 }

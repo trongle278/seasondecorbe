@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelResponse.Payment;
+using BusinessLogicLayer.ModelResponse;
 
 namespace BusinessLogicLayer.Interfaces
 {
@@ -13,5 +15,8 @@ namespace BusinessLogicLayer.Interfaces
         Task<bool> FinalPay(int accountId, decimal remainBookingAmount, int providerId, int bookingId, decimal commissionRate);
         Task<bool> OrderPay(int customerId, int providerId, int orderId, decimal amount, decimal commissionRate);
         Task<bool> Refund(int accountId, decimal amount, int bookingId, int adminId);
+
+        Task<BaseResponse<DepositPaymentResponse>> GetDepositPaymentAsync(string quotationCode);
+        Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string quotationCode);
     }
 }
