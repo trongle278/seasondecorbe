@@ -53,6 +53,7 @@ namespace BusinessLogicLayer.ModelRequest
         [Required(ErrorMessage = "Construction tasks list is required")]
         [MinLength(1, ErrorMessage = "At least one construction task is required")]
         public List<ConstructionItemRequest> ConstructionTasks { get; set; }
+        public List<ProductItemRequest>? Products { get; set; }
         public decimal DepositPercentage { get; set; }
     }
             
@@ -77,6 +78,12 @@ namespace BusinessLogicLayer.ModelRequest
         public string Unit { get; set; }
         // Chỉ áp dụng khi đơn vị là "m²"
         public decimal? Area { get; set; }
+    }
+
+    public class ProductItemRequest
+    {
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 
     public class UpdateTrackingRequest

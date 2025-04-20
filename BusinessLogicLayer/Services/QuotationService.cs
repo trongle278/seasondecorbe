@@ -69,8 +69,34 @@ namespace BusinessLogicLayer.Services
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
                 decimal totalConstructionCost = request.ConstructionTasks.Sum(c =>
                     c.Unit == "m2" ? (c.Cost * ((c.Area ?? 0m))) : c.Cost);
+                decimal? totalProductCost = null;
 
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
+
+                List<ProductDetail> productDetails = new();
+                if (request.Products != null && request.Products.Any())
+                {
+                    // Lấy thông tin sản phẩm từ cơ sở dữ liệu
+                    foreach (var p in request.Products)
+                    {
+                        var product = await _unitOfWork.ProductRepository.Queryable()
+                            .FirstOrDefaultAsync(prod => prod.Id == p.ProductId);
+
+                        if (product != null)
+                        {
+                            productDetails.Add(new ProductDetail
+                            {
+                                ProductId = p.ProductId,
+                                ProductName = product.ProductName,
+                                Quantity = p.Quantity,
+                                UnitPrice = product.ProductPrice,
+                                TotalPrice = p.Quantity * product.ProductPrice
+                            });
+                        }
+                    }
+
+                    totalProductCost = productDetails.Sum(p => p.Quantity * p.UnitPrice);
+                }
 
                 // Tạo báo giá mới hoàn toàn
                 var quotation = new Quotation
@@ -84,8 +110,20 @@ namespace BusinessLogicLayer.Services
                     Status = Quotation.QuotationStatus.Pending
                 };
 
+                if (totalProductCost.HasValue)
+                {
+                    quotation.ProductCost = totalProductCost.Value;
+                }
+
                 await _unitOfWork.QuotationRepository.InsertAsync(quotation);
                 await _unitOfWork.CommitAsync();
+
+                // Gán QuotationId cho ProductDetail
+                foreach (var product in productDetails)
+                {
+                    product.QuotationId = quotation.Id;
+                }
+                await _unitOfWork.ProductDetailRepository.InsertRangeAsync(productDetails);
 
                 // Thêm chi tiết vật liệu
                 var materialDetails = request.Materials.Select(m => new MaterialDetail
@@ -118,7 +156,15 @@ namespace BusinessLogicLayer.Services
                 {
                     Quotation = quotation,
                     MaterialDetails = materialDetails,
-                    ConstructionDetails = constructionDetails
+                    ConstructionDetails = constructionDetails,
+                    ProductDetails = productDetails.Select(p => new
+                    {
+                        p.ProductId,
+                        p.ProductName,
+                        p.Quantity,
+                        p.UnitPrice,
+                        p.TotalPrice
+                    }).ToList()
                 };
             }
             catch (Exception ex)
@@ -260,7 +306,15 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // ✅ Cập nhật tổng chi phí booking
-                booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
+
+                if (quotation.ProductCost.HasValue)
+                {
+                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value;
+                }
+                else
+                {
+                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
+                }
 
                 if (isConfirmed)
                 {
@@ -276,17 +330,48 @@ namespace BusinessLogicLayer.Services
                         return response;
                     }
 
-                    decimal totalCost = quotation.MaterialCost + quotation.ConstructionCost;
+                    decimal totalCost = 0m;
+                    if (quotation.ProductCost.HasValue)
+                    {
+                        totalCost = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value;
+                    }
+                    else
+                    {
+                        totalCost = quotation.MaterialCost + quotation.ConstructionCost;
+                    }
+                    
                     decimal depositAmount = (quotation.DepositPercentage / 100) * totalCost;
 
                     // Tạo BookingDetail mới
                     var bookingDetails = new List<BookingDetail>
-            {
-                new BookingDetail { BookingId = booking.Id, ServiceItem = "Materials Cost", Cost = quotation.MaterialCost },
-                new BookingDetail { BookingId = booking.Id, ServiceItem = "Construction Cost", Cost = quotation.ConstructionCost },
-                new BookingDetail { BookingId = booking.Id, ServiceItem = "Deposit (" + quotation.DepositPercentage + "%)", Cost = depositAmount },
-                new BookingDetail { BookingId = booking.Id, ServiceItem = "Total Cost", Cost = totalCost }
-            };
+                    {
+                        new BookingDetail { BookingId = booking.Id, ServiceItem = "Materials Cost", Cost = quotation.MaterialCost },
+                        new BookingDetail { BookingId = booking.Id, ServiceItem = "Construction Cost", Cost = quotation.ConstructionCost }
+                    };
+                    
+                    if (quotation.ProductCost.HasValue)
+                    {
+                        bookingDetails.Add(new BookingDetail
+                        {
+                            BookingId = booking.Id,
+                            ServiceItem = "Product Cost",
+                            Cost = quotation.ProductCost.Value
+                        });
+                    }
+
+                    bookingDetails.Add(new BookingDetail
+                    {
+                        BookingId = booking.Id,
+                        ServiceItem = "Deposit (" + quotation.DepositPercentage + "%)",
+                        Cost = depositAmount
+                    });
+
+                    bookingDetails.Add(new BookingDetail
+                    {
+                        BookingId = booking.Id,
+                        ServiceItem = "Total Cost",
+                        Cost = totalCost
+                    });
 
                     await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
 

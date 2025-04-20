@@ -58,6 +58,7 @@ namespace Repository.UnitOfWork
             SubscriptionRepository = new SubscriptionRepository(_context);
             VoucherRepository = new VoucherRepository(_context);
             CancelTypeRepository = new CancelTypeRepository(_context);
+            ProductDetailRepository = new ProductDetailRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -99,6 +100,7 @@ namespace Repository.UnitOfWork
         public ISubscriptionRepository SubscriptionRepository { get; private set; }
         public IVoucherRepository VoucherRepository { get; private set; }
         public ICancelTypeRepository CancelTypeRepository { get; }
+        public IProductDetailRepository ProductDetailRepository { get; private set; }
 
         public void Dispose()
         {

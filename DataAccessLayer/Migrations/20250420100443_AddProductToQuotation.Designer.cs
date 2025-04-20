@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250420100443_AddProductToQuotation")]
+    partial class AddProductToQuotation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,9 +56,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("IsBooked")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDisable")
@@ -302,37 +301,37 @@ namespace DataAccessObject.Migrations
                         new
                         {
                             Id = 1,
-                            Type = "I have changed my mind"
+                            Type = "ChangedMind"
                         },
                         new
                         {
                             Id = 2,
-                            Type = "I found a better option"
+                            Type = "FoundBetterOption"
                         },
                         new
                         {
                             Id = 3,
-                            Type = "My schedule conflicted"
+                            Type = "ScheduleConflict"
                         },
                         new
                         {
                             Id = 4,
-                            Type = "An unexpected event occurred"
+                            Type = "UnexpectedEvent"
                         },
                         new
                         {
                             Id = 5,
-                            Type = "The address was incorrect"
+                            Type = "WrongAddress"
                         },
                         new
                         {
                             Id = 6,
-                            Type = "I want to change my request"
+                            Type = "ProviderUnresponsive"
                         },
                         new
                         {
                             Id = 7,
-                            Type = "Other reason"
+                            Type = "Other"
                         });
                 });
 

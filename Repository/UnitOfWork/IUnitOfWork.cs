@@ -49,6 +49,7 @@ namespace Repository.UnitOfWork
         ISubscriptionRepository SubscriptionRepository { get; }
         IVoucherRepository VoucherRepository { get; }
         ICancelTypeRepository CancelTypeRepository { get; }
+        IProductDetailRepository ProductDetailRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
