@@ -651,37 +651,35 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<PageResult<ProviderPaymentResponse>>();
             try
             {
-                // 🔹 Filter: based on transaction type (Order or Booking)
+                // 🔹 Build filter chính xác
                 Expression<Func<PaymentTransaction, bool>> filter;
-
                 if (string.IsNullOrEmpty(request.PaymentType))
                 {
-                    // Get all successful transactions (both Order and Booking)
                     filter = pt =>
                         pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
-                        (pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay ||
-                         pt.TransactionType == PaymentTransaction.EnumTransactionType.Deposit &&
-                        ((pt.OrderId != null && pt.Order.OrderDetails.Any(od => od.Product.AccountId == providerId)) ||
-                         (pt.BookingId != null && pt.Booking.DecorService.AccountId == providerId)));
+                        (
+                            (pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay && pt.OrderId != null && pt.Order.OrderDetails.Any(od => od.Product.AccountId == providerId)) ||
+                            (pt.TransactionType == PaymentTransaction.EnumTransactionType.Deposit && pt.BookingId != null && pt.Booking.DecorService.AccountId == providerId) ||
+                            (pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay && pt.BookingId != null && pt.Booking.DecorService.AccountId == providerId)
+                        );
                 }
                 else if (request.PaymentType == "Order")
                 {
-                    // Only "Pay" transactions for Order
                     filter = pt =>
                         pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
-                        (pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay &&
+                        pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay &&
                         pt.OrderId != null &&
-                        pt.Order.OrderDetails.Any(od => od.Product.AccountId == providerId));
+                        pt.Order.OrderDetails.Any(od => od.Product.AccountId == providerId);
                 }
                 else if (request.PaymentType == "Booking")
                 {
-                    // "Deposit" or "Pay" transactions for Booking
                     filter = pt =>
                         pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
-                        (pt.TransactionType == PaymentTransaction.EnumTransactionType.Deposit ||
-                         pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay &&
-                        pt.BookingId != null &&
-                        pt.Booking.DecorService.AccountId == providerId);
+                        (
+                            (pt.TransactionType == PaymentTransaction.EnumTransactionType.Deposit || pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay) &&
+                            pt.BookingId != null &&
+                            pt.Booking.DecorService.AccountId == providerId
+                        );
                 }
                 else
                 {
@@ -691,46 +689,35 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Order By
                 Expression<Func<PaymentTransaction, object>> orderBy = pt => pt.TransactionDate;
 
-                // 🔹 Custom query (Include all necessary relationships)
+                // 🔹 Custom query
                 Func<IQueryable<PaymentTransaction>, IQueryable<PaymentTransaction>> customQuery = query =>
                 {
                     query = query.Include(pt => pt.WalletTransactions)
                                 .ThenInclude(wt => wt.Wallet)
                                 .ThenInclude(w => w.Account);
 
-                    if (string.IsNullOrEmpty(request.PaymentType))
+                    if (string.IsNullOrEmpty(request.PaymentType) || request.PaymentType == "Order")
                     {
-                        return query.Include(pt => pt.Order)
-                                        .ThenInclude(o => o.OrderDetails)
-                                            .ThenInclude(od => od.Product)
-                                                .ThenInclude(p => p.Account)
-
-                                    .Include(pt => pt.Order)
-                                        .ThenInclude(o => o.Account)
-
-                                   .Include(pt => pt.Booking)
-                                    .ThenInclude(b => b.DecorService)
-                                        .ThenInclude(ds => ds.Account);
-                    }
-                    else if (request.PaymentType == "Order")
-                    {
-                        return query.Include(pt => pt.Order)
+                        query = query.Include(pt => pt.Order)
                                     .ThenInclude(o => o.OrderDetails)
                                         .ThenInclude(od => od.Product)
                                             .ThenInclude(p => p.Account)
-                                    
-                                    .Include(pt => pt.Order)
-                                        .ThenInclude(o => o.Account);
+
+                                .Include(pt => pt.Order)
+                                    .ThenInclude(o => o.Account);
                     }
-                    else // Booking
+
+                    if (string.IsNullOrEmpty(request.PaymentType) || request.PaymentType == "Booking")
                     {
-                        return query.Include(pt => pt.Booking)
+                        query = query.Include(pt => pt.Booking)
                                     .ThenInclude(b => b.DecorService)
-                                    .ThenInclude(ds => ds.Account);
+                                        .ThenInclude(ds => ds.Account);
                     }
+
+                    return query;
                 };
 
-                // 🔹 Get Data
+                // 🔹 Get data
                 (IEnumerable<PaymentTransaction> transactions, int totalCount) = await _unitOfWork.PaymentTransactionRepository.GetPagedAndFilteredAsync(
                     filter,
                     request.PageIndex,
@@ -747,12 +734,12 @@ namespace BusinessLogicLayer.Services
                 response.Data = new PageResult<ProviderPaymentResponse>
                 {
                     Data = filtered.Select(pt => {
-                        // Determine sender and receiver wallets
                         var order = pt.Order;
                         var booking = pt.Booking;
                         var walletTransactions = pt.WalletTransactions?.ToList();
-                        var senderWallet = walletTransactions?.FirstOrDefault(wt => wt.Wallet.AccountId != providerId);
-                        var receiverWallet = walletTransactions?.FirstOrDefault(wt => wt.Wallet.AccountId == providerId);
+
+                        // Tìm đúng OrderDetail của Provider
+                        var orderDetailOfProvider = order?.OrderDetails?.FirstOrDefault(od => od.Product.AccountId == providerId);
 
                         return new ProviderPaymentResponse
                         {
@@ -766,18 +753,23 @@ namespace BusinessLogicLayer.Services
                             OrderId = pt.OrderId,
                             BookingId = pt.BookingId,
 
-                            // Sender information (from wallet that's not the provider)
+                            // Người gửi (customer)
                             SenderName = order != null
-                                ? $"{order.Account?.FirstName} {order.Account?.LastName}".Trim()
-                                : $"{booking?.Account?.FirstName} {booking?.Account?.LastName}".Trim(),
-                            
+                                ? $"{order.Account?.LastName} {order.Account?.FirstName}".Trim()
+                                : $"{booking?.Account?.LastName} {booking?.Account?.FirstName}".Trim(),
+
                             SenderEmail = order != null
                                 ? order.Account?.Email
                                 : booking?.Account?.Email,
 
-                            // Receiver information (provider's wallet)
-                            ReceiverName = $"{receiverWallet?.Wallet?.Account?.FirstName} {receiverWallet?.Wallet?.Account?.LastName}".Trim(),
-                            ReceiverEmail = receiverWallet?.Wallet?.Account?.Email,
+                            // Người nhận (provider)
+                            ReceiverName = order != null
+                                ? $"{orderDetailOfProvider?.Product?.Account?.LastName} {orderDetailOfProvider?.Product?.Account?.FirstName}".Trim()
+                                : $"{booking?.DecorService?.Account?.LastName} {booking?.DecorService?.Account?.FirstName}".Trim(),
+
+                            ReceiverEmail = order != null
+                                ? orderDetailOfProvider?.Product?.Account?.Email
+                                : booking?.DecorService?.Account?.Email
                         };
                     }).ToList(),
                     TotalCount = totalCount
