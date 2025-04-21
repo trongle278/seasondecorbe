@@ -43,4 +43,14 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
         public string SortBy { get; set; } = "";
         public bool Descending { get; set; } = false;
     }
+
+    public class PagingRelatedProductRequest
+    {
+        [Required]
+        public string Slug { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 5;
+        public string SortBy { get; set; } = "";
+        public bool Descending { get; set; } = false;
+    }
 }

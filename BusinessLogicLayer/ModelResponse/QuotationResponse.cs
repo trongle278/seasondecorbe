@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelResponse.Product;
 using DataAccessObject.Models;
 using static DataAccessObject.Models.Quotation;
 
@@ -16,10 +17,11 @@ namespace BusinessLogicLayer.ModelResponse
         public string Style { get; set; }
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
+        public decimal? ProductCost { get; set; }
         public decimal DepositPercentage { get; set; }
         public string? QuotationFilePath { get; set; }
         public int Status { get; set; }
-        public decimal TotalCost => MaterialCost + ConstructionCost;
+        public decimal TotalCost => MaterialCost + ConstructionCost + ProductCost.Value;
         public bool IsQuoteExisted { get; set; }
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }
@@ -27,6 +29,7 @@ namespace BusinessLogicLayer.ModelResponse
 
         public List<MaterialDetailResponse> Materials { get; set; }
         public List<ConstructionDetailResponse> ConstructionTasks { get; set; }
+        public List<ProductsDetailResponse> ProductDetails { get; set; }
     }
 
     public class MaterialDetailResponse
@@ -48,6 +51,16 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal? Area { get; set; }
     }
 
+    public class ProductsDetailResponse
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; }
+        public string Image { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
+    }
+
     public class QuotationResponse
     {
         public int Id { get; set; }
@@ -55,6 +68,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string Style { get; set; }
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
+        public decimal? ProductCost { get; set; }
         public decimal DepositPercentage { get; set; }
         public bool IsQuoteExisted { get; set; }
         public bool? IsContractExisted { get; set; }
@@ -64,6 +78,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string FilePath { get; set; }
         public List<MaterialDetailResponse> MaterialDetails { get; set; }
         public List<ConstructionDetailResponse> ConstructionDetails { get; set; }
+        public List<ProductsDetailResponse> ProductDetails { get; set; }
     }
 
     public class QuotationResponseForCustomer : QuotationResponse 

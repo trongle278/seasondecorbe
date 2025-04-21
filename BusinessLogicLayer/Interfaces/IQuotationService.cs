@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Pagination;
+using BusinessLogicLayer.ModelResponse.Product;
 using Microsoft.AspNetCore.Http;
 
 namespace BusinessLogicLayer.Interfaces
@@ -19,5 +21,8 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<PageResult<QuotationResponseForProvider>>> GetPaginatedQuotationsForProviderAsync(QuotationFilterRequest request, int providerId);
         Task<BaseResponse<QuotationDetailResponseForCustomer>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId);
         Task<BaseResponse> ConfirmQuotationAsync(string quotationCode, bool isConfirmed);
+        Task<BaseResponse> AddProductToQuotationAsync(string quotationCode, int productId, int quantity);
+        Task<BaseResponse> RemoveProductFromQuotationAsync(string quotationCode, int productId);
+        Task<BaseResponse<PageResult<RelatedProductResponse>>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request);
     }
 }

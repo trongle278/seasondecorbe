@@ -13,6 +13,13 @@ using Microsoft.AspNetCore.Http;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using System.Linq.Expressions;
 using CloudinaryDotNet.Actions;
+using BusinessLogicLayer.ModelResponse.Cart;
+using CloudinaryDotNet;
+using BusinessLogicLayer.ModelResponse.Product;
+using Org.BouncyCastle.Asn1.Ocsp;
+using BusinessLogicLayer.Utilities.DataMapping;
+using AutoMapper;
+using BusinessLogicLayer.ModelRequest.Pagination;
 
 namespace BusinessLogicLayer.Services
 {
@@ -20,11 +27,13 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IMapper _mapper;
 
-        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
+        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -281,6 +290,170 @@ namespace BusinessLogicLayer.Services
         //    return response;
         //}
 
+        public async Task<BaseResponse> AddProductToQuotationAsync(string quotationCode, int productId, int quantity)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                                                .Include(q => q.ProductDetails)
+                                                .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode &&
+                                                                    q.Status == Quotation.QuotationStatus.Pending);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or already processed!";
+                    return response;
+                }
+
+                var product = await _unitOfWork.ProductRepository.Queryable()
+                                                .Include(p => p.ProductImages)
+                                                .FirstOrDefaultAsync(p => p.Id == productId);
+
+                if (product == null)
+                {
+                    response.Message = "Product not found in quotation!";
+                    return response;
+                }
+
+                // Check existing product quantity
+                if (product.Quantity < quantity)
+                {
+                    response.Message = "Not enough existing product!";
+                    return response;
+                }
+
+                if (product.Quantity < 0)
+                {
+                    response.Message = "Product quantity has to be > 0";
+                    return response;
+                }
+
+                var productDetail = quotation.ProductDetails.FirstOrDefault(pd => pd.ProductId == productId);
+
+                decimal unitPrice = product.ProductPrice;
+
+                // Add product to cart
+                if (productDetail == null)
+                {
+                    productDetail = new ProductDetail
+                    {
+                        QuotationId = quotation.Id,
+                        ProductId = productId,
+                        Quantity = quantity,
+                        UnitPrice = unitPrice,
+                        TotalPrice = quantity * unitPrice,
+                        ProductName = product.ProductName,
+                        Image = product.ProductImages?.FirstOrDefault()?.ImageUrl
+                    };
+
+                    await _unitOfWork.ProductDetailRepository.InsertAsync(productDetail);
+                }
+                else
+                {
+                    if (product.Quantity < productDetail.Quantity + quantity)
+                    {
+                        response.Message = "Not enough existing product!";
+                        return response;
+                    }
+
+                    // Update productDetail
+                    productDetail.Quantity += quantity;
+                    productDetail.TotalPrice = productDetail.Quantity * unitPrice;
+                    _unitOfWork.ProductDetailRepository.Update(productDetail);
+                }
+
+                // Update quotation
+                quotation.ProductCost = quotation.ProductDetails.Sum(pd => pd.TotalPrice);
+                _unitOfWork.QuotationRepository.Update(quotation);
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Product added to quotation successfully.";
+                response.Data = new
+                {
+                    quotation.QuotationCode,
+                    Status = quotation.Status.ToString(),
+                    quotation.ProductCost,
+                    ProductDetails = quotation.ProductDetails.Select(pd => new
+                    {
+                        pd.ProductId,
+                        pd.ProductName,
+                        pd.Quantity,
+                        pd.UnitPrice,
+                        pd.TotalPrice,
+                        pd.Image
+                    }).ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error adding product to quotation!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> RemoveProductFromQuotationAsync(string quotationCode, int productId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository
+                                    .Queryable()
+                                    .Include(q => q.ProductDetails)
+                                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode &&
+                                                              q.Status == Quotation.QuotationStatus.Pending);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or already processed!";
+                    return response;
+                }
+
+                var productDetail = quotation.ProductDetails.FirstOrDefault(pd => pd.ProductId == productId);
+
+                if (productDetail == null)
+                {
+                    response.Message = "Product not found in quotation!";
+                    return response;
+                }
+
+                // Cập nhật ProductCost
+                quotation.ProductCost -= productDetail.TotalPrice;
+
+                // Xóa ProductDetail
+                _unitOfWork.ProductDetailRepository.Delete(productDetail.Id);
+
+                // Update lại Quotation
+                _unitOfWork.QuotationRepository.Update(quotation);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Product removed from quotation successfully.";
+                response.Data = new
+                {
+                    quotation.QuotationCode,
+                    quotation.ProductCost,
+                    RemovedProduct = new
+                    {
+                        productDetail.ProductId,
+                        productDetail.ProductName
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error removing product from quotation!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
         public async Task<BaseResponse> ConfirmQuotationAsync(string quotationCode, bool isConfirmed)
         {
             var response = new BaseResponse();
@@ -455,6 +628,7 @@ namespace BusinessLogicLayer.Services
                             .ThenInclude(ds => ds.Account)
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.LaborDetails)
+                    .Include(q => q.ProductDetails)
                     .Include(q => q.Contract);
 
                 // Get paginated data
@@ -476,6 +650,7 @@ namespace BusinessLogicLayer.Services
                     Style = q.Booking.DecorService.Style,
                     MaterialCost = q.MaterialCost,
                     ConstructionCost = q.ConstructionCost,
+                    ProductCost = q.ProductCost,
                     DepositPercentage = q.DepositPercentage,
                     CreatedAt = q.CreatedAt,
                     FilePath = q.QuotationFilePath,
@@ -498,6 +673,16 @@ namespace BusinessLogicLayer.Services
                         Cost = c.Cost,
                         Unit = c.Unit,
                         Area = c.Area
+                    }).ToList(),
+
+                    ProductDetails = q.ProductDetails.Select(p => new ProductsDetailResponse
+                    {
+                        Id = p.Id,
+                        ProductName = p.ProductName,
+                        Quantity = p.Quantity,
+                        UnitPrice = p.UnitPrice,
+                        TotalPrice = p.TotalPrice,
+                        Image = p.Image
                     }).ToList(),
 
                     Provider = new ProviderResponse
@@ -554,6 +739,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.DecorService)
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.LaborDetails)
+                    .Include(q => q.ProductDetails)
                     .Include(q => q.Contract);
 
                 // Same pagination logic as customer method
@@ -576,6 +762,7 @@ namespace BusinessLogicLayer.Services
                     QuotationCode = q.QuotationCode,
                     MaterialCost = q.MaterialCost,
                     ConstructionCost = q.ConstructionCost,
+                    ProductCost = q.ProductCost,
                     DepositPercentage = q.DepositPercentage,
                     CreatedAt = q.CreatedAt,
                     Status = (int)q.Status,
@@ -599,6 +786,17 @@ namespace BusinessLogicLayer.Services
                         Unit = c.Unit,
                         Area = c.Area
                     }).ToList(),
+
+                    ProductDetails = q.ProductDetails.Select(p => new ProductsDetailResponse
+                    {
+                        Id = p.Id,
+                        ProductName = p.ProductName,
+                        Quantity = p.Quantity,
+                        UnitPrice = p.UnitPrice,
+                        TotalPrice = p.TotalPrice,
+                        Image = p.Image
+                    }).ToList(),
+
                     Customer = new CustomerResponse
                     {
                         Id = q.Booking.Account.Id,
@@ -633,6 +831,7 @@ namespace BusinessLogicLayer.Services
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.LaborDetails)
+                    .Include(q => q.ProductDetails)
                     .Include(q => q.Booking)// cần để truy cập AccountId
                         .ThenInclude(b => b.DecorService).ThenInclude(ds => ds.Account)
                     .Include(q => q.Contract)
@@ -651,6 +850,7 @@ namespace BusinessLogicLayer.Services
                     Style = quotation.Booking.DecorService.Style,
                     MaterialCost = quotation.MaterialCost,
                     ConstructionCost = quotation.ConstructionCost,
+                    ProductCost = quotation.ProductCost,
                     DepositPercentage = quotation.DepositPercentage,
                     QuotationFilePath = quotation.QuotationFilePath,
                     Status = (int)quotation.Status,
@@ -674,6 +874,16 @@ namespace BusinessLogicLayer.Services
                         Area = c.Area
                     }).ToList(),
 
+                    ProductDetails = quotation.ProductDetails.Select(p => new ProductsDetailResponse
+                    {
+                        Id = p.Id,
+                        ProductName = p.ProductName,
+                        Quantity = p.Quantity,
+                        UnitPrice = p.UnitPrice,
+                        TotalPrice = p.TotalPrice,
+                        Image = p.Image
+                    }).ToList(),
+
                     Provider = new ProviderResponse
                     {
                         BusinessName = quotation.Booking.DecorService.Account.BusinessName,
@@ -689,6 +899,100 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Failed to retrieve quotation details.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<RelatedProductResponse>>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
+        {
+            var response = new BaseResponse<PageResult<RelatedProductResponse>>();
+            try
+            {
+                // Get provider
+                var provider = await _unitOfWork.AccountRepository.Queryable()
+                                            .FirstOrDefaultAsync(a => a.Slug == request.Slug && a.ProviderVerified == true);
+
+                if (provider == null)
+                {
+                    response.Message = "Provider not found!";
+                    return response;
+                }
+
+                // Get decor services
+                var decorServices = await _unitOfWork.DecorServiceRepository.Queryable()
+                                            .Include(ds => ds.DecorCategory)
+                                            .Where(ds => ds.AccountId == provider.Id)
+                                            .ToListAsync();
+
+                if (decorServices == null || !decorServices.Any())
+                {
+                    response.Message = "Provider has no decor services!";
+                    return response;
+                }
+
+                // Get decor category names used by provider
+                var providerDecorCategories = decorServices
+                    .Select(ds => ds.DecorCategory.CategoryName)
+                    .Distinct()
+                    .ToList();
+
+                // Get allowed product categories
+                var allowedProductCategories = providerDecorCategories
+                    .SelectMany(decorCategory =>
+                        DecorCategoryMapping.DecorToProductCategoryMap.TryGetValue(decorCategory, out var relatedProductCats)
+                            ? relatedProductCats
+                            : new List<string>())
+                    .Distinct()
+                    .ToList();
+
+                // Filter expression
+                Expression<Func<Product, bool>> filter = p =>
+                    p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName);
+
+                // Sort expression
+                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                {
+                    "ProductName" => p => p.ProductName,
+                    "ProductPrice" => p => p.ProductPrice,
+                    "CreateAt" => p => p.CreateAt,
+                    _ => p => p.Id // default sort
+                };
+
+                // Include navigation properties
+                Expression<Func<Product, object>>[] includes =
+                {
+                    p => p.ProductImages,
+                    p => p.Category
+                };
+
+                // Get paginated products
+                var (products, totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includes
+                );
+
+                var relatedProducts = _mapper.Map<List<RelatedProductResponse>>(products);
+
+                var result = new PageResult<RelatedProductResponse>
+                {
+                    Data = relatedProducts,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Products retrieved successfully.";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving products!";
                 response.Errors.Add(ex.Message);
             }
 
