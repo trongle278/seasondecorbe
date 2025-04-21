@@ -67,9 +67,9 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("getProviderPaginatedPayment")]
+        [HttpGet("getProviderPaginatedPaymentTransaction")]
         [Authorize]
-        public async Task<IActionResult> GetProviderPaginatedPayment([FromQuery]ProviderPaymentFilterRequest request)
+        public async Task<IActionResult> GetProviderPaginatedPaymentTransaction([FromQuery]ProviderPaymentFilterRequest request)
         {
             var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var result = await _dashboardService.GetProviderPaginatedPaymentsAsync(request, providerId);
