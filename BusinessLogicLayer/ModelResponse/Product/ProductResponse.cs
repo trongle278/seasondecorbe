@@ -64,4 +64,12 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public ProductProviderResponse? Provider { get; set; }
         public List<ReviewResponse>? Reviews { get; set; }
     }
+
+    public class RelatedProductResponse
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; }
+        public decimal ProductPrice { get; set; }
+        public List<string>? ImageUrls { get; set; }
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,27 @@ namespace SeasonalHomeDecorAPI.Controllers
             var customerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
             var response = await _quotationService.GetQuotationDetailByCustomerAsync(quotationCode, customerId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("getPaginatedRelatedProduct")]
+        public async Task<IActionResult> GetPaginatedRelatedProduct([FromQuery] PagingRelatedProductRequest request)
+        {
+            var response = await _quotationService.GetPaginatedRelatedProductAsync(request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPost("addProductToQuotation/{quotationCode}")]
+        public async Task<IActionResult> AddProductToQuotation(string quotationCode, int productId, int quantity)
+        {
+            var response = await _quotationService.AddProductToQuotationAsync(quotationCode, productId, quantity);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpDelete("removeProductFromQuotation/{quotationCode}")]
+        public async Task<IActionResult> RemoveProductFromQuotation(string quotationCode, int productId)
+        {
+            var response = await _quotationService.RemoveProductFromQuotationAsync(quotationCode, productId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
     }

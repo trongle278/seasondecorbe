@@ -22,9 +22,10 @@ namespace DataAccessObject.Migrations
                 name: "ProductDetails",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -33,7 +34,7 @@ namespace DataAccessObject.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductDetails", x => x.id);
+                    table.PrimaryKey("PK_ProductDetails", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ProductDetails_Products_ProductId",
                         column: x => x.ProductId,

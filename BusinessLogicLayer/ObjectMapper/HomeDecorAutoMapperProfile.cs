@@ -168,6 +168,11 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
                     src.ProductImages != null ? src.ProductImages.Select(pi => pi.ImageUrl).ToList()
                                               : new List<string>()));
+
+            CreateMap<Product, RelatedProductResponse>()
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src =>
+                    src.ProductImages != null ? src.ProductImages.Select(pi => pi.ImageUrl).ToList()
+                                              : new List<string>()));
         }
 
         private void ProductCategoryProfile()
