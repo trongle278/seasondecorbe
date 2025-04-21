@@ -30,9 +30,9 @@ namespace BusinessLogicLayer.Services
             _trackingService = trackingService;
         }
 
-        public async Task<BaseResponse<BookingResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
+        public async Task<BaseResponse<PendingCancelBookingDetailForProviderResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
         {
-            var response = new BaseResponse<BookingResponse>();
+            var response = new BaseResponse<PendingCancelBookingDetailForProviderResponse>();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
@@ -40,42 +40,32 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.Address)
                     .Include(b => b.CancelType)
                     .Where(b => b.BookingCode == bookingCode
-                                && b.Status == Booking.BookingStatus.PendingCancellation
+                                && b.Status == BookingStatus.PendingCancellation
                                 && b.DecorService.AccountId == providerId)
                     .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
                     response.Success = false;
-                    response.Message = "Pending cancellation booking not found.";
+                    response.Message = "Get pending cancellation booking detail successfully.";
                     return response;
                 }
 
-                var result = new BookingResponse
+                var result = new PendingCancelBookingDetailForProviderResponse
                 {
-                    BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
-                    TotalPrice = booking.TotalPrice,
                     Status = (int)booking.Status,
+                    Style = booking.DecorService.Style,
+                    CustomerName = $"{booking.Account.FirstName} {booking.Account.LastName}",
+                    Email = booking.Account.Email,
+                    Phone = booking.Account.Phone,
+                    Avatar =booking.Account.Avatar,
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
 
-                    DecorService = new DecorServiceDTO
-                    {
-                        Id = booking.DecorService.Id,
-                        Style = booking.DecorService.Style,
-                        BasePrice = booking.DecorService.BasePrice
-                    },
-
-                    Provider = new ProviderResponse
-                    {
-                        Id = booking.DecorService.Account.Id,
-                        BusinessName = booking.DecorService.Account.BusinessName
-                    },
-
                     CancelType = booking.CancelType?.Type,
                     CancelReason = booking.CancelReason
-                };
+                }; 
 
                 response.Success = true;
                 response.Data = result;

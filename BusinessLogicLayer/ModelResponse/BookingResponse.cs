@@ -24,7 +24,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string CancelType { get; set; }
         public string? CancelReason { get; set; }
     }
-    
+
     public class BookingDetailForProviderResponse
     {
         public string BookingCode { get; set; }
@@ -48,7 +48,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public string ServiceItem { get; set; }
         public decimal Cost { get; set; }
-        public DateTime EstimatedCompletion { get; set; }       
+        public DateTime EstimatedCompletion { get; set; }
     }
 
     public class BookingResponseForProvider
@@ -89,5 +89,21 @@ namespace BusinessLogicLayer.ModelResponse
         public string CustomCancelReason { get; set; }  // Lý do hủy nếu là "Other"
         public DateTime CreatedDate { get; set; }  // Ngày tạo booking
         public DateTime? RequestedCancellationDate { get; set; }  // Ngày yêu cầu hủy
+    }
+
+    public class PendingCancelBookingDetailForProviderResponse
+    {
+        public string BookingCode { get; set; }
+        public string CustomerName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string Avatar { get; set; }
+        public string Style { get; set; }
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string CancelType { get; set; }
+        public string CancelReason { get; set; }
+        public DateTime? SurveyDate { get; set; }
+        public string Address { get; set; }   
     }
 }

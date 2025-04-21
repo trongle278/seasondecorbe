@@ -768,11 +768,12 @@ namespace BusinessLogicLayer.Services
 
                             // Sender information (from wallet that's not the provider)
                             SenderName = order != null
-                ? $"{order.Account?.FirstName} {order.Account?.LastName}".Trim()
-                : $"{booking?.Account?.FirstName} {booking?.Account?.LastName}".Trim(),
+                                ? $"{order.Account?.FirstName} {order.Account?.LastName}".Trim()
+                                : $"{booking?.Account?.FirstName} {booking?.Account?.LastName}".Trim(),
+                            
                             SenderEmail = order != null
-                ? order.Account?.Email
-                : booking?.Account?.Email,
+                                ? order.Account?.Email
+                                : booking?.Account?.Email,
 
                             // Receiver information (provider's wallet)
                             ReceiverName = $"{receiverWallet?.Wallet?.Account?.FirstName} {receiverWallet?.Wallet?.Account?.LastName}".Trim(),
