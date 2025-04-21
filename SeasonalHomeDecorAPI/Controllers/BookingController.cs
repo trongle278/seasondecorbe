@@ -59,12 +59,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("getPendingCancellations")]
-        public async Task<IActionResult> GetPendingCancellationBookingsForProvider()
+        [HttpGet("provider/pending-cancellation")]
+        public async Task<ActionResult<BaseResponse<BookingResponse>>> GetPendingCancellationBooking([FromQuery] string bookingCode)
         {
-            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _bookingService.GetPendingCancellationBookingsForProviderAsync(providerId);
-            return response.Success ? Ok(response) : BadRequest(response);
+            int providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var response = await _bookingService.GetPendingCancelBookingDetailByBookingCodeAsync(bookingCode, providerId);
+            return Ok(response);
         }
 
         [HttpGet("getBookingRequestList")]

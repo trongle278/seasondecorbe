@@ -30,19 +30,28 @@ namespace BusinessLogicLayer.Services
             _trackingService = trackingService;
         }
 
-        public async Task<BaseResponse<List<BookingResponse>>> GetPendingCancellationBookingsForProviderAsync(int providerId)
+        public async Task<BaseResponse<BookingResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
         {
-            var response = new BaseResponse<List<BookingResponse>>();
+            var response = new BaseResponse<BookingResponse>();
             try
             {
-                var bookings = await _unitOfWork.BookingRepository.Queryable()
-                    .Where(b => b.Status == BookingStatus.PendingCancellation && b.DecorService.AccountId == providerId)
+                var booking = await _unitOfWork.BookingRepository.Queryable()
                     .Include(b => b.DecorService)
                     .Include(b => b.Address)
-                    .Include(b => b.CancelType) // Lấy thông tin loại hủy
-                    .ToListAsync();
+                    .Include(b => b.CancelType)
+                    .Where(b => b.BookingCode == bookingCode
+                                && b.Status == Booking.BookingStatus.PendingCancellation
+                                && b.DecorService.AccountId == providerId)
+                    .FirstOrDefaultAsync();
 
-                var result = bookings.Select(booking => new BookingResponse
+                if (booking == null)
+                {
+                    response.Success = false;
+                    response.Message = "Pending cancellation booking not found.";
+                    return response;
+                }
+
+                var result = new BookingResponse
                 {
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
@@ -64,18 +73,18 @@ namespace BusinessLogicLayer.Services
                         BusinessName = booking.DecorService.Account.BusinessName
                     },
 
-                    CancelType = booking.CancelType.Type,
-                    CancelReason = booking.CancelReason,
-                }).ToList();
+                    CancelType = booking.CancelType?.Type,
+                    CancelReason = booking.CancelReason
+                };
 
                 response.Success = true;
                 response.Data = result;
-                response.Message = "Pending cancellation bookings for provider retrieved successfully.";
+                response.Message = "Pending cancellation booking retrieved successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error retrieving pending cancellation bookings.";
+                response.Message = "Error retrieving pending cancellation booking.";
                 response.Errors.Add(ex.Message);
             }
             return response;
