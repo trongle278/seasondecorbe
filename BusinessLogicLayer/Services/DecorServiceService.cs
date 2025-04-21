@@ -43,8 +43,7 @@ namespace BusinessLogicLayer.Services
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id &&
-                           ds.StartDate <= DateTime.Now &&
-                           ds.Status == DecorService.DecorServiceStatus.Available)
+                           ds.StartDate <= DateTime.Now)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -103,15 +102,17 @@ namespace BusinessLogicLayer.Services
                         FollowingsCount = decorService.Account.Followings?.Count ?? 0
                     };
 
-                    // Get IsBooked value from Account entity
-                    var account = await _unitOfWork.AccountRepository
-                        .Query(a => a.Id == accountId)
-                        .FirstOrDefaultAsync();
+                    // Check booking status: accountId đã booking dịch vụ này chưa
+                    var isBooked = await _unitOfWork.BookingRepository
+                        .Query(b => b.DecorServiceId == id &&
+                                    b.AccountId == accountId) 
+                        .AnyAsync();
 
-                    if (account != null)
-                    {
-                        dto.IsBooked = account.IsBooked ?? false;
-                    }
+                    dto.IsBooked = isBooked;
+
+                    response.Success = true;
+                    response.Data = dto;
+                    response.Message = "Decor service retrieved successfully.";
 
                     response.Success = true;
                     response.Data = dto;

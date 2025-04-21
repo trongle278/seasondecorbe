@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +64,15 @@ namespace SeasonalHomeDecorAPI.Controllers
         public async Task<IActionResult> GetTopProviderRatingRanking()
         {
             var result = await _dashboardService.GetTopProviderRatingRankingAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("getProviderPaginatedPayment")]
+        [Authorize]
+        public async Task<IActionResult> GetProviderPaginatedPayment([FromQuery]ProviderPaymentFilterRequest request)
+        {
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var result = await _dashboardService.GetProviderPaginatedPaymentsAsync(request, providerId);
             return Ok(result);
         }
     }

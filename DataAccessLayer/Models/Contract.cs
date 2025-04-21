@@ -24,6 +24,8 @@ namespace DataAccessObject.Models
         public DateTime? SignatureTokenGeneratedAt { get; set; }
         public bool isContractExisted { get; set; }
         public bool? isSigned { get; set; }
+        public bool? isDeposited { get; set; }
+        public bool? isFinalPaid { get; set; }
 
         public enum ContractStatus
         {

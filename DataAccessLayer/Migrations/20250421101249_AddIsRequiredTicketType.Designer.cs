@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250421101249_AddIsRequiredTicketType")]
+    partial class AddIsRequiredTicketType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,6 +56,9 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("Gender")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsBooked")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDisable")
@@ -218,9 +223,6 @@ namespace DataAccessObject.Migrations
 
                     b.Property<decimal>("DepositAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool?>("IsBooked")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
@@ -529,12 +531,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("isContractExisted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("isDeposited")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("isFinalPaid")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("isSigned")

@@ -43,7 +43,7 @@ namespace DataAccessObject.Models
 
         public BookingStatus Status { get; set; }
 
-
+        public bool? IsBooked { get; set; }
         public int? CancelTypeId { get; set; }
         public virtual CancelType CancelType { get; set; }  // Navigation property
 

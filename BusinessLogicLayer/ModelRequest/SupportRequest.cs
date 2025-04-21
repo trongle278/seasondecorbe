@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using static DataAccessObject.Models.Support;
 
 namespace BusinessLogicLayer.ModelRequest
 {
@@ -18,7 +19,6 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class AddSupportReplyRequest
     {
-        public int SupportId { get; set; }
         public string Description { get; set; }
         public IFormFile[]? Attachments { get; set; }
     }
@@ -26,5 +26,15 @@ namespace BusinessLogicLayer.ModelRequest
     public class TicketTypeRequest
     {
         public string Type { get; set; }
+    }
+
+    public class SupportFilterRequest
+    {
+        public TicketStatusEnum? TicketStatus { get; set; }
+        public int? BookingId { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string? SortBy { get; set; } = "CreateAt";
+        public bool Descending { get; set; } = false;
     }
 }

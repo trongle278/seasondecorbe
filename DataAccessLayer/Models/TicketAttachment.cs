@@ -24,6 +24,6 @@ namespace DataAccessObject.Models
 
         public string FileName { get; set; }
         public string FileUrl { get; set; }
-        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
     }
 }

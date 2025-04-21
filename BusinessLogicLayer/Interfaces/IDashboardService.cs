@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
 
 namespace BusinessLogicLayer.Interfaces
 {
@@ -15,5 +17,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<AdminDashboardResponse>> GetAdminDashboardAsync();
         Task<BaseResponse<List<MonthlyRevenueResponse>>> GetAdminMonthlyRevenueAsync();
         Task<BaseResponse<List<ProviderRatingRankingResponse>>> GetTopProviderRatingRankingAsync();
+        Task<BaseResponse<PageResult<ProviderPaymentResponse>>> GetProviderPaginatedPaymentsAsync(ProviderPaymentFilterRequest request, int providerId);
     }
 }

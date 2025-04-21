@@ -147,14 +147,16 @@ namespace DataAccessObject.Models
                 .HasOne(ta => ta.Support)
                 .WithMany(s => s.TicketAttachments)
                 .HasForeignKey(ta => ta.SupportId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(false);
 
             // Configure 1-N relationship between TicketReply and TicketAttachment
             modelBuilder.Entity<TicketAttachment>()
                 .HasOne(ta => ta.TicketReply)
                 .WithMany(tr => tr.TicketAttachments)
                 .HasForeignKey(ta => ta.TicketReplyId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(false);
 
             // Configure 1-N relationship between Account and Booking
             modelBuilder.Entity<Booking>()

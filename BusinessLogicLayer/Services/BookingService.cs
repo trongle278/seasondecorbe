@@ -610,15 +610,14 @@ namespace BusinessLogicLayer.Services
                 };
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
-
-                // 🔹 Cập nhật trạng thái IsBooked cho account
-                var customerAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
-                if (customerAccount != null)
-                {
-                    customerAccount.IsBooked = true;
-                    _unitOfWork.AccountRepository.Update(customerAccount);
-                }
-
+                booking.IsBooked = true;
+                //// 🔹 Cập nhật trạng thái IsBooked cho account
+                //var customerAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+                //if (customerAccount != null)
+                //{
+                //    customerAccount.IsBooked = true;
+                //    _unitOfWork.AccountRepository.Update(customerAccount);
+                //}
                 await _unitOfWork.CommitAsync();
 
                 var timeSlot = new TimeSlot
@@ -936,6 +935,7 @@ namespace BusinessLogicLayer.Services
                 {
                     // Nếu là Pending -> hủy luôn
                     booking.Status = BookingStatus.Canceled;
+                    booking.IsBooked = false;
 
                     // Chuyển trạng thái DecorService về Available nếu có
                     if (booking.DecorService != null)
@@ -943,15 +943,6 @@ namespace BusinessLogicLayer.Services
                         booking.DecorService.Status = DecorService.DecorServiceStatus.Available;
                         _unitOfWork.DecorServiceRepository.Update(booking.DecorService);
                     }
-
-                    // 🔹 Cập nhật IsBooked của customer
-                    var customer = await _unitOfWork.AccountRepository.GetByIdAsync(booking.AccountId);
-                    if (customer != null)
-                    {
-                        customer.IsBooked = false;
-                        _unitOfWork.AccountRepository.Update(customer);
-                    }
-
                     response.Message = "Booking has been canceled successfully.";
                 }
                 else if (booking.Status == BookingStatus.Planning)
@@ -1010,17 +1001,15 @@ namespace BusinessLogicLayer.Services
 
                 booking.Status = BookingStatus.Canceled;
                 _unitOfWork.BookingRepository.Update(booking);
-
                 service.Status = DecorService.DecorServiceStatus.Available;
-
+                booking.IsBooked = false;
                 // 🔹 Cập nhật IsBooked của customer
-                var customer = await _unitOfWork.AccountRepository.GetByIdAsync(booking.AccountId);
-                if (customer != null)
-                {
-                    customer.IsBooked = false;
-                    _unitOfWork.AccountRepository.Update(customer);
-                }
-
+                //var customer = await _unitOfWork.AccountRepository.GetByIdAsync(booking.AccountId);
+                //if (customer != null)
+                //{
+                //    customer.IsBooked = false;
+                //    _unitOfWork.AccountRepository.Update(customer);
+                //}
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -1156,6 +1145,16 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // 🔹 Lấy contract liên quan đến booking thông qua quotation
+                var contract = await _unitOfWork.ContractRepository.Queryable()
+                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found for this booking.";
+                    return response;
+                }
+
                 // 🔹 Tính tổng chi phí booking
                 var totalAmount = quotation.MaterialCost + quotation.ConstructionCost;
 
@@ -1188,6 +1187,10 @@ namespace BusinessLogicLayer.Services
                 booking.Status = Booking.BookingStatus.DepositPaid;
                 booking.DepositAmount = depositAmount;
                 _unitOfWork.BookingRepository.Update(booking);
+
+                // 🔹 Cập nhật contract đã đặt cọc
+                contract.isDeposited = true;
+                _unitOfWork.ContractRepository.Update(contract);
 
                 //// 🔹 Chuyển trạng thái Provider sang "Busy"
                 //provider.ProviderStatus = Account.AccountStatus.Busy;
@@ -1248,6 +1251,26 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // 🔹 Lấy Quotation trước (vì Contract liên kết với Quotation)
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found for this booking.";
+                    return response;
+                }
+
+                // 🔹 Lấy Contract theo QuotationId
+                var contract = await _unitOfWork.ContractRepository.Queryable()
+                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found for this booking.";
+                    return response;
+                }
+
                 // Lấy % hoa hồng từ Setting
                 var commissionRate = await _unitOfWork.SettingRepository.Queryable()
                     .Select(s => s.Commission)
@@ -1265,6 +1288,11 @@ namespace BusinessLogicLayer.Services
 
                 booking.Status = Booking.BookingStatus.ConstructionPayment;
                 _unitOfWork.BookingRepository.Update(booking);
+
+                // 🔹 Cập nhật Contract
+                contract.isFinalPaid = true;
+                _unitOfWork.ContractRepository.Update(contract);
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;

@@ -2,6 +2,7 @@
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repository.UnitOfWork;
@@ -22,11 +23,10 @@ namespace SeasonalHomeDecorAPI.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // POST: api/Support/create-ticket
         /// <summary>
         /// Tạo Ticket mới
         /// </summary>
-        [HttpPost("create-ticket")]
+        [HttpPost("createTicket")]
         public async Task<ActionResult<BaseResponse<SupportResponse>>> CreateTicket([FromForm] CreateSupportRequest request)
         {
             int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -41,26 +41,25 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Thêm Reply vào Ticket
         /// </summary>
-        [HttpPost("reply-ticket")]
-        public async Task<ActionResult<BaseResponse<SupportReplyResponse>>> AddReply([FromForm] AddSupportReplyRequest request)
+        [HttpPost("replyTicket")]
+        public async Task<ActionResult<BaseResponse<SupportReplyResponse>>> AddReply([FromForm] AddSupportReplyRequest request, int supportId)
         {
             int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             bool isAdmin = User.IsInRole("Admin");
 
-            var response = await _supportService.AddReplyAsync(request, accountId, isAdmin);
+            var response = await _supportService.AddReplyAsync(request, supportId, accountId, isAdmin);
             if (!response.Success)
                 return BadRequest(response);
 
             return Ok(response);
         }
 
-        // GET: api/Support/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetTicket(int id)
+        [HttpGet("getSupportById/{supportId}")]
+        public async Task<IActionResult> GetSupportById(int supportId)
         {
             try
             {
-                var response = await _supportService.GetTicketByIdAsync(id);
+                var response = await _supportService.GetSupportByIdAsync(supportId);
                 if (response == null)
                     return NotFound(new { message = "Ticket not found" });
                 return Ok(response);
@@ -69,6 +68,24 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("getPaginatedSupportTicketsForAdmin")]
+        public async Task<IActionResult> GetPaginatedSupportTicketsForAdmin([FromQuery] SupportFilterRequest request)
+        {
+            // Lấy providerId từ token (vì đối với provider, accountId chính là providerId)
+            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _supportService.GetPaginatedSupportForAdminAsync(request);
+            return Ok(result);
+        }
+
+        [HttpGet("getPaginatedSupportTicketsForCustomer")]
+        public async Task<IActionResult> GetPaginatedSupportTicketsForCustomer([FromQuery] SupportFilterRequest request)
+        {
+            // Lấy providerId từ token (vì đối với provider, accountId chính là providerId)
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _supportService.GetPaginatedTicketsForCustomerAsync(request, accountId);
+            return Ok(result);
         }
     }
 }

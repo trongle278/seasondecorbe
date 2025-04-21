@@ -76,4 +76,19 @@ namespace BusinessLogicLayer.ModelResponse
         public int Month { get; set; }  // Tháng trong năm (1 đến 12)
         public decimal TotalRevenue { get; set; }  // Doanh thu của tháng
     }
+
+    public class ProviderPaymentResponse
+    {
+        public int TransactionId { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string PaymentType { get; set; }
+        public int? BookingId { get; set; }
+        public int? OrderId{ get; set; }
+        public int TransactionType { get; set; }
+        public string SenderName { get; set; }
+        public string SenderEmail { get; set; }
+        public string ReceiverName { get; set; }
+        public string ReceiverEmail { get; set; }
+    }
 }

@@ -107,8 +107,8 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.CreateAt))
                 // Chuyển enum TicketStatus thành string
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.TicketStatus.ToString()))
-                .ForMember(dest => dest.TicketTypeId, opt => opt.MapFrom(src => src.TicketTypeId))
+                .ForMember(dest => dest.TicketStatus, opt => opt.MapFrom(src => (int)src.TicketStatus))
+                .ForMember(dest => dest.TicketType, opt => opt.MapFrom(src => src.TicketType.Type))
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
                 // Mapping cho danh sách reply (sử dụng mapping đã định nghĩa bên dưới)
                 .ForMember(dest => dest.Replies, opt => opt.MapFrom(src => src.TicketReplies))
@@ -241,8 +241,8 @@ namespace BusinessLogicLayer.ObjectMapper
         private void DecorServiceProfile() 
         {
             CreateMap<DecorService, DecorServiceDTO>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-                .ForMember(dest => dest.IsBooked, opt => opt.MapFrom(src => src.Account.IsBooked));
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
+                //.ForMember(dest => dest.IsBooked, opt => opt.MapFrom(src => src.Account.IsBooked));
             CreateMap<DecorImage, DecorImageResponse>();
         }
 

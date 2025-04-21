@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
@@ -643,6 +646,114 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<PageResult<ProviderPaymentResponse>>> GetProviderPaginatedPaymentsAsync(ProviderPaymentFilterRequest request, int providerId)
+        {
+            var response = new BaseResponse<PageResult<ProviderPaymentResponse>>();
+            try
+            {
+                // 🔹 Filter: tùy vào loại giao dịch (Order hoặc Booking) và TransactionType
+                Expression<Func<PaymentTransaction, bool>> filter;
 
+                if (request.PaymentType == "Order")
+                {
+                    // Chỉ có giao dịch "Pay" đối với Order
+                    filter = pt =>
+                        pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
+                        pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay &&
+                        pt.OrderId != null;
+                }
+                else if (request.PaymentType == "Booking")
+                {
+                    // Giao dịch "Deposit" hoặc "Pay" đối với Booking
+                    filter = pt =>
+                        pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
+                        (pt.TransactionType == PaymentTransaction.EnumTransactionType.Deposit ||
+                         pt.TransactionType == PaymentTransaction.EnumTransactionType.Pay) &&
+                        pt.BookingId != null &&
+                        pt.Booking.DecorService.AccountId == providerId;
+                }
+                else
+                {
+                    throw new ArgumentException("Invalid payment type");
+                }
+
+                // 🔹 Order By
+                Expression<Func<PaymentTransaction, object>> orderBy = pt => pt.TransactionDate;
+
+                // 🔹 Custom query (Include Order or Booking)
+                Func<IQueryable<PaymentTransaction>, IQueryable<PaymentTransaction>> customQuery = query =>
+                {
+                    if (request.PaymentType == "Order")
+                    {
+                        return query.Include(pt => pt.Order)
+                            .ThenInclude(o => o.OrderDetails)
+                            .ThenInclude(od => od.Product); // Lấy thông tin về Product trong Order
+                    }
+                    else // Booking
+                    {
+                        return query.Include(pt => pt.Booking)
+                            .ThenInclude(b => b.DecorService); // Lấy thông tin về DecorService trong Booking
+                    }
+                };
+
+                // 🔹 Get Data
+                (IEnumerable<PaymentTransaction> transactions, int totalCount) = await _unitOfWork.PaymentTransactionRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderBy,
+                    request.Descending,
+                    null,
+                    customQuery
+                );
+
+                // 🔹 Lọc theo providerId nếu là Order hoặc Booking
+                var filtered = transactions.Where(pt =>
+                    (request.PaymentType == "Order" && pt.Order.OrderDetails.Any(od => od.Product.AccountId == providerId)) ||
+                    (request.PaymentType == "Booking" && pt.Booking.DecorService.AccountId == providerId)
+                ).ToList();
+
+                response.Success = true;
+                response.Data = new PageResult<ProviderPaymentResponse>
+                {
+                    Data = filtered.Select(pt => new ProviderPaymentResponse
+                    {
+                        TransactionId = pt.Id,
+                        Amount = pt.Amount,
+                        TransactionDate = pt.TransactionDate,
+                        PaymentType = request.PaymentType, // Thêm thông tin loại thanh toán
+                        TransactionType = (int)pt.TransactionType, // Thêm loại giao dịch
+                                                                   // Phân biệt giữa OrderId và BookingId
+                        OrderId = request.PaymentType == "Order" ? pt.OrderId : (int?)null,
+                        BookingId = request.PaymentType == "Booking" ? pt.BookingId : (int?)null,
+                        // Ai chuyển tiền: lấy Wallet của người gửi (người thực hiện giao dịch)
+                        SenderName = pt.WalletTransactions?.FirstOrDefault()?.Wallet?.Account?.FirstName + " " + 
+                                     pt.WalletTransactions?.FirstOrDefault()?.Wallet?.Account?.LastName, 
+
+                        SenderEmail = pt.WalletTransactions?.FirstOrDefault()?.Wallet?.Account?.Email,
+
+                        ReceiverName = request.PaymentType == "Order"
+                            ? pt.Order?.OrderDetails?.FirstOrDefault()?.Product?.Account?.FirstName + " " +
+                              pt.Order?.OrderDetails?.FirstOrDefault()?.Product?.Account?.LastName // Người nhận trong Order
+
+                            : pt.Booking?.DecorService?.Account?.FirstName + " " +
+                              pt.Booking?.DecorService?.Account?.LastName, // Người nhận trong Booking
+
+                        ReceiverEmail = request.PaymentType == "Order"
+                            ? pt.Order?.OrderDetails?.FirstOrDefault()?.Product?.Account?.Email // Email người nhận trong Order
+                            : pt.Booking?.DecorService?.Account?.Email // Email người nhận trong Booking
+                    }).ToList(),
+                    TotalCount = filtered.Count
+                };
+                response.Message = "Payments retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to retrieve payments.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
     }
 }

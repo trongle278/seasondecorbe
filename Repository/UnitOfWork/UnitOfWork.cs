@@ -59,6 +59,8 @@ namespace Repository.UnitOfWork
             VoucherRepository = new VoucherRepository(_context);
             CancelTypeRepository = new CancelTypeRepository(_context);
             ProductDetailRepository = new ProductDetailRepository(_context);
+            TicketAttachmentRepository = new TicketAttachmentRepository(_context);
+            TicketReplyRepository = new TicketReplyRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -101,7 +103,8 @@ namespace Repository.UnitOfWork
         public IVoucherRepository VoucherRepository { get; private set; }
         public ICancelTypeRepository CancelTypeRepository { get; }
         public IProductDetailRepository ProductDetailRepository { get; private set; }
-
+        public ITicketAttachmentRepository TicketAttachmentRepository { get; private set; }
+        public ITicketReplyRepository TicketReplyRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();
