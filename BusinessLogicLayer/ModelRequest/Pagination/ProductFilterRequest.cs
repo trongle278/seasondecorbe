@@ -47,7 +47,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
     public class PagingRelatedProductRequest
     {
         [Required]
-        public string Slug { get; set; }
+        public string QuotationCode { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 5;
         public string SortBy { get; set; } = "";
