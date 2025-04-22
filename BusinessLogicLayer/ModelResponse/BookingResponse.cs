@@ -10,10 +10,12 @@ namespace BusinessLogicLayer.ModelResponse
     {
         public int BookingId { get; set; }
         public string BookingCode { get; set; }
+        public string QuotationCode { get; set; }
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
         public bool IsQuoteExisted { get; set; }
         public bool IsContractSigned { get; set; }
+        public bool IsTracked { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }

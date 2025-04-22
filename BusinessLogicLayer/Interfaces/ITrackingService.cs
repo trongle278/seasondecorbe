@@ -11,8 +11,7 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface ITrackingService
     {
-        Task<BaseResponse<List<Tracking>>> GetTrackingAsync(int bookingId);
-        Task AddTrackingAsync(int bookingId, Booking.BookingStatus status, string? note = null);
-        Task<BaseResponse> UpdateTrackingAsync(UpdateTrackingRequest request);
+        Task<BaseResponse<List<TrackingResponse>>> GetTrackingByBookingCodeAsync(string bookingCode);
+        Task<BaseResponse> UpdateTrackingAsync(UpdateTrackingRequest request, string bookingCode);
     }
 }

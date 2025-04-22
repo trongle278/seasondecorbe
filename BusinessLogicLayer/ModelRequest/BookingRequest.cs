@@ -88,9 +88,6 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class UpdateTrackingRequest
     {
-        [Required]
-        public int BookingId { get; set; } // ✅ Nhập BookingId thay vì TrackingId
-
         public string? Note { get; set; }
 
         public List<IFormFile> Images { get; set; } = new List<IFormFile>();
