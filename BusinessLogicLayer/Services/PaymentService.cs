@@ -285,7 +285,7 @@ namespace BusinessLogicLayer.Services
                         Amount = remainBookingAmount,
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-                        TransactionType = PaymentTransaction.EnumTransactionType.Pay,
+                        TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
                         BookingId = bookingId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(paymentTransaction);
@@ -352,10 +352,10 @@ namespace BusinessLogicLayer.Services
                     // Save customer transaction
                     var paymentTransaction = new PaymentTransaction
                     {
-                        Amount = amount,
+                        Amount = providerReceiveAmount,
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-                        TransactionType = PaymentTransaction.EnumTransactionType.Pay,
+                        TransactionType = PaymentTransaction.EnumTransactionType.OrderPay,
                         OrderId = orderId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(paymentTransaction);

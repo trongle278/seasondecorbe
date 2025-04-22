@@ -28,8 +28,9 @@ namespace DataAccessObject.Models
             Withdraw, // rút tiền
             Deposit, // đặt cọc
             Refund,
-            Pay,
-            Revenue
+            FinalPay,
+            Revenue,
+            OrderPay
         }
         public EnumTransactionType TransactionType { get; set; }
 
