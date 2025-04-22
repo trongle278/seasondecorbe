@@ -40,7 +40,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.Address)
                     .Include(b => b.CancelType)
                     .Where(b => b.BookingCode == bookingCode
-                                && b.Status == BookingStatus.PendingCancellation
+                                && b.Status == BookingStatus.PendingCancel
                                 && b.DecorService.AccountId == providerId)
                     .FirstOrDefaultAsync();
 
@@ -576,8 +576,8 @@ namespace BusinessLogicLayer.Services
                                b.Status == BookingStatus.Preparing ||
                                b.Status == BookingStatus.InTransit ||
                                b.Status == BookingStatus.Progressing ||
-                               b.Status == BookingStatus.ConstructionPayment ||
-                               b.Status == BookingStatus.PendingCancellation))
+                               b.Status == BookingStatus.FinalPaid ||
+                               b.Status == BookingStatus.PendingCancel))
                     .ToListAsync();
 
                 //// 5. Booking Limit Enforcement
@@ -749,8 +749,8 @@ namespace BusinessLogicLayer.Services
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
                 Booking.BookingStatus.Preparing => Booking.BookingStatus.InTransit,
                 Booking.BookingStatus.InTransit => Booking.BookingStatus.Progressing,
-                Booking.BookingStatus.Progressing when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.ConstructionPayment,
-                Booking.BookingStatus.ConstructionPayment => Booking.BookingStatus.Completed,
+                Booking.BookingStatus.Progressing when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.FinalPaid,
+                Booking.BookingStatus.FinalPaid => Booking.BookingStatus.Completed,
                 _ => null // Giữ nguyên nếu không hợp lệ
             };
 
@@ -831,7 +831,6 @@ namespace BusinessLogicLayer.Services
                     var tracking = new Tracking
                     {
                         BookingId = booking.Id,
-                        Status = Booking.BookingStatus.Progressing,
                         Note = "Construction phase started.",
                         CreatedAt = DateTime.Now
                     };
@@ -840,8 +839,8 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.CommitAsync();
                     break;
 
-                case Booking.BookingStatus.ConstructionPayment:
-                    // ✅ Kiểm tra đã thanh toán thi công chưa trước khi chuyển sang `ConstructionPayment`
+                case Booking.BookingStatus.FinalPaid:
+                    // ✅ Kiểm tra đã thanh toán thi công chưa trước khi chuyển sang `FinalPaid`
                     if (booking.TotalPrice > 0 && booking.DepositAmount < booking.TotalPrice)
                     {
                         response.Message = "Full payment is required before proceeding.";
@@ -879,10 +878,8 @@ namespace BusinessLogicLayer.Services
             booking.Status = newStatus.Value;
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
-
-            // ✅ Gọi `AddBookingTrackingAsync` để lưu tracking
-            await _trackingService.AddTrackingAsync(booking.Id, newStatus.Value, "Status updated automatically.");
-
+            //// ✅ Gọi `AddBookingTrackingAsync` để lưu tracking
+            //await _trackingService.AddTrackingAsync(booking.Id, newStatus.Value, "Status updated automatically.");
             response.Success = true;
             response.Message = $"Booking status changed to {newStatus}.";
             response.Data = true;
@@ -946,8 +943,8 @@ namespace BusinessLogicLayer.Services
                 }
                 else if (booking.Status == BookingStatus.Planning)
                 {
-                    // Nếu là Planning -> chuyển sang PendingCancellation
-                    booking.Status = BookingStatus.PendingCancellation;
+                    // Nếu là Planning -> chuyển sang PendingCancel
+                    booking.Status = BookingStatus.PendingCancel;
                     response.Message = "Cancellation request submitted successfully. Waiting for provider approval.";
                 }
 
@@ -992,7 +989,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                if (booking.Status != Booking.BookingStatus.PendingCancellation)
+                if (booking.Status != Booking.BookingStatus.PendingCancel)
                 {
                     response.Message = "No pending cancellation request to approve.";
                     return response;
@@ -1043,7 +1040,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                if (booking.Status != Booking.BookingStatus.PendingCancellation)
+                if (booking.Status != Booking.BookingStatus.PendingCancel)
                 {
                     response.Message = "There is no pending cancellation request to revoke.";
                     return response;
@@ -1285,7 +1282,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                booking.Status = Booking.BookingStatus.ConstructionPayment;
+                booking.Status = Booking.BookingStatus.FinalPaid;
                 _unitOfWork.BookingRepository.Update(booking);
 
                 // 🔹 Cập nhật Contract

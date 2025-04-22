@@ -34,9 +34,9 @@ namespace DataAccessObject.Models
             Preparing,          // Chuẩn bị nguyên liệu6
             InTransit,          // Nguyên liệu được chuyển đến chỗ khách hàng7
             Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)8
-            ConstructionPayment,// Thanh toán thi công9
+            FinalPaid,// Thanh toán thi công9
             Completed,          // Dự án hoàn thành10
-            PendingCancellation, // Chờ provider duyệt hủy11
+            PendingCancel, // Chờ provider duyệt hủy11
             Canceled,          // Booking bị hủy12
             Rejected           // Booking bị từ chối13
         }
@@ -44,6 +44,7 @@ namespace DataAccessObject.Models
         public BookingStatus Status { get; set; }
 
         public bool? IsBooked { get; set; }
+        public bool? IsTracked { get; set; }
         public int? CancelTypeId { get; set; }
         public virtual CancelType CancelType { get; set; }  // Navigation property
 
