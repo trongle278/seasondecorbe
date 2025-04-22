@@ -59,7 +59,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("GetPendingCancelBookingDetailByBookingCode/{bookingCode}")]
+        [HttpGet("getPendingCancelBookingDetailByBookingCode/{bookingCode}")]
         public async Task<ActionResult<BaseResponse<BookingResponse>>> GetPendingCancelBookingDetailByBookingCode(string bookingCode)
         {
             int providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);

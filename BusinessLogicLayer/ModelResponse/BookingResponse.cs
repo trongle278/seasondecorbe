@@ -101,7 +101,8 @@ namespace BusinessLogicLayer.ModelResponse
         public string Style { get; set; }
         public int Status { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string CancelType { get; set; }
+        public int CancelTypeId { get; set; }
+        public string CancelTypeName { get; set; }
         public string CancelReason { get; set; }
         public DateTime? SurveyDate { get; set; }
         public string Address { get; set; }   

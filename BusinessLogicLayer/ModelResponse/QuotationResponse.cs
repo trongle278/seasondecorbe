@@ -21,7 +21,7 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal DepositPercentage { get; set; }
         public string? QuotationFilePath { get; set; }
         public int Status { get; set; }
-        public decimal TotalCost => MaterialCost + ConstructionCost + ProductCost.Value;
+        public decimal TotalCost => MaterialCost + ConstructionCost + (ProductCost ?? 0);
         public bool IsQuoteExisted { get; set; }
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }

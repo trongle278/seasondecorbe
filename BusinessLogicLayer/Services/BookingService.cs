@@ -39,6 +39,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.DecorService)
                     .Include(b => b.Address)
                     .Include(b => b.CancelType)
+                    .Include(b => b.Account)
                     .Where(b => b.BookingCode == bookingCode
                                 && b.Status == BookingStatus.PendingCancellation
                                 && b.DecorService.AccountId == providerId)
@@ -63,7 +64,8 @@ namespace BusinessLogicLayer.Services
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
 
-                    CancelType = booking.CancelType?.Type,
+                    CancelTypeId = booking.CancelType.Id,
+                    CancelTypeName = booking.CancelType.Type,
                     CancelReason = booking.CancelReason
                 }; 
 

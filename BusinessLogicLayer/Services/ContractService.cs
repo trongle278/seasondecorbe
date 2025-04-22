@@ -117,7 +117,9 @@ namespace BusinessLogicLayer.Services
                     Status = Contract.ContractStatus.Pending,
                     TermOfUseContent = contractContent,
                     isContractExisted = true,
-                    isSigned = false
+                    isSigned = false,
+                    isDeposited = false,
+                    isFinalPaid = false
                 };
 
                 await _unitOfWork.ContractRepository.InsertAsync(contract);
