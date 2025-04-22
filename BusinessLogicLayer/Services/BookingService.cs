@@ -133,6 +133,7 @@ namespace BusinessLogicLayer.Services
                     {
                         BookingId = booking.Id,
                         BookingCode = booking.BookingCode,
+                        QuotationCode = latestQuotation.QuotationCode,
                         TotalPrice = booking.TotalPrice,
                         Status = (int)booking.Status,
                         Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
@@ -181,7 +182,8 @@ namespace BusinessLogicLayer.Services
 
                         // 🔥 Thêm isQuoteExisted và isContractExisted
                         IsQuoteExisted = latestQuotation?.isQuoteExisted ?? false,
-                        IsContractSigned = latestQuotation?.Contract?.isSigned ?? false
+                        IsContractSigned = latestQuotation?.Contract?.isSigned ?? false,
+                        IsTracked = booking.IsTracked ?? false,
                     };
                 }).ToList();
 
