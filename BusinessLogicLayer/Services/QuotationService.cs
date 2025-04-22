@@ -910,9 +910,20 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<PageResult<RelatedProductResponse>>();
             try
             {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                                                .Include(q => q.Booking)
+                                                    .ThenInclude(b => b.DecorService)
+                                                    .ThenInclude(ds => ds.Account)
+                                                    .FirstOrDefaultAsync(q => q.QuotationCode == request.QuotationCode);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found!";
+                    return response;
+                }
+
                 // Get provider
-                var provider = await _unitOfWork.AccountRepository.Queryable()
-                                            .FirstOrDefaultAsync(a => a.Slug == request.Slug && a.ProviderVerified == true);
+                var provider = quotation?.Booking.DecorService.Account;
 
                 if (provider == null)
                 {
