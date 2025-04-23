@@ -128,13 +128,14 @@ namespace BusinessLogicLayer.Services
                         Id = x.PaymentTransaction.Id,
                         BookingId = x.PaymentTransaction.BookingId,
                         OrderId = x.PaymentTransaction.OrderId,
-                        Amount = x.PaymentTransaction.Amount,
+                        Amount = (x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.TopUp ||
+                                  x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.Refund ||
+                                  x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.Revenue)
+                                ? x.PaymentTransaction.Amount
+                                : -x.PaymentTransaction.Amount,
                         TransactionDate = x.PaymentTransaction.TransactionDate,
                         TransactionType = x.PaymentTransaction.TransactionType.ToString(),
-                        TransactionStatus = x.PaymentTransaction.TransactionStatus.ToString(),
-                        IsMoneyIn = x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.TopUp ||
-                                    x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.Refund ||
-                                    x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.Revenue
+                        TransactionStatus = x.PaymentTransaction.TransactionStatus.ToString()
                     })
                     .ToListAsync();
 
