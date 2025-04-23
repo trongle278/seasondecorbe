@@ -289,6 +289,19 @@ namespace BusinessLogicLayer.Services
                         BookingId = bookingId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(paymentTransaction);
+                    await _unitOfWork.CommitAsync(); // Lưu để lấy ID
+
+                    // 🔴 Lưu giao dịch doanh thu của Provider
+                    var providerTransaction = new PaymentTransaction
+                    {
+                        Amount = providerReceiveAmount,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
+                        BookingId = bookingId,
+                    };
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerTransaction);
+                    await _unitOfWork.CommitAsync(); // Lưu để lấy ID
 
                     // 🔴 Lưu giao dịch doanh thu của Admin
                     var adminTransaction = new PaymentTransaction
@@ -296,10 +309,34 @@ namespace BusinessLogicLayer.Services
                         Amount = adminCommission,
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue, // Loại giao dịch của Admin
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
                         BookingId = bookingId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminTransaction);
+                    await _unitOfWork.CommitAsync(); // Lưu để lấy ID
+
+                    // 🔹 Lưu giao dịch vào lịch sử ví
+                    var cusWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = paymentTransaction.Id,
+                        WalletId = cusWallet.Id,
+                    };
+
+                    var providerWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = providerTransaction.Id,
+                        WalletId = providerWallet.Id,
+                    };
+
+                    var adminWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = adminTransaction.Id,
+                        WalletId = adminWallet.Id,
+                    };
+
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(cusWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(adminWalletTransaction);
 
                     // 🔴 Commit giao dịch
                     await _unitOfWork.CommitAsync();
@@ -359,6 +396,19 @@ namespace BusinessLogicLayer.Services
                         OrderId = orderId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(paymentTransaction);
+                    await _unitOfWork.CommitAsync(); // Save to get ID
+
+                    // Save provider transaction
+                    var providerTransaction = new PaymentTransaction
+                    {
+                        Amount = providerReceiveAmount,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
+                        BookingId = orderId,
+                    };
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerTransaction);
+                    await _unitOfWork.CommitAsync(); // Save to get ID
 
                     // Save admin revenue transaction
                     var adminTransaction = new PaymentTransaction
@@ -366,10 +416,34 @@ namespace BusinessLogicLayer.Services
                         Amount = adminCommission,
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue, // Loại giao dịch của Admin
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
                         OrderId = orderId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminTransaction);
+                    await _unitOfWork.CommitAsync(); // Save to get ID
+
+                    // 🔹 Lưu giao dịch vào lịch sử ví
+                    var cusWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = paymentTransaction.Id,
+                        WalletId = customerWallet.Id,
+                    };
+
+                    var providerWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = providerTransaction.Id,
+                        WalletId = providerWallet.Id,
+                    };
+
+                    var adminWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = adminTransaction.Id,
+                        WalletId = adminWallet.Id,
+                    };
+
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(cusWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(adminWalletTransaction);
 
                     await _unitOfWork.CommitAsync();
                     transaction.Commit();
