@@ -520,7 +520,7 @@ namespace BusinessLogicLayer.Services
                     var bookingDetails = new List<BookingDetail>
                     {
                         new BookingDetail { BookingId = booking.Id, ServiceItem = "Materials Cost", Cost = quotation.MaterialCost },
-                        new BookingDetail { BookingId = booking.Id, ServiceItem = "Construction Cost", Cost = quotation.ConstructionCost }
+                        new BookingDetail { BookingId = booking.Id, ServiceItem = "Labor Cost", Cost = quotation.ConstructionCost }
                     };
                     
                     if (quotation.ProductCost.HasValue)

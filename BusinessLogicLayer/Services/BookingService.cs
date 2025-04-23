@@ -135,7 +135,7 @@ namespace BusinessLogicLayer.Services
                     {
                         BookingId = booking.Id,
                         BookingCode = booking.BookingCode,
-                        QuotationCode = latestQuotation.QuotationCode,
+                        QuotationCode = latestQuotation?.QuotationCode ?? "",
                         TotalPrice = booking.TotalPrice,
                         Status = (int)booking.Status,
                         Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",

@@ -103,15 +103,11 @@ namespace BusinessLogicLayer.Services
                     };
 
                     // Check booking status: accountId đã booking dịch vụ này chưa
-                    var booking = await _unitOfWork.BookingRepository
-                        .Query(b => b.DecorServiceId == id && b.AccountId == accountId)
-                        .FirstOrDefaultAsync();
-
-                    dto.IsBooked = booking?.IsBooked ?? false;
-
-                    response.Success = true;
-                    response.Data = dto;
-                    response.Message = "Decor service retrieved successfully.";
+                    dto.IsBooked = await _unitOfWork.BookingRepository.Query(b =>
+                        b.DecorServiceId == id &&
+                        b.AccountId == accountId &&
+                        b.IsBooked == true
+                        ).AnyAsync();
 
                     response.Success = true;
                     response.Data = dto;
