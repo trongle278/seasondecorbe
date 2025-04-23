@@ -17,7 +17,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request);
         Task<BaseResponse> GetOrderById(int id);
         Task<BaseResponse> CreateOrder(int cartId, int addressId);
-        Task<BaseResponse> UpdateStatus(int id);
+        //Task<BaseResponse> UpdateStatus(int id);
         Task<BaseResponse> CancelOrder(int id);
         Task<BaseResponse> ProcessPayment(int id);
     }

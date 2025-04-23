@@ -130,7 +130,7 @@ namespace BusinessLogicLayer.Services
                 var relatedOrders = orderDetails.Select(od => od.Order).Distinct().ToList();
                 var totalOrders = relatedOrders.Count;
                 var totalOrderRevenue = relatedOrders
-                    .Where(o => o.Status == Order.OrderStatus.Completed)
+                    .Where(o => o.Status == Order.OrderStatus.Paid)
                     .Sum(o => o.TotalPrice);
 
                 // Áp dụng hoa hồng vào doanh thu sản phẩm
@@ -142,8 +142,8 @@ namespace BusinessLogicLayer.Services
                 var thisWeekOrderCount = ordersThisWeek.Count;
                 var lastWeekOrderCount = ordersLastWeek.Count;
 
-                var thisWeekOrderRevenue = ordersThisWeek.Where(o => o.Status == Order.OrderStatus.Completed).Sum(o => o.TotalPrice);
-                var lastWeekOrderRevenue = ordersLastWeek.Where(o => o.Status == Order.OrderStatus.Completed).Sum(o => o.TotalPrice);
+                var thisWeekOrderRevenue = ordersThisWeek.Where(o => o.Status == Order.OrderStatus.Paid).Sum(o => o.TotalPrice);
+                var lastWeekOrderRevenue = ordersLastWeek.Where(o => o.Status == Order.OrderStatus.Paid).Sum(o => o.TotalPrice);
 
                 // Áp dụng hoa hồng vào doanh thu orders trong tuần này và tuần trước
                 thisWeekOrderRevenue -= thisWeekOrderRevenue * commissionRate;
@@ -473,7 +473,7 @@ namespace BusinessLogicLayer.Services
                 var relatedOrders = orderDetails.Select(od => od.Order).Distinct().ToList();
                 var totalOrders = relatedOrders.Count;
                 var totalOrderRevenue = relatedOrders
-                    .Where(o => o.Status == Order.OrderStatus.Completed)
+                    .Where(o => o.Status == Order.OrderStatus.Paid)
                     .Sum(o => o.TotalPrice);
 
                 totalOrderRevenue = totalOrderRevenue * commissionRate;
@@ -485,11 +485,11 @@ namespace BusinessLogicLayer.Services
                 var lastWeekOrderCount = ordersLastWeek.Count;
 
                 var thisWeekOrderRevenue = ordersThisWeek
-                    .Where(o => o.Status == Order.OrderStatus.Completed)
+                    .Where(o => o.Status == Order.OrderStatus.Paid)
                     .Sum(o => o.TotalPrice);
 
                 var lastWeekOrderRevenue = ordersLastWeek
-                    .Where(o => o.Status == Order.OrderStatus.Completed)
+                    .Where(o => o.Status == Order.OrderStatus.Paid)
                     .Sum(o => o.TotalPrice);
 
                 thisWeekOrderRevenue = thisWeekOrderRevenue * commissionRate;
@@ -519,7 +519,7 @@ namespace BusinessLogicLayer.Services
                     CanceledBookings = canceledBookings,
 
                     TotalOrders = totalOrders,
-                    CompletedOrders = relatedOrders.Count(o => o.Status == Order.OrderStatus.Completed),
+                    CompletedOrders = relatedOrders.Count(o => o.Status == Order.OrderStatus.Paid),
                     CanceledOrders = relatedOrders.Count(o => o.Status == Order.OrderStatus.Cancelled),
 
                     TopServices = topServices,

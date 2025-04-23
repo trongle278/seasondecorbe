@@ -378,6 +378,7 @@ namespace BusinessLogicLayer.Services
                     quotation.ProductCost,
                     ProductDetails = quotation.ProductDetails.Select(pd => new
                     {
+                        pd.Id,
                         pd.ProductId,
                         pd.ProductName,
                         pd.Quantity,

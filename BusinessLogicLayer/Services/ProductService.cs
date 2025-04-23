@@ -50,7 +50,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                             .ToListAsync();
@@ -135,7 +135,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                             .ToListAsync();
@@ -199,7 +199,7 @@ namespace BusinessLogicLayer.Services
                 // Get orderDetail of product
                 var orderDetails = await _unitOfWork.OrderDetailRepository
                                         .Query(po => po.ProductId == product.Id
-                                                    && po.Order.Status == Order.OrderStatus.Completed)
+                                                    && po.Order.Status == Order.OrderStatus.Paid)
                                         .Include(po => po.Order)
                                             .ThenInclude(o => o.Reviews)
                                             .ThenInclude(r => r.ReviewImages)
@@ -312,7 +312,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                                 .ThenInclude(r => r.ReviewImages)
@@ -410,7 +410,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                                 .ThenInclude(r => r.ReviewImages)
@@ -492,7 +492,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                                 .ThenInclude(r => r.ReviewImages)
@@ -594,7 +594,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                                 .ThenInclude(r => r.ReviewImages)
@@ -901,7 +901,7 @@ namespace BusinessLogicLayer.Services
                     // Get orderDetail of product
                     var orderDetails = await _unitOfWork.OrderDetailRepository
                                             .Query(po => po.ProductId == product.Id
-                                                        && po.Order.Status == Order.OrderStatus.Completed)
+                                                        && po.Order.Status == Order.OrderStatus.Paid)
                                             .Include(po => po.Order)
                                                 .ThenInclude(o => o.Reviews)
                                             .ToListAsync();
