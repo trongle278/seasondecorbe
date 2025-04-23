@@ -131,7 +131,10 @@ namespace BusinessLogicLayer.Services
                         Amount = x.PaymentTransaction.Amount,
                         TransactionDate = x.PaymentTransaction.TransactionDate,
                         TransactionType = x.PaymentTransaction.TransactionType.ToString(),
-                        TransactionStatus = x.PaymentTransaction.TransactionStatus.ToString()
+                        TransactionStatus = x.PaymentTransaction.TransactionStatus.ToString(),
+                        IsMoneyIn = x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.TopUp ||
+                                    x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.Refund ||
+                                    x.PaymentTransaction.TransactionType == PaymentTransaction.EnumTransactionType.Revenue
                     })
                     .ToListAsync();
 
@@ -148,6 +151,5 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
-
     }
 }

@@ -17,5 +17,7 @@ namespace BusinessLogicLayer.ModelResponse.Payment
         public DateTime TransactionDate { get; set; }
         public string TransactionType { get; set; }
         public string TransactionStatus { get; set; }
+        public bool IsMoneyIn { get; set; }
+        public decimal SignedAmount => IsMoneyIn ? Amount : -Amount;
     }
 }
