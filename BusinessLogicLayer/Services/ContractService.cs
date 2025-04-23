@@ -520,21 +520,14 @@ After reaching an agreement on the quotation, the two parties enter into a const
 
         private string GenerateSignatureEmailContent(string contractCode, string token)
         {
-            var verifyUrl = $"http://localhost:3000/sign?token={Uri.EscapeDataString(token)}";
+            string verifyUrl = $"http://localhost:3000/sign?token={Uri.EscapeDataString(token)}";
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "SignatureEmailTemplate.html");
 
-            return $@"
-📄 CONTRACT: {contractCode}
+            string htmlContent = File.ReadAllText(templatePath);
+            htmlContent = htmlContent.Replace("{contractCode}", contractCode)
+                                     .Replace("{verifyUrl}", verifyUrl);
 
-You have requested to digitally sign your Seasonal Home Decor Service Contract.
-
-👉 Please click the following link to confirm your digital signature:
-{verifyUrl}
-
-❗ If you did not make this request, please ignore this email or contact support.
-
-Best regards,  
-Home Seasonal Decoration System
-";
+            return htmlContent;
         }
 
         #endregion
