@@ -128,36 +128,36 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPut("updateStatus/{id}")]
-        public async Task<IActionResult> UpdateOrderStatus(int id)
-        {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            if (accountId == 0)
-            {
-                return Unauthorized(new { Message = "Unauthorized" });
-            }
+        //[HttpPut("updateStatus/{id}")]
+        //public async Task<IActionResult> UpdateOrderStatus(int id)
+        //{
+        //    var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        //    if (accountId == 0)
+        //    {
+        //        return Unauthorized(new { Message = "Unauthorized" });
+        //    }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
 
-            var result = await _orderService.UpdateStatus(id);
+        //    var result = await _orderService.UpdateStatus(id);
 
-            if (result.Success == false && result.Message == "Invalid order")
-            {
-                ModelState.AddModelError("", $"Invalid Order!");
-                return StatusCode(404, ModelState);
-            }
+        //    if (result.Success == false && result.Message == "Invalid order")
+        //    {
+        //        ModelState.AddModelError("", $"Invalid Order!");
+        //        return StatusCode(404, ModelState);
+        //    }
 
-            if (result.Success == false && result.Message == "Error updating status")
-            {
-                ModelState.AddModelError("", $"Error updating status!");
-                return StatusCode(500, ModelState);
-            }
+        //    if (result.Success == false && result.Message == "Error updating status")
+        //    {
+        //        ModelState.AddModelError("", $"Error updating status!");
+        //        return StatusCode(500, ModelState);
+        //    }
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         [HttpDelete("cancelOrder/{id}")]
         public async Task<IActionResult> CancelOrder(int id)

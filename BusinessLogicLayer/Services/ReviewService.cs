@@ -201,7 +201,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var order = await _unitOfWork.OrderRepository.Queryable()
-                                            .Where(o => o.AccountId == request.AccountId && o.Id == request.OrderId && o.Status == Order.OrderStatus.Completed)
+                                            .Where(o => o.AccountId == request.AccountId && o.Id == request.OrderId && o.Status == Order.OrderStatus.Paid)
                                             .Include(o => o.OrderDetails)
                                             .FirstOrDefaultAsync(o => o.OrderDetails.Any(od => od.ProductId == request.ProductId));
 

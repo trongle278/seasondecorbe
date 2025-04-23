@@ -22,9 +22,9 @@ namespace DataAccessObject.Models
         public enum OrderStatus
         {
             Pending,
-            OrderPayment,
-            Shipping,
-            Completed,
+            Paid,
+            //Shipping,
+            //Completed,
             Cancelled
         }
         public OrderStatus Status { get; set; }

@@ -239,47 +239,47 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> UpdateStatus(int id)
-        {
-            var response = new BaseResponse();
-            try
-            {
-                var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
+        //public async Task<BaseResponse> UpdateStatus(int id)
+        //{
+        //    var response = new BaseResponse();
+        //    try
+        //    {
+        //        var order = await _unitOfWork.OrderRepository.GetByIdAsync(id);
 
-                if (order == null || order.Status == Order.OrderStatus.Cancelled)
-                {
-                    response.Success = false;
-                    response.Message = "Invalid order";
-                    return response;
-                }
+        //        if (order == null || order.Status == Order.OrderStatus.Cancelled)
+        //        {
+        //            response.Success = false;
+        //            response.Message = "Invalid order";
+        //            return response;
+        //        }
 
-                switch (order.Status)
-                {
-                    case Order.OrderStatus.OrderPayment:
-                        order.Status = Order.OrderStatus.Shipping;
-                        _unitOfWork.OrderRepository.Update(order);
-                        break;
+        //        switch (order.Status)
+        //        {
+        //            case Order.OrderStatus.OrderPayment:
+        //                order.Status = Order.OrderStatus.Shipping;
+        //                _unitOfWork.OrderRepository.Update(order);
+        //                break;
 
-                    case Order.OrderStatus.Shipping:
-                        order.Status = Order.OrderStatus.Completed;
-                        _unitOfWork.OrderRepository.Update(order);
-                        break;
-                }
-                await _unitOfWork.CommitAsync();
+        //            case Order.OrderStatus.Shipping:
+        //                order.Status = Order.OrderStatus.Completed;
+        //                _unitOfWork.OrderRepository.Update(order);
+        //                break;
+        //        }
+        //        await _unitOfWork.CommitAsync();
 
-                response.Success = true;
-                response.Message = "Order updated succesfully.";
-                response.Data = _mapper.Map<OrderResponse>(order);
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "Error updating status";
-                response.Errors.Add(ex.Message);
-            }
+        //        response.Success = true;
+        //        response.Message = "Order updated succesfully.";
+        //        response.Data = _mapper.Map<OrderResponse>(order);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.Message = "Error updating status";
+        //        response.Errors.Add(ex.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         public async Task<BaseResponse> CancelOrder(int id)
         {
@@ -408,7 +408,7 @@ namespace BusinessLogicLayer.Services
                     }
                 }
 
-                order.Status = Order.OrderStatus.OrderPayment;
+                order.Status = Order.OrderStatus.Paid;
                 _unitOfWork.OrderRepository.Update(order);
                 await _unitOfWork.CommitAsync();
 
