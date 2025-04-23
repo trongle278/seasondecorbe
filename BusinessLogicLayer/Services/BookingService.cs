@@ -1099,6 +1099,7 @@ namespace BusinessLogicLayer.Services
 
                 booking.Status = Booking.BookingStatus.Rejected;
                 booking.RejectReason = reason; // Lưu lý do reject
+                booking.IsBooked = false;
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
