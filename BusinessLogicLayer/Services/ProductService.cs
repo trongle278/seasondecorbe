@@ -14,6 +14,7 @@ using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Review;
 using CloudinaryDotNet;
 using DataAccessObject.Models;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Repository.UnitOfWork;
@@ -106,6 +107,18 @@ namespace BusinessLogicLayer.Services
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
+                // Check user
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
+
+                if ((account != null && account.RoleId == 1) || (account != null && account.RoleId == 3 && account.ProviderVerified == true))
+                {
+                    // Display all products
+                }
+                else
+                {
+                    filter = filter.And(p => p.Quantity > 0); // Display in stock products
+                }
+
                 // Sort
                 Expression<Func<Product, object>> orderByExpression = request.SortBy switch
                 {
@@ -158,6 +171,9 @@ namespace BusinessLogicLayer.Services
                         Rate = averageRate,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -381,6 +397,18 @@ namespace BusinessLogicLayer.Services
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
+                // Check user
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
+
+                if ((account != null && account.RoleId == 1) || (account != null && account.RoleId == 3 && account.ProviderVerified == true))
+                {
+                    // Display all products
+                }
+                else
+                {
+                    filter = filter.And(p => p.Quantity > 0); // Display in stock products
+                }
+
                 // Sort
                 Expression<Func<Product, object>> orderByExpression = request.SortBy switch
                 {
@@ -434,6 +462,9 @@ namespace BusinessLogicLayer.Services
                         Rate = averageRate,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -561,6 +592,18 @@ namespace BusinessLogicLayer.Services
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
+                // Check user
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
+
+                if ((account != null && account.RoleId == 1) || (account != null && account.RoleId == 3 && account.ProviderVerified == true))
+                {
+                    // Display all products
+                }
+                else
+                {
+                    filter = filter.And(p => p.Quantity > 0); // Display in stock products
+                }
+
                 // Sort
                 Expression<Func<Product, object>> orderByExpression = request.SortBy switch
                 {
@@ -618,6 +661,9 @@ namespace BusinessLogicLayer.Services
                         Rate = averageRate,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()

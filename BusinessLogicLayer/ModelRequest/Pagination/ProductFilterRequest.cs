@@ -9,6 +9,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
 {
     public class ProductFilterRequest
     {
+        public int? UserId { get; set; }
         public string? ProductName { get; set; }
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
@@ -22,6 +23,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
     {
         [Required]
         public int CategoryId { get; set; }
+        public int? UserId { get; set; }
         public string? ProductName { get; set; }
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
@@ -35,6 +37,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
     {
         [Required]
         public string Slug { get; set; }
+        public int? UserId { get; set; }
         public string? ProductName { get; set; }
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
@@ -48,6 +51,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
     {
         [Required]
         public string QuotationCode { get; set; }
+        public int UserId { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 5;
         public string SortBy { get; set; } = "";
