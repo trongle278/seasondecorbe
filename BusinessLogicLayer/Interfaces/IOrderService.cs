@@ -13,7 +13,7 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IOrderService
     {
-        Task<BaseResponse> GetOrderList();
+        Task<BaseResponse> GetOrderList(int accountId);
         Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request);
         Task<BaseResponse> GetOrderById(int id);
         Task<BaseResponse> CreateOrder(int cartId, int addressId);
