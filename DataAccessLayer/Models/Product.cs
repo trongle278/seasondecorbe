@@ -24,8 +24,7 @@ namespace DataAccessObject.Models
         public enum ProductStatus
         {
             InStock,
-            OutOfStock,
-            InComing
+            OutOfStock
         }
         public ProductStatus Status { get; set; }
 
@@ -40,6 +39,6 @@ namespace DataAccessObject.Models
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<ProductImage>? ProductImages { get; set; }
         public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
-        public virtual ICollection<ProductDetail>? ProductDetails { get; set; }
+        public virtual ICollection<ProductDetail> ProductDetails { get; set; }
     }
 }
