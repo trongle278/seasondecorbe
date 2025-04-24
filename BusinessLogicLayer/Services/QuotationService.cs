@@ -513,7 +513,7 @@ namespace BusinessLogicLayer.Services
                     {
                         totalCost = quotation.MaterialCost + quotation.ConstructionCost;
                     }
-                    
+
                     decimal depositAmount = (quotation.DepositPercentage / 100) * totalCost;
 
                     // Tạo BookingDetail mới
@@ -522,7 +522,7 @@ namespace BusinessLogicLayer.Services
                         new BookingDetail { BookingId = booking.Id, ServiceItem = "Materials Cost", Cost = quotation.MaterialCost },
                         new BookingDetail { BookingId = booking.Id, ServiceItem = "Construction Cost", Cost = quotation.ConstructionCost }
                     };
-                    
+
                     if (quotation.ProductCost.HasValue)
                     {
                         bookingDetails.Add(new BookingDetail
@@ -630,6 +630,7 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.LaborDetails)
                     .Include(q => q.ProductDetails)
+                        .ThenInclude(pd => pd.Product)
                     .Include(q => q.Contract);
 
                 // Get paginated data
@@ -679,6 +680,7 @@ namespace BusinessLogicLayer.Services
                     ProductDetails = q.ProductDetails.Select(p => new ProductsDetailResponse
                     {
                         Id = p.Id,
+                        ProductId = p.ProductId,
                         ProductName = p.ProductName,
                         Quantity = p.Quantity,
                         UnitPrice = p.UnitPrice,
@@ -741,6 +743,7 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.MaterialDetails)
                     .Include(q => q.LaborDetails)
                     .Include(q => q.ProductDetails)
+                        .ThenInclude(pd => pd.Product)
                     .Include(q => q.Contract);
 
                 // Same pagination logic as customer method
@@ -791,6 +794,7 @@ namespace BusinessLogicLayer.Services
                     ProductDetails = q.ProductDetails.Select(p => new ProductsDetailResponse
                     {
                         Id = p.Id,
+                        ProductId = p.ProductId,
                         ProductName = p.ProductName,
                         Quantity = p.Quantity,
                         UnitPrice = p.UnitPrice,
@@ -878,6 +882,7 @@ namespace BusinessLogicLayer.Services
                     ProductDetails = quotation.ProductDetails.Select(p => new ProductsDetailResponse
                     {
                         Id = p.Id,
+                        ProductId = p.ProductId,
                         ProductName = p.ProductName,
                         Quantity = p.Quantity,
                         UnitPrice = p.UnitPrice,
@@ -989,7 +994,42 @@ namespace BusinessLogicLayer.Services
                     includes
                 );
 
-                var relatedProducts = _mapper.Map<List<RelatedProductResponse>>(products);
+                var relatedProducts = new List<RelatedProductResponse>();
+
+                foreach (var product in products)
+                {
+                    // Get orderDetails
+                    var orderDetails = await _unitOfWork.OrderDetailRepository
+                        .Queryable()
+                        .Where(po => po.ProductId == product.Id && po.Order.Status == Order.OrderStatus.Paid)
+                        .Include(po => po.Order)
+                            .ThenInclude(o => o.Reviews)
+                        .ToListAsync();
+
+                    // Get reviews
+                    var reviews = orderDetails
+                                    .SelectMany(po => po.Order.Reviews)
+                                    .ToList();
+
+                    // Calculate average rate
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+
+                    // Calculate total sold
+                    var totalSold = orderDetails.Sum(od => od.Quantity);
+
+                    var productResponse = new RelatedProductResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        ProductPrice = product.ProductPrice,
+                        Rate = averageRate,
+                        TotalSold = totalSold,
+                        Status = product.Status,
+                        ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+                    };
+
+                    relatedProducts.Add(productResponse);
+                }
 
                 var result = new PageResult<RelatedProductResponse>
                 {

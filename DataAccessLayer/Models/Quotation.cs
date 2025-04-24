@@ -34,6 +34,6 @@ namespace DataAccessObject.Models
         public Contract? Contract { get; set; }
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
         public virtual ICollection<LaborDetail> LaborDetails { get; set; }
-        public virtual ICollection<ProductDetail>? ProductDetails { get; set; }
+        public virtual ICollection<ProductDetail> ProductDetails { get; set; }
     }
 }
