@@ -20,6 +20,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using BusinessLogicLayer.Utilities.DataMapping;
 using AutoMapper;
 using BusinessLogicLayer.ModelRequest.Pagination;
+using LinqKit;
 
 namespace BusinessLogicLayer.Services
 {
@@ -968,6 +969,18 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<Product, bool>> filter = p =>
                     p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName);
 
+                // Check user
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
+
+                if ((account != null && account.RoleId == 1) || (account != null && account.RoleId == 3 && account.ProviderVerified == true))
+                {
+                    // Display all products
+                }
+                else
+                {
+                    filter = filter.And(p => p.Quantity > 0); // Display in stock products
+                }
+
                 // Sort expression
                 Expression<Func<Product, object>> orderByExpression = request.SortBy switch
                 {
@@ -1024,7 +1037,9 @@ namespace BusinessLogicLayer.Services
                         ProductPrice = product.ProductPrice,
                         Rate = averageRate,
                         TotalSold = totalSold,
-                        Status = product.Status,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
                         ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
                     };
 

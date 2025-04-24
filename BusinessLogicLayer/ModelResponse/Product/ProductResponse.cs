@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using BusinessLogicLayer.ModelResponse.Review;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Http;
-using static DataAccessObject.Models.Product;
 
 namespace BusinessLogicLayer.ModelResponse.Product
 {
@@ -44,6 +43,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public double Rate { get; set; }
         public decimal ProductPrice { get; set; }
         public int TotalSold { get; set; }
+        public string Status { get; set; }
         public List<string>? ImageUrls { get; set; }
     }
 
@@ -58,6 +58,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string? Description { get; set; }
         public decimal ProductPrice { get; set; }
         public int? Quantity { get; set; }
+        public string Status { get; set; }
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
@@ -73,7 +74,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public double Rate { get; set; }
         public decimal ProductPrice { get; set; }
         public int TotalSold { get; set; }
-        public ProductStatus Status { get; set; }
+        public string Status { get; set; }
         public List<string>? ImageUrls { get; set; }
     }
 }
