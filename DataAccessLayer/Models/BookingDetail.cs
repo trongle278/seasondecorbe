@@ -24,8 +24,8 @@ namespace DataAccessObject.Models
         [Required]
         public decimal Cost { get; set; }
 
-        [Required]
-        public DateTime EstimatedCompletion { get; set; }
+        //[Required]
+        //public DateTime EstimatedCompletion { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

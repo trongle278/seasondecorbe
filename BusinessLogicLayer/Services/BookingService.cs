@@ -178,9 +178,9 @@ namespace BusinessLogicLayer.Services
                             ? booking.BookingDetails.Sum(bd => bd.Cost)
                             : 0,
 
-                        EstimatedCompletion = booking.BookingDetails.Any()
-                            ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
-                            : null,
+                        //EstimatedCompletion = booking.BookingDetails.Any()
+                        //    ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
+                        //    : null,
 
                         // 🔥 Thêm isQuoteExisted và isContractExisted
                         IsQuoteExisted = latestQuotation?.isQuoteExisted ?? false,
@@ -309,9 +309,9 @@ namespace BusinessLogicLayer.Services
                         ? booking.BookingDetails.Sum(bd => bd.Cost)
                         : 0,
 
-                    EstimatedCompletion = booking.BookingDetails.Any()
-                        ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
-                        : null
+                    //EstimatedCompletion = booking.BookingDetails.Any()
+                    //    ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
+                    //    : null
                 }).ToList();
 
                 response.Success = true;
@@ -445,7 +445,7 @@ namespace BusinessLogicLayer.Services
                         Id = bd.Id,
                         ServiceItem = bd.ServiceItem,
                         Cost = bd.Cost,
-                        EstimatedCompletion = bd.EstimatedCompletion,
+                        //EstimatedCompletion = bd.EstimatedCompletion,
                     }).ToList(),
                     SurveyDate = booking.TimeSlots.FirstOrDefault()?.SurveyDate,
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
@@ -819,16 +819,16 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.InTransit:
-                    // ✅ Khi chuyển sang `InTransit`, cập nhật EstimatedCompletion cho `Chi Phí Nguyên liệu`
-                    var materialDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Materials Cost");
+                    //// ✅ Khi chuyển sang `InTransit`, cập nhật EstimatedCompletion cho `Chi Phí Nguyên liệu`
+                    //var materialDetail = await _unitOfWork.BookingDetailRepository.Queryable()
+                    //    .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Materials Cost");
 
-                    if (materialDetail != null)
-                    {
-                        materialDetail.EstimatedCompletion = DateTime.Now;
-                        _unitOfWork.BookingDetailRepository.Update(materialDetail);
-                    }
-                    break;
+                    //if (materialDetail != null)
+                    //{
+                    //    materialDetail.EstimatedCompletion = DateTime.Now;
+                    //    _unitOfWork.BookingDetailRepository.Update(materialDetail);
+                    //}
+                    //break;
 
                 case Booking.BookingStatus.Progressing:
                     // ✅ Khi vào Progressing, tạo Tracking để lưu ảnh thi công
@@ -854,14 +854,14 @@ namespace BusinessLogicLayer.Services
 
                 case Booking.BookingStatus.Completed:
                     // ✅ Khi chuyển sang `Completed`, cập nhật EstimatedCompletion cho `Chi Phí Thi công`
-                    var laborDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                        .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Construction Cost");
+                    //var laborDetail = await _unitOfWork.BookingDetailRepository.Queryable()
+                    //    .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Construction Cost");
 
-                    if (laborDetail != null)
-                    {
-                        laborDetail.EstimatedCompletion = DateTime.Now;
-                        _unitOfWork.BookingDetailRepository.Update(laborDetail);
-                    }
+                    //if (laborDetail != null)
+                    //{
+                    //    laborDetail.EstimatedCompletion = DateTime.Now;
+                    //    _unitOfWork.BookingDetailRepository.Update(laborDetail);
+                    //}
 
                     if (provider != null)
                     {
