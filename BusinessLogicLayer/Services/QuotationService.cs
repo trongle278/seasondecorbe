@@ -1037,6 +1037,7 @@ namespace BusinessLogicLayer.Services
                         ProductPrice = product.ProductPrice,
                         Rate = averageRate,
                         TotalSold = totalSold,
+                        Quantity = product.Quantity,
                         Status = product.Quantity > 0
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),

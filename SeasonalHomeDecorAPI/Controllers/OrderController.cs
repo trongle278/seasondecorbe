@@ -22,8 +22,8 @@ namespace SeasonalHomeDecorAPI.Controllers
             _orderService = orderService;
         }
 
-        [HttpGet("getList")]
-        public async Task<IActionResult> GetOrderList()
+        [HttpGet("getList/{id}")]
+        public async Task<IActionResult> GetOrderList(int id)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             if (accountId == 0)
@@ -31,7 +31,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _orderService.GetOrderList();
+            var result = await _orderService.GetOrderList(id);
 
             if (result.Success)
             {
@@ -41,7 +41,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginatedList")]
-        public async Task<IActionResult> GetFilterProduct([FromQuery] OrderFilterRequest request)
+        public async Task<IActionResult> GetFilterOrder([FromQuery] OrderFilterRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             if (accountId == 0)

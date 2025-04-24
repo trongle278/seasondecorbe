@@ -31,12 +31,14 @@ namespace BusinessLogicLayer.Services
             _mapper = mapper;
         }
 
-        public async Task<BaseResponse> GetOrderList()
+        public async Task<BaseResponse> GetOrderList(int accountId)
         {
             var response = new BaseResponse();
             try
             {
-                var order = await _unitOfWork.OrderRepository.GetAllAsync();
+                var order = await _unitOfWork.OrderRepository.Queryable()
+                                        .Where(o => o.AccountId == accountId)
+                                        .ToListAsync();
                 response.Success = true;
                 response.Message = "Order list retrieved successfully.";
                 response.Data = _mapper.Map<List<OrderResponse>>(order);
@@ -58,8 +60,9 @@ namespace BusinessLogicLayer.Services
             {
                 // Filter
                 Expression<Func<Order, bool>> filter = order =>
+                    order.AccountId == request.AccountId &&
                     (string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode)) &&
-                    (order.Status == request.Status);
+                    (!request.Status.HasValue || order.Status == request.Status);
 
                 // Sort
                 Expression<Func<Order, object>> orderByExpression = request.SortBy switch
