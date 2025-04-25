@@ -138,14 +138,21 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // 🔹 Kiểm tra số lượng ảnh tải lên tối đa là 5
+                // 🔹 Kiểm tra số lượng ảnh tối đa là 5
                 if (request.Images.Count() > 5)
                 {
                     response.Message = "You can upload a maximum of 5 images.";
                     return response;
                 }
 
-                // 🔹 Tạo mới một bản ghi Tracking mới cho lần upload này
+                // 🔹 Kiểm tra bắt buộc phải có note
+                if (string.IsNullOrWhiteSpace(request.Note))
+                {
+                    response.Message = "Note is required for tracking.";
+                    return response;
+                }
+
+                // 🔹 Tạo mới một bản ghi Tracking
                 var tracking = new Tracking
                 {
                     BookingId = booking.Id,
@@ -154,6 +161,7 @@ namespace BusinessLogicLayer.Services
                     TrackingImages = new List<TrackingImage>()
                 };
 
+                // 🔹 Upload từng ảnh lên Cloudinary
                 foreach (var imageFile in request.Images)
                 {
                     using var stream = imageFile.OpenReadStream();
@@ -169,7 +177,7 @@ namespace BusinessLogicLayer.Services
                     }
                 }
 
-                // 🔹 Lưu tracking mới vào database
+                // 🔹 Lưu tracking vào database
                 booking.IsTracked = true;
                 await _unitOfWork.TrackingRepository.InsertAsync(tracking);
                 await _unitOfWork.CommitAsync();
