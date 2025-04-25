@@ -829,16 +829,6 @@ namespace BusinessLogicLayer.Services
                     //break;
 
                 case Booking.BookingStatus.Progressing:
-                    // ✅ Khi vào Progressing, tạo Tracking để lưu ảnh thi công
-                    var tracking = new Tracking
-                    {
-                        BookingId = booking.Id,
-                        Note = "Construction phase started.",
-                        CreatedAt = DateTime.Now
-                    };
-
-                    await _unitOfWork.TrackingRepository.InsertAsync(tracking);
-                    await _unitOfWork.CommitAsync();
                     break;
 
                 case Booking.BookingStatus.FinalPaid:
@@ -880,8 +870,6 @@ namespace BusinessLogicLayer.Services
             booking.Status = newStatus.Value;
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
-            //// ✅ Gọi `AddBookingTrackingAsync` để lưu tracking
-            //await _trackingService.AddTrackingAsync(booking.Id, newStatus.Value, "Status updated automatically.");
             response.Success = true;
             response.Message = $"Booking status changed to {newStatus}.";
             response.Data = true;
