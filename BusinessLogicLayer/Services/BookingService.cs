@@ -306,7 +306,6 @@ namespace BusinessLogicLayer.Services
                     Cost = booking.BookingDetails.Any()
                         ? booking.BookingDetails.Sum(bd => bd.Cost)
                         : 0,
-                    IsTracked = booking.IsTracked ?? false,
 
                     //EstimatedCompletion = booking.BookingDetails.Any()
                     //    ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)

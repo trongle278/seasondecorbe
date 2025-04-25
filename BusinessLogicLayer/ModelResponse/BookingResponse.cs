@@ -65,7 +65,6 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal Cost { get; set; }
         //public DateTime? EstimatedCompletion { get; set; }
         public bool IsQuoteExisted { get; set; }
-        public bool IsTracked { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public CustomerResponse Customer { get; set; }
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
