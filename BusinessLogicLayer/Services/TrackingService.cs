@@ -46,6 +46,7 @@ namespace BusinessLogicLayer.Services
                 var trackingHistory = await _unitOfWork.TrackingRepository.Queryable()
                     .Where(t => t.BookingId == booking.Id)
                     .Include(t => t.TrackingImages)
+                    .Include(t => t.Booking)
                     .OrderBy(t => t.CreatedAt)
                     .ToListAsync();
 
