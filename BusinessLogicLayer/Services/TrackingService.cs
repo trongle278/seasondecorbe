@@ -133,6 +133,13 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Nếu có hình ảnh upload
                 if (request.Images != null && request.Images.Any())
                 {
+                    // Kiểm tra số lượng ảnh tải lên tối đa là 5
+                    if (request.Images.Count() > 5)
+                    {
+                        response.Message = "You can upload a maximum of 5 images.";
+                        return response;
+                    }
+
                     foreach (var imageFile in request.Images)
                     {
                         using var stream = imageFile.OpenReadStream();
@@ -166,6 +173,5 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
-
     }
 }
