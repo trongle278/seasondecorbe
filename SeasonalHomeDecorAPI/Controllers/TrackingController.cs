@@ -19,15 +19,15 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("getTrackingByBookingCode")]
         public async Task<IActionResult> GetTrackingByBookingCode(string bookingCode)
         {
-            var result = await _trackingService.GetTrackingByBookingCodeAsync(bookingCode);
-            return Ok(result);
+            var response = await _trackingService.GetTrackingByBookingCodeAsync(bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         [HttpPost("updateTracking")]
         public async Task<IActionResult> UpdateTracking([FromForm] UpdateTrackingRequest request, string bookingCode)
         {
-            var result = await _trackingService.UpdateTrackingAsync(request, bookingCode);
-            return Ok(result);
+            var response = await _trackingService.UpdateTrackingAsync(request, bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
     }
 }
