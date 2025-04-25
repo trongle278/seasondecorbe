@@ -256,6 +256,7 @@ namespace BusinessLogicLayer.Services
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
                     IsQuoteExisted = booking.Quotations.Any(),
+                    IsTracked = booking.IsTracked ?? false,
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO

@@ -37,7 +37,6 @@ namespace BusinessLogicLayer.ModelResponse
         public string CancelType { get; set; }
         public string CancelReason { get; set; }
         public string RejectReason { get; set; }
-
         public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
         public DateTime? SurveyDate { get; set; }
         public string Address { get; set; }
@@ -65,6 +64,7 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal Cost { get; set; }
         //public DateTime? EstimatedCompletion { get; set; }
         public bool IsQuoteExisted { get; set; }
+        public bool IsTracked { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public CustomerResponse Customer { get; set; }
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
