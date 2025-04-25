@@ -20,7 +20,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
-        public DateTime? EstimatedCompletion { get; set; }
+        //public DateTime? EstimatedCompletion { get; set; }
         public DecorServiceDTO DecorService { get; set; } // Dịch vụ decor
         public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)    
         public string CancelType { get; set; }
@@ -50,7 +50,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public string ServiceItem { get; set; }
         public decimal Cost { get; set; }
-        public DateTime EstimatedCompletion { get; set; }
+        //public DateTime EstimatedCompletion { get; set; }
     }
 
     public class BookingResponseForProvider
@@ -63,7 +63,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
-        public DateTime? EstimatedCompletion { get; set; }
+        //public DateTime? EstimatedCompletion { get; set; }
         public bool IsQuoteExisted { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public CustomerResponse Customer { get; set; }

@@ -588,8 +588,8 @@ namespace BusinessLogicLayer.Services
         <h2>4. COST AND PAYMENT</h2>
         <p>(Via platform wallet)</p>
         <ul>
-            <li>Total Cost (includes materials, labor, and any additional costs): {(quotation.MaterialCost + quotation.ConstructionCost):N0} VND</li>
-            <li>Deposit from Party A to Party B ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.MaterialCost + quotation.ConstructionCost):N0} VND</li>
+            <li>Total Cost (includes materials, labor, and any additional costs): {(quotation.Booking.TotalPrice):N0} VND</li>
+            <li>Deposit from Party A to Party B ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.Booking.TotalPrice):N0} VND</li>
             <li>Remaining Balance: Payable upon project completion</li>
         </ul>
     </div>
