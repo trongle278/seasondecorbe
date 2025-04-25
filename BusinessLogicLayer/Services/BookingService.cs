@@ -21,13 +21,11 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaymentService _paymentService;
-        private readonly ITrackingService _trackingService;
 
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, ITrackingService trackingService)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
-            _trackingService = trackingService;
         }
 
         public async Task<BaseResponse<PendingCancelBookingDetailForProviderResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
