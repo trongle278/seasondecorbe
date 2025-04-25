@@ -46,7 +46,6 @@ namespace BusinessLogicLayer.Services
                 var trackingHistory = await _unitOfWork.TrackingRepository.Queryable()
                     .Where(t => t.BookingId == booking.Id)
                     .Include(t => t.TrackingImages)
-                    .Include(t => t.Booking)
                     .OrderBy(t => t.CreatedAt)
                     .ToListAsync();
 
@@ -132,6 +131,20 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // 🔹 Kiểm tra bắt buộc phải có ít nhất 1 ảnh
+                if (request.Images == null || !request.Images.Any())
+                {
+                    response.Message = "At least one image is required for tracking.";
+                    return response;
+                }
+
+                // 🔹 Kiểm tra số lượng ảnh tải lên tối đa là 5
+                if (request.Images.Count() > 5)
+                {
+                    response.Message = "You can upload a maximum of 5 images.";
+                    return response;
+                }
+
                 // 🔹 Tạo mới một bản ghi Tracking mới cho lần upload này
                 var tracking = new Tracking
                 {
@@ -141,29 +154,18 @@ namespace BusinessLogicLayer.Services
                     TrackingImages = new List<TrackingImage>()
                 };
 
-                // 🔹 Nếu có hình ảnh upload
-                if (request.Images != null && request.Images.Any())
+                foreach (var imageFile in request.Images)
                 {
-                    // Kiểm tra số lượng ảnh tải lên tối đa là 5
-                    if (request.Images.Count() > 5)
-                    {
-                        response.Message = "You can upload a maximum of 5 images.";
-                        return response;
-                    }
+                    using var stream = imageFile.OpenReadStream();
+                    var imageUrl = await _cloudinaryService.UploadFileAsync(
+                        stream,
+                        $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
+                        imageFile.ContentType
+                    );
 
-                    foreach (var imageFile in request.Images)
+                    if (!string.IsNullOrEmpty(imageUrl))
                     {
-                        using var stream = imageFile.OpenReadStream();
-                        var imageUrl = await _cloudinaryService.UploadFileAsync(
-                            stream,
-                            $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
-                            imageFile.ContentType
-                        );
-
-                        if (!string.IsNullOrEmpty(imageUrl))
-                        {
-                            tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
-                        }
+                        tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
                     }
                 }
 
