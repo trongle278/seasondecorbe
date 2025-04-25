@@ -121,6 +121,16 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // 🔹 Kiểm tra xem đã có bản ghi Tracking cho BookingCode này chưa
+                var existingTracking = await _unitOfWork.TrackingRepository.Queryable()
+                    .FirstOrDefaultAsync(t => t.BookingId == booking.Id);
+
+                if (existingTracking != null)
+                {
+                    response.Message = "Tracking has already been created for this booking.";
+                    return response;
+                }
+
                 // 🔹 Tạo mới một bản ghi Tracking mới cho lần upload này
                 var tracking = new Tracking
                 {
