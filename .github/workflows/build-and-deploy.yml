@@ -10,7 +10,7 @@ env:
   AZURE_WEBAPP_NAME: seasondecor
   AZURE_WEBAPP_PACKAGE_PATH: "./SeasonalHomeDecorAPI/publish"
   DOTNET_VERSION: "8.x"
-  SOLUTION_PATH: "SeasonalHomeDecorAPI.sln"
+  SOLUTION_PATH: "SeasonalHomeDecorBE.sln"
   API_PROJECT_PATH: "SeasonalHomeDecorAPI"
   PUBLISH_DIR: "./publish"
 
