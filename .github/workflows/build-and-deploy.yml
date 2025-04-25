@@ -14,36 +14,36 @@ env:
   API_PROJECT_PATH: "SeasonalHomeDecorAPI"
   PUBLISH_DIR: "./publish"
 
-  jobs:
-    build-and-test:
-      name: Build and Test
-      runs-on: ubuntu-latest
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Setup .NET
-          uses: actions/setup-dotnet@v4
-          with:
-            dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-        - name: Restore
-          run: dotnet restore ${{ env.SOLUTION_PATH }}
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
 
-        - name: Build
-          run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
-        - name: Test
-          run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-restore --no-build --verbosity normal
+      - name: Test
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-restore --no-build --verbosity normal
 
-        - name: Publish
-          run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --no-restore --no-build --property:PublishDir=${{ env.PUBLISH_DIR }}
+      - name: Publish
+        run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --no-restore --no-build --property:PublishDir=${{ env.PUBLISH_DIR }}
 
-        - name: Publish Artifacts
-          uses: action/upload-artifact@v4
-          with:
-            name: webapp
-            path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      - name: Publish Artifacts
+        uses: action/upload-artifact@v4
+        with:
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
   deploy:
     name: Deploy to Azure
