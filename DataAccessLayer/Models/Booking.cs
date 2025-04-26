@@ -58,14 +58,13 @@ namespace DataAccessObject.Models
         public Address Address { get; set; }
 
         public Review Review { get; set; }
-        public virtual Tracking Tracking { get; set; }
-
         // Chi tiết báo giá dùng entity BookingDetail
         public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; }
         public virtual ICollection<Support> Supports { get; set; } = new List<Support>();
         public virtual ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
         public ICollection<Quotation> Quotations { get; set; } = new List<Quotation>();
+        public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
 
         public string? CancelReason { get; set; }
         public string? RejectReason { get; set; } // Lưu lý do reject

@@ -41,6 +41,8 @@ namespace BusinessLogicLayer.Services
 
                 if (!trackingHistory.Any())
                 {
+                    response.Success = true;
+                    response.Data = new List<TrackingResponse>();
                     response.Message = "No tracking history found for this booking.";
                     return response;
                 }
