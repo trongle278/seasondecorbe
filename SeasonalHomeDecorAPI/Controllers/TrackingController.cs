@@ -16,7 +16,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             _trackingService = trackingService;
         }
 
-        [HttpPost("getTrackingByBookingCode")]
+        [HttpGet("getTrackingByBookingCode")]
         public async Task<IActionResult> GetTrackingByBookingCode(string bookingCode)
         {
             var response = await _trackingService.GetTrackingByBookingCodeAsync(bookingCode);
