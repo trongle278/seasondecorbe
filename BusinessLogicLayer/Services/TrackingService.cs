@@ -49,6 +49,7 @@ namespace BusinessLogicLayer.Services
                 var trackingResponses = trackingHistory.Select(t => new TrackingResponse
                 {
                     Id = t.Id,
+                    Task = t.Task,
                     BookingCode = bookingCode,
                     Note = t.Note,
                     CreatedAt = t.CreatedAt,
@@ -149,7 +150,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Tracking updated successfully.";
+                response.Message = "Tracking added successfully.";
             }
             catch (Exception ex)
             {
