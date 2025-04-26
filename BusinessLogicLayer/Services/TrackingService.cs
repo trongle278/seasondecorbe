@@ -52,7 +52,11 @@ namespace BusinessLogicLayer.Services
                     BookingCode = bookingCode,
                     Note = t.Note,
                     CreatedAt = t.CreatedAt,
-                    ImageUrls = t.TrackingImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+                    Images = t.TrackingImages?.Select(img => new TrackingImageResponse
+                    {
+                        Id = img.Id,
+                        ImageUrl = img.ImageUrl
+                    }).ToList() ?? new List<TrackingImageResponse>()
                 }).ToList();
 
                 response.Success = true;
