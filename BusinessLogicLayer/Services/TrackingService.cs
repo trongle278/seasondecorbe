@@ -276,5 +276,46 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public async Task<BaseResponse> RemoveTrackingAsync(int trackingId)
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                // 🔹 Lấy tracking
+                var tracking = await _unitOfWork.TrackingRepository.Queryable()
+                    .Include(t => t.TrackingImages)
+                    .FirstOrDefaultAsync(t => t.Id == trackingId);
+
+                if (tracking == null)
+                {
+                    response.Message = "Tracking not found.";
+                    return response;
+                }
+
+                // 🔹 Xóa hết ảnh liên quan
+                if (tracking.TrackingImages != null && tracking.TrackingImages.Any())
+                {
+                    _unitOfWork.TrackingImageRepository.RemoveRange(tracking.TrackingImages);
+                }
+
+                // 🔹 Xóa tracking
+                _unitOfWork.TrackingRepository.RemoveEntity(tracking);
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Tracking removed successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to remove tracking.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
     }
 }

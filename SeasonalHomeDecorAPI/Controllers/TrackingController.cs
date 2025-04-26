@@ -38,5 +38,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _trackingService.UpdateTrackingAsync(request, trackingId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
+
+        [HttpDelete("removeTracking/{trackingId}")]
+        public async Task<IActionResult> RemoveTracking(int trackingId)
+        {
+            var response = await _trackingService.RemoveTrackingAsync(trackingId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }

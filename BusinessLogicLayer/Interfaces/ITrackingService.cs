@@ -14,5 +14,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<List<TrackingResponse>>> GetTrackingByBookingCodeAsync(string bookingCode);
         Task<BaseResponse> AddTrackingAsync(TrackingRequest request, string bookingCode);
         Task<BaseResponse> UpdateTrackingAsync(UpdateTrackingRequest request, int trackingId);
+        Task<BaseResponse> RemoveTrackingAsync(int trackingId);
     }
 }
