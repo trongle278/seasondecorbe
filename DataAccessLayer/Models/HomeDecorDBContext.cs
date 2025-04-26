@@ -410,8 +410,8 @@ namespace DataAccessObject.Models
 
             modelBuilder.Entity<Tracking>()
                 .HasOne(t => t.Booking)
-                .WithOne(b => b.Tracking)
-                .HasForeignKey<Tracking>(t => t.BookingId)
+                .WithMany(b => b.Trackings)
+                .HasForeignKey(t => t.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MaterialDetail>()
