@@ -157,15 +157,15 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> UpdateTrackingAsync(TrackingRequest request, int trackingId)
+        public async Task<BaseResponse> UpdateTrackingAsync(UpdateTrackingRequest request, int trackingId)
         {
             var response = new BaseResponse();
 
             try
             {
-                // 🔹 Lấy Tracking theo Id
+                // 🔹 Load Tracking + hình ảnh
                 var tracking = await _unitOfWork.TrackingRepository.Queryable()
-                    .Include(t => t.TrackingImages) // lấy luôn TrackingImages
+                    .Include(t => t.TrackingImages)
                     .FirstOrDefaultAsync(t => t.Id == trackingId);
 
                 if (tracking == null)
@@ -174,7 +174,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // 🔹 Lấy Booking liên quan để kiểm tra
+                // 🔹 Kiểm tra Booking còn trong trạng thái Progressing
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                     .FirstOrDefaultAsync(b => b.Id == tracking.BookingId);
 
@@ -184,47 +184,78 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // 🔹 Kiểm tra note
+                // 🔹 Validate Note
                 if (string.IsNullOrWhiteSpace(request.Note))
                 {
                     response.Message = "Note is required for tracking.";
                     return response;
                 }
 
-                // 🔹 Nếu có cập nhật ảnh
+                // 🔹 Xử lý ảnh
                 if (request.Images != null && request.Images.Any())
                 {
-                    if (request.Images.Count() > 5)
+                    int currentImageCount = tracking.TrackingImages.Count;
+                    int incomingImageCount = request.Images.Count;
+                    int totalAfterUpdate = currentImageCount + incomingImageCount;
+
+                    if (totalAfterUpdate > 5)
                     {
-                        response.Message = "You can upload a maximum of 5 images.";
+                        response.Message = $"You can upload up to 5 images only. Current images: {currentImageCount}.";
                         return response;
                     }
 
-                    // 🔹 Xoá hết ảnh cũ
-                    _unitOfWork.TrackingImageRepository.RemoveRange(tracking.TrackingImages);
-
-                    tracking.TrackingImages.Clear();
-
-                    // 🔹 Upload và thêm ảnh mới
-                    foreach (var imageFile in request.Images)
+                    // 🔹 Nếu request có ImageIds: update ảnh theo ID
+                    if (request.ImageIds != null && request.ImageIds.Any())
                     {
-                        using var stream = imageFile.OpenReadStream();
-                        var imageUrl = await _cloudinaryService.UploadFileAsync(
-                            stream,
-                            $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
-                            imageFile.ContentType
-                        );
-
-                        if (!string.IsNullOrEmpty(imageUrl))
+                        for (int i = 0; i < request.ImageIds.Count && i < request.Images.Count; i++)
                         {
-                            tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
+                            var imageId = request.ImageIds[i];
+                            var imageFile = request.Images[i];
+
+                            var imageToUpdate = tracking.TrackingImages.FirstOrDefault(x => x.Id == imageId);
+                            if (imageToUpdate != null)
+                            {
+                                using var stream = imageFile.OpenReadStream();
+                                var imageUrl = await _cloudinaryService.UploadFileAsync(
+                                    stream,
+                                    $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
+                                    imageFile.ContentType
+                                );
+
+                                if (!string.IsNullOrEmpty(imageUrl))
+                                {
+                                    imageToUpdate.ImageUrl = imageUrl;
+                                }
+                            }
+                        }
+                    }
+
+                    // 🔹 Nếu có ảnh upload mới (không kèm Id): thêm ảnh mới
+                    if (request.Images.Count > request.ImageIds?.Count)
+                    {
+                        for (int i = request.ImageIds?.Count ?? 0; i < request.Images.Count; i++)
+                        {
+                            var newImageFile = request.Images[i];
+
+                            using var stream = newImageFile.OpenReadStream();
+                            var imageUrl = await _cloudinaryService.UploadFileAsync(
+                                stream,
+                                $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(newImageFile.FileName)}",
+                                newImageFile.ContentType
+                            );
+
+                            if (!string.IsNullOrEmpty(imageUrl))
+                            {
+                                tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
+                            }
                         }
                     }
                 }
 
-                // 🔹 Update Note
+                // 🔹 Update Task và Note
+                tracking.Task = request.Task;
                 tracking.Note = request.Note;
-                tracking.CreatedAt = DateTime.Now;
+                // tracking.CreatedAt giữ nguyên, KHÔNG update CreatedAt lúc update nội dung
 
                 _unitOfWork.TrackingRepository.Update(tracking);
                 await _unitOfWork.CommitAsync();

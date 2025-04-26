@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,19 +16,10 @@ namespace BusinessLogicLayer.ModelRequest
 
     public class UpdateTrackingRequest
     {
-
-        public string Note { get; set; }
-
-        public List<ImageReplacement> ImageReplacements { get; set; } = new List<ImageReplacement>();
-        public List<IFormFile> NewImages { get; set; } = new List<IFormFile>();
-    }
-
-    public class ImageReplacement
-    {
-        [Required]
-        public string OldImageUrl { get; set; }  // URL của ảnh cũ cần thay thế
-
-        [Required]
-        public IFormFile NewImage { get; set; }  // File ảnh mới
+        public string Task { get; set; }  // New task description
+        public string Note { get; set; }  // New note for tracking
+        //thêm id ảnh để sửa
+        public List<int> ImageIds { get; set; } = new List<int>();
+        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
     }
 }
