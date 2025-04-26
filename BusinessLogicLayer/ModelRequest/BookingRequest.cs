@@ -29,22 +29,6 @@ namespace BusinessLogicLayer.ModelRequest
         public string? Note { get; set; }
     }
 
-    /// <summary>
-    /// Request để thêm tracking tiến độ thi công vào booking
-    /// </summary>
-    public class TrackingRequest
-    {
-        [Required]
-        [StringLength(255)]
-        public string Stage { get; set; }
-
-        public DateTime? PlannedDate { get; set; }
-
-        public DateTime? ActualDate { get; set; }
-
-        public string ImageUrls { get; set; }
-    }
-
     public class CreateQuotationRequest
     {
         [Required(ErrorMessage = "Materials list is required")]
@@ -85,14 +69,6 @@ namespace BusinessLogicLayer.ModelRequest
         public int ProductId { get; set; }
         public int Quantity { get; set; }
     }
-
-    public class UpdateTrackingRequest
-    {
-        public string? Note { get; set; }
-
-        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
-    }
-
 
     public class CancelBookingRequest
     {

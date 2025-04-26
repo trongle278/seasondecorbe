@@ -23,10 +23,19 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPost("updateTracking")]
-        public async Task<IActionResult> UpdateTracking([FromForm] UpdateTrackingRequest request, string bookingCode)
+        [HttpPost("addTracking")]
+        public async Task<IActionResult> AddTracking([FromForm] TrackingRequest request, string bookingCode)
         {
-            var response = await _trackingService.UpdateTrackingAsync(request, bookingCode);
+            var response = await _trackingService.AddTrackingAsync(request, bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("updateTracking/{trackingId}")]
+        public async Task<IActionResult> UpdateTracking(
+    [FromRoute] int trackingId,
+    [FromForm] UpdateTrackingRequest request)
+        {
+            var response = await _trackingService.UpdateTrackingAsync(request, trackingId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
     }
