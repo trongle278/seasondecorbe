@@ -21,13 +21,11 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaymentService _paymentService;
-        private readonly ITrackingService _trackingService;
 
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, ITrackingService trackingService)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
-            _trackingService = trackingService;
         }
 
         public async Task<BaseResponse<PendingCancelBookingDetailForProviderResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
@@ -258,6 +256,7 @@ namespace BusinessLogicLayer.Services
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
                     IsQuoteExisted = booking.Quotations.Any(),
+                    IsTracked = booking.IsTracked ?? false,
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO
@@ -831,16 +830,6 @@ namespace BusinessLogicLayer.Services
                     //break;
 
                 case Booking.BookingStatus.Progressing:
-                    // ✅ Khi vào Progressing, tạo Tracking để lưu ảnh thi công
-                    var tracking = new Tracking
-                    {
-                        BookingId = booking.Id,
-                        Note = "Construction phase started.",
-                        CreatedAt = DateTime.Now
-                    };
-
-                    await _unitOfWork.TrackingRepository.InsertAsync(tracking);
-                    await _unitOfWork.CommitAsync();
                     break;
 
                 case Booking.BookingStatus.FinalPaid:
@@ -882,8 +871,6 @@ namespace BusinessLogicLayer.Services
             booking.Status = newStatus.Value;
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
-            //// ✅ Gọi `AddBookingTrackingAsync` để lưu tracking
-            //await _trackingService.AddTrackingAsync(booking.Id, newStatus.Value, "Status updated automatically.");
             response.Success = true;
             response.Message = $"Booking status changed to {newStatus}.";
             response.Data = true;

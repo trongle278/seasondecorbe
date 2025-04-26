@@ -30,5 +30,7 @@ namespace Repository.GenericRepository
            Func<IQueryable<T>, IQueryable<T>>? customQuery = null);
         IQueryable<T> Query(Expression<Func<T, bool>> filter);
         IQueryable<T> Queryable();
+
+        void RemoveEntity(T entity);
     }
 }

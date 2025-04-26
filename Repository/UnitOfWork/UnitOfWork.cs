@@ -61,6 +61,7 @@ namespace Repository.UnitOfWork
             ProductDetailRepository = new ProductDetailRepository(_context);
             TicketAttachmentRepository = new TicketAttachmentRepository(_context);
             TicketReplyRepository = new TicketReplyRepository(_context);
+            TrackingImageRepository = new TrackingImageRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -84,7 +85,7 @@ namespace Repository.UnitOfWork
         public IReviewRepository ReviewRepository { get; private set; }
         public IReviewImageRepository ReviewImageRepository { get; private set; }
         public IBookingRepository BookingRepository { get; private set; }
-        public IWalletRepository WalletRepository { get; }
+        public IWalletRepository WalletRepository { get; private set; }
         public IPaymentTransactionRepository PaymentTransactionRepository { get; }
         public IWalletTransactionRepository WalletTransactionRepository { get; }
         public IContactRepository ContactRepository { get; private set; }
@@ -101,10 +102,11 @@ namespace Repository.UnitOfWork
         public IContractRepository ContractRepository { get; private set; }
         public ISubscriptionRepository SubscriptionRepository { get; private set; }
         public IVoucherRepository VoucherRepository { get; private set; }
-        public ICancelTypeRepository CancelTypeRepository { get; }
+        public ICancelTypeRepository CancelTypeRepository { get; private set; }
         public IProductDetailRepository ProductDetailRepository { get; private set; }
         public ITicketAttachmentRepository TicketAttachmentRepository { get; private set; }
         public ITicketReplyRepository TicketReplyRepository { get; private set; }
+        public ITrackingImageRepository TrackingImageRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

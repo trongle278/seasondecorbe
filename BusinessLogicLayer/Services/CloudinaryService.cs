@@ -62,8 +62,6 @@ namespace BusinessLogicLayer.Services
                 {
                     File = new FileDescription(fileName, fileStream),
                     PublicId = fileName,
-                    // Bạn có thể thêm Transformation (resize, crop, v.v.) nếu muốn
-                    // Transformation = new Transformation().Width(150).Height(150).Crop("fill")
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);

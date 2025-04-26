@@ -112,7 +112,7 @@ namespace Repository.GenericRepository
             return _context.Set<T>().Where(filter);
 
         }
-            public IQueryable<T> Queryable()
+        public IQueryable<T> Queryable()
         {
             return _context.Set<T>();
         }
@@ -196,6 +196,15 @@ namespace Repository.GenericRepository
                 .ToListAsync();
 
             return (items, totalCount);
+        }
+
+        public virtual void RemoveEntity(T entity)
+        {
+            if (_context.Entry(entity).State == EntityState.Detached)
+            {
+                _context.Set<T>().Attach(entity);
+            }
+            _context.Set<T>().Remove(entity);
         }
     }
 }

@@ -13,7 +13,7 @@ using BusinessLogicLayer.Interfaces;
 
 namespace BusinessLogicLayer.Services
 {
-    public class TrackingService: ITrackingService
+    public class TrackingService : ITrackingService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
@@ -32,19 +32,9 @@ namespace BusinessLogicLayer.Services
 
             try
             {
-                // 🔹 Lấy booking theo BookingCode
-                var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
-
-                if (booking == null)
-                {
-                    response.Message = "Booking not found.";
-                    return response;
-                }
-
-                // 🔹 Lấy tracking liên quan
+                // 🔹 Lấy tracking liên quan tới bookingCode
                 var trackingHistory = await _unitOfWork.TrackingRepository.Queryable()
-                    .Where(t => t.BookingId == booking.Id)
+                    .Where(t => t.Booking.BookingCode == bookingCode)
                     .Include(t => t.TrackingImages)
                     .OrderBy(t => t.CreatedAt)
                     .ToListAsync();
@@ -58,10 +48,16 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Map ra DTO
                 var trackingResponses = trackingHistory.Select(t => new TrackingResponse
                 {
-                    BookingCode = t.Booking.BookingCode,
+                    Id = t.Id,
+                    Task = t.Task,
+                    BookingCode = bookingCode,
                     Note = t.Note,
                     CreatedAt = t.CreatedAt,
-                    ImageUrls = t.TrackingImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+                    Images = t.TrackingImages?.Select(img => new TrackingImageResponse
+                    {
+                        Id = img.Id,
+                        ImageUrl = img.ImageUrl
+                    }).ToList() ?? new List<TrackingImageResponse>()
                 }).ToList();
 
                 response.Success = true;
@@ -78,27 +74,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
-        //public async Task AddTrackingAsync(int bookingId, Booking.BookingStatus status, string? note = null)
-        //{
-        //    var existingTracking = await _unitOfWork.TrackingRepository.Queryable()
-        //        .FirstOrDefaultAsync(bt => bt.BookingId == bookingId && bt.Status == status);
-
-        //    if (existingTracking == null) // 🔹 Chỉ lưu tracking nếu chưa tồn tại
-        //    {
-        //        var tracking = new Tracking
-        //        {
-        //            BookingId = bookingId,
-        //            Status = status,
-        //            Note = note
-        //        };
-
-        //        await _unitOfWork.TrackingRepository.InsertAsync(tracking);
-        //        await _unitOfWork.CommitAsync();
-        //    }
-        //}
-
-        public async Task<BaseResponse> UpdateTrackingAsync(UpdateTrackingRequest request, string bookingCode)
+        public async Task<BaseResponse> AddTrackingAsync(TrackingRequest request, string bookingCode)
         {
             var response = new BaseResponse();
 
@@ -121,37 +97,172 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // 🔹 Tạo mới một bản ghi Tracking mới cho lần upload này
+                // 🔹 Kiểm tra bắt buộc phải có ít nhất 1 ảnh
+                if (request.Images == null || !request.Images.Any())
+                {
+                    response.Message = "At least one image is required for tracking.";
+                    return response;
+                }
+
+                // 🔹 Kiểm tra số lượng ảnh tối đa là 5
+                if (request.Images.Count() > 5)
+                {
+                    response.Message = "You can upload a maximum of 5 images.";
+                    return response;
+                }
+
+                // 🔹 Kiểm tra bắt buộc phải có note
+                if (string.IsNullOrWhiteSpace(request.Note))
+                {
+                    response.Message = "Note is required for tracking.";
+                    return response;
+                }
+
+                // 🔹 Tạo mới một bản ghi Tracking
                 var tracking = new Tracking
                 {
                     BookingId = booking.Id,
+                    Task = request.Task,
                     Note = request.Note,
                     CreatedAt = DateTime.Now,
                     TrackingImages = new List<TrackingImage>()
                 };
 
-                // 🔹 Nếu có hình ảnh upload
+                // 🔹 Upload từng ảnh lên Cloudinary
+                foreach (var imageFile in request.Images)
+                {
+                    using var stream = imageFile.OpenReadStream();
+                    var imageUrl = await _cloudinaryService.UploadFileAsync(
+                        stream,
+                        $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
+                        imageFile.ContentType
+                    );
+
+                    if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
+                    }
+                }
+
+                // 🔹 Lưu tracking vào database
+                booking.IsTracked = true;
+                await _unitOfWork.TrackingRepository.InsertAsync(tracking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Tracking added successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to update tracking.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> UpdateTrackingAsync(UpdateTrackingRequest request, int trackingId)
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                // 🔹 Load Tracking + hình ảnh
+                var tracking = await _unitOfWork.TrackingRepository.Queryable()
+                    .Include(t => t.TrackingImages)
+                    .FirstOrDefaultAsync(t => t.Id == trackingId);
+
+                if (tracking == null)
+                {
+                    response.Message = "Tracking not found.";
+                    return response;
+                }
+
+                // 🔹 Kiểm tra Booking còn trong trạng thái Progressing
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .FirstOrDefaultAsync(b => b.Id == tracking.BookingId);
+
+                if (booking == null || booking.Status != Booking.BookingStatus.Progressing)
+                {
+                    response.Message = "Tracking can only be updated during the Progressing phase.";
+                    return response;
+                }
+
+                // 🔹 Validate Note
+                if (string.IsNullOrWhiteSpace(request.Note))
+                {
+                    response.Message = "Note is required for tracking.";
+                    return response;
+                }
+
+                // 🔹 Xử lý ảnh
                 if (request.Images != null && request.Images.Any())
                 {
-                    foreach (var imageFile in request.Images)
-                    {
-                        using var stream = imageFile.OpenReadStream();
-                        var imageUrl = await _cloudinaryService.UploadFileAsync(
-                            stream,
-                            $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
-                            imageFile.ContentType
-                        );
+                    int currentImageCount = tracking.TrackingImages.Count;
+                    int incomingImageCount = request.Images.Count;
+                    int totalAfterUpdate = currentImageCount + incomingImageCount;
 
-                        if (!string.IsNullOrEmpty(imageUrl))
+                    if (totalAfterUpdate > 5)
+                    {
+                        response.Message = $"You can upload up to 5 images only. Current images: {currentImageCount}.";
+                        return response;
+                    }
+
+                    // 🔹 Nếu request có ImageIds: update ảnh theo ID
+                    if (request.ImageIds != null && request.ImageIds.Any())
+                    {
+                        for (int i = 0; i < request.ImageIds.Count && i < request.Images.Count; i++)
                         {
-                            tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
+                            var imageId = request.ImageIds[i];
+                            var imageFile = request.Images[i];
+
+                            var imageToUpdate = tracking.TrackingImages.FirstOrDefault(x => x.Id == imageId);
+                            if (imageToUpdate != null)
+                            {
+                                using var stream = imageFile.OpenReadStream();
+                                var imageUrl = await _cloudinaryService.UploadFileAsync(
+                                    stream,
+                                    $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}",
+                                    imageFile.ContentType
+                                );
+
+                                if (!string.IsNullOrEmpty(imageUrl))
+                                {
+                                    imageToUpdate.ImageUrl = imageUrl;
+                                }
+                            }
+                        }
+                    }
+
+                    // 🔹 Nếu có ảnh upload mới (không kèm Id): thêm ảnh mới
+                    if (request.Images.Count > request.ImageIds?.Count)
+                    {
+                        for (int i = request.ImageIds?.Count ?? 0; i < request.Images.Count; i++)
+                        {
+                            var newImageFile = request.Images[i];
+
+                            using var stream = newImageFile.OpenReadStream();
+                            var imageUrl = await _cloudinaryService.UploadFileAsync(
+                                stream,
+                                $"tracking_{booking.BookingCode}_{DateTime.Now.Ticks}{Path.GetExtension(newImageFile.FileName)}",
+                                newImageFile.ContentType
+                            );
+
+                            if (!string.IsNullOrEmpty(imageUrl))
+                            {
+                                tracking.TrackingImages.Add(new TrackingImage { ImageUrl = imageUrl });
+                            }
                         }
                     }
                 }
 
-                // 🔹 Lưu tracking mới vào database
-                booking.IsTracked = true;
-                await _unitOfWork.TrackingRepository.InsertAsync(tracking);
+                // 🔹 Update Task và Note
+                tracking.Task = request.Task;
+                tracking.Note = request.Note;
+                // tracking.CreatedAt giữ nguyên, KHÔNG update CreatedAt lúc update nội dung
+
+                _unitOfWork.TrackingRepository.Update(tracking);
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -167,5 +278,45 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse> RemoveTrackingAsync(int trackingId)
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                // 🔹 Lấy tracking
+                var tracking = await _unitOfWork.TrackingRepository.Queryable()
+                    .Include(t => t.TrackingImages)
+                    .FirstOrDefaultAsync(t => t.Id == trackingId);
+
+                if (tracking == null)
+                {
+                    response.Message = "Tracking not found.";
+                    return response;
+                }
+
+                // 🔹 Xóa hết ảnh liên quan
+                if (tracking.TrackingImages != null && tracking.TrackingImages.Any())
+                {
+                    _unitOfWork.TrackingImageRepository.RemoveRange(tracking.TrackingImages);
+                }
+
+                // 🔹 Xóa tracking
+                _unitOfWork.TrackingRepository.RemoveEntity(tracking);
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Tracking removed successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to remove tracking.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
     }
 }

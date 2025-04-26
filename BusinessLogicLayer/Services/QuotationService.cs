@@ -588,29 +588,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        private async Task DeleteQuotationDetails(int quotationId)
-        {
-            // Xóa material details
-            var materialDetails = await _unitOfWork.MaterialDetailRepository.Queryable()
-                .Where(m => m.QuotationId == quotationId)
-                .ToListAsync();
-
-            if (materialDetails.Any())
-            {
-                _unitOfWork.MaterialDetailRepository.RemoveRange(materialDetails);
-            }
-
-            // Xóa construction details
-            var constructionDetails = await _unitOfWork.LaborDetailRepository.Queryable()
-                .Where(c => c.QuotationId == quotationId)
-                .ToListAsync();
-
-            if (constructionDetails.Any())
-            {
-                _unitOfWork.LaborDetailRepository.RemoveRange(constructionDetails);
-            }
-        }
-
         public async Task<BaseResponse<PageResult<QuotationResponseForCustomer>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId)
         {
             var response = new BaseResponse<PageResult<QuotationResponseForCustomer>>();

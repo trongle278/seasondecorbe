@@ -16,18 +16,34 @@ namespace SeasonalHomeDecorAPI.Controllers
             _trackingService = trackingService;
         }
 
-        [HttpPost("getTrackingByBookingCode")]
+        [HttpGet("getTrackingByBookingCode")]
         public async Task<IActionResult> GetTrackingByBookingCode(string bookingCode)
         {
-            var result = await _trackingService.GetTrackingByBookingCodeAsync(bookingCode);
-            return Ok(result);
+            var response = await _trackingService.GetTrackingByBookingCodeAsync(bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPost("updateTracking")]
-        public async Task<IActionResult> UpdateTracking([FromForm] UpdateTrackingRequest request, string bookingCode)
+        [HttpPost("addTracking")]
+        public async Task<IActionResult> AddTracking([FromForm] TrackingRequest request, string bookingCode)
         {
-            var result = await _trackingService.UpdateTrackingAsync(request, bookingCode);
-            return Ok(result);
+            var response = await _trackingService.AddTrackingAsync(request, bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("updateTracking/{trackingId}")]
+        public async Task<IActionResult> UpdateTracking(
+    [FromRoute] int trackingId,
+    [FromForm] UpdateTrackingRequest request)
+        {
+            var response = await _trackingService.UpdateTrackingAsync(request, trackingId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpDelete("removeTracking/{trackingId}")]
+        public async Task<IActionResult> RemoveTracking(int trackingId)
+        {
+            var response = await _trackingService.RemoveTrackingAsync(trackingId);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
     }
 }

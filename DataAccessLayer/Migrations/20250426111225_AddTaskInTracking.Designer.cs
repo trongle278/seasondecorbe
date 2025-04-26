@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250426111225_AddTaskInTracking")]
+    partial class AddTaskInTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,7 +132,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("SubscriptionId");
 
-                    b.ToTable("Accounts", (string)null);
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Address", b =>
@@ -180,7 +182,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.ToTable("Address", (string)null);
+                    b.ToTable("Address");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
@@ -247,7 +249,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("DecorServiceId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.BookingDetail", b =>
@@ -279,7 +281,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("BookingDetails", (string)null);
+                    b.ToTable("BookingDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.CancelType", b =>
@@ -296,7 +298,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CancelTypes", (string)null);
+                    b.ToTable("CancelTypes");
 
                     b.HasData(
                         new
@@ -363,7 +365,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("Carts", (string)null);
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.CartItem", b =>
@@ -400,7 +402,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
@@ -433,7 +435,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Chats", (string)null);
+                    b.ToTable("Chats");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.ChatFile", b =>
@@ -462,7 +464,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ChatId");
 
-                    b.ToTable("ChatFiles", (string)null);
+                    b.ToTable("ChatFiles");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Contact", b =>
@@ -488,7 +490,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Contacts", (string)null);
+                    b.ToTable("Contacts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Contract", b =>
@@ -545,7 +547,7 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("QuotationId")
                         .IsUnique();
 
-                    b.ToTable("Contracts", (string)null);
+                    b.ToTable("Contracts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorCategory", b =>
@@ -562,7 +564,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DecorCategories", (string)null);
+                    b.ToTable("DecorCategories");
 
                     b.HasData(
                         new
@@ -626,7 +628,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("DecorServiceId");
 
-                    b.ToTable("DecorImages", (string)null);
+                    b.ToTable("DecorImages");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorService", b =>
@@ -676,7 +678,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("DecorCategoryId");
 
-                    b.ToTable("DecorServices", (string)null);
+                    b.ToTable("DecorServices");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DecorServiceSeason", b =>
@@ -699,7 +701,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("SeasonId");
 
-                    b.ToTable("DecorServiceSeasons", (string)null);
+                    b.ToTable("DecorServiceSeasons");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
@@ -728,7 +730,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.ToTable("DeviceTokens", (string)null);
+                    b.ToTable("DeviceTokens");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
@@ -754,7 +756,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("FavoriteProducts", (string)null);
+                    b.ToTable("FavoriteProducts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.FavoriteService", b =>
@@ -780,7 +782,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("DecorServiceId");
 
-                    b.ToTable("FavoriteServices", (string)null);
+                    b.ToTable("FavoriteServices");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Follow", b =>
@@ -809,7 +811,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("FollowingId");
 
-                    b.ToTable("Follows", (string)null);
+                    b.ToTable("Follows");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.LaborDetail", b =>
@@ -841,7 +843,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("QuotationId");
 
-                    b.ToTable("LaborDetails", (string)null);
+                    b.ToTable("LaborDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.MaterialDetail", b =>
@@ -872,7 +874,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("QuotationId");
 
-                    b.ToTable("MaterialDetails", (string)null);
+                    b.ToTable("MaterialDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Notification", b =>
@@ -909,7 +911,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>
@@ -962,7 +964,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.OrderDetail", b =>
@@ -999,7 +1001,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderDetails", (string)null);
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.PaymentTransaction", b =>
@@ -1034,7 +1036,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("PaymentTransactions", (string)null);
+                    b.ToTable("PaymentTransactions");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Product", b =>
@@ -1082,7 +1084,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.ProductCategory", b =>
@@ -1099,7 +1101,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductCategories", (string)null);
+                    b.ToTable("ProductCategories");
 
                     b.HasData(
                         new
@@ -1211,7 +1213,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("QuotationId");
 
-                    b.ToTable("ProductDetails", (string)null);
+                    b.ToTable("ProductDetails");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.ProductImage", b =>
@@ -1233,7 +1235,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImage", (string)null);
+                    b.ToTable("ProductImage");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Quotation", b =>
@@ -1279,7 +1281,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("Quotation", (string)null);
+                    b.ToTable("Quotation");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>
@@ -1335,7 +1337,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.ReviewImage", b =>
@@ -1357,7 +1359,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("ReviewId");
 
-                    b.ToTable("ReviewImages", (string)null);
+                    b.ToTable("ReviewImages");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Role", b =>
@@ -1374,7 +1376,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
 
                     b.HasData(
                         new
@@ -1408,7 +1410,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Seasons", (string)null);
+                    b.ToTable("Seasons");
 
                     b.HasData(
                         new
@@ -1486,7 +1488,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Settings", (string)null);
+                    b.ToTable("Settings");
 
                     b.HasData(
                         new
@@ -1540,7 +1542,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
 
                     b.HasData(
                         new
@@ -1623,7 +1625,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("TicketTypeId");
 
-                    b.ToTable("Supports", (string)null);
+                    b.ToTable("Supports");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TicketAttachment", b =>
@@ -1657,7 +1659,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("TicketReplyId");
 
-                    b.ToTable("TicketAttachments", (string)null);
+                    b.ToTable("TicketAttachments");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TicketReply", b =>
@@ -1687,7 +1689,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("SupportId");
 
-                    b.ToTable("TicketReplies", (string)null);
+                    b.ToTable("TicketReplies");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TicketType", b =>
@@ -1704,7 +1706,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TicketTypes", (string)null);
+                    b.ToTable("TicketTypes");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
@@ -1725,7 +1727,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("TimeSlots", (string)null);
+                    b.ToTable("TimeSlots");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Tracking", b =>
@@ -1754,7 +1756,7 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("BookingId")
                         .IsUnique();
 
-                    b.ToTable("Trackings", (string)null);
+                    b.ToTable("Trackings");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TrackingImage", b =>
@@ -1776,7 +1778,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("TrackingId");
 
-                    b.ToTable("TrackingImages", (string)null);
+                    b.ToTable("TrackingImages");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Voucher", b =>
@@ -1823,7 +1825,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("SubscriptionId");
 
-                    b.ToTable("Vouchers", (string)null);
+                    b.ToTable("Vouchers");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Wallet", b =>
@@ -1845,7 +1847,7 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AccountId")
                         .IsUnique();
 
-                    b.ToTable("Wallets", (string)null);
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.WalletTransaction", b =>
@@ -1868,7 +1870,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("WalletTransactions", (string)null);
+                    b.ToTable("WalletTransactions");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>

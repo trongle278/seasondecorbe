@@ -52,6 +52,7 @@ namespace Repository.UnitOfWork
         IProductDetailRepository ProductDetailRepository { get; }
         ITicketAttachmentRepository TicketAttachmentRepository { get; }
         ITicketReplyRepository TicketReplyRepository { get; }
+        ITrackingImageRepository TrackingImageRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
