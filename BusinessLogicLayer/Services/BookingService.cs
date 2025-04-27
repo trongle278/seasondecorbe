@@ -752,7 +752,8 @@ namespace BusinessLogicLayer.Services
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
                 Booking.BookingStatus.Preparing => Booking.BookingStatus.InTransit,
                 Booking.BookingStatus.InTransit => Booking.BookingStatus.Progressing,
-                Booking.BookingStatus.Progressing when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.FinalPaid,
+                Booking.BookingStatus.Progressing => Booking.BookingStatus.AllDone,
+                Booking.BookingStatus.AllDone when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.FinalPaid,
                 Booking.BookingStatus.FinalPaid => Booking.BookingStatus.Completed,
                 _ => null // Giữ nguyên nếu không hợp lệ
             };
