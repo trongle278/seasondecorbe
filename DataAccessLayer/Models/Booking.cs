@@ -34,11 +34,12 @@ namespace DataAccessObject.Models
             Preparing,          // Chuẩn bị nguyên liệu6
             InTransit,          // Nguyên liệu được chuyển đến chỗ khách hàng7
             Progressing,        // Đang tiến hành thi công (theo dạng Tracking service)8
-            FinalPaid,// Thanh toán thi công9
-            Completed,          // Dự án hoàn thành10
-            PendingCancel, // Chờ provider duyệt hủy11
-            Canceled,          // Booking bị hủy12
-            Rejected           // Booking bị từ chối13
+            AllDone,           // Đã thi công xong 9
+            FinalPaid,          // Thanh toán thi công 10 
+            Completed,          // Dự án hoàn thành11
+            PendingCancel,      // Chờ provider duyệt hủy 12
+            Canceled,           // Booking bị hủy 13
+            Rejected            // Booking bị từ chối 14
         }
 
         public BookingStatus Status { get; set; }

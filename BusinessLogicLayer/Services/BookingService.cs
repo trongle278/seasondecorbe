@@ -832,6 +832,9 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.Progressing:
                     break;
 
+                case Booking.BookingStatus.AllDone:
+                    break;
+
                 case Booking.BookingStatus.FinalPaid:
                     // ✅ Kiểm tra đã thanh toán thi công chưa trước khi chuyển sang `FinalPaid`
                     if (booking.TotalPrice > 0 && booking.DepositAmount < booking.TotalPrice)
@@ -1213,9 +1216,9 @@ namespace BusinessLogicLayer.Services
                     response.Message = "Booking not found.";
                     return response;
                 }
-                if (booking.Status != Booking.BookingStatus.Progressing)
+                if (booking.Status != Booking.BookingStatus.AllDone)
                 {
-                    response.Message = "Only progressing bookings can be paid for.";
+                    response.Message = "Only AllDone phase can be paid for.";
                     return response;
                 }
 
