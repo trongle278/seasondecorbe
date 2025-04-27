@@ -14,7 +14,8 @@ namespace BusinessLogicLayer.Interfaces
     public interface IOrderService
     {
         Task<BaseResponse> GetOrderList(int accountId);
-        Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request, int accountId);
+        Task<BaseResponse<PageResult<OrderResponse>>> GetPaginateListForCustomer(OrderFilterRequest request, int accountId);
+        Task<BaseResponse<PageResult<OrderResponse>>> GetPaginateListForProvider(OrderFilterRequest request, int accountId);
         Task<BaseResponse> GetOrderById(int id);
         Task<BaseResponse> CreateOrder(int cartId, int addressId);
         //Task<BaseResponse> UpdateStatus(int id);
