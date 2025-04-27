@@ -876,7 +876,7 @@ namespace BusinessLogicLayer.Services
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
             response.Success = true;
-            response.Message = $"Booking status changed to {newStatus}.";
+            response.Message = $"Booking status changed successfully.";
             response.Data = true;
             return response;
         }
