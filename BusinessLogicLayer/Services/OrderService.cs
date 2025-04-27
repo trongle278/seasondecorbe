@@ -53,14 +53,14 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request)
+        public async Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request, int accountId)
         {
             var response = new BaseResponse<PageResult<OrderResponse>>();
             try
             {
                 // Filter
                 Expression<Func<Order, bool>> filter = order =>
-                    order.AccountId == request.AccountId &&
+                    order.AccountId == accountId &&
                     (string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode)) &&
                     (!request.Status.HasValue || order.Status == request.Status);
 

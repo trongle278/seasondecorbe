@@ -48,13 +48,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getPaginatedList")]
         public async Task<IActionResult> GetFilterOrder([FromQuery] OrderFilterRequest request)
         {
-            var accountId = GetUserId();
-            if (accountId == 0)
-            {
-                return Unauthorized(new { Message = "Unauthorized" });
-            }
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-            var result = await _orderService.GetPaginate(request);
+            var result = await _orderService.GetPaginate(request, accountId);
 
             if (result.Success)
             {
