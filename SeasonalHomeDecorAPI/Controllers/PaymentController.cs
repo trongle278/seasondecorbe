@@ -111,10 +111,10 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// <summary>
         /// Lấy thông tin thanh toán số tiền còn lại.
         /// </summary>
-        [HttpGet("getFinalPayment/{contractCode}")]
-        public async Task<IActionResult> GetFinalPayment(string contractCode)
+        [HttpGet("getFinalPayment/{bookingCode}")]
+        public async Task<IActionResult> GetFinalPayment(string bookingCode)
         {
-            var result = await _paymentService.GetFinalPaymentAsync(contractCode);
+            var result = await _paymentService.GetFinalPaymentAsync(bookingCode);
             if (!result.Success)
                 return BadRequest(result);
             return Ok(result);

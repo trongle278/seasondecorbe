@@ -517,40 +517,51 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string contractCode)
+        public async Task<BaseResponse<FinalPaymentResponse>> GetFinalPaymentAsync(string bookingCode)
         {
             var response = new BaseResponse<FinalPaymentResponse>();
 
             try
             {
-                var contract = await _unitOfWork.ContractRepository
+                var booking = await _unitOfWork.BookingRepository
                     .Queryable()
-                    .Include(c => c.Quotation)  // Bao gồm Quotation liên quan đến contract
-                    .ThenInclude(q => q.Booking)
-                        .ThenInclude(b => b.Address)
-                    .Include(c => c.Quotation.Booking.Account)
-                    .Include(c => c.Quotation.Booking.DecorService.Account)
-                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+                    .Include(b => b.Address)
+                    .Include(b => b.Account)
+                    .Include(b => b.DecorService)
+                        .ThenInclude(ds => ds.Account)
+                    .Include(b => b.Quotations)
+                        .ThenInclude(q => q.Contract)
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
 
-                if (contract == null)
+                if (booking == null)
                 {
-                    response.Message = "Contract not found.";
+                    response.Message = "Booking not found.";
                     return response;
                 }
 
-                var quotation = contract.Quotation;  // Lấy Quotation từ contract
-                var booking = quotation.Booking;
+                // 🔥 Lấy quotation gần nhất
+                var latestQuotation = booking.Quotations
+                    .OrderByDescending(q => q.CreatedAt)
+                    .FirstOrDefault();
+
+                if (latestQuotation == null || latestQuotation.Contract == null)
+                {
+                    response.Message = "No contract linked to this booking.";
+                    return response;
+                }
+
+                var contract = latestQuotation.Contract;
                 var customer = booking.Account;
                 var provider = booking.DecorService?.Account;
                 var address = booking.Address;
 
-                var depositAmount = booking.TotalPrice * (quotation.DepositPercentage / 100);
+                var depositAmount = booking.TotalPrice * (latestQuotation.DepositPercentage / 100);
                 var finalPayment = booking.TotalPrice - depositAmount;
 
                 response.Success = true;
                 response.Data = new FinalPaymentResponse
                 {
-                    QuotationCode = quotation.QuotationCode,
+                    QuotationCode = latestQuotation.QuotationCode,
                     ContractCode = contract.ContractCode,
                     FinalPaymentAmount = finalPayment,
 
