@@ -29,10 +29,19 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public string Slug { get; set; }
         public string BusinessName { get; set; }
-        public string avatar { get; set; }
+        public string? Avatar { get; set; }
         public int TotalRate { get; set; }
         public int TotalProduct { get; set; }
         public int FollowersCount { get; set; }
         public int FollowingsCount { get; set; }
+    }
+
+    public class OrderProviderResponse
+    {
+        public string Slug { get; set; }
+        public string BusinessName { get; set; }
+        public string? Avatar { get; set; }
+        public string Phone { get; set; }
+        public string Address { get; set; }
     }
 }

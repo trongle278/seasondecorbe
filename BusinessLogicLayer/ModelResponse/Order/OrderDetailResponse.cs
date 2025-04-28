@@ -15,5 +15,6 @@ namespace BusinessLogicLayer.ModelResponse.Order
         public decimal? UnitPrice { get; set; }
         public int OrderId { get; set; }
         public int ProductId { get; set; }
+        public OrderProviderResponse? Provider { get; set; }
     }
 }

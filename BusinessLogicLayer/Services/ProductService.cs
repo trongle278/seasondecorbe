@@ -272,7 +272,7 @@ namespace BusinessLogicLayer.Services
                     Id = provider.Id,
                     Slug = provider.Slug,
                     BusinessName = provider.BusinessName,
-                    avatar = provider.Avatar ?? "null",
+                    Avatar = provider.Avatar,
                     TotalRate = totalRate,
                     FollowersCount = followers,
                     FollowingsCount = followings,
