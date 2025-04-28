@@ -43,7 +43,7 @@ namespace BusinessLogicLayer.Services
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id &&
-                           ds.StartDate <= DateTime.Now)
+                           ds.Status == DecorService.DecorServiceStatus.Available)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
