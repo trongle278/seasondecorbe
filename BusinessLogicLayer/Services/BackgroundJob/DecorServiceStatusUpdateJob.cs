@@ -54,7 +54,7 @@ namespace BusinessLogicLayer.Services.BackgroundJob
         {
             var today = DateTime.Today;
             return await _unitOfWork.DecorServiceRepository.Queryable()
-                .Where(ds => ds.StartDate.Date == today && ds.Status == DecorService.DecorServiceStatus.NotAvailable)
+                .Where(ds => ds.StartDate.Date == today && ds.Status == DecorService.DecorServiceStatus.Incoming)
                 .ToListAsync();
         }
 
