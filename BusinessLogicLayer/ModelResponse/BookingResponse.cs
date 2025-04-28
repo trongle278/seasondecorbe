@@ -16,6 +16,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsQuoteExisted { get; set; }
         public bool IsContractSigned { get; set; }
         public bool IsTracked { get; set; }
+        public bool IsReviewed { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
@@ -65,6 +66,7 @@ namespace BusinessLogicLayer.ModelResponse
         //public DateTime? EstimatedCompletion { get; set; }
         public bool IsQuoteExisted { get; set; }
         public bool IsTracked { get; set; }
+        public bool IsReviewed { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public CustomerResponse Customer { get; set; }
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();

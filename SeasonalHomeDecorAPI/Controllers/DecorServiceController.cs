@@ -161,7 +161,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
         
-        [HttpPut("change-startdate/{decorServiceId}")]
+        [HttpPut("reOpen/{decorServiceId}")]
         public async Task<IActionResult> ChangeStartDate(int decorServiceId, [FromBody] ChangeStartDateRequest request)
         {
             if (!ModelState.IsValid)

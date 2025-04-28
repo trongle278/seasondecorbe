@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.Services;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,25 +21,32 @@ namespace SeasonalHomeDecorAPI.Controllers
             _notificationService = notificationService;
         }
 
-        // Lấy danh sách thông báo của người dùng
-        [HttpGet("{accountId}")]
-        public async Task<IActionResult> GetNotifications(int accountId)
+        [HttpGet("getAllNotifications")]
+        public async Task<IActionResult> GetAllNotifications()
         {
-            var notifications = await _notificationService.GetNotificationsByAccountIdAsync(accountId);
-            return Ok(notifications);
-        }
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-        [HttpGet("my-notifications")]
-        public async Task<IActionResult> GetMyNotifications()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId))
+            if (userId == 0)
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Invalid token or user ID" });
             }
 
-            var notifications = await _notificationService.GetNotificationsByAccountIdAsync(userId);
-            return Ok(notifications);
+            var response = await _notificationService.GetAllNotificationsAsync(userId);
+            return Ok(response); // ✅ Trả về dữ liệu thông báo
+        }
+
+        [HttpGet("getUnreadNotification")]
+        public async Task<IActionResult> GetUnreadNotifications()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            if (userId == 0)
+            {
+                return Unauthorized(new { message = "Invalid token or user ID" });
+            }
+
+            var response = await _notificationService.GetUnreadNotificationsAsync(userId);
+            return Ok(response); // ✅ Trả về dữ liệu thông báo
         }
     }
 }

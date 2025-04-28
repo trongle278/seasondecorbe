@@ -318,6 +318,11 @@ namespace BusinessLogicLayer.Services
                 }
 
                 await _unitOfWork.ReviewRepository.InsertAsync(review);
+
+                // Cập nhật trạng thái IsReview của Booking
+                booking.IsReviewed = true;
+                _unitOfWork.BookingRepository.Update(booking);
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
