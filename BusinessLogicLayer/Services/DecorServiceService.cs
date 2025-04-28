@@ -334,7 +334,6 @@ namespace BusinessLogicLayer.Services
                 // ✅ Nếu user chưa đăng nhập, hoặc không có Location, thì không lọc theo Sublocation
                 Expression<Func<DecorService, bool>> filter = decorService =>
                     decorService.IsDeleted == false &&
-                    decorService.StartDate <= DateTime.Now && // Thêm điều kiện StartDate
                     decorService.Status == DecorService.DecorServiceStatus.Available && // Chỉ lấy những service Available
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
                     //(string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
