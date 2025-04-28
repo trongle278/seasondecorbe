@@ -532,6 +532,13 @@ namespace BusinessLogicLayer.Services
                         Id = dss.Season.Id,
                         SeasonName = dss.Season.SeasonName
                     }).ToList();
+
+                    // Kiểm tra dịch vụ này đã được đặt chưa
+            dtos[i].IsBooked = await _unitOfWork.BookingRepository.Query(b =>
+                b.DecorServiceId == service.Id &&
+                b.IsBooked == true
+            ).AnyAsync();
+
                 }
 
                 // 8. Return paginated result
