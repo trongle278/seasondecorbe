@@ -713,7 +713,7 @@ namespace BusinessLogicLayer.Services
                     DecorCategoryId = request.DecorCategoryId,
                     CreateAt = DateTime.Now,
                     StartDate = request.StartDate,
-                    Status = DecorService.DecorServiceStatus.Available,
+                    Status = DecorService.DecorServiceStatus.Incoming,
                     DecorImages = new List<DecorImage>(),
                     DecorServiceSeasons = new List<DecorServiceSeason>()
                 };
