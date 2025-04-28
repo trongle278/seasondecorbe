@@ -22,16 +22,21 @@ namespace SeasonalHomeDecorAPI.Controllers
             _orderService = orderService;
         }
 
-        [HttpGet("getList/{id}")]
-        public async Task<IActionResult> GetOrderList(int id)
+        private int GetUserId()
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        }
+
+        [HttpGet("getList")]
+        public async Task<IActionResult> GetOrderList()
+        {
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _orderService.GetOrderList(id);
+            var result = await _orderService.GetOrderList(accountId);
 
             if (result.Success)
             {
@@ -41,15 +46,26 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginatedList")]
-        public async Task<IActionResult> GetFilterOrder([FromQuery] OrderFilterRequest request)
+        public async Task<IActionResult> GetFilterOrderForCustomer([FromQuery] OrderFilterRequest request)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            if (accountId == 0)
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var result = await _orderService.GetPaginateListForCustomer(request, accountId);
+
+            if (result.Success)
             {
-                return Unauthorized(new { Message = "Unauthorized" });
+                return Ok(result);
             }
 
-            var result = await _orderService.GetPaginate(request);
+            return BadRequest();
+        }
+
+        [HttpGet("getPaginatedListForProvider")]
+        public async Task<IActionResult> GetFilterOrderForProvider([FromQuery] OrderFilterRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var result = await _orderService.GetPaginateListForProvider(request, accountId);
 
             if (result.Success)
             {
@@ -62,7 +78,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
@@ -88,7 +104,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("createOrder/{id}")]
         public async Task<IActionResult> CreateOrder(int id, int addressId)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
@@ -162,7 +178,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpDelete("cancelOrder/{id}")]
         public async Task<IActionResult> CancelOrder(int id)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
@@ -199,7 +215,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("payment/{id}")]
         public async Task<IActionResult> ProcessOrderPayment(int id)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });

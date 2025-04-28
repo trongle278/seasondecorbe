@@ -752,7 +752,8 @@ namespace BusinessLogicLayer.Services
                 Booking.BookingStatus.DepositPaid => Booking.BookingStatus.Preparing,
                 Booking.BookingStatus.Preparing => Booking.BookingStatus.InTransit,
                 Booking.BookingStatus.InTransit => Booking.BookingStatus.Progressing,
-                Booking.BookingStatus.Progressing when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.FinalPaid,
+                Booking.BookingStatus.Progressing => Booking.BookingStatus.AllDone,
+                Booking.BookingStatus.AllDone when booking.DepositAmount >= booking.TotalPrice => Booking.BookingStatus.FinalPaid,
                 Booking.BookingStatus.FinalPaid => Booking.BookingStatus.Completed,
                 _ => null // Giữ nguyên nếu không hợp lệ
             };
@@ -832,6 +833,9 @@ namespace BusinessLogicLayer.Services
                 case Booking.BookingStatus.Progressing:
                     break;
 
+                case Booking.BookingStatus.AllDone:
+                    break;
+
                 case Booking.BookingStatus.FinalPaid:
                     // ✅ Kiểm tra đã thanh toán thi công chưa trước khi chuyển sang `FinalPaid`
                     if (booking.TotalPrice > 0 && booking.DepositAmount < booking.TotalPrice)
@@ -872,7 +876,7 @@ namespace BusinessLogicLayer.Services
             _unitOfWork.BookingRepository.Update(booking);
             await _unitOfWork.CommitAsync();
             response.Success = true;
-            response.Message = $"Booking status changed to {newStatus}.";
+            response.Message = $"Booking status changed successfully.";
             response.Data = true;
             return response;
         }
@@ -1213,9 +1217,9 @@ namespace BusinessLogicLayer.Services
                     response.Message = "Booking not found.";
                     return response;
                 }
-                if (booking.Status != Booking.BookingStatus.Progressing)
+                if (booking.Status != Booking.BookingStatus.AllDone)
                 {
-                    response.Message = "Only progressing bookings can be paid for.";
+                    response.Message = "Only AllDone phase can be paid for.";
                     return response;
                 }
 

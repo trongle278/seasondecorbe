@@ -53,14 +53,14 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<OrderResponse>>> GetPaginate(OrderFilterRequest request)
+        public async Task<BaseResponse<PageResult<OrderResponse>>> GetPaginateListForCustomer(OrderFilterRequest request, int accountId)
         {
             var response = new BaseResponse<PageResult<OrderResponse>>();
             try
             {
                 // Filter
                 Expression<Func<Order, bool>> filter = order =>
-                    order.AccountId == request.AccountId &&
+                    order.AccountId == accountId &&
                     (string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode)) &&
                     (!request.Status.HasValue || order.Status == request.Status);
 
@@ -97,6 +97,56 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Error retrieving order list";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<OrderResponse>>> GetPaginateListForProvider(OrderFilterRequest request, int accountId)
+        {
+            var response = new BaseResponse<PageResult<OrderResponse>>();
+            try
+            {
+                // Filter
+                Expression<Func<Order, bool>> filter = order =>
+                    order.OrderDetails.Any(od => od.Product.AccountId == accountId) &&
+                    (string.IsNullOrEmpty(request.OrderCode) || order.OrderCode.Contains(request.OrderCode)) &&
+                    (!request.Status.HasValue || order.Status == request.Status);
+
+                // Sort
+                Expression<Func<Order, object>> orderByExpression = request.SortBy switch
+                {
+                    "OrderCode" => order => order.OrderCode,
+                    "OrderDate" => order => order.OrderDate,
+                    _ => order => order.Id
+                };
+
+                // Get paginated data
+                (IEnumerable<Order> orders, int totalCount) = await _unitOfWork.OrderRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending
+                );
+
+                var orderResponses = _mapper.Map<List<OrderResponse>>(orders);
+
+                var pageResult = new PageResult<OrderResponse>
+                {
+                    Data = orderResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Order list for provider retrieved successfully";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving order list for provider";
                 response.Errors.Add(ex.Message);
             }
 
