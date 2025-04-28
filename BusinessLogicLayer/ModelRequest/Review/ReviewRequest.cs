@@ -43,8 +43,6 @@ namespace BusinessLogicLayer.ModelRequest.Review
         public string Comment { get; set; }
         [Required]
         public int BookingId { get; set; }
-        [Required]
-        public int ServiceId { get; set; }
         public List<IFormFile> Images { get; set; }
     }
 

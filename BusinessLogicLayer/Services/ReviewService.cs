@@ -65,8 +65,7 @@ namespace BusinessLogicLayer.Services
 
                 if (account == null)
                 {
-                    response.Success = false;
-                    response.Message = "Account not found";
+                    response.Message = "Account not found!";
                     return response;
                 }
 
@@ -176,19 +175,18 @@ namespace BusinessLogicLayer.Services
 
                 if (review == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid review";
+                    response.Message = "Review not found!";
                     return response;
                 }
 
                 response.Success = true;
-                response.Message = "Review retrieved successfully";
+                response.Message = "Review retrieved successfully.";
                 response.Data = _mapper.Map<ReviewResponse>(review);
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error retrieving review";
+                response.Message = "Error retrieving review!";
                 response.Errors.Add(ex.Message);
             }
 
@@ -207,8 +205,7 @@ namespace BusinessLogicLayer.Services
 
                 if (order == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid order";
+                    response.Message = "Product has to be ordered before review!";
                     return response;
                 }
 
@@ -218,8 +215,7 @@ namespace BusinessLogicLayer.Services
 
                 if (existingReview != null)
                 {
-                    response.Success = false;
-                    response.Message = "Product reviewed";
+                    response.Message = "Product has been reviewed";
                     return response;
                 }
 
@@ -278,19 +274,19 @@ namespace BusinessLogicLayer.Services
 
                 if (booking == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid booking";
+                    response.Message = "Service has to be booked before review!";
                     return response;
                 }
 
+                var serviceId = booking.DecorServiceId;
+
                 var existingReview = await _unitOfWork.ReviewRepository.Queryable()
-                                                    .Where(r => r.AccountId == accountId && r.ServiceId == request.ServiceId && r.BookingId == request.BookingId)
+                                                    .Where(r => r.AccountId == accountId && r.ServiceId == serviceId && r.BookingId == request.BookingId)
                                                     .FirstOrDefaultAsync();
 
                 if (existingReview != null)
                 {
-                    response.Success = false;
-                    response.Message = "Service reviewed";
+                    response.Message = "Booking service has been reviewed!";
                     return response;
                 }
 
@@ -298,7 +294,7 @@ namespace BusinessLogicLayer.Services
                 {
                     AccountId = accountId,
                     BookingId = request.BookingId,
-                    ServiceId = request.ServiceId,
+                    ServiceId = serviceId,
                     Rate = request.Rate,
                     Comment = request.Comment,
                     CreateAt = DateTime.UtcNow.ToLocalTime(),
@@ -325,13 +321,13 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Review service successfully";
+                response.Message = "Review service successfully.";
                 response.Data = _mapper.Map<ReviewResponse>(review);
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error reviewing service";
+                response.Message = "Error reviewing service!";
                 response.Errors.Add(ex.Message);
             }
 
@@ -350,29 +346,25 @@ namespace BusinessLogicLayer.Services
 
                 if (review == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid review";
+                    response.Message = "Review not found!";
                     return response;
                 }
 
                 if (review.ProductId != productId)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid product";
+                    response.Message = "Invalid product!";
                     return response;
                 }
 
                 if (review.OrderId != orderId)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid order";
+                    response.Message = "Invalid order!";
                     return response;
                 }
 
                 if ((DateTime.UtcNow.ToLocalTime() - review.CreateAt).TotalDays > 3)
                 {
-                    response.Success = false;
-                    response.Message = "Expired";
+                    response.Message = "Review can only be updated within 3 days of creation!";
                     return response;
                 }
 
@@ -405,20 +397,20 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Review updated successfully";
+                response.Message = "Review updated successfully.";
                 response.Data = _mapper.Map<ReviewResponse>(review);
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error updating review";
+                response.Message = "Error updating review!";
                 response.Errors.Add(ex.Message);
             }
 
             return response;
         }
 
-        public async Task<BaseResponse> UpdateBookingReview(int id, int serviceId, int bookingId, UpdateBookingReviewRequest request)
+        public async Task<BaseResponse> UpdateBookingReview(int id, int bookingId, UpdateBookingReviewRequest request)
         {
             var response = new BaseResponse();
             try
@@ -430,29 +422,19 @@ namespace BusinessLogicLayer.Services
 
                 if (review == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid review";
-                    return response;
-                }
-
-                if (review.ServiceId != serviceId)
-                {
-                    response.Success = false;
-                    response.Message = "Invalid service";
+                    response.Message = "Review not found!";
                     return response;
                 }
 
                 if (review.BookingId != bookingId)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid booking";
+                    response.Message = "Invalid booking!";
                     return response;
                 }
 
                 if ((DateTime.UtcNow.ToLocalTime() - review.CreateAt).TotalDays > 3)
                 {
-                    response.Success = false;
-                    response.Message = "Expired";
+                    response.Message = "Review can only be updated within 3 days of creation!";
                     return response;
                 }
 
@@ -485,13 +467,13 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Review updated successfully";
+                response.Message = "Review updated successfully.";
                 response.Data = _mapper.Map<ReviewResponse>(review);
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error updating review";
+                response.Message = "Error updating review!";
                 response.Errors.Add(ex.Message);
             }
 
@@ -510,15 +492,13 @@ namespace BusinessLogicLayer.Services
 
                 if (review == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid review";
+                    response.Message = "Review not found!";
                     return response;
                 }
 
                 if ((DateTime.UtcNow.ToLocalTime() - review.CreateAt).TotalDays > 3)
                 {
-                    response.Success = false;
-                    response.Message = "Expired";
+                    response.Message = "Review can only be deleted within 3 days of creation!";
                     return response;
                 }
 
@@ -532,12 +512,12 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Review Deleted successfully";
+                response.Message = "Review Deleted successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error deleting review";
+                response.Message = "Error deleting review!";
                 response.Errors.Add(ex.Message);
             }
 
