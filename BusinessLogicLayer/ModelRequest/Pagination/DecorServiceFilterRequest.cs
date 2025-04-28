@@ -4,11 +4,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DataAccessObject.Models.DecorService;
 
 namespace BusinessLogicLayer.ModelRequest.Pagination
 {
     public class DecorServiceFilterRequest
     {
+        public DecorServiceStatus? Status { get; set; }
         public string? Style { get; set; }
         public string? Sublocation { get; set; }
         public int? MinPrice { get; set; }

@@ -34,7 +34,6 @@ namespace BusinessLogicLayer.ModelResponse
         public int Status { get; set; }
         public bool IsBooked { get; set; }
         public int FavoriteCount { get; set; }
-        public List<string> ImageUrls { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
         public ProviderResponse Provider { get; set; }

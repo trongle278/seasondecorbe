@@ -69,6 +69,15 @@ builder.Services.AddQuartz(q =>
         .WithSimpleSchedule(x => x
             .WithIntervalInSeconds(30)
             .RepeatForever()));
+
+    var decorServiceStatusUpdateJobKey = new JobKey("DecorServiceStatusUpdateJob");
+    q.AddJob<DecorServiceStatusUpdateJob>(opts => opts.WithIdentity(decorServiceStatusUpdateJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(decorServiceStatusUpdateJobKey)
+        .WithIdentity("DecorServiceStatusUpdateJobTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(60) 
+            .RepeatForever()));
 }); 
 
 // Đăng ký dịch vụ Quartz background
@@ -243,6 +252,7 @@ using (var scope = app.Services.CreateScope())
     var scheduler = await schedulerFactory.GetScheduler();
     await scheduler.TriggerJob(new JobKey("AccountCleanupJob"));
     await scheduler.TriggerJob(new JobKey("SurveyDateExpiredJob"));
+    await scheduler.TriggerJob(new JobKey("DecorServiceStatusUpdateJob"));
 }
 
 // 12. Configure the HTTP request pipeline
