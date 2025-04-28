@@ -28,8 +28,6 @@ namespace BusinessLogicLayer.ModelRequest.Review
         [Required]
         public string Comment { get; set; }
         [Required]
-        public int AccountId { get; set; }
-        [Required]
         public int OrderId { get; set; }
         [Required]
         public int ProductId { get; set; }
@@ -43,8 +41,6 @@ namespace BusinessLogicLayer.ModelRequest.Review
         public int Rate { get; set; }
         [Required]
         public string Comment { get; set; }
-        [Required]
-        public int AccountId { get; set; }
         [Required]
         public int BookingId { get; set; }
         [Required]

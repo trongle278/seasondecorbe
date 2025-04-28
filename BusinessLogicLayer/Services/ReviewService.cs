@@ -54,13 +54,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByAccount(ReviewFilterRequest request)
+        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByAccount(int accountId, ReviewFilterRequest request)
         {
             var response = new BaseResponse<PageResult<ReviewResponse>>();
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                                                .Query(a => a.Id == request.accountId)
+                                                .Query(a => a.Id == accountId)
                                                 .FirstOrDefaultAsync();
 
                 if (account == null)
@@ -72,7 +72,7 @@ namespace BusinessLogicLayer.Services
 
                 // Filter
                 Expression<Func<Review, bool>> filter = review =>
-                    review.AccountId == request.accountId &&
+                    review.AccountId == accountId &&
                     (!request.Rate.HasValue || review.Rate == request.Rate);
 
                 // Sort
@@ -195,13 +195,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> CreateOrderReview(ReviewOrderRequest request)
+        public async Task<BaseResponse> CreateOrderReview(int accountId, ReviewOrderRequest request)
         {
             var response = new BaseResponse();
             try
             {
                 var order = await _unitOfWork.OrderRepository.Queryable()
-                                            .Where(o => o.AccountId == request.AccountId && o.Id == request.OrderId && o.Status == Order.OrderStatus.Paid)
+                                            .Where(o => o.AccountId == accountId && o.Id == request.OrderId && o.Status == Order.OrderStatus.Paid)
                                             .Include(o => o.OrderDetails)
                                             .FirstOrDefaultAsync(o => o.OrderDetails.Any(od => od.ProductId == request.ProductId));
 
@@ -213,7 +213,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var existingReview = await _unitOfWork.ReviewRepository.Queryable()
-                                                    .Where(r => r.AccountId == request.AccountId && r.ProductId == request.ProductId && r.OrderId == request.OrderId)
+                                                    .Where(r => r.AccountId == accountId && r.ProductId == request.ProductId && r.OrderId == request.OrderId)
                                                     .FirstOrDefaultAsync();
 
                 if (existingReview != null)
@@ -225,7 +225,7 @@ namespace BusinessLogicLayer.Services
 
                 var review = new Review
                 {
-                    AccountId = request.AccountId,
+                    AccountId = accountId,
                     OrderId = request.OrderId,
                     ProductId = request.ProductId,
                     Rate = request.Rate,
@@ -267,13 +267,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> CreateBookingReview(ReviewBookingRequest request)
+        public async Task<BaseResponse> CreateBookingReview(int accountId, ReviewBookingRequest request)
         {
             var response = new BaseResponse();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                                            .Where(b => b.AccountId == request.AccountId && b.Id == request.BookingId && b.Status == Booking.BookingStatus.Completed)
+                                            .Where(b => b.AccountId == accountId && b.Id == request.BookingId && b.Status == Booking.BookingStatus.Completed)
                                             .FirstOrDefaultAsync();
 
                 if (booking == null)
@@ -284,7 +284,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var existingReview = await _unitOfWork.ReviewRepository.Queryable()
-                                                    .Where(r => r.AccountId == request.AccountId && r.ServiceId == request.ServiceId && r.BookingId == request.BookingId)
+                                                    .Where(r => r.AccountId == accountId && r.ServiceId == request.ServiceId && r.BookingId == request.BookingId)
                                                     .FirstOrDefaultAsync();
 
                 if (existingReview != null)
@@ -296,7 +296,7 @@ namespace BusinessLogicLayer.Services
 
                 var review = new Review
                 {
-                    AccountId = request.AccountId,
+                    AccountId = accountId,
                     BookingId = request.BookingId,
                     ServiceId = request.ServiceId,
                     Rate = request.Rate,

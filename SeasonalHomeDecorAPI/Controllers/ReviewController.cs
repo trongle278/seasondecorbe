@@ -21,6 +21,11 @@ namespace SeasonalHomeDecorAPI.Controllers
             _reviewService = reviewService;
         }
 
+        private int GetUserId()
+        {
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        }
+
         [HttpGet("getList")]
         public async Task<IActionResult> GetAllReview()
         {
@@ -31,7 +36,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getById/{id}")]
@@ -57,14 +62,16 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getReviewByAccount")]
         public async Task<IActionResult> GetReviewByAccountId([FromQuery] ReviewFilterRequest request)
         {
-            var result = await _reviewService.GetReviewByAccount(request);
+            var account = GetUserId();
+
+            var result = await _reviewService.GetReviewByAccount(account, request);
 
             if (result.Success)
             {
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getReviewByService/{id}")]
@@ -77,7 +84,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getReviewByProduct/{id}")]
@@ -90,20 +97,20 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [Authorize]
         [HttpPost("reviewProduct")]
         public async Task<IActionResult> CreateOrderReview([FromForm] ReviewOrderRequest request)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _reviewService.CreateOrderReview(request);
+            var result = await _reviewService.CreateOrderReview(accountId, request);
 
             if (result.Success == false && result.Message == "Invalid order")
             {
@@ -130,13 +137,13 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPost("reviewService")]
         public async Task<IActionResult> CreateBookingReview([FromForm] ReviewBookingRequest request)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _reviewService.CreateBookingReview(request);
+            var result = await _reviewService.CreateBookingReview(accountId, request);
 
             if (result.Success == false && result.Message == "Invalid booking")
             {
@@ -163,7 +170,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpPut("updateProductReview/{id}")]
         public async Task<IActionResult> UpdateProductReview(int id, [FromQuery] int productId, [FromQuery] int orderId, [FromForm] UpdateOrderReviewRequest request)
         {
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var accountId = GetUserId();
             if (accountId == 0)
             {
                 return Unauthorized(new { Message = "Unauthorized" });
