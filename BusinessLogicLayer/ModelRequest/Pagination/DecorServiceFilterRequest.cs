@@ -10,9 +10,9 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
 {
     public class DecorServiceFilterRequest
     {
-        public DecorServiceStatus? Status { get; set; }
         public string? Style { get; set; }
         public string? Sublocation { get; set; }
+        public DateTime? StartDate { get; set; }
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
         public int? DecorCategoryId { get; set; }
@@ -25,6 +25,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
 
     public class ProviderServiceFilterRequest
     {
+        public DecorServiceStatus? Status { get; set; }
         public string? Style { get; set; }
         public string? Sublocation { get; set; }
         public int? MinPrice { get; set; }

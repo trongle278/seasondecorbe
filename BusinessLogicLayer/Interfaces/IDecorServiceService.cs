@@ -17,7 +17,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id, int accountId);
         Task<DecorServiceListResponse> GetAllDecorServicesAsync();
         Task<DecorServiceResponse> GetDecorServiceBySlugAsync(string slug);
-        Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId, DecorServiceFilterRequest request);
+        Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId, ProviderServiceFilterRequest request);
         Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListForCustomerAsync(int? providerId, DecorServiceFilterRequest request);
         Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request);
         Task<BaseResponse> UpdateDecorServiceAsync(int id, UpdateDecorServiceRequest request, int accountId);

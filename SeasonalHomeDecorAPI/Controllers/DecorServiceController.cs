@@ -76,7 +76,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpGet("getDecorServiceListByProvider")]
         [Authorize]
-        public async Task<IActionResult> GetDecorServiceListByProvider([FromQuery] DecorServiceFilterRequest request)
+        public async Task<IActionResult> GetDecorServiceListByProvider([FromQuery] ProviderServiceFilterRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var result = await _decorServiceService.GetDecorServiceListByProvider(accountId, request);

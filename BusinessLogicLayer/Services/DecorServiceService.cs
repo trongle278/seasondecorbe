@@ -230,7 +230,6 @@ namespace BusinessLogicLayer.Services
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.AccountId == account.Id &&
                         !ds.IsDeleted &&
-                        ds.StartDate <= DateTime.Now &&
                         ds.Status == DecorService.DecorServiceStatus.Available)
 
                     .Include(ds => ds.DecorCategory)
@@ -310,7 +309,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
         public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
@@ -340,7 +338,8 @@ namespace BusinessLogicLayer.Services
                     (string.IsNullOrEmpty(request.Sublocation) || decorService.Sublocation.Contains(request.Sublocation)) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
-                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);
+                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value) &&
+                    (!request.StartDate.HasValue || decorService.StartDate >= request.StartDate.Value); ;
 
                 if (request.SeasonIds != null && request.SeasonIds.Any())
                 {
@@ -356,6 +355,7 @@ namespace BusinessLogicLayer.Services
                     "Sublocation" => decorService => decorService.Sublocation,
                     "CreateAt" => decorService => decorService.CreateAt,
                     "Favorite" => decorService => decorService.FavoriteServices.Count,
+                    "StartDate" => decorService => decorService.StartDate,
                     _ => decorService => decorService.Id
                 };
 
@@ -441,7 +441,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId,DecorServiceFilterRequest request)
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId, ProviderServiceFilterRequest request)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
             try
