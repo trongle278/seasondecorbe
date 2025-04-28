@@ -73,9 +73,10 @@ namespace BusinessLogicLayer.Services
                 };
 
                 Func<IQueryable<Order>, IQueryable<Order>> customQuery = query =>
-                query.Include(o => o.OrderDetails)
+                query.Include(o => o.Address)
+                     .Include(o => o.OrderDetails)
                         .ThenInclude(od => od.Product)
-                            .ThenInclude(p => p.Account);
+                        .ThenInclude(p => p.Account);
 
                 // Get paginated data and filter
                 (IEnumerable<Order> orders, int totalCount) = await _unitOfWork.OrderRepository.GetPagedAndFilteredAsync(
@@ -130,9 +131,10 @@ namespace BusinessLogicLayer.Services
                 };
 
                 Func<IQueryable<Order>, IQueryable<Order>> customQuery = query =>
-                query.Include(o => o.OrderDetails)
+                query.Include(o => o.Address)
+                     .Include(o => o.OrderDetails)
                         .ThenInclude(od => od.Product)
-                            .ThenInclude(p => p.Account);
+                        .ThenInclude(p => p.Account);
 
                 // Get paginated data
                 (IEnumerable<Order> orders, int totalCount) = await _unitOfWork.OrderRepository.GetPagedAndFilteredAsync(
