@@ -82,7 +82,6 @@ namespace BusinessLogicLayer.Services
                 AccountId = request.AccountId,
                 Title = request.Title,
                 Content = request.Content,
-                Type = request.Type,
                 NotifiedAt = DateTime.Now,
                 IsRead = false
             };
@@ -112,8 +111,7 @@ namespace BusinessLogicLayer.Services
                     Title = n.Title,
                     Content = n.Content,
                     NotifiedAt = n.NotifiedAt,
-                    IsRead = n.IsRead,
-                    Type = n.Type,
+                    IsRead = n.IsRead
                 })
                 .ToListAsync();
 
@@ -137,8 +135,7 @@ namespace BusinessLogicLayer.Services
                     Title = n.Title,
                     Content = n.Content,
                     NotifiedAt = n.NotifiedAt,
-                    IsRead = n.IsRead,
-                    Type = n.Type,
+                    IsRead = n.IsRead
                 })
                 .ToListAsync();
 
@@ -172,6 +169,40 @@ namespace BusinessLogicLayer.Services
             {
                 Success = true,
                 Message = "Notification marked as read successfully.",
+                Data = true
+            };
+        }
+
+        public async Task<BaseResponse<bool>> MarkAllNotificationsAsReadAsync(int accountId)
+        {
+            // Lấy tất cả thông báo chưa đọc của account
+            var unreadNotifications = await _unitOfWork.NotificationRepository
+                .Queryable()
+                .Where(n => n.AccountId == accountId && !n.IsRead)
+                .ToListAsync();
+
+            if (!unreadNotifications.Any())
+            {
+                return new BaseResponse<bool>
+                {
+                    Success = true,
+                    Message = "No unread notifications to mark.",
+                    Data = true
+                };
+            }
+
+            // Đánh dấu tất cả là đã đọc
+            foreach (var notification in unreadNotifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _unitOfWork.CommitAsync();
+
+            return new BaseResponse<bool>
+            {
+                Success = true,
+                Message = "All notifications marked as read successfully.",
                 Data = true
             };
         }

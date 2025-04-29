@@ -14,6 +14,5 @@ namespace BusinessLogicLayer.ModelResponse
         public string Content { get; set; }
         public DateTime NotifiedAt { get; set; }
         public bool IsRead { get; set; }
-        public NotificationType Type { get; set; }
     }
 }

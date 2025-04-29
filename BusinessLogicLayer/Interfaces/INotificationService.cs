@@ -17,5 +17,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<List<NotificationResponse>>> GetAllNotificationsAsync(int accountId);
         Task<BaseResponse<List<NotificationResponse>>> GetUnreadNotificationsAsync(int accountId);
         Task<BaseResponse<bool>> MarkNotificationAsReadAsync(int notificationId);
+        Task<BaseResponse<bool>> MarkAllNotificationsAsReadAsync(int accountId);
     }
 }

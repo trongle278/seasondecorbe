@@ -27,12 +27,5 @@ namespace DataAccessObject.Models
 
         //[ForeignKey("SenderId")]
         //public virtual Account Sender { get; set; }
-
-        public enum NotificationType
-        {
-            System,
-            Event
-        }
-        public NotificationType Type { get; set; }     
     }
 }

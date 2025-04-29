@@ -501,8 +501,7 @@ namespace BusinessLogicLayer.Services
                 {
                     AccountId = order.AccountId,
                     Title = "Payment Successful",
-                    Content = $"Your payment for order {htmlOrderCode} has been successfully processed.",
-                    Type = NotificationType.System
+                    Content = $"Your payment for order {htmlOrderCode} has been successfully processed."
                 });
 
                 // 2. Cho tất cả Provider liên quan
@@ -518,8 +517,7 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = providerId,
                         Title = "Order Paid",
-                        Content = $"An order {htmlOrderCode} has been paid successfully.",
-                        Type = NotificationType.System
+                        Content = $"An order {htmlOrderCode} has been paid successfully."
                     });
                 }
 
@@ -535,8 +533,7 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = adminId,
                         Title = "Revenue Notice",
-                        Content = $"Order {htmlOrderCode} has been paid successfully by a customer.",
-                        Type = NotificationType.System
+                        Content = $"Order {htmlOrderCode} has been paid successfully by a customer."
                     });
                 }
             }

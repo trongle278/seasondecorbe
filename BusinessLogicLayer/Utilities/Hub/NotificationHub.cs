@@ -81,9 +81,65 @@ namespace BusinessLogicLayer.Utilities.Hub
                               {
                                   notification.Title,
                                   notification.Content,
-                                  notification.NotifiedAt,
-                                  notification.Type
+                                  notification.NotifiedAt
                               });
+        }
+
+        public async Task MarkAsRead(int notificationId)
+        {
+            var httpContext = Context.GetHttpContext();
+            if (httpContext?.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("User is not authenticated.");
+            }
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                throw new HubException("Invalid user ID.");
+            }
+
+            // Gọi service để đánh dấu thông báo đã đọc
+            var response = await _notificationService.MarkNotificationAsReadAsync(notificationId);
+
+            if (!response.Success)
+            {
+                throw new HubException(response.Message ?? "Failed to mark notification as read.");
+            }
+
+            // Gửi thông báo cập nhật trạng thái đọc cho client
+            await Clients.Caller.SendAsync("NotificationMarkedAsRead", notificationId);
+
+            // Nếu cần thông báo cho các client khác của cùng user
+            if (_userConnections.TryGetValue(userId, out var connectionId))
+            {
+                await Clients.Client(connectionId).SendAsync("NotificationMarkedAsRead", notificationId);
+            }
+        }
+
+        public async Task MarkAllAsRead()
+        {
+            var httpContext = Context.GetHttpContext();
+            if (httpContext?.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("User is not authenticated.");
+            }
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                throw new HubException("Invalid user ID.");
+            }
+
+            var response = await _notificationService.MarkAllNotificationsAsReadAsync(userId);
+
+            if (!response.Success)
+            {
+                throw new HubException(response.Message ?? "Failed to mark all notifications as read.");
+            }
+
+            // Gửi thông báo cập nhật cho client
+            await Clients.Caller.SendAsync("AllNotificationsMarkedAsRead");
         }
     }
 }
