@@ -405,7 +405,7 @@ namespace BusinessLogicLayer.Services
                         TransactionDate = DateTime.Now,
                         TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
                         TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
-                        BookingId = orderId,
+                        OrderId = orderId,
                     };
                     await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerTransaction);
                     await _unitOfWork.CommitAsync(); // Save to get ID

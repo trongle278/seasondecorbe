@@ -17,6 +17,8 @@ using Repository.UnitOfWork;
 using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using BusinessLogicLayer.ModelRequest.Pagination;
+using Microsoft.Identity.Client;
+using CloudinaryDotNet;
 
 namespace BusinessLogicLayer.Services
 {
@@ -75,11 +77,10 @@ namespace BusinessLogicLayer.Services
                     (!request.Rate.HasValue || review.Rate == request.Rate);
 
                 // Sort
-                Expression<Func<Review, object>> orderByExpression = request.SortBy switch
+                Expression<Func<Review, object>> orderByExpression = request.SortBy?.ToLower() switch
                 {
-                    "CreateAt" => review => review.CreateAt,
-                    "UpdateAt" => review => review.UpdateAt ?? review.CreateAt,
-                    _ => review => review.Id
+                    "rate" => review => review.Rate,
+                    _ => review => review.UpdateAt ?? review.CreateAt
                 };
 
                 // Include Images
@@ -117,19 +118,56 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> GetReviewByServiceId(int serviceId)
+        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByServiceId(int serviceId, ReviewServiceFilterRequest request)
         {
-            var response = new BaseResponse();
+            var response = new BaseResponse<PageResult<ReviewResponse>>();
             try
             {
-                var review = await _unitOfWork.ReviewRepository.Queryable()
-                                            .Where(r => r.ServiceId == serviceId)
-                                            .Include(r => r.ReviewImages)
-                                            .ToListAsync();
+                var service = await _unitOfWork.DecorServiceRepository.Queryable()
+                                                .FirstOrDefaultAsync(s => s.Id  == serviceId);
+
+                if (service == null)
+                {
+                    response.Message = "Service not found!";
+                    return response;
+                }
+
+                // Filter
+                Expression<Func<Review, bool>> filter = review =>
+                    review.ServiceId == serviceId &&
+                    (!request.Rate.HasValue || review.Rate == request.Rate);
+
+                // Sort
+                Expression<Func<Review, object>> orderByExpression = request.SortBy?.ToLower() switch
+                {
+                    "rate" => review => review.Rate,
+                    _ => review => review.UpdateAt ?? review.CreateAt
+                };
+
+                // Include Images
+                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages };
+
+                // Get paginated data and filter
+                (IEnumerable<Review> reviews, int totalCount) = await _unitOfWork.ReviewRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var reviewResponses = _mapper.Map<List<ReviewResponse>>(reviews);
+
+                var pageResult = new PageResult<ReviewResponse>
+                {
+                    Data = reviewResponses,
+                    TotalCount = totalCount
+                };
 
                 response.Success = true;
                 response.Message = "Review list retrieved successfully";
-                response.Data = _mapper.Map<List<ReviewResponse>>(review);
+                response.Data = pageResult;
             }
             catch (Exception ex)
             {
@@ -141,20 +179,57 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> GetReviewByProductId(int productId)
+        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByProductId(int productId, ReviewProductFilterRequest request)
         {
 
-            var response = new BaseResponse();
+            var response = new BaseResponse<PageResult<ReviewResponse>>();
             try
             {
-                var review = await _unitOfWork.ReviewRepository.Queryable()
-                                            .Where(r => r.ProductId == productId)
-                                            .Include(r => r.ReviewImages)
-                                            .ToListAsync();
+                var product = await _unitOfWork.DecorServiceRepository.Queryable()
+                                                .FirstOrDefaultAsync(p => p.Id == productId);
+
+                if (product == null)
+                {
+                    response.Message = "Product not found!";
+                    return response;
+                }
+
+                // Filter
+                Expression<Func<Review, bool>> filter = review =>
+                    review.ProductId == productId &&
+                    (!request.Rate.HasValue || review.Rate == request.Rate);
+
+                // Sort
+                Expression<Func<Review, object>> orderByExpression = request.SortBy?.ToLower() switch
+                {
+                    "rate" => review => review.Rate,
+                    _ => review => review.UpdateAt ?? review.CreateAt
+                };
+
+                // Include Images
+                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages };
+
+                // Get paginated data and filter
+                (IEnumerable<Review> reviews, int totalCount) = await _unitOfWork.ReviewRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var reviewResponses = _mapper.Map<List<ReviewResponse>>(reviews);
+
+                var pageResult = new PageResult<ReviewResponse>
+                {
+                    Data = reviewResponses,
+                    TotalCount = totalCount
+                };
 
                 response.Success = true;
                 response.Message = "Review list retrieved successfully";
-                response.Data = _mapper.Map<List<ReviewResponse>>(review);
+                response.Data = pageResult;
             }
             catch (Exception ex)
             {
@@ -383,10 +458,12 @@ namespace BusinessLogicLayer.Services
                 {
                     if (review.ReviewImages.Any())
                     {
+                        _unitOfWork.ReviewImageRepository.RemoveRange(review.ReviewImages);
+
+                        review.ReviewImages.Clear();
+
                         foreach (var imageFile in request.Images)
                         {
-                            review.ReviewImages.Clear();
-
                             using var stream = imageFile.OpenReadStream();
                             var imageUrl = await _cloudinaryService.UploadFileAsync(
                                 stream,
@@ -453,10 +530,12 @@ namespace BusinessLogicLayer.Services
                 {
                     if (review.ReviewImages.Any())
                     {
+                        _unitOfWork.ReviewImageRepository.RemoveRange(review.ReviewImages);
+
+                        review.ReviewImages.Clear();
+
                         foreach (var imageFile in request.Images)
                         {
-                            review.ReviewImages.Clear();
-
                             using var stream = imageFile.OpenReadStream();
                             var imageUrl = await _cloudinaryService.UploadFileAsync(
                                 stream,

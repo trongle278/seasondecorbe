@@ -51,6 +51,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
 
+        [Authorize]
         [HttpGet("getReviewByAccount")]
         public async Task<IActionResult> GetReviewByAccountId([FromQuery] ReviewFilterRequest request)
         {
@@ -67,9 +68,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getReviewByService/{id}")]
-        public async Task<IActionResult> GetReviewByServiceId(int id)
+        public async Task<IActionResult> GetReviewByServiceId(int id, [FromQuery] ReviewServiceFilterRequest request)
         {
-            var result = await _reviewService.GetReviewByServiceId(id);
+            var result = await _reviewService.GetReviewByServiceId(id, request);
 
             if (result.Success)
             {
@@ -80,9 +81,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getReviewByProduct/{id}")]
-        public async Task<IActionResult> GetReviceByProductId(int id)
+        public async Task<IActionResult> GetReviceByProductId(int id, ReviewProductFilterRequest request)
         {
-            var result = await _reviewService.GetReviewByProductId(id);
+            var result = await _reviewService.GetReviewByProductId(id, request);
 
             if (result.Success)
             {
