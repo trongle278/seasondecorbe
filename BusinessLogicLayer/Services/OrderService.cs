@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Order;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
@@ -15,6 +16,7 @@ using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
+using static DataAccessObject.Models.Notification;
 
 namespace BusinessLogicLayer.Services
 {
@@ -23,12 +25,13 @@ namespace BusinessLogicLayer.Services
         private readonly IPaymentService _paymentService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        public OrderService(IPaymentService paymentService, IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly INotificationService _notificationService;
+        public OrderService(IPaymentService paymentService, IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService)
         {
             _paymentService = paymentService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<BaseResponse> GetOrderList(int accountId)
@@ -446,9 +449,9 @@ namespace BusinessLogicLayer.Services
                 foreach (var orderProduct in orderProducts)
                 {
                     var providerId = await _unitOfWork.ProductRepository.Queryable()
-                                            .Where(p => p.Id == orderProduct.ProductId)
-                                            .Select(p => p.AccountId)
-                                            .FirstOrDefaultAsync();
+                                                .Where(p => p.Id == orderProduct.ProductId)
+                                                .Select(p => p.AccountId)
+                                                .FirstOrDefaultAsync();
 
                     if (providerId == 0)
                     {
@@ -484,6 +487,56 @@ namespace BusinessLogicLayer.Services
                 response.Success = true;
                 response.Message = "Process payment successfully";
                 response.Data = order;
+
+                // ========================
+                // ✅ Gửi Thông báo sau thanh toán (có HTML)
+                // ========================
+
+                string htmlOrderCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{order.OrderCode}</span>";
+
+                // 1. Cho Customer
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = order.AccountId,
+                    Title = "Payment Successful",
+                    Content = $"Your payment for order {htmlOrderCode} has been successfully processed.",
+                    Type = NotificationType.System
+                });
+
+                // 2. Cho tất cả Provider liên quan
+                var providerIds = await _unitOfWork.ProductRepository.Queryable()
+                                        .Where(p => orderProducts.Select(op => op.ProductId).Contains(p.Id))
+                                        .Select(p => p.AccountId)
+                                        .Distinct()
+                                        .ToListAsync();
+
+                foreach (var providerId in providerIds)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId,
+                        Title = "Order Paid",
+                        Content = $"An order {htmlOrderCode} has been paid successfully.",
+                        Type = NotificationType.System
+                    });
+                }
+
+                // 3. Cho tất cả Admin
+                var adminIds = await _unitOfWork.AccountRepository.Queryable()
+                                    .Where(a => a.RoleId == 1)
+                                    .Select(a => a.Id)
+                                    .ToListAsync();
+
+                foreach (var adminId in adminIds)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = adminId,
+                        Title = "Revenue Notice",
+                        Content = $"Order {htmlOrderCode} has been paid successfully by a customer.",
+                        Type = NotificationType.System
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -494,7 +547,6 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
-
         #region
         private string GenerateOrderCode()
         {
