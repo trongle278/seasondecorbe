@@ -19,10 +19,7 @@ namespace BusinessLogicLayer.ModelResponse.Order
         public enum OrderStatus
         {
             Pending,
-            OrderPayment,
-            Processing,
-            Shipping,
-            Completed,
+            Paid,
             Cancelled
         }
         public OrderStatus Status { get; set; }

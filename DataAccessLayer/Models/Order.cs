@@ -23,8 +23,6 @@ namespace DataAccessObject.Models
         {
             Pending,
             Paid,
-            //Shipping,
-            //Completed,
             Cancelled
         }
         public OrderStatus Status { get; set; }
