@@ -83,7 +83,7 @@ namespace BusinessLogicLayer.Services
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
-                NotifiedAt = DateTime.UtcNow,
+                NotifiedAt = DateTime.Now,
                 IsRead = false
             };
 
