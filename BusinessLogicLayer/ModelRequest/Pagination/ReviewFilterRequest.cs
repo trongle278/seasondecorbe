@@ -13,6 +13,22 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public string SortBy { get; set; } = "";
-        public bool Descending { get; set; } = false;
+        public bool Descending { get; set; } = true;
+    }
+    public class ReviewServiceFilterRequest
+    {
+        public int? Rate { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string SortBy { get; set; } = "";
+        public bool Descending { get; set; } = true;
+    }
+    public class ReviewProductFilterRequest
+    {
+        public int? Rate { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string SortBy { get; set; } = "";
+        public bool Descending { get; set; } = true;
     }
 }
