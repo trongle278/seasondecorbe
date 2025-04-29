@@ -9,7 +9,7 @@
         },
         "dotnetRunMessages": true,
         "applicationUrl": "http://localhost:5297"
-        //"applicationUrl": "https://season-decor.somee.com"
+        //"applicationUrl": "https://seasondecor.azurewebsites.net"
     },
     "IIS Express": {
       "commandName": "IISExpress",
