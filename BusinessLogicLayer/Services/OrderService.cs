@@ -177,6 +177,8 @@ namespace BusinessLogicLayer.Services
                 var order = await _unitOfWork.OrderRepository
                                             .Query(o => o.Id == id)
                                             .Include(o => o.OrderDetails)
+                                                .ThenInclude(od => od.Product)
+                                                .ThenInclude(p => p.Account)
                                             .Include(o => o.Address)
                                             .FirstOrDefaultAsync();
 
