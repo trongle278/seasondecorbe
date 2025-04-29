@@ -76,7 +76,7 @@ builder.Services.AddQuartz(q =>
         .ForJob(decorServiceStatusUpdateJobKey)
         .WithIdentity("DecorServiceStatusUpdateJobTrigger")
         .WithSimpleSchedule(x => x
-            .WithIntervalInSeconds(60) 
+            .WithIntervalInSeconds(30) 
             .RepeatForever()));
 }); 
 
@@ -136,12 +136,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             },
             OnMessageReceived = context =>
             {
-                var accessToken = context.Request.Query["access_token"]; // 🔥 Lấy token từ query
+                var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+
+                // Thêm check cho cả /chatHub và /notificationHub
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/chatHub") || path.StartsWithSegments("/notificationHub")))
                 {
-                    context.Token = accessToken; // ✅ Gán token cho context
+                    context.Token = accessToken;
                 }
+
                 return Task.CompletedTask;
             }
         };
