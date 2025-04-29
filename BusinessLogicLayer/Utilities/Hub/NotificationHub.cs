@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -13,7 +14,7 @@ namespace BusinessLogicLayer.Utilities.Hub
 {
     public class NotificationHub : Microsoft.AspNetCore.SignalR.Hub
     {
-        private static readonly Dictionary<int, string> _userConnections = new();
+        private static readonly ConcurrentDictionary<int, string> _userConnections = new();
         private readonly INotificationService _notificationService;
         private readonly IHubContext<NotificationHub> _hubContext;
 
