@@ -81,7 +81,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getReviewByProduct/{id}")]
-        public async Task<IActionResult> GetReviceByProductId(int id, ReviewProductFilterRequest request)
+        public async Task<IActionResult> GetReviceByProductId(int id, [FromQuery] ReviewProductFilterRequest request)
         {
             var result = await _reviewService.GetReviewByProductId(id, request);
 

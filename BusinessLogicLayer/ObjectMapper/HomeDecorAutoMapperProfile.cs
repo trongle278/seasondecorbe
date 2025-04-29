@@ -73,7 +73,7 @@ namespace BusinessLogicLayer.ObjectMapper
 
         private void ProviderProfile()
         {
-            CreateMap<Account, ProviderResponse>()              
+            CreateMap<Account, ProviderResponse>()
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.BusinessName))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress))
                 .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus)); ;
@@ -83,7 +83,7 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<BecomeProviderRequest, Account>()
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
-                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1));             
+                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1));
         }
 
         private void TicketTypeProfile()
@@ -150,7 +150,7 @@ namespace BusinessLogicLayer.ObjectMapper
 
             CreateMap<UpdateProductRequest, Product>();
             CreateMap<Product, UpdateProductResponse>();
-            
+
             CreateMap<ProductListRequest, Product>()
                 .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src =>
                     src.ImageUrls != null ? src.ImageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList()
@@ -220,11 +220,11 @@ namespace BusinessLogicLayer.ObjectMapper
                            opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
         }
 
-        private void AddressProfile() 
+        private void AddressProfile()
         {
             CreateMap<Address, AddressResponse>()
                 .ForMember(dest => dest.AddressType, opt => opt.MapFrom(src => src.Type.ToString()));
-            
+
             CreateMap<Address, OrderAddressResponse>()
                 .ForMember(dest => dest.AddressType, opt => opt.MapFrom(src => src.Type.ToString()));
         }
@@ -274,7 +274,11 @@ namespace BusinessLogicLayer.ObjectMapper
                     src.ReviewImages != null ? src.ReviewImages.Select(pi => pi.ImageUrl).ToList()
                                               : new List<string>()))
                 .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src =>
-                    src.IsUpdated ? src.UpdateAt : src.CreateAt));
+                    src.IsUpdated ? src.UpdateAt : src.CreateAt))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
+                    src.Account.LastName + " " + src.Account.FirstName))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src =>
+                    src.Account.Avatar));
         }
     }
 }

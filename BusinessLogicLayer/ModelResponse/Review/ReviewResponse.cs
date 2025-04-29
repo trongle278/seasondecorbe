@@ -10,6 +10,8 @@ namespace BusinessLogicLayer.ModelResponse.Review
     public class ReviewResponse
     {
         public int id { get; set; }
+        public string Name { get; set; }
+        public string? Avatar { get; set; }
         public int Rate { get; set; }
         public string Comment { get; set; }
         public DateTime CreateAt { get; set; }
