@@ -9,6 +9,6 @@ namespace BusinessLogicLayer.ModelResponse
     public class FavoriteServiceResponse
     {
         public int FavoriteId { get; set; }
-        public DecorServiceDTO DecorServiceDetails { get; set; }
+        public DecorServiceById DecorServiceDetails { get; set; }
     }
 }

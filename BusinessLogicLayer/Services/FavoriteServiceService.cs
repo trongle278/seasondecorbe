@@ -7,6 +7,7 @@ using DataAccessObject.Models;
 using Repository.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
 
 namespace BusinessLogicLayer.Services
 {
@@ -26,54 +27,91 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<List<FavoriteServiceResponse>>();
             try
             {
-                // Cải thiện query để đảm bảo lấy đầy đủ thông tin Images và Seasons
                 var favorites = await _unitOfWork.FavoriteServiceRepository
                     .Query(f => f.AccountId == accountId)
                     .Include(f => f.DecorService)
-                        .ThenInclude(ds => ds.DecorImages) // Include images
-                    .Include(f => f.DecorService.DecorServiceSeasons) // Include mối quan hệ với Seasons
-                        .ThenInclude(dss => dss.Season)
+                        .ThenInclude(ds => ds.DecorImages)
+                    .Include(f => f.DecorService)
+                        .ThenInclude(ds => ds.DecorCategory)
+                    .Include(f => f.DecorService)
+                        .ThenInclude(ds => ds.DecorServiceSeasons)
+                            .ThenInclude(dss => dss.Season)
+                    .Include(f => f.DecorService)
+                        .ThenInclude(ds => ds.Account)
+                            .ThenInclude(a => a.Followers)
+                    .Include(f => f.DecorService)
+                        .ThenInclude(ds => ds.Account)
+                            .ThenInclude(a => a.Followings)
+                    .Include(f => f.DecorService)
+                        .ThenInclude(ds => ds.Reviews)
+                            .ThenInclude(r => r.ReviewImages)
+                    .Include(f => f.DecorService)
+                        .ThenInclude(ds => ds.Reviews)
+                            .ThenInclude(r => r.Account)
                     .ToListAsync();
 
-                // Tạo danh sách FavoriteServiceResponse với đầy đủ thông tin
                 var result = new List<FavoriteServiceResponse>();
 
                 foreach (var favorite in favorites)
                 {
-                    // Map DecorService sang DecorServiceDTO
-                    var decorServiceDTO = _mapper.Map<DecorServiceDTO>(favorite.DecorService);
+                    var ds = favorite.DecorService;
+                    var dto = _mapper.Map<DecorServiceById>(ds);
 
-                    // Tính số favorite cho DecorService này
-                    decorServiceDTO.FavoriteCount = await _unitOfWork.FavoriteServiceRepository
-                           .Query(f => f.DecorServiceId == favorite.DecorService.Id)
-                           .CountAsync();
+                    dto.CategoryName = ds.DecorCategory?.CategoryName;
 
-                    // Map thủ công các collection nếu AutoMapper không hoạt động đúng
-                    if (favorite.DecorService.DecorImages != null)
-                    {
-                        decorServiceDTO.Images = favorite.DecorService.DecorImages.Select(img => new DecorImageResponse
+                    dto.FavoriteCount = await _unitOfWork.FavoriteServiceRepository
+                        .Query(f => f.DecorServiceId == ds.Id)
+                        .CountAsync();
+
+                    dto.Images = ds.DecorImages?
+                        .Select(img => new DecorImageResponse
                         {
                             Id = img.Id,
                             ImageURL = img.ImageURL
-                        }).ToList();
-                    }
+                        })
+                        .ToList();
 
-                    if (favorite.DecorService.DecorServiceSeasons != null)
+                    dto.Seasons = ds.DecorServiceSeasons?
+                        .Select(dss => new SeasonResponse
+                        {
+                            Id = dss.Season.Id,
+                            SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
+
+                    dto.Provider = new ProviderResponse
                     {
-                        decorServiceDTO.Seasons = favorite.DecorService.DecorServiceSeasons
-                            .Where(dss => dss.Season != null)
-                            .Select(dss => new SeasonResponse
-                            {
-                                Id = dss.Season.Id,
-                                SeasonName = dss.Season.SeasonName
-                            }).ToList();
-                    }
+                        Id = ds.Account.Id,
+                        BusinessName = ds.Account.BusinessName,
+                        Avatar = ds.Account.Avatar,
+                        Slug = ds.Account.Slug,
+                        JoinedDate = ds.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = ds.Account.Followers?.Count ?? 0,
+                        FollowingsCount = ds.Account.Followings?.Count ?? 0
+                    };
 
-                    // Tạo và thêm FavoriteServiceResponse vào kết quả
+                    dto.Reviews = ds.Reviews?
+                        .OrderByDescending(r => r.CreateAt)
+                        .Select(r => new DecorServiceReviewResponse
+                        {
+                            Id = r.Id,
+                            Rate = r.Rate,
+                            Comment = r.Comment,
+                            CreateAt = r.CreateAt.ToString("dd/MM/yyyy"),
+                            FullName = r.Account != null ? $"{r.Account.LastName} {r.Account.FirstName}" : "",
+                            Avatar = r.Account?.Avatar,
+                            ReviewImages = r.ReviewImages?.Select(img => new DecorServiceReviewImageResponse
+                            {
+                                Id = img.Id,
+                                ImageUrl = img.ImageUrl
+                            }).ToList() ?? new List<DecorServiceReviewImageResponse>()
+                        })
+                        .ToList();
+
                     result.Add(new FavoriteServiceResponse
                     {
                         FavoriteId = favorite.Id,
-                        DecorServiceDetails = decorServiceDTO
+                        DecorServiceDetails = dto
                     });
                 }
 
@@ -89,6 +127,7 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
 
         public async Task<BaseResponse> AddToFavoritesAsync(int accountId, int decorServiceId)
         {
