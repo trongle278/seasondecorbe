@@ -118,9 +118,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByServiceId(int serviceId, ReviewServiceFilterRequest request)
+        public async Task<BaseResponse<ReviewPageResult>> GetReviewByServiceId(int serviceId, ReviewServiceFilterRequest request)
         {
-            var response = new BaseResponse<PageResult<ReviewResponse>>();
+            var response = new BaseResponse<ReviewPageResult>();
             try
             {
                 var service = await _unitOfWork.DecorServiceRepository.Queryable()
@@ -145,7 +145,7 @@ namespace BusinessLogicLayer.Services
                 };
 
                 // Include Images
-                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages };
+                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages, r => r.Account };
 
                 // Get paginated data and filter
                 (IEnumerable<Review> reviews, int totalCount) = await _unitOfWork.ReviewRepository.GetPagedAndFilteredAsync(
@@ -159,10 +159,18 @@ namespace BusinessLogicLayer.Services
 
                 var reviewResponses = _mapper.Map<List<ReviewResponse>>(reviews);
 
-                var pageResult = new PageResult<ReviewResponse>
+                var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
+
+                var rateCount = reviews
+                    .GroupBy(r => r.Rate)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                var pageResult = new ReviewPageResult
                 {
                     Data = reviewResponses,
-                    TotalCount = totalCount
+                    TotalCount = totalCount,
+                    AverageRate = averageRate,
+                    RateCount = rateCount
                 };
 
                 response.Success = true;
@@ -179,10 +187,10 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<ReviewResponse>>> GetReviewByProductId(int productId, ReviewProductFilterRequest request)
+        public async Task<BaseResponse<ReviewPageResult>> GetReviewByProductId(int productId, ReviewProductFilterRequest request)
         {
 
-            var response = new BaseResponse<PageResult<ReviewResponse>>();
+            var response = new BaseResponse<ReviewPageResult>();
             try
             {
                 var product = await _unitOfWork.DecorServiceRepository.Queryable()
@@ -207,7 +215,7 @@ namespace BusinessLogicLayer.Services
                 };
 
                 // Include Images
-                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages };
+                Expression<Func<Review, object>>[] includeProperties = { r => r.ReviewImages, r => r.Account };
 
                 // Get paginated data and filter
                 (IEnumerable<Review> reviews, int totalCount) = await _unitOfWork.ReviewRepository.GetPagedAndFilteredAsync(
@@ -221,10 +229,18 @@ namespace BusinessLogicLayer.Services
 
                 var reviewResponses = _mapper.Map<List<ReviewResponse>>(reviews);
 
-                var pageResult = new PageResult<ReviewResponse>
+                var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
+
+                var rateCount = reviews
+                    .GroupBy(r => r.Rate)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                var pageResult = new ReviewPageResult
                 {
                     Data = reviewResponses,
-                    TotalCount = totalCount
+                    TotalCount = totalCount,
+                    AverageRate = averageRate,
+                    RateCount = rateCount
                 };
 
                 response.Success = true;
