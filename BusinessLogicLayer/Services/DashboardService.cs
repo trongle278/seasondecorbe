@@ -654,13 +654,13 @@ namespace BusinessLogicLayer.Services
                 // 🔥 Filter theo TransactionType Enum
                 Expression<Func<PaymentTransaction, bool>> filter = pt =>
                     pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
-                    (request.TransactionType == null || pt.TransactionType == request.TransactionType) &&
+                    (request.TransactionType == null || pt.TransactionType == (PaymentTransaction.EnumTransactionType)(int)request.TransactionType) &&
                         (
                             (pt.Booking != null && pt.Booking.DecorService.AccountId == providerId) ||
                             (pt.Order != null && pt.Order.OrderDetails.Any(od => od.Product.AccountId == providerId))
                         ) &&
                         (
-                            request.TransactionType == null || pt.TransactionType == request.TransactionType
+                            (request.TransactionType == null || pt.TransactionType == (PaymentTransaction.EnumTransactionType)(int)request.TransactionType)
                         );
 
                 // 🔹 Order By

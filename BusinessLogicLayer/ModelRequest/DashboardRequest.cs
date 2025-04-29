@@ -9,7 +9,7 @@ namespace BusinessLogicLayer.ModelRequest
 {
     public class ProviderPaymentFilterRequest
     {
-        public EnumTransactionType? TransactionType { get; set; }
+        public AllowedTransactionType? TransactionType { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public string? SortBy { get; set; } = "TransactionDate";
