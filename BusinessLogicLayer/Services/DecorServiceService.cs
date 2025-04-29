@@ -15,6 +15,8 @@ using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
+using BusinessLogicLayer.ModelResponse.Review;
+using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
 
 namespace BusinessLogicLayer.Services
 {
@@ -36,14 +38,14 @@ namespace BusinessLogicLayer.Services
             _elasticClientService = elasticClientService;
         }
 
-        public async Task<DecorServiceResponse> GetDecorServiceByIdAsync(int id, int accountId)
+        public async Task<DecorServiceByIdResponse> GetDecorServiceByIdAsync(int id, int accountId)
         {
-            var response = new DecorServiceResponse();
+            var response = new DecorServiceByIdResponse();
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id &&
-                           ds.Status == DecorService.DecorServiceStatus.Available)
+                                 ds.Status == DecorService.DecorServiceStatus.Available)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -52,67 +54,84 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(a => a.Followers)
                     .Include(ds => ds.Account)
                         .ThenInclude(a => a.Followings)
+                    .Include(ds => ds.Reviews)
+                        .ThenInclude(r => r.ReviewImages)
+                    .Include(ds => ds.Reviews)
+                        .ThenInclude(r => r.Account)
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
                 {
                     response.Success = false;
                     response.Message = "Decor service not found.";
+                    return response;
                 }
-                else
+
+                var dto = _mapper.Map<DecorServiceById>(decorService);
+
+                dto.CategoryName = decorService.DecorCategory?.CategoryName;
+
+                var favoriteCount = await _unitOfWork.FavoriteServiceRepository
+                    .Query(f => f.DecorServiceId == id)
+                    .CountAsync();
+
+                dto.FavoriteCount = favoriteCount;
+
+                dto.Images = decorService.DecorImages?
+                    .Select(img => new DecorImageResponse
+                    {
+                        Id = img.Id,
+                        ImageURL = img.ImageURL
+                    })
+                    .ToList();
+
+                dto.Seasons = decorService.DecorServiceSeasons?
+                    .Select(dss => new SeasonResponse
+                    {
+                        Id = dss.Season.Id,
+                        SeasonName = dss.Season.SeasonName
+                    })
+                    .ToList();
+
+                dto.Provider = new ProviderResponse
                 {
-                    // Map các trường cơ bản của DecorService sang DecorServiceDTO
-                    var dto = _mapper.Map<DecorServiceDTO>(decorService);
+                    Id = decorService.Account.Id,
+                    BusinessName = decorService.Account.BusinessName,
+                    Avatar = decorService.Account.Avatar,
+                    Slug = decorService.Account.Slug,
+                    JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                    FollowersCount = decorService.Account.Followers?.Count ?? 0,
+                    FollowingsCount = decorService.Account.Followings?.Count ?? 0
+                };
 
-                    // Hiện Category Name
-                    dto.CategoryName = decorService.DecorCategory.CategoryName;
+                dto.IsBooked = await _unitOfWork.BookingRepository.Query(b =>
+                    b.DecorServiceId == id &&
+                    b.AccountId == accountId &&
+                    b.IsBooked == true
+                ).AnyAsync();
 
-                    // Hiện số lượng yêu thích
-                    var favoriteCount = await _unitOfWork.FavoriteServiceRepository
-                        .Query(f => f.DecorServiceId == id)
-                        .CountAsync();
-
-                    dto.FavoriteCount = favoriteCount;
-
-                    // Thay vì ImageUrls = [...], ta map sang List<DecorImageDTO>
-                    dto.Images = decorService.DecorImages
-                        .Select(img => new DecorImageResponse
+                // Map Reviews
+                dto.Reviews = decorService.Reviews?
+                    .OrderByDescending(r => r.CreateAt)
+                    .Select(r => new DecorServiceReviewResponse
+                    {
+                        Id = r.Id,
+                        Rate = r.Rate,
+                        Comment = r.Comment,
+                        CreateAt = r.CreateAt.ToString("dd/MM/yyyy"),
+                        FullName = r.Account != null ? $"{r.Account.LastName} {r.Account.FirstName}" : "",
+                        Avatar = r.Account?.Avatar,
+                        ReviewImages = r.ReviewImages?.Select(img => new DecorServiceReviewImageResponse
                         {
                             Id = img.Id,
-                            ImageURL = img.ImageURL
-                        })
-                        .ToList();
+                            ImageUrl = img.ImageUrl
+                        }).ToList() ?? new List<DecorServiceReviewImageResponse>()
+                    })
+                    .ToList();
 
-                    dto.Seasons = decorService.DecorServiceSeasons
-                        .Select(dss => new SeasonResponse
-                        {
-                            Id = dss.Season.Id,
-                            SeasonName = dss.Season.SeasonName
-                        })
-                        .ToList();
-
-                    dto.Provider = new ProviderResponse
-                    {
-                        Id = decorService.Account.Id,
-                        BusinessName = decorService.Account.BusinessName,
-                        Avatar = decorService.Account.Avatar,
-                        Slug = decorService.Account.Slug,
-                        JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
-                        FollowersCount = decorService.Account.Followers?.Count ?? 0,
-                        FollowingsCount = decorService.Account.Followings?.Count ?? 0
-                    };
-
-                    // Check booking status: accountId đã booking dịch vụ này chưa
-                    dto.IsBooked = await _unitOfWork.BookingRepository.Query(b =>
-                        b.DecorServiceId == id &&
-                        b.AccountId == accountId &&
-                        b.IsBooked == true
-                        ).AnyAsync();
-
-                    response.Success = true;
-                    response.Data = dto;
-                    response.Message = "Decor service retrieved successfully.";
-                }
+                response.Success = true;
+                response.Data = dto;
+                response.Message = "Decor service retrieved successfully.";
             }
             catch (Exception ex)
             {
@@ -210,9 +229,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<DecorServiceResponse> GetDecorServiceBySlugAsync(string slug)
+        public async Task<DecorServiceBySlugResponse> GetDecorServiceBySlugAsync(string slug)
         {
-            var response = new DecorServiceResponse();
+            var response = new DecorServiceBySlugResponse();
             try
             {
                 // First, find the account by slug
@@ -227,11 +246,10 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var decorService = await _unitOfWork.DecorServiceRepository
+                // Get all decor services of the account
+                var decorServices = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.AccountId == account.Id &&
-                        !ds.IsDeleted &&
-                        ds.Status == DecorService.DecorServiceStatus.Available)
-
+                        !ds.IsDeleted && ds.Status == DecorService.DecorServiceStatus.Available)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -240,70 +258,73 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(a => a.Followers)
                     .Include(ds => ds.Account)
                         .ThenInclude(a => a.Followings)
+                    .ToListAsync();
 
-                    .FirstOrDefaultAsync();
-
-                if (decorService == null)
+                if (decorServices == null || decorServices.Count == 0)
                 {
                     response.Success = false;
-                    response.Message = "Decor service not found for this provider.";
+                    response.Message = "No decor services found for this provider.";
                     return response;
                 }
 
-                // Map to DTO
-                var dto = _mapper.Map<DecorServiceDTO>(decorService);
+                var decorServiceDtos = new List<DecorServiceDTO>();
 
-                //Get CategiryName
-                dto.CategoryName = decorService.DecorCategory.CategoryName;
-
-                // Get favorite count
-                var favoriteCount = await _unitOfWork.FavoriteServiceRepository
-                    .Query(f => f.DecorServiceId == decorService.Id)
-                    .CountAsync();
-
-                dto.FavoriteCount = favoriteCount;
-
-                // Map images
-                dto.Images = decorService.DecorImages
-                    .Select(img => new DecorImageResponse
-                    {
-                        Id = img.Id,
-                        ImageURL = img.ImageURL
-                    })
-                    .ToList();
-
-                // Map seasons
-                dto.Seasons = decorService.DecorServiceSeasons
-                    .Select(dss => new SeasonResponse
-                    {
-                        Id = dss.Season.Id,
-                        SeasonName = dss.Season.SeasonName
-                    })
-                    .ToList();
-
-                // Map Provider
-                // Map provider information
-                dto.Provider = new ProviderResponse
+                foreach (var decorService in decorServices)
                 {
-                    Id = decorService.Account.Id,
-                    BusinessName = decorService.Account.BusinessName,
-                    Bio = decorService.Account.Bio,
-                    Avatar = decorService.Account.Avatar,
-                    Phone = decorService.Account.Phone,
-                    Address = decorService.Account.BusinessAddress,
-                    JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
-                    FollowersCount = decorService.Account.Followers?.Count ?? 0,
-                    FollowingsCount = decorService.Account.Followings?.Count ?? 0
-                };
+                    var dto = _mapper.Map<DecorServiceDTO>(decorService);
+
+                    // Get Category Name
+                    dto.CategoryName = decorService.DecorCategory?.CategoryName;
+
+                    // Get favorite count
+                    var favoriteCount = await _unitOfWork.FavoriteServiceRepository
+                        .Query(f => f.DecorServiceId == decorService.Id)
+                        .CountAsync();
+                    dto.FavoriteCount = favoriteCount;
+
+                    // Map images
+                    dto.Images = decorService.DecorImages
+                        .Select(img => new DecorImageResponse
+                        {
+                            Id = img.Id,
+                            ImageURL = img.ImageURL
+                        })
+                        .ToList();
+
+                    // Map seasons
+                    dto.Seasons = decorService.DecorServiceSeasons
+                        .Select(dss => new SeasonResponse
+                        {
+                            Id = dss.Season.Id,
+                            SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
+
+                    // Map provider information
+                    dto.Provider = new ProviderResponse
+                    {
+                        Id = decorService.Account.Id,
+                        BusinessName = decorService.Account.BusinessName,
+                        Bio = decorService.Account.Bio,
+                        Avatar = decorService.Account.Avatar,
+                        Phone = decorService.Account.Phone,
+                        Address = decorService.Account.BusinessAddress,
+                        JoinedDate = decorService.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = decorService.Account.Followers?.Count ?? 0,
+                        FollowingsCount = decorService.Account.Followings?.Count ?? 0
+                    };
+
+                    decorServiceDtos.Add(dto);
+                }
 
                 response.Success = true;
-                response.Data = dto;
-                response.Message = "Decor service retrieved successfully.";
+                response.Data = decorServiceDtos; // Trả về danh sách decor service DTOs
+                response.Message = "Decor services retrieved successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error retrieving decor service.";
+                response.Message = "Error retrieving decor services.";
                 response.Errors.Add(ex.Message);
             }
             return response;

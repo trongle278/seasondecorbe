@@ -14,6 +14,10 @@ namespace BusinessLogicLayer.ModelResponse
         public DecorServiceDTO Data { get; set; }
     }
 
+    public class DecorServiceBySlugResponse : BaseResponse<List<DecorServiceDTO>>
+    {
+    }
+
     public class DecorServiceListResponse : BaseResponse
     {
         public List<DecorServiceDTO> Data { get; set; }
@@ -58,4 +62,51 @@ namespace BusinessLogicLayer.ModelResponse
         public string? CategoryName { get; set; }  // Tìm theo tên danh mục
         public List<string>? SeasonNames { get; set; }  // Tìm theo tên mùa
     }
+
+    /// <summary>
+    /// ///////////////////////////////////////////////////////////////////////////////////////////////////
+    /// </summary>
+
+    public class DecorServiceByIdResponse : BaseResponse
+    {
+        public DecorServiceById Data { get; set; }
+    }
+    public class DecorServiceById
+    {
+        public int Id { get; set; }
+        public string Style { get; set; }
+        public double? BasePrice { get; set; }
+        public string Description { get; set; }
+        public string Sublocation { get; set; }
+        public DateTime CreateAt { get; set; }
+        public int AccountId { get; set; }
+        public int DecorCategoryId { get; set; }
+        public string CategoryName { get; set; }
+        public DateTime StartDate { get; set; }
+        public int Status { get; set; }
+        public bool IsBooked { get; set; }
+        public int FavoriteCount { get; set; }
+        public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
+        public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
+        public ProviderResponse Provider { get; set; }
+        public List<DecorServiceReviewResponse> Reviews { get; set; } = new();
+    }
+
+    public class DecorServiceReviewResponse
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; }
+        public string Avatar { get; set; }
+        public int Rate { get; set; }
+        public string Comment { get; set; }
+        public string CreateAt { get; set; }
+        public List<DecorServiceReviewImageResponse> ReviewImages { get; set; }
+
+        public class DecorServiceReviewImageResponse
+        {
+            public int Id { get; set; }
+            public string ImageUrl { get; set; }
+        }
+    }
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

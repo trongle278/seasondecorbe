@@ -16,6 +16,7 @@ using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Payment;
 using BusinessLogicLayer.ModelRequest.Review;
 using BusinessLogicLayer.ModelResponse.Review;
+using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
 
 namespace BusinessLogicLayer.ObjectMapper
 {
@@ -228,12 +229,24 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.AddressType, opt => opt.MapFrom(src => src.Type.ToString()));
         }
 
-        private void DecorServiceProfile() 
+        private void DecorServiceProfile()
         {
             CreateMap<DecorService, DecorServiceDTO>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
-                //.ForMember(dest => dest.IsBooked, opt => opt.MapFrom(src => src.Account.IsBooked));
+            //.ForMember(dest => dest.IsBooked, opt => opt.MapFrom(src => src.Account.IsBooked));
             CreateMap<DecorImage, DecorImageResponse>();
+
+
+            CreateMap<DecorService, DecorServiceById>();
+
+            CreateMap<ReviewImage, DecorServiceReviewResponse.DecorServiceReviewImageResponse>()
+    .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
+
+            CreateMap<Review, DecorServiceReviewResponse>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Account.LastName + " " + src.Account.FirstName))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Account.Avatar))
+                .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.CreateAt.ToString("dd/MM/yyyy")));
+
         }
 
         private void WalletProfile()
