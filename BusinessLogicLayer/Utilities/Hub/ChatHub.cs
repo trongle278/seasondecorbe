@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Repository.UnitOfWork;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -18,7 +19,7 @@ namespace BusinessLogicLayer.Utilities.Hub
 {
     public class ChatHub : Microsoft.AspNetCore.SignalR.Hub
     {
-        private static readonly Dictionary<int, string> _userConnections = new();
+        private static readonly ConcurrentDictionary<int, string> _userConnections = new();
         private readonly IChatService _chatService;
         private readonly IContactService _contactService;
 

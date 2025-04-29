@@ -82,7 +82,6 @@ namespace BusinessLogicLayer.ModelResponse
         public int TransactionId { get; set; }
         public decimal Amount { get; set; }
         public DateTime TransactionDate { get; set; }
-        public string PaymentType { get; set; }
         public int? BookingId { get; set; }
         public int? OrderId{ get; set; }
         public int TransactionType { get; set; }
