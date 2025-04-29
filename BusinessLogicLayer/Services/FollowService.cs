@@ -41,28 +41,28 @@ namespace BusinessLogicLayer.Services
                     FollowerId = followerId,
                     FollowingId = followingId,
                     IsNotify = isNotify,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 };
 
                 await _unitOfWork.FollowRepository.InsertAsync(follow);
                 await _unitOfWork.CommitAsync();
+//---------------------------------------------------------------------------------------------------------------------
+                //// Sau khi follow thành công, tạo notification gửi tới người được follow
+                //var notification = new Notification
+                //{
+                //    Title = "New Follower",
+                //    // Nội dung thông báo có thể được cải tiến để hiển thị tên của người follow.
+                //    Content = "You have a new follower.",
+                //    AccountId = followingId,   // Người nhận thông báo là người được follow
+                //    NotifiedAt = DateTime.Now,
+                //    // Giả sử Notification.NotificationType được định nghĩa sẵn trong entity Notification.
+                //    Type = Notification.NotificationType.System,
+                //};
 
-                // Sau khi follow thành công, tạo notification gửi tới người được follow
-                var notification = new Notification
-                {
-                    Title = "New Follower",
-                    // Nội dung thông báo có thể được cải tiến để hiển thị tên của người follow.
-                    Content = "You have a new follower.",
-                    AccountId = followingId,   // Người nhận thông báo là người được follow
-                    NotifiedAt = DateTime.UtcNow,
-                    // Giả sử Notification.NotificationType được định nghĩa sẵn trong entity Notification.
-                    Type = Notification.NotificationType.System,
-                    SenderId = followerId      // Người gửi thông báo là người follow
-                };
+                //// Gửi thông báo qua NotificationService
+                //var notifResponse = await _notificationService.SendNotificationAsync(notification);
 
-                // Gửi thông báo qua NotificationService
-                var notifResponse = await _notificationService.SendNotificationAsync(notification);
-
+//---------------------------------------------------------------------------------------------------------------------
                 response.Success = true;
                 response.Message = "Follow successful!";
                 response.Data = follow; // Hoặc bạn có thể map sang DTO nếu cần

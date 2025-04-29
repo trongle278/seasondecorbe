@@ -4,39 +4,85 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
+using BusinessLogicLayer.ModelResponse;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BusinessLogicLayer.Utilities.Hub
 {
     public class NotificationHub : Microsoft.AspNetCore.SignalR.Hub
     {
         private static readonly Dictionary<int, string> _userConnections = new();
+        private readonly INotificationService _notificationService;
+        private readonly IHubContext<NotificationHub> _hubContext;
+
+        public NotificationHub(INotificationService notificationService, IHubContext<NotificationHub> hubContext)
+        {
+            _notificationService = notificationService;
+            _hubContext = hubContext;  // Gán giá trị cho _hubContext
+        }
 
         public override async Task OnConnectedAsync()
         {
-            if (Context.User != null)
+            var httpContext = Context.GetHttpContext();
+            if (httpContext == null || httpContext.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
             {
-                var userIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
-                {
-                    _userConnections[userId] = Context.ConnectionId;
-                }
+                throw new Exception("User is not authenticated!");
             }
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                throw new Exception("User ID not found in claims!");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+            _userConnections[userId] = Context.ConnectionId;
 
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            if (Context.User != null)
+            var httpContext = Context.GetHttpContext();
+            if (httpContext == null || httpContext.User?.Identity == null || !httpContext.User.Identity.IsAuthenticated)
             {
-                var userIdClaim = Context.User.FindFirst("nameid"); // Sử dụng claim "nameid"
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
-                {
-                    _userConnections.Remove(userId, out _);
-                }
+                throw new Exception("User is not authenticated!");
             }
 
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                throw new Exception("User ID not found in claims!");
+            }
+
+            var userId = int.Parse(userIdClaim.Value);
+            _userConnections.Remove(userId, out _);
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task SendNotification(NotificationCreateRequest request)
+        {
+            // Gọi service để lưu thông báo vào DB
+            var notificationResponse = await _notificationService.CreateNotificationAsync(request);
+
+            if (!notificationResponse.Success || notificationResponse.Data == null)
+            {
+                throw new HubException(notificationResponse.Message ?? "Failed to create notification.");
+            }
+
+            var notification = notificationResponse.Data;
+
+            // Sau khi thông báo được lưu vào DB, gửi qua WebSocket
+            await _hubContext.Clients.User(notification.AccountId.ToString())
+                              .SendAsync("ReceiveNotification", new
+                              {
+                                  notification.Title,
+                                  notification.Content,
+                                  notification.NotifiedAt,
+                                  notification.Type
+                              });
         }
     }
 }

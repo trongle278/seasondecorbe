@@ -41,6 +41,17 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result.Message);
         }
 
+        [HttpGet("getIncomingDecorServiceList")]
+        public async Task<IActionResult> GetIncomingDecorServiceList()
+        {
+            var result = await _decorServiceService.GetIncomingDecorServiceListAsync();
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetDecorServiceById(int id)
@@ -65,7 +76,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpGet("getDecorServiceListByProvider")]
         [Authorize]
-        public async Task<IActionResult> GetDecorServiceListByProvider([FromQuery] DecorServiceFilterRequest request)
+        public async Task<IActionResult> GetDecorServiceListByProvider([FromQuery] ProviderServiceFilterRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var result = await _decorServiceService.GetDecorServiceListByProvider(accountId, request);
@@ -161,7 +172,8 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
         
-        [HttpPut("change-startdate/{decorServiceId}")]
+        [HttpPut("reOpen/{decorServiceId}")]
+        [Authorize]
         public async Task<IActionResult> ChangeStartDate(int decorServiceId, [FromBody] ChangeStartDateRequest request)
         {
             if (!ModelState.IsValid)

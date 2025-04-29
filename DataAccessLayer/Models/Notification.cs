@@ -15,21 +15,24 @@ namespace DataAccessObject.Models
         public int Id { get; set; }
         public string Title { get; set; }
         public string Content { get; set; }
-        public DateTime NotifiedAt { get; set; }
+        public DateTime NotifiedAt { get; set; } 
+        public bool IsRead { get; set; }
 
         public int AccountId { get; set; }
+
         [ForeignKey("AccountId")]
         public virtual Account Account { get; set; }
+
+        //public int? SenderId { get; set; }
+
+        //[ForeignKey("SenderId")]
+        //public virtual Account Sender { get; set; }
+
         public enum NotificationType
         {
-            Chat,
             System,
             Event
         }
-        public NotificationType Type { get; set; }
-
-        public int? SenderId { get; set; }
-        [ForeignKey("SenderId")]
-        public virtual Account Sender { get; set; }
+        public NotificationType Type { get; set; }     
     }
 }

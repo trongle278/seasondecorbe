@@ -10,6 +10,5 @@ namespace Repository.Interfaces
 {
     public interface INotificationRepository : IGenericRepository<Notification>
     {
-        Task<IEnumerable<Notification>> GetNotificationsByAccountIdAsync(int accountId);
     }
 }

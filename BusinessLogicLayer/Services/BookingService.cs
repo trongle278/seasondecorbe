@@ -184,6 +184,7 @@ namespace BusinessLogicLayer.Services
                         IsQuoteExisted = latestQuotation?.isQuoteExisted ?? false,
                         IsContractSigned = latestQuotation?.Contract?.isSigned ?? false,
                         IsTracked = booking.IsTracked ?? false,
+                        IsReviewed = booking.IsReviewed ?? false,
                     };
                 }).ToList();
 
@@ -257,6 +258,7 @@ namespace BusinessLogicLayer.Services
                     CreatedAt = booking.CreateAt,
                     IsQuoteExisted = booking.Quotations.Any(),
                     IsTracked = booking.IsTracked ?? false,
+                    IsReviewed = booking.IsReviewed ?? false,
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO

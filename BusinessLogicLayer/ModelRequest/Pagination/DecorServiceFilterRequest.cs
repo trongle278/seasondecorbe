@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DataAccessObject.Models.DecorService;
 
 namespace BusinessLogicLayer.ModelRequest.Pagination
 {
@@ -11,6 +12,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
     {
         public string? Style { get; set; }
         public string? Sublocation { get; set; }
+        public DateTime? StartDate { get; set; }
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
         public int? DecorCategoryId { get; set; }
@@ -23,6 +25,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
 
     public class ProviderServiceFilterRequest
     {
+        public DecorServiceStatus? Status { get; set; }
         public string? Style { get; set; }
         public string? Sublocation { get; set; }
         public int? MinPrice { get; set; }

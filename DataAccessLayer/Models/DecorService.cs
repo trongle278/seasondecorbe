@@ -30,7 +30,8 @@ namespace DataAccessObject.Models
         public enum DecorServiceStatus
         {
             Available,
-            NotAvailable
+            NotAvailable,
+            Incoming
         }
 
         public DecorServiceStatus Status { get; set; }

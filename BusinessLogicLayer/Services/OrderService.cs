@@ -72,13 +72,21 @@ namespace BusinessLogicLayer.Services
                     _ => order => order.Id
                 };
 
+                Func<IQueryable<Order>, IQueryable<Order>> customQuery = query =>
+                query.Include(o => o.Address)
+                     .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                        .ThenInclude(p => p.Account);
+
                 // Get paginated data and filter
                 (IEnumerable<Order> orders, int totalCount) = await _unitOfWork.OrderRepository.GetPagedAndFilteredAsync(
                     filter,
                     request.PageIndex,
                     request.PageSize,
                     orderByExpression,
-                    request.Descending
+                    request.Descending,
+                    null,
+                    customQuery
                 );
 
                 var order = _mapper.Map<List<OrderResponse>>(orders);
@@ -122,13 +130,21 @@ namespace BusinessLogicLayer.Services
                     _ => order => order.Id
                 };
 
+                Func<IQueryable<Order>, IQueryable<Order>> customQuery = query =>
+                query.Include(o => o.Address)
+                     .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                        .ThenInclude(p => p.Account);
+
                 // Get paginated data
                 (IEnumerable<Order> orders, int totalCount) = await _unitOfWork.OrderRepository.GetPagedAndFilteredAsync(
                     filter,
                     request.PageIndex,
                     request.PageSize,
                     orderByExpression,
-                    request.Descending
+                    request.Descending,
+                    null,
+                    customQuery
                 );
 
                 var orderResponses = _mapper.Map<List<OrderResponse>>(orders);

@@ -94,17 +94,17 @@ namespace BusinessLogicLayer.Services
             await _unitOfWork.ChatRepository.InsertAsync(chat);
             await _unitOfWork.CommitAsync();
 
-            var notification = new Notification
-            {
-                Title = "New Message",
-                Content = chat.Message,
-                NotifiedAt = DateTime.UtcNow.ToLocalTime(),
-                AccountId = chat.ReceiverId,
-                SenderId = chat.SenderId,
-                Type = NotificationType.Chat
-            };
+            //var notification = new Notification
+            //{
+            //    Title = "New Message",
+            //    Content = chat.Message,
+            //    NotifiedAt = DateTime.UtcNow.ToLocalTime(),
+            //    AccountId = chat.ReceiverId,
+            //    SenderId = chat.SenderId,
+            //    Type = NotificationType.Chat
+            //};
 
-            await _notificationService.SendNotificationAsync(notification);
+            //await _notificationService.SendNotificationAsync(notification);
 
             return new ChatMessageResponse
             {

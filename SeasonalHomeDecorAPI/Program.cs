@@ -36,7 +36,7 @@ builder.Services.AddControllers()
        {
            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-           options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+           options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
            // options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // Convert number to text in enum
        });
 
@@ -68,6 +68,15 @@ builder.Services.AddQuartz(q =>
         .WithIdentity("SurveyDateExpiredTrigger")
         .WithSimpleSchedule(x => x
             .WithIntervalInSeconds(30)
+            .RepeatForever()));
+
+    var decorServiceStatusUpdateJobKey = new JobKey("DecorServiceStatusUpdateJob");
+    q.AddJob<DecorServiceStatusUpdateJob>(opts => opts.WithIdentity(decorServiceStatusUpdateJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(decorServiceStatusUpdateJobKey)
+        .WithIdentity("DecorServiceStatusUpdateJobTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(60) 
             .RepeatForever()));
 }); 
 
@@ -243,6 +252,7 @@ using (var scope = app.Services.CreateScope())
     var scheduler = await schedulerFactory.GetScheduler();
     await scheduler.TriggerJob(new JobKey("AccountCleanupJob"));
     await scheduler.TriggerJob(new JobKey("SurveyDateExpiredJob"));
+    await scheduler.TriggerJob(new JobKey("DecorServiceStatusUpdateJob"));
 }
 
 // 12. Configure the HTTP request pipeline

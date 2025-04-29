@@ -9,8 +9,6 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
 {
     public class ReviewFilterRequest
     {
-        [Required]
-        public int accountId { get; set; }
         public int? Rate { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;

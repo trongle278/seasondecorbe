@@ -7,74 +7,173 @@ using BusinessLogicLayer.Interfaces;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.SignalR;
 using Repository.Interfaces;
-using DataAccessObject.Models;
 using BusinessLogicLayer.ModelResponse;
 using AutoMapper;
 using BusinessLogicLayer.Utilities.Hub;
+using BusinessLogicLayer.ModelRequest;
+using Repository.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogicLayer.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly INotificationRepository _notificationRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly FcmService _fcmService;
-        private readonly IMapper _mapper;
-        //test
         private readonly IDeviceTokenRepository _deviceTokenRepository; // Repository cho device tokens
 
-        public NotificationService(INotificationRepository notificationRepository,
+        public NotificationService(IUnitOfWork unitOfWork,
                                    IHubContext<NotificationHub> hubContext,
-                                   IMapper mapper,
                                    FcmService fcmService,
                                    IDeviceTokenRepository deviceTokenRepository)
         {
-            _notificationRepository = notificationRepository;
+            _unitOfWork = unitOfWork;
             _hubContext = hubContext;
-            _mapper = mapper;
             _fcmService = fcmService;
-            //test
             _deviceTokenRepository = deviceTokenRepository;
         }
 
-        public async Task<NotificationResponse> SendNotificationAsync(Notification notification)
-        {
-            // Lưu notification vào DB
-            await _notificationRepository.InsertAsync(notification);
-            await _notificationRepository.SaveAsync();
-
-            // Map Notification sang NotificationResponse để gửi qua SignalR
-            var response = _mapper.Map<NotificationResponse>(notification);
-
-            // Gửi realtime qua SignalR cho web
-            await _hubContext.Clients.User(notification.AccountId.ToString())
-                             .SendAsync("ReceiveNotification", response);
-
-            // Gửi push notification qua FCM cho từng token
-        //    var deviceTokens = await _deviceTokenRepository.GetTokensByAccountIdAsync(notification.AccountId);
-        //    foreach (var token in deviceTokens)
-        //    {
-        //        var data = new Dictionary<string, string>
+        //public async Task<NotificationResponse> SendNotificationAsync(Notification notification)
         //{
-        //    { "type", "chat" },
-        //    { "notificationId", notification.Id.ToString() }
-        //};
+        //    // Lưu notification vào DB
+        //    await _notificationRepository.InsertAsync(notification);
+        //    await _notificationRepository.SaveAsync();
 
-        //        await _fcmService.SendPushNotificationAsync(token.Token, "Tin nhắn mới", notification.Content, data);
-        //    }
+        //    // Map Notification sang NotificationResponse để gửi qua SignalR
+        //    var response = _mapper.Map<NotificationResponse>(notification);
 
-            return response;
+        //    // Gửi realtime qua SignalR cho web
+        //    await _hubContext.Clients.User(notification.AccountId.ToString())
+        //                     .SendAsync("ReceiveNotification", response);
+
+        //    // Gửi push notification qua FCM cho từng token
+        ////    var deviceTokens = await _deviceTokenRepository.GetTokensByAccountIdAsync(notification.AccountId);
+        ////    foreach (var token in deviceTokens)
+        ////    {
+        ////        var data = new Dictionary<string, string>
+        ////{
+        ////    { "type", "chat" },
+        ////    { "notificationId", notification.Id.ToString() }
+        ////};
+
+        ////        await _fcmService.SendPushNotificationAsync(token.Token, "Tin nhắn mới", notification.Content, data);
+        ////    }
+
+        //    return response;
+        //}
+
+        //public async Task<IEnumerable<NotificationResponse>> GetNotificationsByAccountIdAsync(int accountId)
+        //{
+        //    // Lấy danh sách Notification (có Include(n => n.Account))
+        //    var notifications = await _notificationRepository.GetNotificationsByAccountIdAsync(accountId);
+
+        //    // Map sang NotificationResponse
+        //    var response = _mapper.Map<IEnumerable<NotificationResponse>>(notifications);
+
+        //    return response;
+        //}
+
+        public async Task<BaseResponse<Notification>> CreateNotificationAsync(NotificationCreateRequest request)
+        {
+            // Tạo đối tượng notification từ request
+            var notification = new Notification
+            {
+                AccountId = request.AccountId,
+                Title = request.Title,
+                Content = request.Content,
+                Type = request.Type,
+                NotifiedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            // Lưu vào DB
+            await _unitOfWork.NotificationRepository.InsertAsync(notification);
+            await _unitOfWork.CommitAsync();
+
+            // Trả về thông báo vừa lưu
+            return new BaseResponse<Notification>
+            {
+                Success = true,
+                Message = "Notification created successfully.",
+                Data = notification
+            };
         }
 
-        public async Task<IEnumerable<NotificationResponse>> GetNotificationsByAccountIdAsync(int accountId)
+        public async Task<BaseResponse<List<NotificationResponse>>> GetAllNotificationsAsync(int accountId)
         {
-            // Lấy danh sách Notification (có Include(n => n.Account))
-            var notifications = await _notificationRepository.GetNotificationsByAccountIdAsync(accountId);
+            var notifications = await _unitOfWork.NotificationRepository
+                .Queryable()
+                .Where(n => n.AccountId == accountId)
+                .OrderByDescending(n => n.NotifiedAt)
+                .Select(n => new NotificationResponse
+                {
+                    Id = n.Id,
+                    Title = n.Title,
+                    Content = n.Content,
+                    NotifiedAt = n.NotifiedAt,
+                    IsRead = n.IsRead,
+                    Type = n.Type,
+                })
+                .ToListAsync();
 
-            // Map sang NotificationResponse
-            var response = _mapper.Map<IEnumerable<NotificationResponse>>(notifications);
+            return new BaseResponse<List<NotificationResponse>>
+            {
+                Success = true,
+                Message = "Get notifications successfully.",
+                Data = notifications
+            };
+        }
 
-            return response;
+        public async Task<BaseResponse<List<NotificationResponse>>> GetUnreadNotificationsAsync(int accountId)
+        {
+            var unreadNotifications = await _unitOfWork.NotificationRepository
+                .Queryable()
+                .Where(n => n.AccountId == accountId && !n.IsRead) // Lọc thông báo chưa đọc
+                .OrderByDescending(n => n.NotifiedAt)
+                .Select(n => new NotificationResponse
+                {
+                    Id = n.Id,
+                    Title = n.Title,
+                    Content = n.Content,
+                    NotifiedAt = n.NotifiedAt,
+                    IsRead = n.IsRead,
+                    Type = n.Type,
+                })
+                .ToListAsync();
+
+            return new BaseResponse<List<NotificationResponse>>
+            {
+                Success = true,
+                Message = "Fetched unread notifications successfully.",
+                Data = unreadNotifications
+            };
+        }
+
+        public async Task<BaseResponse<bool>> MarkNotificationAsReadAsync(int notificationId)
+        {
+            var notification = await _unitOfWork.NotificationRepository
+                .Queryable()
+                .FirstOrDefaultAsync(n => n.Id == notificationId); // Tìm thông báo theo ID
+
+            if (notification == null)
+            {
+                return new BaseResponse<bool>
+                {
+                    Success = false,
+                    Message = "Notification not found." // Nếu không tìm thấy thông báo
+                };
+            }
+
+            notification.IsRead = true; // Đánh dấu là đã đọc
+            await _unitOfWork.CommitAsync(); // Lưu lại thay đổi trong DB
+
+            return new BaseResponse<bool>
+            {
+                Success = true,
+                Message = "Notification marked as read successfully.",
+                Data = true
+            };
         }
     }
 }

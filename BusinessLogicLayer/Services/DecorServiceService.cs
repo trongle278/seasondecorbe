@@ -43,7 +43,7 @@ namespace BusinessLogicLayer.Services
             {
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.Id == id &&
-                           ds.StartDate <= DateTime.Now)
+                           ds.Status == DecorService.DecorServiceStatus.Available)
                     .Include(ds => ds.DecorCategory)
                     .Include(ds => ds.DecorImages)
                     .Include(ds => ds.DecorServiceSeasons)
@@ -230,7 +230,6 @@ namespace BusinessLogicLayer.Services
                 var decorService = await _unitOfWork.DecorServiceRepository
                     .Query(ds => ds.AccountId == account.Id &&
                         !ds.IsDeleted &&
-                        ds.StartDate <= DateTime.Now &&
                         ds.Status == DecorService.DecorServiceStatus.Available)
 
                     .Include(ds => ds.DecorCategory)
@@ -310,7 +309,6 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-
         public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
@@ -334,14 +332,14 @@ namespace BusinessLogicLayer.Services
                 // ✅ Nếu user chưa đăng nhập, hoặc không có Location, thì không lọc theo Sublocation
                 Expression<Func<DecorService, bool>> filter = decorService =>
                     decorService.IsDeleted == false &&
-                    decorService.StartDate <= DateTime.Now && // Thêm điều kiện StartDate
                     decorService.Status == DecorService.DecorServiceStatus.Available && // Chỉ lấy những service Available
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
                     //(string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
                     (string.IsNullOrEmpty(request.Sublocation) || decorService.Sublocation.Contains(request.Sublocation)) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
-                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value);
+                    (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value) &&
+                    (!request.StartDate.HasValue || decorService.StartDate >= request.StartDate.Value); ;
 
                 if (request.SeasonIds != null && request.SeasonIds.Any())
                 {
@@ -357,6 +355,7 @@ namespace BusinessLogicLayer.Services
                     "Sublocation" => decorService => decorService.Sublocation,
                     "CreateAt" => decorService => decorService.CreateAt,
                     "Favorite" => decorService => decorService.FavoriteServices.Count,
+                    "StartDate" => decorService => decorService.StartDate,
                     _ => decorService => decorService.Id
                 };
 
@@ -442,7 +441,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId,DecorServiceFilterRequest request)
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId, ProviderServiceFilterRequest request)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
             try
@@ -465,6 +464,7 @@ namespace BusinessLogicLayer.Services
                     //decorService.IsDeleted == false && // Only non-deleted services
                     (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
                     (string.IsNullOrEmpty(request.Sublocation) || decorService.Sublocation.Contains(request.Sublocation)) &&
+                    ((!request.Status.HasValue || decorService.Status == request.Status.Value)) &&
                     (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value) &&
                     (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value);
@@ -481,6 +481,7 @@ namespace BusinessLogicLayer.Services
                 {
                     "Style" => ds => ds.Style,
                     "Sublocation" => ds => ds.Sublocation,
+                    "Status" => ds => ds.Status,
                     "CreateAt" => ds => ds.CreateAt,
                     "BasePrice" => ds => ds.BasePrice,
                     "Favorite" => ds => ds.FavoriteServices.Count,
@@ -532,6 +533,13 @@ namespace BusinessLogicLayer.Services
                         Id = dss.Season.Id,
                         SeasonName = dss.Season.SeasonName
                     }).ToList();
+
+                    // Kiểm tra dịch vụ này đã được đặt chưa
+            dtos[i].IsBooked = await _unitOfWork.BookingRepository.Query(b =>
+                b.DecorServiceId == service.Id &&
+                b.IsBooked == true
+            ).AnyAsync();
+
                 }
 
                 // 8. Return paginated result
@@ -704,7 +712,7 @@ namespace BusinessLogicLayer.Services
                     DecorCategoryId = request.DecorCategoryId,
                     CreateAt = DateTime.Now,
                     StartDate = request.StartDate,
-                    Status = DecorService.DecorServiceStatus.Available,
+                    Status = DecorService.DecorServiceStatus.Incoming,
                     DecorImages = new List<DecorImage>(),
                     DecorServiceSeasons = new List<DecorServiceSeason>()
                 };
@@ -1153,7 +1161,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 decorService.StartDate = request.StartDate;
-                decorService.Status = DecorService.DecorServiceStatus.Available;
+                decorService.Status = DecorService.DecorServiceStatus.Incoming;
                 _unitOfWork.DecorServiceRepository.Update(decorService);
                 await _unitOfWork.CommitAsync();
 
@@ -1169,5 +1177,89 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<DecorServiceListResponse> GetIncomingDecorServiceListAsync()
+        {
+            var response = new DecorServiceListResponse();
+            try
+            {
+                // Lọc theo trạng thái Incoming
+                var services = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => !ds.IsDeleted && ds.Status == DecorService.DecorServiceStatus.Incoming)  // Trạng thái Incoming
+
+                    .Include(ds => ds.DecorCategory)
+                    .Include(ds => ds.DecorImages)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followers)
+                    .Include(ds => ds.Account)
+                        .ThenInclude(a => a.Followings)
+
+                    .ToListAsync();
+
+                // Map mỗi service sang DecorServiceDTO
+                var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
+
+                //// Hiện số lượng yêu thích
+                //var favoriteCounts = await _unitOfWork.FavoriteServiceRepository
+                //    .Query(f => services.Select(s => s.Id).Contains(f.DecorServiceId))
+                //    .GroupBy(f => f.DecorServiceId)
+                //    .Select(g => new { ServiceId = g.Key, Count = g.Count() })
+                //    .ToDictionaryAsync(x => x.ServiceId, x => x.Count);
+
+                // Map DecorImages -> DecorImageDTO
+                for (int i = 0; i < services.Count; i++)
+                {
+                    var service = services[i];
+
+                    dtos[i].CategoryName = services[i].DecorCategory.CategoryName;
+
+                    dtos[i].Images = services[i].DecorImages
+                        .Select(img => new DecorImageResponse
+                        {
+                            Id = img.Id,
+                            ImageURL = img.ImageURL
+                        })
+                        .ToList();
+
+                    //dtos[i].FavoriteCount = favoriteCounts.ContainsKey(services[i].Id)
+                    //                      ? favoriteCounts[services[i].Id]
+                    //                      : 0;
+
+                    dtos[i].Seasons = services[i].DecorServiceSeasons
+                        .Select(dss => new SeasonResponse
+                        {
+                            Id = dss.Season.Id,
+                            SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
+
+                    dtos[i].Provider = new ProviderResponse
+                    {
+                        Id = service.Account.Id,
+                        BusinessName = service.Account.BusinessName,
+                        Bio = service.Account.Bio,
+                        Avatar = service.Account.Avatar,
+                        Phone = service.Account.Phone,
+                        Slug = service.Account.Slug,
+                        Address = service.Account.BusinessAddress,
+                        JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = service.Account.Followers?.Count ?? 0,
+                        FollowingsCount = service.Account.Followings?.Count ?? 0
+                    };
+                }
+
+                response.Success = true;
+                response.Data = dtos;
+                response.Message = "Decor services retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving decor services.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
     }
 }
