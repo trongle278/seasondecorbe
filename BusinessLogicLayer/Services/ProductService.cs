@@ -41,7 +41,7 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
+                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages, p => p.Category };
                 var products = await _unitOfWork.ProductRepository.GetAllAsync(includeProperties);
 
                 var productResponses = new List<ProductListResponse>();
@@ -62,7 +62,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -72,8 +72,17 @@ namespace BusinessLogicLayer.Services
                         Id = product.Id,
                         ProductName = product.ProductName,
                         Rate = averageRate,
+                        Quantity = product.Quantity,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
+                        ProductCategory = new ProductCategoryResponse
+                        {
+                            Id = product.Category.Id,
+                            CategoryName = product.Category.CategoryName
+                        },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -120,16 +129,20 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Sort
-                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                Expression<Func<Product, object>> orderByExpression = request.SortBy?.ToLower() switch
                 {
-                    "ProductName" => product => product.ProductName,
-                    "ProductPrice" => product => product.ProductPrice,
-                    "CreateAt" => product => product.CreateAt,
+                    "productname" => product => product.ProductName,
+                    "productprice" => product => product.ProductPrice,
+                    "createat" => product => product.CreateAt,
                     _ => product => product.Id
                 };
 
-                // Include Images
-                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
+                // Include entities
+                Expression<Func<Product, object>>[] includeProperties =
+                {
+                    p => p.ProductImages,
+                    p => p.Category
+                };
 
                 // Get paginated data and filter
                 (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
@@ -159,7 +172,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -169,11 +182,17 @@ namespace BusinessLogicLayer.Services
                         Id = product.Id,
                         ProductName = product.ProductName,
                         Rate = averageRate,
+                        Quantity = product.Quantity,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
                         Status = product.Quantity > 0
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),
+                        ProductCategory = new ProductCategoryResponse
+                        {
+                            Id = product.Category.Id,
+                            CategoryName = product.Category.CategoryName
+                        },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -227,7 +246,7 @@ namespace BusinessLogicLayer.Services
                                 .ToList();
 
                 // Calculate average rate
-                var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                 // Calculate total rate
                 var totalRate = reviews.Sum(r => r.Rate);
@@ -319,6 +338,7 @@ namespace BusinessLogicLayer.Services
                 var products = await _unitOfWork.ProductRepository
                                                 .Query(p => p.CategoryId == id)
                                                 .Include(p => p.ProductImages)
+                                                .Include(p => p.Category)
                                                 .ToListAsync();
 
                 var productResponses = new List<ProductListResponse>();
@@ -340,7 +360,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -350,8 +370,17 @@ namespace BusinessLogicLayer.Services
                         Id = product.Id,
                         ProductName = product.ProductName,
                         Rate = averageRate,
+                        Quantity = product.Quantity,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
+                        ProductCategory = new ProductCategoryResponse
+                        {
+                            Id = product.Category.Id,
+                            CategoryName = product.Category.CategoryName
+                        },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -393,7 +422,7 @@ namespace BusinessLogicLayer.Services
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
                     product.CategoryId == request.CategoryId &&
-                    string.IsNullOrEmpty(request.ProductName) &&
+                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
@@ -410,16 +439,20 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Sort
-                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                Expression<Func<Product, object>> orderByExpression = request.SortBy?.ToLower() switch
                 {
-                    "ProductName" => product => product.ProductName,
-                    "ProductPrice" => product => product.ProductPrice,
-                    "CreateAt" => product => product.CreateAt,
+                    "productname" => product => product.ProductName,
+                    "productprice" => product => product.ProductPrice,
+                    "createat" => product => product.CreateAt,
                     _ => product => product.Id
                 };
 
-                // Include Images
-                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages };
+                // Include Entities
+                Expression<Func<Product, object>>[] includeProperties =
+                {
+                    p => p.ProductImages,
+                    p => p.Category
+                };
 
                 // Get paginated data and filter
                 (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
@@ -450,7 +483,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -460,11 +493,17 @@ namespace BusinessLogicLayer.Services
                         Id = product.Id,
                         ProductName = product.ProductName,
                         Rate = averageRate,
+                        Quantity = product.Quantity,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
                         Status = product.Quantity > 0
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),
+                        ProductCategory = new ProductCategoryResponse
+                        {
+                            Id = product.Category.Id,
+                            CategoryName = product.Category.CategoryName
+                        },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -514,6 +553,7 @@ namespace BusinessLogicLayer.Services
                 var products = await _unitOfWork.ProductRepository
                                                 .Query(p => p.AccountId == accountId)
                                                 .Include(p => p.ProductImages)
+                                                .Include(p => p.Category)
                                                 .ToListAsync();
 
                 var productResponses = new List<ProductListResponse>();
@@ -535,7 +575,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -545,8 +585,17 @@ namespace BusinessLogicLayer.Services
                         Id = product.Id,
                         ProductName = product.ProductName,
                         Rate = averageRate,
+                        Quantity = product.Quantity,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
+                        ProductCategory = new ProductCategoryResponse
+                        {
+                            Id = product.Category.Id,
+                            CategoryName = product.Category.CategoryName
+                        },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()
@@ -588,7 +637,7 @@ namespace BusinessLogicLayer.Services
                 // Filter
                 Expression<Func<Product, bool>> filter = product =>
                     (product.Account.Slug == request.Slug && product.Account.ProviderVerified == true) &&
-                    string.IsNullOrEmpty(request.ProductName) &&
+                    (string.IsNullOrEmpty(request.ProductName) || product.ProductName.Contains(request.ProductName)) &&
                     (!request.MinPrice.HasValue || product.ProductPrice >= request.MinPrice.Value) &&
                     (!request.MaxPrice.HasValue || product.ProductPrice <= request.MaxPrice.Value);
 
@@ -605,19 +654,19 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // Sort
-                Expression<Func<Product, object>> orderByExpression = request.SortBy switch
+                Expression<Func<Product, object>> orderByExpression = request.SortBy?.ToLower() switch
                 {
-                    "ProductName" => product => product.ProductName,
-                    "ProductPrice" => product => product.ProductPrice,
-                    "CreateAt" => product => product.CreateAt,
+                    "productname" => product => product.ProductName,
+                    "productprice" => product => product.ProductPrice,
+                    "createat" => product => product.CreateAt,
                     _ => product => product.Id
                 };
 
-                // Include Images
+                // Include Entities
                 Expression<Func<Product, object>>[] includeProperties =
                 {
                     product => product.ProductImages,
-                    product => product.Account
+                    product => product.Category
                 };
 
                 // Get paginated data and filter
@@ -649,7 +698,7 @@ namespace BusinessLogicLayer.Services
                                     .ToList();
 
                     // Calculate average rate
-                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var averageRate = reviews.Any() ? Math.Round(reviews.Average(r => r.Rate), 1) : 0;
 
                     // Calculate total sold
                     var totalSold = orderDetails.Sum(oi => oi.Quantity);
@@ -659,11 +708,17 @@ namespace BusinessLogicLayer.Services
                         Id = product.Id,
                         ProductName = product.ProductName,
                         Rate = averageRate,
+                        Quantity = product.Quantity,
                         ProductPrice = product.ProductPrice,
                         TotalSold = totalSold,
                         Status = product.Quantity > 0
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),
+                        ProductCategory = new ProductCategoryResponse
+                        {
+                            Id = product.Category.Id,
+                            CategoryName = product.Category.CategoryName
+                        },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
                             : new List<string>()

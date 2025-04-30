@@ -40,10 +40,12 @@ namespace BusinessLogicLayer.ModelResponse.Product
     {
         public int Id { get; set; }
         public string ProductName { get; set; }
+        public int? Quantity { get; set; }
         public double Rate { get; set; }
         public decimal ProductPrice { get; set; }
         public int TotalSold { get; set; }
         public string Status { get; set; }
+        public ProductCategoryResponse ProductCategory { get; set; }
         public List<string>? ImageUrls { get; set; }
     }
 
