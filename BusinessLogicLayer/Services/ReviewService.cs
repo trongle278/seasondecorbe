@@ -338,6 +338,14 @@ namespace BusinessLogicLayer.Services
                 }
 
                 await _unitOfWork.ReviewRepository.InsertAsync(review);
+
+                var orderDetail = order.OrderDetails.FirstOrDefault(od => od.ProductId == request.ProductId);
+                if (orderDetail != null)
+                {
+                    orderDetail.IsReviewed = true;
+                    _unitOfWork.OrderDetailRepository.Update(orderDetail);
+                }
+
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
