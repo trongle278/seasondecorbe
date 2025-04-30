@@ -13,6 +13,7 @@ namespace BusinessLogicLayer.ModelResponse.Order
         public string Image { get; set; }
         public int Quantity { get; set; }
         public decimal? UnitPrice { get; set; }
+        public bool? IsReviewed { get; set; }
         public int OrderId { get; set; }
         public int ProductId { get; set; }
         public OrderProviderResponse? Provider { get; set; }

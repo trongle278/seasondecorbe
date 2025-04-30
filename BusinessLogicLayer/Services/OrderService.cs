@@ -269,7 +269,8 @@ namespace BusinessLogicLayer.Services
                         ProductName = item.ProductName,
                         Image = item.Image,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice
+                        UnitPrice = item.UnitPrice,
+                        IsReviewed = false
                     }).ToList()
                 };
 
