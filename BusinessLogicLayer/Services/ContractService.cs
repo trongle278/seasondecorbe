@@ -391,7 +391,7 @@ namespace BusinessLogicLayer.Services
                     FileUrl = contract.ContractFilePath,
                     BookingCode = booking.BookingCode,
                     DepositAmount = depositAmount,
-                    Note = booking.Note ?? "",
+                    Note = booking.Note,
                     SurveyDate = timeslot.SurveyDate,
                     ConstructionDate = booking.ConstructionDate,                  
 
