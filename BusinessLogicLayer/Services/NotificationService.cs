@@ -34,46 +34,6 @@ namespace BusinessLogicLayer.Services
             _deviceTokenRepository = deviceTokenRepository;
         }
 
-        //public async Task<NotificationResponse> SendNotificationAsync(Notification notification)
-        //{
-        //    // Lưu notification vào DB
-        //    await _notificationRepository.InsertAsync(notification);
-        //    await _notificationRepository.SaveAsync();
-
-        //    // Map Notification sang NotificationResponse để gửi qua SignalR
-        //    var response = _mapper.Map<NotificationResponse>(notification);
-
-        //    // Gửi realtime qua SignalR cho web
-        //    await _hubContext.Clients.User(notification.AccountId.ToString())
-        //                     .SendAsync("ReceiveNotification", response);
-
-        //    // Gửi push notification qua FCM cho từng token
-        ////    var deviceTokens = await _deviceTokenRepository.GetTokensByAccountIdAsync(notification.AccountId);
-        ////    foreach (var token in deviceTokens)
-        ////    {
-        ////        var data = new Dictionary<string, string>
-        ////{
-        ////    { "type", "chat" },
-        ////    { "notificationId", notification.Id.ToString() }
-        ////};
-
-        ////        await _fcmService.SendPushNotificationAsync(token.Token, "Tin nhắn mới", notification.Content, data);
-        ////    }
-
-        //    return response;
-        //}
-
-        //public async Task<IEnumerable<NotificationResponse>> GetNotificationsByAccountIdAsync(int accountId)
-        //{
-        //    // Lấy danh sách Notification (có Include(n => n.Account))
-        //    var notifications = await _notificationRepository.GetNotificationsByAccountIdAsync(accountId);
-
-        //    // Map sang NotificationResponse
-        //    var response = _mapper.Map<IEnumerable<NotificationResponse>>(notifications);
-
-        //    return response;
-        //}
-
         public async Task<BaseResponse<Notification>> CreateNotificationAsync(NotificationCreateRequest request)
         {
             // Tạo đối tượng notification từ request
@@ -82,6 +42,7 @@ namespace BusinessLogicLayer.Services
                 AccountId = request.AccountId,
                 Title = request.Title,
                 Content = request.Content,
+                Url = request.Url,
                 NotifiedAt = DateTime.Now,
                 IsRead = false
             };
@@ -111,6 +72,7 @@ namespace BusinessLogicLayer.Services
                     Title = n.Title,
                     Content = n.Content,
                     NotifiedAt = n.NotifiedAt,
+                    Url = n.Url,
                     IsRead = n.IsRead
                 })
                 .ToListAsync();
@@ -134,6 +96,7 @@ namespace BusinessLogicLayer.Services
                     Id = n.Id,
                     Title = n.Title,
                     Content = n.Content,
+                    Url = n.Url,
                     NotifiedAt = n.NotifiedAt,
                     IsRead = n.IsRead
                 })

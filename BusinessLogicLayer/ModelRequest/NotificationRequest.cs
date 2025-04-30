@@ -13,5 +13,6 @@ namespace BusinessLogicLayer.ModelRequest
         public string Title { get; set; }
         public string Content { get; set; }
         public int? SenderId { get; set; }           // Người gửi (nếu có)
+        public string? Url { get; set; }
     }
 }

@@ -17,15 +17,10 @@ namespace DataAccessObject.Models
         public string Content { get; set; }
         public DateTime NotifiedAt { get; set; } 
         public bool IsRead { get; set; }
-
+        public string? Url { get; set; }
         public int AccountId { get; set; }
 
         [ForeignKey("AccountId")]
         public virtual Account Account { get; set; }
-
-        //public int? SenderId { get; set; }
-
-        //[ForeignKey("SenderId")]
-        //public virtual Account Sender { get; set; }
     }
 }

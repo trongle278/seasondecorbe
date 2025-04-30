@@ -496,12 +496,17 @@ namespace BusinessLogicLayer.Services
 
                 string htmlOrderCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{order.OrderCode}</span>";
 
+                string customerUrl = $"http://localhost:3000/user/purchase/{order.Id}&order-code=${order.OrderCode}"; // FE route cho customer
+                string providerUrl = "";       // FE route cho provider
+                string adminUrl = "";             // FE route cho admin
+
                 // 1. Cho Customer
                 await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
                 {
                     AccountId = order.AccountId,
                     Title = "Payment Successful",
-                    Content = $"Your payment for order {htmlOrderCode} has been successfully processed."
+                    Content = $"Your payment for order {htmlOrderCode} has been successfully processed.",
+                    Url = customerUrl
                 });
 
                 // 2. Cho tất cả Provider liên quan
@@ -517,7 +522,8 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = providerId,
                         Title = "Order Paid",
-                        Content = $"An order {htmlOrderCode} has been paid successfully."
+                        Content = $"An order {htmlOrderCode} has been paid successfully by {order.FullName}.",
+                        Url = providerUrl
                     });
                 }
 
@@ -533,7 +539,8 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = adminId,
                         Title = "Revenue Notice",
-                        Content = $"Order {htmlOrderCode} has been paid successfully by a customer."
+                        Content = $"You have been credited with an additional amount in your income.",
+                        Url = adminUrl
                     });
                 }
             }

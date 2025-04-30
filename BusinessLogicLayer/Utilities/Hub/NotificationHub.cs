@@ -81,7 +81,8 @@ namespace BusinessLogicLayer.Utilities.Hub
                               {
                                   notification.Title,
                                   notification.Content,
-                                  notification.NotifiedAt
+                                  notification.NotifiedAt,
+                                  notification.Url
                               });
         }
 
