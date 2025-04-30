@@ -496,7 +496,7 @@ namespace BusinessLogicLayer.Services
 
                 string htmlOrderCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{order.OrderCode}</span>";
 
-                string customerUrl = $"http://localhost:3000/user/purchase/{order.Id}&order-code=${order.OrderCode}"; // FE route cho customer
+                string customerUrl = $"http://localhost:3000/user/purchase/{order.Id}?order-code=${order.OrderCode}"; // FE route cho customer
                 string providerUrl = "";       // FE route cho provider
                 string adminUrl = "";             // FE route cho admin
 

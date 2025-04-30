@@ -548,7 +548,7 @@ namespace BusinessLogicLayer.Services
         <h2>2. SERVICE DETAILS</h2>
         <p>After reaching an agreement on the quotation, the two parties enter into a construction contract with the following terms:</p>
         
-        <p>Party B shall provide decoration services requested by Party A at the following address: {quotation.Booking.Address}</p>
+        {(string.IsNullOrWhiteSpace(quotation.Booking.Note) ? "" : $"<p><strong>Customer Note:</strong> {quotation.Booking.Note}</p>")}
         
         <div class='service-details'>
             <div class='tasks'>
