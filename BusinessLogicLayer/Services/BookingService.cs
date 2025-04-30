@@ -137,6 +137,7 @@ namespace BusinessLogicLayer.Services
                         TotalPrice = booking.TotalPrice,
                         Status = (int)booking.Status,
                         Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
+                        CancelDisable = booking.CancelDisable,
                         CreatedAt = booking.CreateAt,
 
                         DecorService = new DecorServiceDTO
@@ -253,7 +254,8 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     BookingCode = booking.BookingCode,
                     TotalPrice = booking.TotalPrice,
-                    Status = (int)booking.Status,                
+                    Status = (int)booking.Status,
+                    CancelDisable = booking.CancelDisable,
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
                     IsQuoteExisted = booking.Quotations.Any(),
@@ -556,7 +558,7 @@ namespace BusinessLogicLayer.Services
                 }
                 /////------------------------------------------------------------------------------------------
 
-                // 2. Address Validation
+                //Address Validation
                 var address = await _unitOfWork.AddressRepository.GetByIdAsync(request.AddressId);
                 if (address?.AccountId != accountId || address.IsDelete)
                 {
@@ -564,12 +566,12 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // 3. Count Valid Addresses
+                //Count Valid Addresses
                 var validAddresses = await _unitOfWork.AddressRepository.Queryable()
                     .Where(a => a.AccountId == accountId && !a.IsDelete)
                     .CountAsync();
 
-                // 4. Active Booking Check
+                //Active Booking Check
                 var activeBookings = await _unitOfWork.BookingRepository.Queryable()
                     .Where(b => b.AccountId == accountId &&
                               (b.Status == BookingStatus.Pending ||
@@ -585,14 +587,7 @@ namespace BusinessLogicLayer.Services
                                b.Status == BookingStatus.PendingCancel))
                     .ToListAsync();
 
-                //// 5. Booking Limit Enforcement
-                //if (activeBookings.Count >= validAddresses)
-                //{
-                //    response.Message = "You've reached your maximum active bookings limit";
-                //    return response;
-                //}
-
-                // 6. Address Availability Check
+                // Address Availability Check
                 bool isAddressInUse = activeBookings.Any(b => b.AddressId == request.AddressId);
                 if (isAddressInUse)
                 {
@@ -615,13 +610,7 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
                 booking.IsBooked = true;
-                //// 🔹 Cập nhật trạng thái IsBooked cho account
-                //var customerAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
-                //if (customerAccount != null)
-                //{
-                //    customerAccount.IsBooked = true;
-                //    _unitOfWork.AccountRepository.Update(customerAccount);
-                //}
+                booking.CancelDisable = false;
                 await _unitOfWork.CommitAsync();
 
                 var timeSlot = new TimeSlot
@@ -869,6 +858,8 @@ namespace BusinessLogicLayer.Services
 
                         _unitOfWork.AccountRepository.Update(provider);
                     }
+
+                    booking.IsBooked = false;
                     ///---------------------------------------------------------------------------------------
                     break;
             }
@@ -896,6 +887,13 @@ namespace BusinessLogicLayer.Services
                 {
                     response.Success = false;
                     response.Message = "Booking not found.";
+                    return response;
+                }
+
+                if (booking.CancelDisable == true)
+                {
+                    response.Success = false;
+                    response.Message = "This booking can no longer be canceled.";
                     return response;
                 }
 

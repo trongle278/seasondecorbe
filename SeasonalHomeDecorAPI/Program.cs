@@ -62,7 +62,7 @@ builder.Services.AddQuartz(q =>
             .RepeatForever()));
 
     var surveyJobKey = new JobKey("SurveyDateExpiredJob");
-    q.AddJob<SurveyDateExpiredJob>(opts => opts.WithIdentity(surveyJobKey));
+    q.AddJob<BookingCancelDisableJob>(opts => opts.WithIdentity(surveyJobKey));
     q.AddTrigger(opts => opts
         .ForJob(surveyJobKey)
         .WithIdentity("SurveyDateExpiredTrigger")
@@ -76,7 +76,16 @@ builder.Services.AddQuartz(q =>
         .ForJob(decorServiceStatusUpdateJobKey)
         .WithIdentity("DecorServiceStatusUpdateJobTrigger")
         .WithSimpleSchedule(x => x
-            .WithIntervalInSeconds(30) 
+            .WithIntervalInSeconds(30)
+            .RepeatForever()));
+
+    var cancelDisableJobKey = new JobKey("BookingCancelDisableJob");
+    q.AddJob<BookingCancelDisableJob>(opts => opts.WithIdentity(cancelDisableJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(cancelDisableJobKey)
+        .WithIdentity("BookingCancelDisableJobTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(10)
             .RepeatForever()));
 }); 
 
@@ -232,7 +241,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
 builder.Services.AddScoped<AccountCleanupJob>();
-builder.Services.AddScoped<SurveyDateExpiredJob>();
+builder.Services.AddScoped<BookingCancelDisableJob>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IContractService, ContractService>();
@@ -257,6 +266,7 @@ using (var scope = app.Services.CreateScope())
     await scheduler.TriggerJob(new JobKey("AccountCleanupJob"));
     await scheduler.TriggerJob(new JobKey("SurveyDateExpiredJob"));
     await scheduler.TriggerJob(new JobKey("DecorServiceStatusUpdateJob"));
+    await scheduler.TriggerJob(new JobKey("BookingCancelDisableJob"));
 }
 
 // 12. Configure the HTTP request pipeline
