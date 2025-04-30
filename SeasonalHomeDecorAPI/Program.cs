@@ -247,6 +247,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICancelTypeService, CancelTypeService>();
+builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddHttpContextAccessor();
 
 // 11. Build the application

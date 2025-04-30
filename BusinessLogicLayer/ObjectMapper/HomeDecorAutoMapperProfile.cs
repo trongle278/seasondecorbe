@@ -17,6 +17,7 @@ using BusinessLogicLayer.ModelResponse.Payment;
 using BusinessLogicLayer.ModelRequest.Review;
 using BusinessLogicLayer.ModelResponse.Review;
 using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
+using BusinessLogicLayer.Interfaces;
 
 namespace BusinessLogicLayer.ObjectMapper
 {
@@ -39,6 +40,7 @@ namespace BusinessLogicLayer.ObjectMapper
             DecorServiceProfile();
             WalletProfile();
             ReviewProfile();
+            SettingProfile();
         }
 
         private void AccountProfile()
@@ -279,6 +281,12 @@ namespace BusinessLogicLayer.ObjectMapper
                     src.Account.LastName + " " + src.Account.FirstName))
                 .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src =>
                     src.Account.Avatar));
+        }
+
+        private void SettingProfile()
+        {
+            CreateMap<SettingRequest, Setting>();
+            CreateMap<Setting, SettingResponse>();
         }
     }
 }
