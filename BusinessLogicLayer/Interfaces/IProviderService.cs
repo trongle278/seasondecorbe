@@ -21,6 +21,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> RejectProviderAsync(int accountId, string reason);
         Task<BaseResponse<List<PendingProviderResponse>>> GetPendingProviderApplicationListAsync();
         Task<BaseResponse<PendingProviderResponse>> GetPendingProviderByIdAsync(int accountId);
-
+        Task<BaseResponse<SkillsAndStylesResponse>> GetAllSkillsAndStylesAsync();
     }
 }

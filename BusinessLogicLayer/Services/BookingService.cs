@@ -843,15 +843,6 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.Completed:
-                    // ✅ Khi chuyển sang `Completed`, cập nhật EstimatedCompletion cho `Chi Phí Thi công`
-                    //var laborDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                    //    .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Construction Cost");
-
-                    //if (laborDetail != null)
-                    //{
-                    //    laborDetail.EstimatedCompletion = DateTime.Now;
-                    //    _unitOfWork.BookingDetailRepository.Update(laborDetail);
-                    //}
 
                     if (provider != null)
                     {
@@ -866,6 +857,8 @@ namespace BusinessLogicLayer.Services
                     }
 
                     booking.IsBooked = false;
+                    booking.Status = newStatus.Value; // Đảm bảo cập nhật status
+                    _unitOfWork.BookingRepository.Update(booking); // Cập nhật lại booking sau khi thay đổi IsBooked
                     ///---------------------------------------------------------------------------------------
                     break;
             }

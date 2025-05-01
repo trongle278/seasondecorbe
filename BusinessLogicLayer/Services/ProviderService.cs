@@ -104,6 +104,9 @@ namespace BusinessLogicLayer.Services
             {
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Slug == slug && a.ProviderVerified == true)
+                    .Include(a => a.Skill)
+                    .Include(a => a.DecorationStyle)
+                    .Include(a => a.CertificateImages)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
@@ -137,6 +140,7 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
         public async Task<BaseResponse> SendProviderInvitationEmailAsync(string email)
         {
             try
@@ -146,7 +150,7 @@ namespace BusinessLogicLayer.Services
 
                 // Sử dụng đường dẫn tương đối
                 string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "DecoratorInvitationTemplate.html");
-                string body = File.ReadAllText(templatePath);
+                string body = System.IO.File.ReadAllText(templatePath);
 
                 // Thay thế các placeholder
                 body = body.Replace("{registrationLink}", registrationLink)
@@ -610,5 +614,50 @@ namespace BusinessLogicLayer.Services
             };
         }
 
+        public async Task<BaseResponse<SkillsAndStylesResponse>> GetAllSkillsAndStylesAsync()
+        {
+            try
+            {
+                // Sử dụng GenericRepository thông qua UnitOfWork
+                var skills = await _unitOfWork.SkillRepository.Queryable()
+                    .Select(s => new SkillResponse
+                    {
+                        Id = s.Id,
+                        Name = s.Name
+                    })
+                    .ToListAsync();
+
+                var styles = await _unitOfWork.DecorationStyleRepository.Queryable()
+                    .Select(ds => new DecorationStyleResponse
+                    {
+                        Id = ds.Id,
+                        Name = ds.Name
+                    })
+                    .ToListAsync();
+
+                // Tạo response object
+                var response = new SkillsAndStylesResponse
+                {
+                    Skills = skills,
+                    DecorationStyles = styles
+                };
+
+                return new BaseResponse<SkillsAndStylesResponse>
+                {
+                    Success = true,
+                    Message = "Skills and decoration styles retrieved successfully",
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse<SkillsAndStylesResponse>
+                {
+                    Success = false,
+                    Message = "Failed to retrieve skills and decoration styles",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
     }
 }

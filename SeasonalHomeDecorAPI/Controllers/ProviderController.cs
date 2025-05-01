@@ -191,5 +191,15 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(response);
         }
 
+        [HttpGet("getProviderOptions")]
+        public async Task<IActionResult> GetProviderOptions()
+        {
+            var response = await _providerService.GetAllSkillsAndStylesAsync();
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
     }
 }

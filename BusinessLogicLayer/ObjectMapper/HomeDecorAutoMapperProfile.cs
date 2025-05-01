@@ -78,11 +78,19 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<Account, ProviderResponse>()
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.BusinessName))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress))
-                .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus)); ;
+                .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus))
+                
+                .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill.Name))
+                .ForMember(dest => dest.DecorationStyleName, opt => opt.MapFrom(src => src.DecorationStyle.Name))
+                .ForMember(dest => dest.YearsOfExperience, opt => opt.MapFrom(src => src.YearsOfExperience))
+                .ForMember(dest => dest.PastWorkPlaces, opt => opt.MapFrom(src => src.PastWorkPlaces))
+                .ForMember(dest => dest.PastProjects, opt => opt.MapFrom(src => src.PastProjects))
+                .ForMember(dest => dest.CertificateImageUrls, opt =>
+                                    opt.MapFrom(src => src.CertificateImages.Select(ci => ci.ImageUrl)));
 
-            // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
+        // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 
-            CreateMap<BecomeProviderRequest, Account>()
+        CreateMap<BecomeProviderRequest, Account>()
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1));
