@@ -78,7 +78,8 @@ namespace KCP.Service.Service.Pay
             else
             {
                 // URL for web return handling
-                vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}";
+                //vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}";
+                vnp_Returnurl = $"https://seasondecor.azurewebsites.net/api/Payment/return?customerId={vnPayRequest.CustomerId}";
             }
 
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; // URL thanh toan cua VNPAY 
