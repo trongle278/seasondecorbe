@@ -316,7 +316,7 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse
                 {
                     Success = true,
-                    Message = "Provider profile created successfully"
+                    Message = "Your application is waiting to approve"
                 };
             }
             catch (Exception ex)
