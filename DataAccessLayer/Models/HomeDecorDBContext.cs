@@ -73,6 +73,8 @@ namespace DataAccessObject.Models
         public DbSet<TrackingImage> TrackingImages { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<ProductDetail> ProductDetails { get; set; }
+        public DbSet<ApplicationHistory> ApplicationHistories { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -519,6 +521,22 @@ namespace DataAccessObject.Models
                 new Subscription { Id = 1, Name = "Silver", Price = 100000, Duration = 30, AutoRenew = false, VoucherCount = 10, FreeRequestChange = 3, PrioritySupport = false, CommissionDiscount = 1.5, Status = Subscription.SubscriptionStatus.Unsubcribed },
                 new Subscription { Id = 2, Name = "Gold", Price = 200000, Duration = 30, AutoRenew = false, VoucherCount = 20, FreeRequestChange = 5, PrioritySupport = true, CommissionDiscount = 3.25, Status = Subscription.SubscriptionStatus.Unsubcribed },
                 new Subscription { Id = 3, Name = "Platinum", Price = 500000, Duration = 30, AutoRenew = false, VoucherCount = 40, FreeRequestChange = 10, PrioritySupport = true, CommissionDiscount = 6.5, Status = Subscription.SubscriptionStatus.Unsubcribed }
+            );
+
+            modelBuilder.Entity<Skill>().HasData(
+                new Skill { Id = 1, Name = "Lighting Decoration" },
+                new Skill { Id = 2, Name = "Space Decoration" },
+                new Skill { Id = 3, Name = "Art Decoration" },
+                new Skill { Id = 4, Name = "Event Decoration" },
+                new Skill { Id = 5, Name = "Eco-friendly Decoration" }
+            );
+
+            modelBuilder.Entity<DecorationStyle>().HasData(
+                new DecorationStyle { Id = 1, Name = "Modern" },
+                new DecorationStyle { Id = 2, Name = "Traditional" },
+                new DecorationStyle { Id = 3, Name = "Coastal" },
+                new DecorationStyle { Id = 4, Name = "Scandinavian" },
+                new DecorationStyle { Id = 5, Name = "Industrial" }
             );
         }
     }

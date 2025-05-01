@@ -7,9 +7,11 @@ using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
+using static System.Net.WebRequestMethods;
 
 namespace BusinessLogicLayer.Services
 {
@@ -19,13 +21,15 @@ namespace BusinessLogicLayer.Services
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly ICloudinaryService _cloudinaryService; // Use CloudinaryService
+        private readonly INotificationService _notificationService;
 
-        public ProviderService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, ICloudinaryService cloudinaryService)
+        public ProviderService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, ICloudinaryService cloudinaryService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
+            _notificationService = notificationService;
         }
 
         public async Task<BaseResponse> GetAllProvidersAsync()
@@ -179,7 +183,7 @@ namespace BusinessLogicLayer.Services
                     return new BaseResponse
                     {
                         Success = false,
-                        Errors = new List<string> { "Account not found" }
+                        Errors = new List<string> { "Account not found." }
                     };
                 }
 
@@ -188,21 +192,122 @@ namespace BusinessLogicLayer.Services
                     return new BaseResponse
                     {
                         Success = false,
-                        Errors = new List<string> { "You are already registered as a provider" }
+                        Errors = new List<string> { "You are already registered as a provider." }
+                    };
+                }
+
+                if (request.CertificateImages != null && request.CertificateImages.Count > 5)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "You can upload up to 5 certificate images only." }
+                    };
+                }
+
+                if (request.CertificateImages == null || request.CertificateImages.Count == 0)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "At least one certificate image is required." }
+                    };
+                }
+
+                var skillExists = await _unitOfWork.SkillRepository.AnyAsync(s => s.Id == request.SkillId);
+                if (!skillExists)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Skill not found." }
+                    };
+                }
+
+                var styleExists = await _unitOfWork.DecorationStyleRepository.AnyAsync(s => s.Id == request.DecorationStyleId);
+                if (!styleExists)
+                {
+                    return new BaseResponse
+                    {
+                        Success = false,
+                        Errors = new List<string> { "Decoration style not found." }
                     };
                 }
 
                 // Cập nhật tài khoản thành provider
-                account.IsProvider = true;
-                account.ProviderVerified = true;
+                //account.IsProvider = false;
+                //account.RoleId = 2;
+                account.ProviderVerified = false;
                 account.BusinessName = request.Name;
                 account.Bio = request.Bio;
                 account.Phone = request.Phone;
                 account.BusinessAddress = request.Address;
-                account.RoleId = 2;
+
+                account.YearsOfExperience = request.YearsOfExperience;
+                account.PastWorkPlaces = request.PastWorkPlaces;
+                account.PastProjects = request.PastProjects;
+                account.SkillId = request.SkillId;
+                account.DecorationStyleId = request.DecorationStyleId;
+               
 
                 _unitOfWork.AccountRepository.Update(account);
+
+                // Upload ảnh chứng chỉ
+                foreach (var image in request.CertificateImages)
+                {
+                    try
+                    {
+                        // Convert IFormFile to Stream
+                        using (var stream = image.OpenReadStream())  // IFormFile -> Stream
+                        {
+                            var fileName = $"{Guid.NewGuid()}.jpg"; // Or use the original name if preferred
+                            var imageUrl = await _cloudinaryService.UploadFileAsync(stream, fileName, "certificate-images");
+
+                            var certificate = new CertificateImage
+                            {
+                                AccountId = account.Id,
+                                ImageUrl = imageUrl,
+                            };
+                            await _unitOfWork.CertificateImageRepository.InsertAsync(certificate);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return new BaseResponse
+                        {
+                            Success = false,
+                            Errors = new List<string> { $"Failed to upload certificate image: {ex.Message}" }
+                        };
+                    }
+                }
+
                 await _unitOfWork.CommitAsync();
+
+                // Gửi thông báo cho user
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = accountId,
+                    Title = "Provider Application Submitted",
+                    Content = "Your provider application has been submitted and waited for approve.",
+                    Url = null // URL đến trang xem đơn
+                });
+
+                // Gửi thông báo cho admin
+                var adminIds = await _unitOfWork.AccountRepository
+                    .Query(a => a.RoleId == 1) // role 1 là admin
+                    .Select(a => a.Id)
+                    .ToListAsync();
+
+                foreach (var adminId in adminIds)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = adminId,
+                        Title = "New Provider Application",
+                        Content = $"New provider application needs review.",
+                        Url = "http://localhost:3000/admin/manage/application/"
+                    });
+                }
 
                 return new BaseResponse
                 {
@@ -278,7 +383,7 @@ namespace BusinessLogicLayer.Services
                         Errors = new List<string> { "Account not found" }
                     };
                 }
-                
+
                 if (account.IsProvider == null)
                 {
                     return new BaseResponse
@@ -309,5 +414,201 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
+        //---------------------------------------------------------------------------------------
+        public async Task<BaseResponse> ApproveProviderAsync(int accountId)
+        {
+            var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+
+            if (account == null)
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Account not found"
+                };
+
+            if (account.ProviderVerified == true)
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Account is not awaiting approval"
+                };
+
+            account.ProviderVerified = true;
+            account.IsProvider = true;
+            account.RoleId = 2; // Gán role Provider
+
+            _unitOfWork.AccountRepository.Update(account);
+            await _unitOfWork.CommitAsync();
+
+            // Gửi thông báo cho provider
+            await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+            {
+                AccountId = accountId,
+                Title = "Provider Application Approved",
+                Content = "Congratulations! You now have become a provider.",
+                Url = null
+            });
+
+            return new BaseResponse 
+            { 
+                Success = true, 
+                Message = "Provider approved successfully" 
+            };
+        }
+
+        public async Task<BaseResponse> RejectProviderAsync(int accountId, string reason)
+        {
+            var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+
+            if (account == null)
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Account not found"
+                };
+
+            if (account.ProviderVerified == true)
+                return new BaseResponse
+                {
+                    Success = false,
+                    Message = "Account is not in a pending provider state"
+                };
+
+            // Hủy trạng thái provider và reset lại thông tin
+            account.IsProvider = null;
+            account.ProviderVerified = null;
+            account.BusinessName = null;
+            account.Bio = null;
+            account.Phone = null;
+            account.BusinessAddress = null;
+
+            account.YearsOfExperience = null;
+            account.PastWorkPlaces = null;
+            account.PastProjects = null;
+            account.SkillId = null;
+            account.DecorationStyleId = null;
+
+            // Lấy tất cả ảnh chứng chỉ và xóa
+            var certificates = await _unitOfWork.CertificateImageRepository
+                .Query(c => c.AccountId == accountId)
+                .ToListAsync();
+
+            if (certificates != null && certificates.Any())
+            {
+                _unitOfWork.CertificateImageRepository.RemoveRange(certificates); // Xóa tất cả ảnh chứng chỉ
+            }
+
+            // Cập nhật thông tin Account
+            _unitOfWork.AccountRepository.Update(account);
+
+            // Lưu thông tin từ chối vào ApplicationHistory
+            var rejection = new ApplicationHistory
+            {
+                AccountId = accountId,
+                Reason = reason,
+                RejectedAt = DateTime.Now,
+            };
+
+            await _unitOfWork.ApplicationHistoryRepository.InsertAsync(rejection);
+            await _unitOfWork.CommitAsync();
+
+            // Gửi thông báo cho provider
+            await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+            {
+                AccountId = accountId,
+                Title = "Provider Application Rejected",
+                Content = $"Your provider application was rejected.",
+                Url = null
+            });
+
+            return new BaseResponse
+            {
+                Success = true,
+                Message = $"Provider registration has been rejected and related certificates deleted."
+            };
+        }
+
+
+        public async Task<BaseResponse<List<PendingProviderResponse>>> GetPendingProviderApplicationListAsync()
+        {
+            var pendingAccounts = await _unitOfWork.AccountRepository
+                .Query(a => a.ProviderVerified == false)
+                .Include(a => a.Skill)  // Lấy kỹ năng của provider
+                .Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
+                .Include(a => a.CertificateImages)
+                .ToListAsync();
+
+            var response = pendingAccounts.Select(a => new PendingProviderResponse
+            {
+                AccountId = a.Id,
+                Email = a.Email,
+                FullName = $"{a.LastName} {a.FirstName}",
+                Phone = a.Phone,
+                BusinessName = a.BusinessName,
+                Bio = a.Bio,
+                BusinessAddress = a.BusinessAddress,
+
+                SkillName = a.Skill?.Name,
+                DecorationStyleName = a.DecorationStyle?.Name, 
+                YearsOfExperience = a.YearsOfExperience,
+                PastWorkPlaces = a.PastWorkPlaces,
+                PastProjects = a.PastProjects,
+                CertificateImageUrls = a.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new List<string>()
+
+            }).ToList();
+
+            return new BaseResponse<List<PendingProviderResponse>>
+            {
+                Success = true,
+                Message = "Pending provider applications retrieved successfully",
+                Data = response
+            };
+        }
+
+        public async Task<BaseResponse<PendingProviderResponse>> GetPendingProviderByIdAsync(int accountId)
+        {
+            var account = await _unitOfWork.AccountRepository
+                .Query(a => a.Id == accountId && a.ProviderVerified == false)
+                .Include(a => a.Skill)  // Lấy kỹ năng của provider
+                .Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
+                .Include(a => a.CertificateImages)
+                .FirstOrDefaultAsync();
+
+            if (account == null)
+            {
+                return new BaseResponse<PendingProviderResponse>
+                {
+                    Success = false,
+                    Message = "Pending provider not found"
+                };
+            }
+
+            var response = new PendingProviderResponse
+            {
+                AccountId = account.Id,
+                Email = account.Email,
+                FullName = $"{account.LastName} {account.FirstName}",
+                Phone = account.Phone,
+                BusinessName = account.BusinessName,
+                Bio = account.Bio,
+                BusinessAddress = account.BusinessAddress,
+
+                SkillName = account.Skill?.Name,
+                DecorationStyleName = account.DecorationStyle?.Name,
+                YearsOfExperience = account.YearsOfExperience,
+                PastWorkPlaces = account.PastWorkPlaces,
+                PastProjects = account.PastProjects,
+                CertificateImageUrls = account.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new List<string>()
+            };
+
+            return new BaseResponse<PendingProviderResponse>
+            {
+                Success = true,
+                Message = "Pending provider retrieved successfully",
+                Data = response
+            };
+        }
+
     }
 }

@@ -17,5 +17,10 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> CreateProviderProfileAsync(int accountId, BecomeProviderRequest request);
         Task<BaseResponse> UpdateProviderProfileByAccountIdAsync(int accountId, UpdateProviderRequest request);
         Task<BaseResponse> ChangeProviderStatusByAccountIdAsync(int accountId, bool isProvider);
+        Task<BaseResponse> ApproveProviderAsync(int accountId);
+        Task<BaseResponse> RejectProviderAsync(int accountId, string reason);
+        Task<BaseResponse<List<PendingProviderResponse>>> GetPendingProviderApplicationListAsync();
+        Task<BaseResponse<PendingProviderResponse>> GetPendingProviderByIdAsync(int accountId);
+
     }
 }

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace BusinessLogicLayer.ModelRequest
 {
@@ -24,6 +25,23 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
+        
+        [Required(ErrorMessage = "YearsOfExperience is required")]
+        public int? YearsOfExperience { get; set; }       //Kinh nghiệm 
+        
+        [Required(ErrorMessage = "PastWorkPlaces is required")]
+        public string? PastWorkPlaces { get; set; }      // Đã từng hoạt động ở đâu?
+        
+        [Required(ErrorMessage = "PastProjects is required")]
+        public string? PastProjects { get; set; }        // Các dự án đã từng làm
+        
+        [Required(ErrorMessage = "SkillId is required")]
+        public int SkillId { get; set; }
+
+        [Required(ErrorMessage = "DecorationStyleId is required")]
+        public int DecorationStyleId { get; set; }
+
+        public List<IFormFile> CertificateImages { get; set; }
     }
 
     public class UpdateProviderRequest

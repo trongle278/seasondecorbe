@@ -53,6 +53,10 @@ namespace Repository.UnitOfWork
         ITicketAttachmentRepository TicketAttachmentRepository { get; }
         ITicketReplyRepository TicketReplyRepository { get; }
         ITrackingImageRepository TrackingImageRepository { get; }
+        IApplicationHistoryRepository ApplicationHistoryRepository { get; }
+        ISkillRepository SkillRepository { get; }
+        IDecorationStyleRepository DecorationStyleRepository { get; }
+        ICertificateImageRepository CertificateImageRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

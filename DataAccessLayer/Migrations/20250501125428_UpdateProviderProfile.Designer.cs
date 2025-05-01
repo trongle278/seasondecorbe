@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250501125428_UpdateProviderProfile")]
+    partial class UpdateProviderProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -468,9 +471,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsValid")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
@@ -792,33 +792,6 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DecorationStyle");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Modern"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Traditional"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Coastal"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Scandinavian"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Industrial"
-                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
@@ -1628,33 +1601,6 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Skill");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Lighting Decoration"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Space Decoration"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Art Decoration"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Event Decoration"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Eco-friendly Decoration"
-                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
