@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250501130104_SeedingSkillNDecorationStyle")]
+    partial class SeedingSkillNDecorationStyle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -467,9 +470,6 @@ namespace DataAccessObject.Migrations
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsValid")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1094,9 +1094,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool?>("IsReviewed")
-                        .HasColumnType("bit");
-
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
@@ -1668,8 +1665,17 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AutoRenew")
+                        .HasColumnType("bit");
+
                     b.Property<double>("CommissionDiscount")
                         .HasColumnType("float");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("FreeRequestChange")
                         .HasColumnType("int");
@@ -1678,11 +1684,20 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("PrioritySupport")
                         .HasColumnType("bit");
 
-                    b.Property<decimal>("RequiredSpending")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoucherCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1692,38 +1707,41 @@ namespace DataAccessObject.Migrations
                         new
                         {
                             Id = 1,
-                            CommissionDiscount = 0.0,
-                            FreeRequestChange = 0,
+                            AutoRenew = false,
+                            CommissionDiscount = 1.5,
+                            Duration = 30,
+                            FreeRequestChange = 3,
                             Name = "Silver",
+                            Price = 100000m,
                             PrioritySupport = false,
-                            RequiredSpending = 0m
+                            Status = 1,
+                            VoucherCount = 10
                         },
                         new
                         {
                             Id = 2,
-                            CommissionDiscount = 0.20000000000000001,
-                            FreeRequestChange = 1,
-                            Name = "Silver",
-                            PrioritySupport = false,
-                            RequiredSpending = 1m
+                            AutoRenew = false,
+                            CommissionDiscount = 3.25,
+                            Duration = 30,
+                            FreeRequestChange = 5,
+                            Name = "Gold",
+                            Price = 200000m,
+                            PrioritySupport = true,
+                            Status = 1,
+                            VoucherCount = 20
                         },
                         new
                         {
                             Id = 3,
-                            CommissionDiscount = 0.5,
-                            FreeRequestChange = 2,
-                            Name = "Gold",
-                            PrioritySupport = true,
-                            RequiredSpending = 20000000m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CommissionDiscount = 1.0,
-                            FreeRequestChange = 5,
+                            AutoRenew = false,
+                            CommissionDiscount = 6.5,
+                            Duration = 30,
+                            FreeRequestChange = 10,
                             Name = "Platinum",
+                            Price = 500000m,
                             PrioritySupport = true,
-                            RequiredSpending = 60000000m
+                            Status = 1,
+                            VoucherCount = 40
                         });
                 });
 

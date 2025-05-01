@@ -206,5 +206,11 @@ namespace Repository.GenericRepository
             }
             _context.Set<T>().Remove(entity);
         }
+
+        //---------------------
+        public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().AnyAsync(predicate);
+        }
     }
 }
