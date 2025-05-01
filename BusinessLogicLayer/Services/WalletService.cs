@@ -74,7 +74,8 @@ namespace BusinessLogicLayer.Services
             {
                 var wallet = await _unitOfWork.WalletRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(x => x.AccountId == accountId);
+                    .Where(x => x.AccountId == accountId)
+                    .FirstOrDefaultAsync();
 
                 if (wallet == null)
                 {
@@ -110,7 +111,8 @@ namespace BusinessLogicLayer.Services
             {
                 var wallet = await _unitOfWork.WalletRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(x => x.AccountId == accountId);
+                    .Where(x => x.AccountId == accountId)
+                    .FirstOrDefaultAsync();
 
                 if (wallet == null)
                 {

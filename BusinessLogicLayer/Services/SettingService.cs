@@ -81,7 +81,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var setting = await _unitOfWork.SettingRepository.Queryable()
-                                                .FirstOrDefaultAsync(s => s.Id == id);
+                                                .Where(s => s.Id == id)
+                                                .FirstOrDefaultAsync();
 
                 if (setting == null)
                 {
@@ -109,7 +110,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var setting = await _unitOfWork.SettingRepository.Queryable()
-                                                .FirstOrDefaultAsync(s => s.Id == id);
+                                                .Where(s => s.Id == id)
+                                                .FirstOrDefaultAsync();
 
                 if (setting == null)
                 {

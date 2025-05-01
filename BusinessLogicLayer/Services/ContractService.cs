@@ -47,7 +47,8 @@ namespace BusinessLogicLayer.Services
                 .Queryable()
                 .Include(c => c.Quotation.Booking.Account)
                 .Include(c => c.Quotation.Booking.DecorService.Account)
-                .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+                .Where(c => c.ContractCode == contractCode)
+                .FirstOrDefaultAsync();
 
             if (contract == null)
             {
@@ -76,7 +77,8 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.TimeSlots)
                     .Include(q => q.LaborDetails)//thêm data vào pdf
                     .Include(q => q.MaterialDetails)//thêm data vào pdf
-                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
+                    .Where(q => q.QuotationCode == quotationCode)
+                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -86,7 +88,8 @@ namespace BusinessLogicLayer.Services
 
                 var existingContract = await _unitOfWork.ContractRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+                    .Where(c => c.QuotationId == quotation.Id)
+                    .FirstOrDefaultAsync();
 
                 if (existingContract != null)
                 {
@@ -203,7 +206,8 @@ namespace BusinessLogicLayer.Services
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
                     .Include(c => c.Quotation.Booking.Account)
-                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+                    .Where(c => c.ContractCode == contractCode)
+                    .FirstOrDefaultAsync();
 
                 if (contract == null)
                 {
@@ -263,7 +267,8 @@ namespace BusinessLogicLayer.Services
                     .Queryable()
                     .Include(c => c.Quotation)
                     .ThenInclude(q => q.Booking)
-                    .FirstOrDefaultAsync(c => c.SignatureToken == signatureToken);
+                    .Where(c => c.SignatureToken == signatureToken)
+                    .FirstOrDefaultAsync();
 
                 if (contract == null)
                 {
@@ -327,7 +332,8 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.Account) // Customer
                     .Include(q => q.Booking.DecorService)
                         .ThenInclude(ds => ds.Account) // Provider
-                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode);
+                    .Where(q => q.QuotationCode == quotationCode)
+                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -338,7 +344,8 @@ namespace BusinessLogicLayer.Services
                 // Lấy Contract
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
-                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+                    .Where(c => c.QuotationId == quotation.Id)
+                    .FirstOrDefaultAsync();
 
                 if (contract == null)
                 {

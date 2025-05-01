@@ -124,7 +124,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var service = await _unitOfWork.DecorServiceRepository.Queryable()
-                                                .FirstOrDefaultAsync(s => s.Id  == serviceId);
+                                                .Where(s => s.Id == serviceId)
+                                                .FirstOrDefaultAsync();
 
                 if (service == null)
                 {
@@ -193,8 +194,9 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<ReviewPageResult>();
             try
             {
-                var product = await _unitOfWork.DecorServiceRepository.Queryable()
-                                                .FirstOrDefaultAsync(p => p.Id == productId);
+                var product = await _unitOfWork.ProductRepository.Queryable()
+                                                .Where(p => p.Id == productId)
+                                                .FirstOrDefaultAsync();
 
                 if (product == null)
                 {
@@ -292,7 +294,8 @@ namespace BusinessLogicLayer.Services
                 var order = await _unitOfWork.OrderRepository.Queryable()
                                             .Where(o => o.AccountId == accountId && o.Id == request.OrderId && o.Status == Order.OrderStatus.Paid)
                                             .Include(o => o.OrderDetails)
-                                            .FirstOrDefaultAsync(o => o.OrderDetails.Any(od => od.ProductId == request.ProductId));
+                                            .Where(o => o.OrderDetails.Any(od => od.ProductId == request.ProductId))
+                                            .FirstOrDefaultAsync();
 
                 if (order == null)
                 {

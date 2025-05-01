@@ -114,7 +114,8 @@ namespace BusinessLogicLayer.Services
         {
             var notification = await _unitOfWork.NotificationRepository
                 .Queryable()
-                .FirstOrDefaultAsync(n => n.Id == notificationId); // Tìm thông báo theo ID
+                .Where(n => n.Id == notificationId) // Tìm thông báo theo ID
+                .FirstOrDefaultAsync();
 
             if (notification == null)
             {

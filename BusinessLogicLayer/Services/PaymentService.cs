@@ -39,11 +39,13 @@ namespace BusinessLogicLayer.Services
                     // 🔹 Lấy thông tin ví khách hàng & provider
                     var cusAccount = _unitOfWork.AccountRepository.Queryable()
                         .Include(x => x.Wallet)
-                        .FirstOrDefault(x => x.Id == customerId);
+                        .Where(x => x.Id == customerId)
+                        .FirstOrDefault();
 
                     var providerAccount = _unitOfWork.AccountRepository.Queryable()
                         .Include(x => x.Wallet)
-                        .FirstOrDefault(x => x.Id == providerId);
+                        .Where(x => x.Id == providerId)
+                        .FirstOrDefault();
 
                     if (cusAccount?.Wallet == null || providerAccount?.Wallet == null)
                     {
@@ -125,7 +127,8 @@ namespace BusinessLogicLayer.Services
                     // Lấy thông tin ví
                     var account = _unitOfWork.AccountRepository.Queryable()
                         .Include(x => x.Wallet)
-                        .FirstOrDefault(x => x.Id == accountId);
+                        .Where(x => x.Id == accountId)
+                        .FirstOrDefault();
 
                     if (account?.Wallet == null)
                     {
@@ -178,9 +181,11 @@ namespace BusinessLogicLayer.Services
                 {
                     // Lấy thông tin ví khách hàng và Admin
                     var cusWallet = _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefault(x => x.AccountId == accountId);
+                        .Where(x => x.AccountId == accountId)
+                        .FirstOrDefault();
                     var adminWallet = _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefault(x => x.AccountId == adminId);
+                        .Where(x => x.AccountId == adminId)
+                        .FirstOrDefault();
 
                     if (cusWallet == null || adminWallet == null)
                     {
@@ -255,11 +260,14 @@ namespace BusinessLogicLayer.Services
                 try
                 {
                     var cusWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefaultAsync(x => x.AccountId == accountId);
+                        .Where(x => x.AccountId == accountId)
+                        .FirstOrDefaultAsync();
                     var providerWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefaultAsync(x => x.AccountId == providerId);
+                        .Where(x => x.AccountId == providerId)
+                        .FirstOrDefaultAsync();
                     var adminWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefaultAsync(x => x.AccountId == 1);
+                        .Where(x => x.AccountId == 1)
+                        .FirstOrDefaultAsync();
 
                     if (cusWallet == null || providerWallet == null || adminWallet == null)
                         throw new Exception("Ví không tồn tại.");
@@ -360,13 +368,16 @@ namespace BusinessLogicLayer.Services
                 try
                 {
                     var customerWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefaultAsync(x => x.AccountId == customerId);
+                        .Where(x => x.AccountId == customerId)
+                        .FirstOrDefaultAsync();
 
                     var providerWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefaultAsync(x => x.AccountId == providerId);
+                        .Where(x => x.AccountId == providerId)
+                        .FirstOrDefaultAsync();
 
                     var adminWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .FirstOrDefaultAsync(x => x.AccountId == 1);
+                        .Where(x => x.AccountId == 1)
+                        .FirstOrDefaultAsync();
 
                     if (customerWallet == null || providerWallet == null || adminWallet == null)
                         throw new Exception("Ví không tồn tại.");
@@ -472,7 +483,8 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.Address)
                     .Include(c => c.Quotation.Booking.Account)
                     .Include(c => c.Quotation.Booking.DecorService.Account)
-                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+                    .Where(c => c.ContractCode == contractCode)
+                    .FirstOrDefaultAsync();
 
                 if (contract == null)
                 {
@@ -531,7 +543,8 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(ds => ds.Account)
                     .Include(b => b.Quotations)
                         .ThenInclude(q => q.Contract)
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {

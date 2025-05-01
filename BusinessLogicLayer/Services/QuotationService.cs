@@ -298,8 +298,9 @@ namespace BusinessLogicLayer.Services
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                                                 .Include(q => q.ProductDetails)
-                                                .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode &&
-                                                                    q.Status == Quotation.QuotationStatus.Pending);
+                                                .Where(q => q.QuotationCode == quotationCode &&
+                                                                    q.Status == Quotation.QuotationStatus.Pending)
+                                                .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -309,7 +310,8 @@ namespace BusinessLogicLayer.Services
 
                 var product = await _unitOfWork.ProductRepository.Queryable()
                                                 .Include(p => p.ProductImages)
-                                                .FirstOrDefaultAsync(p => p.Id == productId);
+                                                .Where(p => p.Id == productId)
+                                                .FirstOrDefaultAsync();
 
                 if (product == null)
                 {
@@ -330,7 +332,9 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var productDetail = quotation.ProductDetails.FirstOrDefault(pd => pd.ProductId == productId);
+                var productDetail = quotation.ProductDetails
+                                            .Where(pd => pd.ProductId == productId)
+                                            .FirstOrDefault();
 
                 decimal unitPrice = product.ProductPrice;
 
@@ -407,8 +411,9 @@ namespace BusinessLogicLayer.Services
                 var quotation = await _unitOfWork.QuotationRepository
                                     .Queryable()
                                     .Include(q => q.ProductDetails)
-                                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode &&
-                                                              q.Status == Quotation.QuotationStatus.Pending);
+                                    .Where(q => q.QuotationCode == quotationCode &&
+                                                              q.Status == Quotation.QuotationStatus.Pending)
+                                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -464,7 +469,8 @@ namespace BusinessLogicLayer.Services
                 // Tìm quotation theo mã
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.Booking)
-                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending);
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending)
+                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -909,7 +915,8 @@ namespace BusinessLogicLayer.Services
                                                 .Include(q => q.Booking)
                                                     .ThenInclude(b => b.DecorService)
                                                     .ThenInclude(ds => ds.Account)
-                                                    .FirstOrDefaultAsync(q => q.QuotationCode == request.QuotationCode);
+                                                    .Where(q => q.QuotationCode == request.QuotationCode)
+                                                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {

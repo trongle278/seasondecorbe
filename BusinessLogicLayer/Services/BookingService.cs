@@ -404,7 +404,8 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.TimeSlots) // Survey times
                     .Include(b => b.Address) // Address
                     .Include(b => b.BookingDetails) // Booking details
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -504,7 +505,8 @@ namespace BusinessLogicLayer.Services
             {
                 // 1. Service Availability Check
                 var decorService = await _unitOfWork.DecorServiceRepository.Queryable()
-                    .FirstOrDefaultAsync(ds => ds.Id == request.DecorServiceId);
+                    .Where(ds => ds.Id == request.DecorServiceId)
+                    .FirstOrDefaultAsync();
 
                 if (decorService == null)
                 {
@@ -522,7 +524,8 @@ namespace BusinessLogicLayer.Services
                 /////------------------------------------------------------------------------------------------
                 // 🔹 Kiểm tra provider
                 var provider = await _unitOfWork.AccountRepository.Queryable()
-                    .FirstOrDefaultAsync(acc => acc.Id == decorService.AccountId);
+                    .Where(acc => acc.Id == decorService.AccountId)
+                    .FirstOrDefaultAsync();
 
                 if (provider == null)
                 {
@@ -642,7 +645,8 @@ namespace BusinessLogicLayer.Services
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                     .Include(b => b.TimeSlots)
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.AccountId == accountId);
+                    .Where(b => b.BookingCode == bookingCode && b.AccountId == accountId)
+                    .FirstOrDefaultAsync();
 
                 //// Kiểm tra nếu là thành viên và còn lượt đổi miễn phí
                 //var customer = await _unitOfWork.AccountRepository
@@ -724,7 +728,8 @@ namespace BusinessLogicLayer.Services
             
             var booking = await _unitOfWork.BookingRepository.Queryable()
                 .Include(b => b.DecorService)// thêm Decorservice để set trạng thái dịch vụ
-                .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                .Where(b => b.BookingCode == bookingCode)
+                .FirstOrDefaultAsync();
 
             if (booking == null)
             {
@@ -785,7 +790,8 @@ namespace BusinessLogicLayer.Services
 
                 case Booking.BookingStatus.Contracting:
                     var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                        .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+                        .Where(q => q.BookingId == booking.Id)
+                        .FirstOrDefaultAsync();
 
                     if (quotation == null || quotation.Status != Quotation.QuotationStatus.Confirmed)
                     {
@@ -881,7 +887,8 @@ namespace BusinessLogicLayer.Services
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                         .Include(b => b.DecorService) // Thêm include để cập nhật trạng thái DecorService
-                        .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                        .Where(b => b.BookingCode == bookingCode)
+                        .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -967,7 +974,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -976,7 +984,8 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var service = await _unitOfWork.DecorServiceRepository.Queryable()
-                    .FirstOrDefaultAsync(ds => ds.Id == booking.DecorServiceId);
+                    .Where(ds => ds.Id == booking.DecorServiceId)
+                    .FirstOrDefaultAsync();
 
                 if (service == null || service.AccountId != providerId)
                 {
@@ -1021,7 +1030,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -1065,7 +1075,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -1074,7 +1085,8 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var service = await _unitOfWork.DecorServiceRepository.Queryable()
-                    .FirstOrDefaultAsync(ds => ds.Id == booking.DecorServiceId);
+                    .Where(ds => ds.Id == booking.DecorServiceId)
+                    .FirstOrDefaultAsync();
 
                 if (service == null || service.AccountId != accountId)
                 {
@@ -1114,7 +1126,8 @@ namespace BusinessLogicLayer.Services
             {
                 // 🔹 Lấy thông tin booking
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -1129,7 +1142,8 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Lấy báo giá của booking
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+                    .Where(q => q.BookingId == booking.Id)
+                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -1139,7 +1153,8 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Lấy contract liên quan đến booking thông qua quotation
                 var contract = await _unitOfWork.ContractRepository.Queryable()
-                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+                    .Where(c => c.QuotationId == quotation.Id)
+                    .FirstOrDefaultAsync();
 
                 if (contract == null)
                 {
@@ -1210,7 +1225,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -1245,7 +1261,8 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Lấy Quotation trước (vì Contract liên kết với Quotation)
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id);
+                    .Where(q => q.BookingId == booking.Id)
+                    .FirstOrDefaultAsync();
 
                 if (quotation == null)
                 {
@@ -1255,7 +1272,8 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Lấy Contract theo QuotationId
                 var contract = await _unitOfWork.ContractRepository.Queryable()
-                    .FirstOrDefaultAsync(c => c.QuotationId == quotation.Id);
+                    .Where(c => c.QuotationId == quotation.Id)
+                    .FirstOrDefaultAsync();
 
                 if (contract == null)
                 {

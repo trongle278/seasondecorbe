@@ -84,7 +84,8 @@ namespace BusinessLogicLayer.Services
             {
                 // 🔹 Lấy Booking theo BookingCode
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+                    .Where(b => b.BookingCode == bookingCode)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null)
                 {
@@ -173,7 +174,8 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Load Tracking + hình ảnh
                 var tracking = await _unitOfWork.TrackingRepository.Queryable()
                     .Include(t => t.TrackingImages)
-                    .FirstOrDefaultAsync(t => t.Id == trackingId);
+                    .Where(t => t.Id == trackingId)
+                    .FirstOrDefaultAsync();
 
                 if (tracking == null)
                 {
@@ -183,7 +185,8 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Kiểm tra Booking còn trong trạng thái Progressing
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .FirstOrDefaultAsync(b => b.Id == tracking.BookingId);
+                    .Where(b => b.Id == tracking.BookingId)
+                    .FirstOrDefaultAsync();
 
                 if (booking == null || booking.Status != Booking.BookingStatus.Progressing)
                 {
@@ -219,7 +222,9 @@ namespace BusinessLogicLayer.Services
                             var imageId = request.ImageIds[i];
                             var imageFile = request.Images[i];
 
-                            var imageToUpdate = tracking.TrackingImages.FirstOrDefault(x => x.Id == imageId);
+                            var imageToUpdate = tracking.TrackingImages
+                                                .Where(x => x.Id == imageId)
+                                                .FirstOrDefault();
                             if (imageToUpdate != null)
                             {
                                 using var stream = imageFile.OpenReadStream();
@@ -289,7 +294,8 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Lấy tracking
                 var tracking = await _unitOfWork.TrackingRepository.Queryable()
                     .Include(t => t.TrackingImages)
-                    .FirstOrDefaultAsync(t => t.Id == trackingId);
+                    .Where(t => t.Id == trackingId)
+                    .FirstOrDefaultAsync();
 
                 if (tracking == null)
                 {
