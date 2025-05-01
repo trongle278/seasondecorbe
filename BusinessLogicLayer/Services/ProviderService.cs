@@ -191,7 +191,7 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                if (account.IsProvider == true)
+                if (account.ProviderVerified == true)
                 {
                     return new BaseResponse
                     {
