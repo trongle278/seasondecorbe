@@ -15,6 +15,7 @@ using System.Drawing;
 using static DataAccessObject.Models.Booking;
 using Nest;
 using static System.Net.WebRequestMethods;
+using Quartz.Impl.AdoJobStore.Common;
 //http://localhost:3000/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
 
 namespace BusinessLogicLayer.Services
@@ -629,6 +630,16 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
                 await _unitOfWork.CommitAsync();
 
+                // Thông báo cho Provider
+                string boldStyle = $"<span style='font-weight:bold;'>#{decorService.Style}</span>";
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = provider.Id,  // Gửi thông báo cho provider
+                    Title = "New Booking Request",
+                    Content = $"You have a new booking request for service {boldStyle}",
+                    Url = $"http://localhost:3000/seller/request"
+                });
+
                 response.Success = true;
                 response.Message = "Booking created successfully";
                 response.Data = booking;
@@ -713,6 +724,22 @@ namespace BusinessLogicLayer.Services
 
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
+
+                var provider = await _unitOfWork.AccountRepository.Queryable()
+                    .Where(acc => acc.Id == booking.DecorService.AccountId)
+                    .FirstOrDefaultAsync();
+
+                if (provider != null)
+                {
+                    string colorBookingCode = $"<span style='font-weight:bold;'>#{bookingCode}</span>";
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = provider.Id,  // Gửi thông báo cho provider
+                        Title = "Booking Updated",
+                        Content = $"The booking for service {colorBookingCode} has been updated. Please review the changes.",
+                        Url = $"http://localhost:3000/seller/booking/{bookingCode}"  // URL trang chi tiết của booking
+                    });
+                }
 
                 response.Success = true;
                 response.Message = "Booking updated successfully.";
