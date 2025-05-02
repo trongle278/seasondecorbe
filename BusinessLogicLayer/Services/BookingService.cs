@@ -611,6 +611,7 @@ namespace BusinessLogicLayer.Services
                     AddressId = request.AddressId,
                     DecorServiceId = request.DecorServiceId,
                     Status = BookingStatus.Pending,
+                    Note = request.Note,
                     //RequestChangeCount = 0, //số lần đổi yêu cầu
                     //IsAdditionalFeeCharged = false,
                     CreateAt = DateTime.Now
