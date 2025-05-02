@@ -18,12 +18,14 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
-        public TrackingService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper)
+        public TrackingService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<BaseResponse<List<TrackingResponse>>> GetTrackingByBookingCodeAsync(string bookingCode)
@@ -151,6 +153,16 @@ namespace BusinessLogicLayer.Services
                 booking.IsTracked = true;
                 await _unitOfWork.TrackingRepository.InsertAsync(tracking);
                 await _unitOfWork.CommitAsync();
+
+                string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+                // 🔹 Gửi thông báo cho Customer
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId,
+                    Title = "Booking Progress Updated",
+                    Content = $"Your booking #{colorbookingCode} has new progress update.",
+                    Url = $""
+                });
 
                 response.Success = true;
                 response.Message = "Tracking added successfully.";

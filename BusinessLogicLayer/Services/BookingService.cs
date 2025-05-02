@@ -14,6 +14,8 @@ using System.Linq.Expressions;
 using System.Drawing;
 using static DataAccessObject.Models.Booking;
 using Nest;
+using static System.Net.WebRequestMethods;
+//http://localhost:3000/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
 
 namespace BusinessLogicLayer.Services
 {
@@ -21,11 +23,13 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaymentService _paymentService;
+        private readonly INotificationService _notificationService;
 
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
+            _notificationService = notificationService;
         }
 
         public async Task<BaseResponse<PendingCancelBookingDetailForProviderResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
@@ -767,6 +771,12 @@ namespace BusinessLogicLayer.Services
                             .Select(ds => ds.AccountId)
                             .FirstOrDefault());
 
+            var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                        .Where(q => q.BookingId == booking.Id)
+                        .FirstOrDefaultAsync();
+
+            string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{bookingCode}</span>";
+
             switch (newStatus)
             {
                 case Booking.BookingStatus.Planning:
@@ -783,21 +793,44 @@ namespace BusinessLogicLayer.Services
                         booking.DecorService.Status = DecorService.DecorServiceStatus.NotAvailable;
                         _unitOfWork.DecorServiceRepository.Update(booking.DecorService);
                     }
+
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"Provider has accepted your booking request #{colorbookingCode} and is planning a site survey.",
+                        Url = "http://localhost:3000/booking/request"
+                    });
                     break;
 
                 case Booking.BookingStatus.Quoting:
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"Provider is preparing a quotation for your booking request #{colorbookingCode}.",
+                        Url = "http://localhost:3000/booking/request"
+                    });
                     break;
 
-                case Booking.BookingStatus.Contracting:
-                    var quotation = await _unitOfWork.QuotationRepository.Queryable()
-                        .Where(q => q.BookingId == booking.Id)
-                        .FirstOrDefaultAsync();
+                case Booking.BookingStatus.Contracting:                    
 
                     if (quotation == null || quotation.Status != Quotation.QuotationStatus.Confirmed)
                     {
                         response.Message = "Quotation must be confirmed before moving to Contracting.";
                         return response;
                     }
+
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"Provider is preparing a contract for your confirmed booking #{colorbookingCode}.",
+                        Url = "http://localhost:3000/quotation"
+                    });
                     break;
 
                 case Booking.BookingStatus.Confirm:
@@ -813,24 +846,48 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.Preparing:
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"The decoration materials for booking #{colorbookingCode} are being prepared.",
+                        Url = null
+                    });
                     break;
 
                 case Booking.BookingStatus.InTransit:
-                    //// ✅ Khi chuyển sang `InTransit`, cập nhật EstimatedCompletion cho `Chi Phí Nguyên liệu`
-                    //var materialDetail = await _unitOfWork.BookingDetailRepository.Queryable()
-                    //    .FirstOrDefaultAsync(bd => bd.BookingId == booking.Id && bd.ServiceItem == "Materials Cost");
-
-                    //if (materialDetail != null)
-                    //{
-                    //    materialDetail.EstimatedCompletion = DateTime.Now;
-                    //    _unitOfWork.BookingDetailRepository.Update(materialDetail);
-                    //}
-                    //break;
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"The decoration materials for booking #{colorbookingCode} are on their way to your location.",
+                        Url = null
+                    });
+                    break;
 
                 case Booking.BookingStatus.Progressing:
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"Your decoration for booking #{colorbookingCode} is in progress.",
+                        Url = null
+                    });
                     break;
 
                 case Booking.BookingStatus.AllDone:
+                    var finalpaymentUrl = $"http://localhost:3000/payment/{bookingCode}?type=final";
+                    // Thông báo cho khách hàng
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Status Update",
+                        Content = $"Your decoration for booking #{colorbookingCode} is complete. Please proceed with the payment.",
+                        Url = finalpaymentUrl
+                    });
                     break;
 
                 case Booking.BookingStatus.FinalPaid:
@@ -1198,6 +1255,40 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.CommitAsync();
 
+                // ========================
+                // ✅ Thêm thông báo sau khi thanh toán thành công
+                // ========================
+
+                string customerUrl = ""; // FE route cho customer
+                string providerUrl = "";       // FE route cho provider
+
+                string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{bookingCode}</span>";
+                // 1. Thông báo cho Customer
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId,
+                    Title = "Deposited Successful",
+                    Content = $"You have deposited for booking #{colorbookingCode} successful",
+                    Url = customerUrl
+                });
+
+                // 2. Thông báo cho Provider
+                var providerId = await _unitOfWork.DecorServiceRepository.Queryable()
+                    .Where(ds => ds.Id == booking.DecorServiceId)
+                    .Select(ds => ds.AccountId)
+                    .FirstOrDefaultAsync();
+
+                if (providerId > 0)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId,
+                        Title = "Deposited Booking",
+                        Content = $"The customer has completed payment for booking #{colorbookingCode}.",
+                        Url = providerUrl
+                    });
+                }
+
                 response.Success = true;
                 response.Message = $"Deposit successful: {depositAmount} transferred to provider.";
                 response.Data = booking;
@@ -1297,6 +1388,53 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.ContractRepository.Update(contract);
 
                 await _unitOfWork.CommitAsync();
+
+                // ========================
+                // ✅ Thêm thông báo sau khi thanh toán thành công
+                // ========================
+
+                string customerUrl = ""; // FE route cho customer
+                string providerUrl = "";       // FE route cho provider
+                string adminUrl = "";             // FE route cho admin
+                
+                string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{bookingCode}</span>";
+                // 1. Thông báo cho Customer
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId,
+                    Title = "Payment Successful",
+                    Content = $"Your payment for booking #{colorbookingCode} has been successfully processed. Thank you for your business!",
+                    Url = customerUrl
+                });
+
+                // 2. Thông báo cho Provider
+                if (providerId > 0)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId,
+                        Title = "Final Paid Booking",
+                        Content = $"The customer has completed payment for booking #{colorbookingCode}.",
+                        Url = providerUrl
+                    });
+                }
+
+                // 3. Thông báo cho tất cả Admin
+                var adminIds = await _unitOfWork.AccountRepository.Queryable()
+                    .Where(a => a.RoleId == 1) // Giả sử role 1 là admin
+                    .Select(a => a.Id)
+                    .ToListAsync();
+
+                foreach (var adminId in adminIds)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = adminId,
+                        Title = "Revenue Notice",
+                        Content = $"You have been credited with an additional amount in your income.",
+                        Url = adminUrl
+                    });
+                }
 
                 response.Success = true;
                 response.Message = "Construction payment successful.";

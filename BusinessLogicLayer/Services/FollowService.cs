@@ -46,23 +46,25 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.FollowRepository.InsertAsync(follow);
                 await _unitOfWork.CommitAsync();
-//---------------------------------------------------------------------------------------------------------------------
-                //// Sau khi follow thành công, tạo notification gửi tới người được follow
-                //var notification = new Notification
-                //{
-                //    Title = "New Follower",
-                //    // Nội dung thông báo có thể được cải tiến để hiển thị tên của người follow.
-                //    Content = "You have a new follower.",
-                //    AccountId = followingId,   // Người nhận thông báo là người được follow
-                //    NotifiedAt = DateTime.Now,
-                //    // Giả sử Notification.NotificationType được định nghĩa sẵn trong entity Notification.
-                //    Type = Notification.NotificationType.System,
-                //};
 
-                //// Gửi thông báo qua NotificationService
-                //var notifResponse = await _notificationService.SendNotificationAsync(notification);
+                
+                // Gửi thông báo cho người được theo dõi
+                var follower = await _unitOfWork.AccountRepository.GetByIdAsync(followerId);
+                if (follower != null)
+                {
+                    var fullname = follower.LastName + " " + follower.FirstName;
 
-//---------------------------------------------------------------------------------------------------------------------
+                    string followerName = $"<span style='font-weight:bold;'>#{fullname}</span>";
+
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = followingId,
+                        Title = "New Follower",
+                        Content = $"{followerName} has started following you.",
+                        Url = ""
+                    });
+                }
+
                 response.Success = true;
                 response.Message = "Follow successful!";
                 response.Data = follow; // Hoặc bạn có thể map sang DTO nếu cần
