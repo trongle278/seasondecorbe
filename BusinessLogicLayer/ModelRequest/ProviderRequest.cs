@@ -15,7 +15,7 @@ namespace BusinessLogicLayer.ModelRequest
         [RegularExpression(@"^[\p{L}\s]+$", ErrorMessage = "Name can only contain letters and spaces")]
         public string Name { get; set; }
 
-        [StringLength(500, ErrorMessage = "Bio cannot exceed 500 characters")]
+        [Required(ErrorMessage = "Bio is required")]
         public string Bio { get; set; }
 
         [Required(ErrorMessage = "Phone is required")]
