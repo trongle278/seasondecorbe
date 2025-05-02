@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
 using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using Nest;
 using Repository.UnitOfWork;
 using static System.Net.WebRequestMethods;
 
@@ -253,8 +257,8 @@ namespace BusinessLogicLayer.Services
                 account.PastProjects = request.PastProjects;
                 account.SkillId = request.SkillId;
                 account.DecorationStyleId = request.DecorationStyleId;
+                account.ApplicationCreateAt = DateTime.Now;
                
-
                 _unitOfWork.AccountRepository.Update(account);
 
                 // Upload ảnh chứng chỉ
@@ -493,6 +497,7 @@ namespace BusinessLogicLayer.Services
             account.PastProjects = null;
             account.SkillId = null;
             account.DecorationStyleId = null;
+            account.ApplicationCreateAt = null;
 
             // Lấy tất cả ảnh chứng chỉ và xóa
             var certificates = await _unitOfWork.CertificateImageRepository
@@ -558,7 +563,7 @@ namespace BusinessLogicLayer.Services
                 ProviderVerified = a.ProviderVerified,
 
                 SkillName = a.Skill?.Name,
-                DecorationStyleName = a.DecorationStyle?.Name, 
+                DecorationStyleName = a.DecorationStyle?.Name,
                 YearsOfExperience = a.YearsOfExperience,
                 PastWorkPlaces = a.PastWorkPlaces,
                 PastProjects = a.PastProjects,
@@ -698,7 +703,7 @@ namespace BusinessLogicLayer.Services
 
                     BusinessName = p.BusinessName,
                     Bio = p.Bio,
-                    BusinessAddress = p.BusinessAddress,   
+                    BusinessAddress = p.BusinessAddress,
                     SkillName = p.Skill?.Name,
                     DecorationStyleName = p.DecorationStyle?.Name,
                     CertificateImageUrls = p.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new()
@@ -761,6 +766,87 @@ namespace BusinessLogicLayer.Services
                 Message = "Verified provider retrieved successfully",
                 Data = response
             };
+        }
+
+        public async Task<BaseResponse<PageResult<VerifiedProviderResponse>>> GetProviderApplicationFilter(ProviderApplicationFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<VerifiedProviderResponse>>();
+            try
+            {
+                // Base filter
+                Expression<Func<DataAccessObject.Models.Account, bool>> filter = account =>
+                    account.RoleId != 1 &&
+                    (request.ProviderVerified == null || account.ProviderVerified == request.ProviderVerified) &&
+                    (string.IsNullOrEmpty(request.Fullname) ||
+                     (account.LastName + " " + account.FirstName).Contains(request.Fullname));
+
+                // Sort
+                Expression<Func<DataAccessObject.Models.Account, object>> orderByExpression = request.SortBy switch
+                {
+                    "FullName" => account => account.LastName + account.FirstName,
+                    "BusinessName" => account => account.BusinessName,
+                    "CreateAt" => account => account.ApplicationCreateAt,
+                    _ => account => account.Id
+                };
+
+                // Include related entities
+                Func<IQueryable<DataAccessObject.Models.Account>, IQueryable<DataAccessObject.Models.Account>> customQuery = query =>
+                    query.Include(a => a.Skill)
+                         .Include(a => a.DecorationStyle)
+                         .Include(a => a.CertificateImages);
+
+                // Get paginated data
+                (IEnumerable<DataAccessObject.Models.Account> providers, int totalCount) = await _unitOfWork.AccountRepository
+                    .GetPagedAndFilteredAsync(
+                        filter,
+                        request.PageIndex,
+                        request.PageSize,
+                        orderByExpression,
+                        request.Descending,
+                        null,
+                        customQuery
+                    );
+
+                // Map to DTO
+                var dtos = providers.Select(p => new VerifiedProviderResponse
+                {
+                    AccountId = p.Id,
+                    Email = p.Email,
+                    FullName = $"{p.LastName} {p.FirstName}",
+                    Avatar = p.Avatar,
+                    Phone = p.Phone,
+                    IsProvider = p.IsProvider,
+                    ProviderVerified = p.ProviderVerified,
+
+                    BusinessName = p.BusinessName,
+                    Bio = p.Bio,
+                    BusinessAddress = p.BusinessAddress,
+                    SkillName = p.Skill?.Name,
+                    DecorationStyleName = p.DecorationStyle?.Name,
+                    YearsOfExperience = p.YearsOfExperience,
+                    PastWorkPlaces = p.PastWorkPlaces,
+                    PastProjects = p.PastProjects,
+                    CertificateImageUrls = p.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new()
+                }).ToList();
+
+                var pageResult = new PageResult<VerifiedProviderResponse>
+                {
+                    Data = dtos,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Data = pageResult;
+                response.Message = "Providers retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving providers.";
+                response.Errors.Add(ex.Message);
+                // Log error here
+            }
+            return response;
         }
     }
 }

@@ -66,12 +66,13 @@ namespace DataAccessObject.Models
         public int? YearsOfExperience { get; set; }
         public string? PastWorkPlaces { get; set; }      // Đã từng hoạt động ở đâu?
         public string? PastProjects { get; set; }        // Các dự án đã từng làm
+        public DateTime? ApplicationCreateAt { get; set; }
 
         public int? SkillId { get; set; }//Kĩ năng chuyên môn
-        public Skill Skill { get; set; }
+        public virtual Skill Skill { get; set; }
 
         public int? DecorationStyleId { get; set; }//Phong cách trang trí 
-        public DecorationStyle DecorationStyle { get; set; }
+        public virtual DecorationStyle DecorationStyle { get; set; }
         // Chứng chỉ
         public ICollection<CertificateImage> CertificateImages { get; set; }
 
@@ -85,5 +86,6 @@ namespace DataAccessObject.Models
         }
 
         public int Reputation { get; set; }     
+      
     }
 }

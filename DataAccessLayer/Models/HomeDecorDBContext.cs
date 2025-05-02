@@ -74,8 +74,8 @@ namespace DataAccessObject.Models
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<ProductDetail> ProductDetails { get; set; }
         public DbSet<ApplicationHistory> ApplicationHistories { get; set; }
-
-
+        public DbSet<Skill> Skills { get; set; }
+        public DbSet<DecorationStyle> DecorationStyles { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -453,6 +453,18 @@ namespace DataAccessObject.Models
             modelBuilder.Entity<Wallet>()
                 .Property(w => w.Balance)
                 .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Skill)
+                .WithMany(s => s.Accounts)
+                .HasForeignKey(a => a.SkillId)
+                .OnDelete(DeleteBehavior.Cascade); // hoặc .SetNull nếu muốn
+
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.DecorationStyle)
+                .WithMany()
+                .HasForeignKey(a => a.DecorationStyleId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },

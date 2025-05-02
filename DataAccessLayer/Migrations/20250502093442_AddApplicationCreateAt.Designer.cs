@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250502093442_AddApplicationCreateAt")]
+    partial class AddApplicationCreateAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,9 +52,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("DecorationStyleId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DecorationStyleId1")
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
@@ -148,8 +148,6 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DecorationStyleId");
-
-                    b.HasIndex("DecorationStyleId1");
 
                     b.HasIndex("RoleId");
 
@@ -796,7 +794,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DecorationStyles");
+                    b.ToTable("DecorationStyle");
 
                     b.HasData(
                         new
@@ -1635,7 +1633,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills");
+                    b.ToTable("Skill");
 
                     b.HasData(
                         new
@@ -2021,13 +2019,8 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
                     b.HasOne("DataAccessObject.Models.DecorationStyle", "DecorationStyle")
-                        .WithMany()
-                        .HasForeignKey("DecorationStyleId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("DataAccessObject.Models.DecorationStyle", null)
                         .WithMany("Accounts")
-                        .HasForeignKey("DecorationStyleId1");
+                        .HasForeignKey("DecorationStyleId");
 
                     b.HasOne("DataAccessObject.Models.Role", "Role")
                         .WithMany("Accounts")
@@ -2037,8 +2030,7 @@ namespace DataAccessObject.Migrations
 
                     b.HasOne("DataAccessObject.Models.Skill", "Skill")
                         .WithMany("Accounts")
-                        .HasForeignKey("SkillId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("SkillId");
 
                     b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
                         .WithMany("Accounts")

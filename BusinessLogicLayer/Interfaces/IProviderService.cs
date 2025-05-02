@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.ModelResponse.Pagination;
 
 namespace BusinessLogicLayer.Interfaces
 {
@@ -24,5 +25,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<SkillsAndStylesResponse>> GetAllSkillsAndStylesAsync();
         Task<BaseResponse<VerifiedProviderResponse>> GetVerifiedProviderByIdAsync(int accountId);
         Task<BaseResponse<List<VerifiedProviderResponse>>> GetVerifiedProvidersApplicationListAsync();
+        Task<BaseResponse<PageResult<VerifiedProviderResponse>>> GetProviderApplicationFilter(ProviderApplicationFilterRequest request);
     }
 }

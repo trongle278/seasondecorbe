@@ -220,5 +220,14 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(response);
             return BadRequest(response);
         }
+
+        [HttpGet("getProviderApplicationPaginated")]
+        public async Task<IActionResult> GetProviderApplicationFilter([FromQuery] ProviderApplicationFilterRequest request)
+        {
+            var response = await _providerService.GetProviderApplicationFilter(request);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
     }
 }
