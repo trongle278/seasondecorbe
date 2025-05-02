@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelResponse.Product;
 using BusinessLogicLayer.ModelResponse.Review;
 
 namespace BusinessLogicLayer.ModelResponse.Pagination
@@ -17,5 +18,12 @@ namespace BusinessLogicLayer.ModelResponse.Pagination
     {
         public double AverageRate { get; set; }
         public Dictionary<int, int> RateCount { get; set; }
+    }
+
+    public class RelatedProductPageResult<T>
+    {
+        public string Category { get; set; }
+        public Dictionary<string, List<RelatedProductResponse>> Data { get; set; }
+        public int TotalCount { get; set; }
     }
 }

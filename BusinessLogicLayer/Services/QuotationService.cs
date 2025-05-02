@@ -906,9 +906,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<RelatedProductResponse>>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
+        public async Task<BaseResponse<RelatedProductPageResult<RelatedProductResponse>>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
         {
-            var response = new BaseResponse<PageResult<RelatedProductResponse>>();
+            var response = new BaseResponse<RelatedProductPageResult<RelatedProductResponse>>();
             try
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
@@ -1036,15 +1036,23 @@ namespace BusinessLogicLayer.Services
                         Status = product.Quantity > 0
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),
-                        ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+                        ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>(),
+                        Category = product.Category.CategoryName
                     };
 
                     relatedProducts.Add(productResponse);
                 }
 
-                var result = new PageResult<RelatedProductResponse>
+                var decorCategory = quotation.Booking.DecorService.DecorCategory.CategoryName;
+
+                var groupedProduct = relatedProducts
+                    .GroupBy(p => p.Category)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var result = new RelatedProductPageResult<RelatedProductResponse>
                 {
-                    Data = relatedProducts,
+                    Category = decorCategory,
+                    Data = groupedProduct,
                     TotalCount = totalCount
                 };
 
