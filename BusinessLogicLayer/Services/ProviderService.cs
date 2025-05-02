@@ -10,6 +10,7 @@ using BusinessLogicLayer.ModelResponse;
 using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Repository.UnitOfWork;
 using static System.Net.WebRequestMethods;
 
@@ -553,6 +554,8 @@ namespace BusinessLogicLayer.Services
                 BusinessName = a.BusinessName,
                 Bio = a.Bio,
                 BusinessAddress = a.BusinessAddress,
+                IsProvider = a.IsProvider,
+                ProviderVerified = a.ProviderVerified,
 
                 SkillName = a.Skill?.Name,
                 DecorationStyleName = a.DecorationStyle?.Name, 
@@ -599,6 +602,8 @@ namespace BusinessLogicLayer.Services
                 BusinessName = account.BusinessName,
                 Bio = account.Bio,
                 BusinessAddress = account.BusinessAddress,
+                IsProvider = account.IsProvider,
+                ProviderVerified = account.ProviderVerified,
 
                 SkillName = account.Skill?.Name,
                 DecorationStyleName = account.DecorationStyle?.Name,
@@ -660,6 +665,102 @@ namespace BusinessLogicLayer.Services
                     Errors = new List<string> { ex.Message }
                 };
             }
+        }
+
+        public async Task<BaseResponse<List<VerifiedProviderResponse>>> GetVerifiedProvidersApplicationListAsync()
+        {
+            var response = new BaseResponse<List<VerifiedProviderResponse>>();
+
+            try
+            {
+                var providers = await _unitOfWork.AccountRepository
+                    .Query(a => a.RoleId == 2 && a.ProviderVerified == true)
+                    .Include(a => a.Skill)
+                    .Include(a => a.DecorationStyle)
+                    .Include(a => a.CertificateImages)
+                    .ToListAsync();
+
+                if (!providers.Any())
+                {
+                    response.Message = "No verified providers found";
+                    return response;
+                }
+
+                var result = providers.Select(p => new VerifiedProviderResponse
+                {
+                    AccountId = p.Id,
+                    Email = p.Email,
+                    FullName = $"{p.LastName} {p.FirstName}",
+                    Avatar = p.Avatar,
+                    Phone = p.Phone,
+                    IsProvider = p.IsProvider,
+                    ProviderVerified = p.ProviderVerified,
+
+                    BusinessName = p.BusinessName,
+                    Bio = p.Bio,
+                    BusinessAddress = p.BusinessAddress,   
+                    SkillName = p.Skill?.Name,
+                    DecorationStyleName = p.DecorationStyle?.Name,
+                    CertificateImageUrls = p.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new()
+                }).ToList();
+
+                response.Success = true;
+                response.Data = result;
+                response.Message = "Verified providers retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                response.Message = $"Error: {ex.Message}";
+                // Log error here
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<VerifiedProviderResponse>> GetVerifiedProviderByIdAsync(int accountId)
+        {
+            var account = await _unitOfWork.AccountRepository
+                .Query(a => a.Id == accountId && a.ProviderVerified == true && a.RoleId == 2)
+                .Include(a => a.Skill)  // Lấy kỹ năng của provider
+                .Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
+                .Include(a => a.CertificateImages)
+                .FirstOrDefaultAsync();
+
+            if (account == null)
+            {
+                return new BaseResponse<VerifiedProviderResponse>
+                {
+                    Success = false,
+                    Message = "Verified provider not found"
+                };
+            }
+
+            var response = new VerifiedProviderResponse
+            {
+                AccountId = account.Id,
+                Email = account.Email,
+                FullName = $"{account.LastName} {account.FirstName}",
+                Avatar = account.Avatar,
+                Phone = account.Phone,
+                BusinessName = account.BusinessName,
+                Bio = account.Bio,
+                BusinessAddress = account.BusinessAddress,
+                IsProvider = account.IsProvider,
+                ProviderVerified = account.ProviderVerified,
+
+                SkillName = account.Skill?.Name,
+                DecorationStyleName = account.DecorationStyle?.Name,
+                YearsOfExperience = account.YearsOfExperience,
+                PastWorkPlaces = account.PastWorkPlaces,
+                PastProjects = account.PastProjects,
+                CertificateImageUrls = account.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new List<string>()
+            };
+
+            return new BaseResponse<VerifiedProviderResponse>
+            {
+                Success = true,
+                Message = "Verified provider retrieved successfully",
+                Data = response
+            };
         }
     }
 }

@@ -201,5 +201,24 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return Ok(response);
         }
+
+        [HttpGet("getVerifiedApplicationList")]
+        public async Task<IActionResult> GetVerifiedProvidersApplicationList()
+        {
+            var response = await _providerService.GetVerifiedProvidersApplicationListAsync();
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        // Lấy thông tin cụ thể của một provider đang chờ duyệt
+        [HttpGet("getVerifiedApplicationByAccountId/{accountId}")]
+        public async Task<IActionResult> GetVerifiedProviderById(int accountId)
+        {
+            var response = await _providerService.GetVerifiedProviderByIdAsync(accountId);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
     }
 }
