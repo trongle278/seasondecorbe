@@ -20,10 +20,8 @@ namespace BusinessLogicLayer.ModelResponse.Pagination
         public Dictionary<int, int> RateCount { get; set; }
     }
 
-    public class RelatedProductPageResult<T>
+    public class RelatedProductPageResult : PageResult<RelatedProductResponse>
     {
         public string Category { get; set; }
-        public Dictionary<string, List<RelatedProductResponse>> Data { get; set; }
-        public int TotalCount { get; set; }
     }
 }

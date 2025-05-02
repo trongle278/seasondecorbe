@@ -906,9 +906,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<RelatedProductPageResult<RelatedProductResponse>>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
+        public async Task<BaseResponse<RelatedProductPageResult>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
         {
-            var response = new BaseResponse<RelatedProductPageResult<RelatedProductResponse>>();
+            var response = new BaseResponse<RelatedProductPageResult>();
             try
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
@@ -962,7 +962,8 @@ namespace BusinessLogicLayer.Services
 
                 // Filter expression
                 Expression<Func<Product, bool>> filter = p =>
-                    p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName);
+                    p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName) &&
+                    (string.IsNullOrEmpty(request.Category) || p.Category.CategoryName == request.Category);
 
                 // Check user
                 var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
@@ -1045,14 +1046,10 @@ namespace BusinessLogicLayer.Services
 
                 var decorCategory = quotation.Booking.DecorService.DecorCategory.CategoryName;
 
-                var groupedProduct = relatedProducts
-                    .GroupBy(p => p.Category)
-                    .ToDictionary(g => g.Key, g => g.ToList());
-
-                var result = new RelatedProductPageResult<RelatedProductResponse>
+                var result = new RelatedProductPageResult
                 {
                     Category = decorCategory,
-                    Data = groupedProduct,
+                    Data = relatedProducts,
                     TotalCount = totalCount
                 };
 
