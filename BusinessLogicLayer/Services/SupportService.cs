@@ -256,15 +256,16 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<ProviderSupportPaginateResponse>>> GetPaginatedSupportForProviderAsync(SupportFilterRequest request)
+        public async Task<BaseResponse<PageResult<ProviderSupportPaginateResponse>>> GetPaginatedSupportForProviderAsync(SupportFilterRequest request, int accountId)
         {
             var response = new BaseResponse<PageResult<ProviderSupportPaginateResponse>>();
             try
             {
                 // 🔹 Filter condition
                 Expression<Func<Support, bool>> filter = ticket =>
+                    ticket.Booking.DecorService.AccountId == accountId&&
                     (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value) &&
-                    (!request.IsSolved.HasValue || ticket.IsSolved == request.IsSolved.Value) && 
+                    (!request.IsSolved.HasValue || ticket.IsSolved == request.IsSolved.Value) &&
                     (string.IsNullOrEmpty(request.BookingCode) || ticket.Booking.BookingCode.Contains(request.BookingCode));
 
                 // 🔹 Order by condition
@@ -273,7 +274,6 @@ namespace BusinessLogicLayer.Services
                     "BookingCode" => ticket => ticket.Booking.BookingCode,
                     "TicketTypeId" => ticket => ticket.TicketTypeId,
                     "IsSolved" => ticket => ticket.IsSolved,
-                    //"TicketStatus" => ticket => ticket.TicketStatus,
                     _ => ticket => ticket.CreateAt
                 };
 
@@ -281,7 +281,10 @@ namespace BusinessLogicLayer.Services
                 Func<IQueryable<Support>, IQueryable<Support>> customQuery = query => query
                     .Include(t => t.Account)
                     .Include(t => t.Booking)
-                    .Include(t => t.TicketType);
+                    .Include(t => t.TicketType)
+                    .Include(t => t.TicketReplies)  // Thêm phần này để lấy replies
+                        .ThenInclude(r => r.Account) // Bao gồm thông tin Account cho replies
+                    .Include(t => t.TicketAttachments);  // Bao gồm thông tin Attachments nếu có
 
                 // 🔹 Lấy dữ liệu phân trang
                 (IEnumerable<Support> tickets, int totalCount) = await _unitOfWork.SupportRepository.GetPagedAndFilteredAsync(
@@ -298,6 +301,7 @@ namespace BusinessLogicLayer.Services
                 var ticketResponses = tickets.Select(ticket => new ProviderSupportPaginateResponse
                 {
                     Id = ticket.Id,
+                    BookingCode = ticket.Booking.BookingCode,
                     Subject = ticket.Subject,
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
@@ -306,6 +310,21 @@ namespace BusinessLogicLayer.Services
                     CustomerName = $"{ticket.Account.FirstName} {ticket.Account.LastName}",
                     TicketType = ticket.TicketType.Type,
 
+                    // Thêm các reply vào trong response
+                    Replies = ticket.TicketReplies
+                        .OrderBy(r => r.CreateAt)
+                        .Select(r => new SupportReplyResponse
+                        {
+                            Id = r.Id,
+                            Description = r.Description,
+                            CreateAt = r.CreateAt,
+                            AccountName = $"{r.Account.FirstName} {r.Account.LastName}",
+                            AttachmentUrls = r.TicketAttachments?
+                                .Select(a => a.FileUrl)
+                                .ToList() ?? new List<string>()
+                        }).ToList(),
+
+                    // AttachmentUrls (vẫn giữ nguyên)
                     AttachmentUrls = ticket.TicketAttachments?
                         .Where(a => a.SupportId == ticket.Id && a.TicketReplyId == null)
                         .Select(a => a.FileUrl)
@@ -329,6 +348,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+
         public async Task<BaseResponse<PageResult<SupportResponse>>> GetPaginatedTicketsForCustomerAsync(SupportFilterRequest request, int accountId)
         {
             var response = new BaseResponse<PageResult<SupportResponse>>();
@@ -337,8 +357,8 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Filter tickets theo AccountId của Customer
                 Expression<Func<Support, bool>> filter = ticket =>
                     ticket.AccountId == accountId &&
-                    (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value)&&
-                    (!request.IsSolved.HasValue || ticket.IsSolved == request.IsSolved.Value)&&
+                    (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value) &&
+                    (!request.IsSolved.HasValue || ticket.IsSolved == request.IsSolved.Value) &&
                     (string.IsNullOrEmpty(request.BookingCode) || ticket.Booking.BookingCode.Contains(request.BookingCode));
 
                 // 🔹 Sắp xếp (mặc định mới nhất trước)
@@ -353,8 +373,10 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Includes (nếu cần thiết lấy thêm Booking, TicketType,...)
                 Func<IQueryable<Support>, IQueryable<Support>> customQuery = query => query
                     .AsSplitQuery()
+                    .Include(t => t.Booking)
                     .Include(t => t.TicketType)
-                    .Include(t => t.TicketReplies)
+                    .Include(t => t.TicketReplies)  // Bao gồm TicketReplies
+                        .ThenInclude(r => r.Account) // Bao gồm thông tin Account cho mỗi reply
                     .Include(t => t.TicketAttachments);
 
                 // 🔹 Get paginated result
@@ -372,12 +394,28 @@ namespace BusinessLogicLayer.Services
                 var ticketResponses = tickets.Select(ticket => new SupportResponse
                 {
                     Id = ticket.Id,
+                    BookingCode = ticket.Booking.BookingCode,
                     Subject = ticket.Subject,
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
                     IsSolved = ticket.IsSolved,
                     TicketType = ticket.TicketType.Type,
 
+                    // Thêm các reply vào trong response
+                    Replies = ticket.TicketReplies
+                        .OrderBy(r => r.CreateAt)
+                        .Select(r => new SupportReplyResponse
+                        {
+                            Id = r.Id,
+                            Description = r.Description,
+                            CreateAt = r.CreateAt,
+                            AccountName = $"{r.Account.FirstName} {r.Account.LastName}",
+                            AttachmentUrls = r.TicketAttachments?
+                                .Select(a => a.FileUrl)
+                                .ToList() ?? new List<string>()
+                        }).ToList(),
+
+                    // AttachmentUrls (vẫn giữ nguyên)
                     AttachmentUrls = ticket.TicketAttachments?
                         .Where(a => a.SupportId == ticket.Id && a.TicketReplyId == null)
                         .Select(a => a.FileUrl)

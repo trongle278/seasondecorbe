@@ -73,8 +73,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         public async Task<IActionResult> GetPaginatedSupportTicketsForProvider([FromQuery] SupportFilterRequest request)
         {
             // Lấy providerId từ token (vì đối với provider, accountId chính là providerId)
-            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var result = await _supportService.GetPaginatedSupportForProviderAsync(request);
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _supportService.GetPaginatedSupportForProviderAsync(request, accountId);
             return Ok(result);
         }
 

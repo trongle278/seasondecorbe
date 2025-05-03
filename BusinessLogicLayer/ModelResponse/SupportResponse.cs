@@ -14,7 +14,6 @@ namespace BusinessLogicLayer.ModelResponse
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
         public bool? IsSolved { get; set; }
-        public int BookingId { get; set; }
         public string TicketType { get; set; }
         // Danh sách các reply của ticket
         public List<string> AttachmentUrls { get; set; }
@@ -25,11 +24,11 @@ namespace BusinessLogicLayer.ModelResponse
     public class ProviderSupportPaginateResponse
     {
         public int Id { get; set; }
+        public string BookingCode { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
-        public bool? IsSolved { get; set; }
-        public string BookingCode { get; set; }
+        public bool? IsSolved { get; set; }  
         public string TicketType { get; set; }
         public int CustomerId { get; set; }
         public string CustomerName { get; set; }
