@@ -40,6 +40,13 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpPost("requestSignatureForMobile/{contractCode}")]
+        public async Task<IActionResult> RequestSignatureForMobileAsync(string contractCode)
+        {
+            var response = await _contractService.RequestSignatureForMobileAsync(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
         [AllowAnonymous]
         [HttpPost("verifySignature")]
         public async Task<IActionResult> VerifySignature([FromBody] string signatureToken)
@@ -53,6 +60,6 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var response = await _contractService.GetContractFileAsync(quotationCode);
             return response.Success ? Ok(response) : BadRequest(response);
-        }
+        }      
     }
 }

@@ -700,7 +700,6 @@ namespace BusinessLogicLayer.Services
 
             return htmlContent;
         }
-
         #endregion
 
         #region
@@ -746,6 +745,73 @@ namespace BusinessLogicLayer.Services
                 Console.WriteLine($"PDF Generation Error: {ex}");
                 throw;
             }
+        }
+        #endregion
+
+        #region Mobile
+        private string GenerateMobileSignatureEmailContent(string contractCode, string token)
+        {
+            string verifyUrl = $"com.baymaxphan.seasondecormobileapp:/signature_success?token={Uri.EscapeDataString(token)}";
+            string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "SignatureEmailTemplate.html");
+
+            string htmlContent = File.ReadAllText(templatePath);
+            htmlContent = htmlContent.Replace("{contractCode}", contractCode)
+                                     .Replace("{verifyUrl}", verifyUrl);
+
+            return htmlContent;
+        }
+
+        public async Task<BaseResponse<string>> RequestSignatureForMobileAsync(string contractCode)
+        {
+            var response = new BaseResponse<string>();
+
+            try
+            {
+                var contract = await _unitOfWork.ContractRepository
+                    .Queryable()
+                    .Include(c => c.Quotation.Booking.Account)
+                    .Where(c => c.ContractCode == contractCode)
+                    .FirstOrDefaultAsync();
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found.";
+                    return response;
+                }
+
+                if (contract.Status != Contract.ContractStatus.Pending)
+                {
+                    response.Message = "Contract has already been processed.";
+                    return response;
+                }
+
+                var customer = contract.Quotation.Booking.Account;
+
+                var token = GenerateSignatureToken(customer.Id, contract.ContractCode);
+                contract.SignatureToken = token;
+                contract.SignatureTokenGeneratedAt = DateTime.Now;
+
+                _unitOfWork.ContractRepository.Update(contract);
+                await _unitOfWork.CommitAsync();
+
+                var emailContent = GenerateMobileSignatureEmailContent(contract.ContractCode, token);
+
+                await _emailService.SendEmailAsync(
+                    customer.Email,
+                    "Contract Signature Confirmation",
+                    emailContent
+                );
+
+                response.Success = true;
+                response.Message = "Signature request has been sent to your email (mobile version).";
+            }
+            catch (Exception ex)
+            {
+                response.Message = "Failed to send mobile signature request.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
         }
         #endregion
     }
