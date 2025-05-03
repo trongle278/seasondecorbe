@@ -16,7 +16,8 @@ using static DataAccessObject.Models.Booking;
 using Nest;
 using static System.Net.WebRequestMethods;
 using Quartz.Impl.AdoJobStore.Common;
-//http://localhost:3000/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
+using Microsoft.Extensions.Configuration;
+//{_clientBaseUrl}/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
 
 namespace BusinessLogicLayer.Services
 {
@@ -25,12 +26,14 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaymentService _paymentService;
         private readonly INotificationService _notificationService;
+        private readonly string _clientBaseUrl;
 
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
             _notificationService = notificationService;
+            _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
         }
 
         public async Task<BaseResponse<PendingCancelBookingDetailForProviderResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
@@ -638,7 +641,7 @@ namespace BusinessLogicLayer.Services
                     AccountId = provider.Id,  // Gửi thông báo cho provider
                     Title = "New Booking Request",
                     Content = $"You have a new booking request for service {boldStyle}",
-                    Url = $"http://localhost:3000/seller/request"
+                    Url = $"{_clientBaseUrl}/seller/request"
                 });
 
                 response.Success = true;
@@ -738,7 +741,7 @@ namespace BusinessLogicLayer.Services
                         AccountId = provider.Id,  // Gửi thông báo cho provider
                         Title = "Booking Updated",
                         Content = $"The booking for service {colorBookingCode} has been updated. Please review the changes.",
-                        Url = $"http://localhost:3000/seller/booking/{bookingCode}"  // URL trang chi tiết của booking
+                        Url = $"{_clientBaseUrl}/seller/booking/{bookingCode}"  // URL trang chi tiết của booking
                     });
                 }
 
@@ -828,7 +831,7 @@ namespace BusinessLogicLayer.Services
                         AccountId = booking.AccountId,
                         Title = "Booking Status Update",
                         Content = $"Provider has accepted your booking request #{colorbookingCode} and is planning a site survey.",
-                        Url = "http://localhost:3000/booking/request"
+                        Url = $"{_clientBaseUrl}/booking/request"
                     });
                     break;
 
@@ -839,7 +842,7 @@ namespace BusinessLogicLayer.Services
                         AccountId = booking.AccountId,
                         Title = "Booking Status Update",
                         Content = $"Provider is preparing a quotation for your booking request #{colorbookingCode}.",
-                        Url = "http://localhost:3000/booking/request"
+                        Url = $"{_clientBaseUrl}/booking/request"
                     });
                     break;
 
@@ -857,7 +860,7 @@ namespace BusinessLogicLayer.Services
                         AccountId = booking.AccountId,
                         Title = "Booking Status Update",
                         Content = $"Provider is preparing a contract for your confirmed booking #{colorbookingCode}.",
-                        Url = "http://localhost:3000/quotation"
+                        Url = $"{_clientBaseUrl}/quotation"
                     });
                     break;
 
@@ -907,7 +910,7 @@ namespace BusinessLogicLayer.Services
                     break;
 
                 case Booking.BookingStatus.AllDone:
-                    var finalpaymentUrl = $"http://localhost:3000/payment/{bookingCode}?type=final";
+                    var finalpaymentUrl = $"{_clientBaseUrl}/payment/{bookingCode}?type=final";
                     // Thông báo cho khách hàng
                     await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
                     {

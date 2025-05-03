@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using iText.Kernel.Colors;
 using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Html2pdf;
+using Microsoft.Extensions.Configuration;
 
 namespace BusinessLogicLayer.Services
 {
@@ -32,13 +33,15 @@ namespace BusinessLogicLayer.Services
         private readonly string _signatureSecretKey = "super_secret_key";
         private readonly ICloudinaryService _cloudinaryService;
         private readonly INotificationService _notificationService;
+        private readonly string _clientBaseUrl;
 
-        public ContractService(IUnitOfWork unitOfWork, IEmailService emailService, ICloudinaryService cloudinaryService, INotificationService notificationService)
+        public ContractService(IUnitOfWork unitOfWork, IEmailService emailService, ICloudinaryService cloudinaryService, INotificationService notificationService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
             _notificationService = notificationService;
+            _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
         }
 
         public async Task<BaseResponse<string>> GetContractContentAsync(string contractCode)
@@ -191,7 +194,7 @@ namespace BusinessLogicLayer.Services
                     AccountId = quotation.Booking.AccountId,
                     Title = "Contract Created",
                     Content = $"The contract for booking #{quotation.Booking.BookingCode} has been created. Please read it carefully before signing.",
-                    Url = $"http://localhost:3000/quotation/view-contract/{quotationCode}"
+                    Url = $"{_clientBaseUrl}/quotation/view-contract/{quotationCode}"
                 });
 
                 return response;
@@ -326,7 +329,7 @@ namespace BusinessLogicLayer.Services
                         AccountId = booking.DecorService.AccountId,
                         Title = "Contract Signed",
                         Content = $"Customer has signed the contract for booking #{colorbookingCode}.",
-                        Url = "http://localhost:3000/seller/quotation"
+                        Url = $"{_clientBaseUrl}/seller/quotation"
                     });
                 }
 
@@ -688,7 +691,7 @@ namespace BusinessLogicLayer.Services
 
         private string GenerateSignatureEmailContent(string contractCode, string token)
         {
-            string verifyUrl = $"http://localhost:3000/sign?token={Uri.EscapeDataString(token)}";
+            string verifyUrl = $"{_clientBaseUrl}/sign?token={Uri.EscapeDataString(token)}";
             string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "SignatureEmailTemplate.html");
 
             string htmlContent = File.ReadAllText(templatePath);

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace BusinessLogicLayer.Services
 {
@@ -19,13 +20,15 @@ namespace BusinessLogicLayer.Services
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
+        private readonly string _clientBaseUrl;
 
-        public TrackingService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService)
+        public TrackingService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
             _mapper = mapper;
             _notificationService = notificationService;
+            _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
         }
 
         public async Task<BaseResponse<List<TrackingResponse>>> GetTrackingByBookingCodeAsync(string bookingCode)
