@@ -54,7 +54,6 @@ namespace BusinessLogicLayer.Services
                     AccountId = accountId,
                     TicketTypeId = request.TicketTypeId,
                     BookingId = booking.Id,  // Đặt BookingId vào ticket
-                    //TicketStatus = Support.TicketStatusEnum.Pending,
                     IsSolved = false,
                     TicketAttachments = new List<TicketAttachment>()
                 };
@@ -150,8 +149,6 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.CommitAsync();
                 }
 
-                //// 🔥 Update lại ticket
-                //ticket.TicketStatus = isProvider ? Support.TicketStatusEnum.Solved : Support.TicketStatusEnum.Pending;
                 _unitOfWork.SupportRepository.Update(ticket);
                 await _unitOfWork.CommitAsync();
 
@@ -159,8 +156,6 @@ namespace BusinessLogicLayer.Services
                 var mappedReply = new SupportReplyResponse
                 {
                     Id = reply.Id,
-                    SupportId = reply.SupportId,
-                    AccountId = reply.AccountId,
                     Description = reply.Description,
                     CreateAt = reply.CreateAt,
                     AttachmentUrls = request.Attachments?.Select(a => a.FileName).ToList() ?? new List<string>()
@@ -193,6 +188,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(r => r.Account)
                     .Include(t => t.TicketReplies)
                         .ThenInclude(r => r.TicketAttachments)
+                    .Include(t => t.Booking)
                     .FirstOrDefaultAsync(t => t.Id == supportId);
 
                 if (ticket == null)
@@ -211,7 +207,6 @@ namespace BusinessLogicLayer.Services
                         Id = r.Id,
                         Description = r.Description,
                         CreateAt = r.CreateAt,
-                        AccountId = r.AccountId,
                         AccountName = $"{r.Account.FirstName} {r.Account.LastName}",
                         AttachmentUrls = r.TicketAttachments?
                             .Select(a => a.FileUrl)
@@ -307,8 +302,6 @@ namespace BusinessLogicLayer.Services
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
                     IsSolved = ticket.IsSolved,
-                    //TicketStatus = (int)ticket.TicketStatus,
-                    BookingId = ticket.BookingId,
                     CustomerId = ticket.AccountId,
                     CustomerName = $"{ticket.Account.FirstName} {ticket.Account.LastName}",
                     TicketType = ticket.TicketType.Type,
@@ -354,7 +347,6 @@ namespace BusinessLogicLayer.Services
                     "Subject" => ticket => ticket.Subject,
                     "TicketTypeId" => ticket => ticket.TicketTypeId,
                     "IsSolved" => ticket => ticket.IsSolved,
-                    //"Status" => ticket => ticket.TicketStatus,
                     _ => ticket => ticket.CreateAt
                 };
 
@@ -384,7 +376,6 @@ namespace BusinessLogicLayer.Services
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
                     IsSolved = ticket.IsSolved,
-                    //TicketStatus = (int)ticket.TicketStatus,
                     TicketType = ticket.TicketType.Type,
 
                     AttachmentUrls = ticket.TicketAttachments?

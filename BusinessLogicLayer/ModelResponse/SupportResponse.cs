@@ -9,13 +9,13 @@ namespace BusinessLogicLayer.ModelResponse
     public class SupportResponse
     {
         public int Id { get; set; }
+        public string BookingCode { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
         public bool? IsSolved { get; set; }
         public int BookingId { get; set; }
         public string TicketType { get; set; }
-        public int AccountId { get; set; }
         // Danh sách các reply của ticket
         public List<string> AttachmentUrls { get; set; }
         public List<SupportReplyResponse> Replies { get; set; }
@@ -29,7 +29,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
         public bool? IsSolved { get; set; }
-        public int BookingId { get; set; }
+        public string BookingCode { get; set; }
         public string TicketType { get; set; }
         public int CustomerId { get; set; }
         public string CustomerName { get; set; }
@@ -40,8 +40,6 @@ namespace BusinessLogicLayer.ModelResponse
     public class SupportReplyResponse
     {
         public int Id { get; set; }
-        public int SupportId { get; set; }
-        public int AccountId { get; set; }
         public string AccountName { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
