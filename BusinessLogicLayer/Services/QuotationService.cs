@@ -18,6 +18,7 @@ using BusinessLogicLayer.Utilities.DataMapping;
 using AutoMapper;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using LinqKit;
+using Microsoft.Extensions.Configuration;
 
 namespace BusinessLogicLayer.Services
 {
@@ -27,13 +28,15 @@ namespace BusinessLogicLayer.Services
         private readonly ICloudinaryService _cloudinaryService;
         private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
+        private readonly string _clientBaseUrl;
 
-        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService)
+        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
             _mapper = mapper;
             _notificationService = notificationService;
+            _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
         }
 
         /// <summary>
@@ -163,7 +166,7 @@ namespace BusinessLogicLayer.Services
                 // ✅ Thêm thông báo cho khách hàng
                 // ========================
 
-                string quotationUrl = $"http://localhost:3000/quotation/{quotation.QuotationCode}"; // URL chi tiết báo giá
+                string quotationUrl = $"{_clientBaseUrl}/quotation/{quotation.QuotationCode}"; // URL chi tiết báo giá
                 string htmlQuotationCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{quotation.QuotationCode}</span>";
 
                 await _notificationService.CreateNotificationAsync(new NotificationCreateRequest

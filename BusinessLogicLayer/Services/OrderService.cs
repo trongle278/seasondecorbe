@@ -15,6 +15,7 @@ using BusinessLogicLayer.ModelResponse.Pagination;
 using CloudinaryDotNet;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Repository.UnitOfWork;
 using static DataAccessObject.Models.Notification;
 
@@ -26,12 +27,14 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
-        public OrderService(IPaymentService paymentService, IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService)
+        private readonly string _clientBaseUrl;
+        public OrderService(IPaymentService paymentService, IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService, IConfiguration configuration)
         {
             _paymentService = paymentService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _notificationService = notificationService;
+            _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
         }
 
         public async Task<BaseResponse> GetOrderList(int accountId)
@@ -498,7 +501,7 @@ namespace BusinessLogicLayer.Services
                 string htmlOrderCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{order.OrderCode}</span>";
                 string customerName = $"<span style='font-weight:bold;'>#{order.FullName}</span>";              
 
-                string customerUrl = $"http://localhost:3000/user/purchase/{order.Id}?order-code=${order.OrderCode}"; // FE route cho customer
+                string customerUrl = $"{_clientBaseUrl}/user/purchase/{order.Id}?order-code=${order.OrderCode}"; // FE route cho customer
                 string providerUrl = "";       // FE route cho provider
                 string adminUrl = "";             // FE route cho admin
 
