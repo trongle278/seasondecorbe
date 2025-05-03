@@ -45,9 +45,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         public async Task<ActionResult<BaseResponse<SupportReplyResponse>>> AddReply([FromForm] AddSupportReplyRequest request, int supportId)
         {
             int accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            bool isAdmin = User.IsInRole("Admin");
-
-            var response = await _supportService.AddReplyAsync(request, supportId, accountId, isAdmin);
+            //bool isAdmin = User.IsInRole("Admin");
+            var response = await _supportService.AddReplyAsync(request, supportId, accountId);
             if (!response.Success)
                 return BadRequest(response);
 
@@ -70,12 +69,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
         }
 
-        [HttpGet("getPaginatedSupportTicketsForAdmin")]
-        public async Task<IActionResult> GetPaginatedSupportTicketsForAdmin([FromQuery] SupportFilterRequest request)
+        [HttpGet("getPaginatedSupportTicketsForProvider")]
+        public async Task<IActionResult> GetPaginatedSupportTicketsForProvider([FromQuery] SupportFilterRequest request)
         {
             // Lấy providerId từ token (vì đối với provider, accountId chính là providerId)
-            var adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var result = await _supportService.GetPaginatedSupportForAdminAsync(request);
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _supportService.GetPaginatedSupportForProviderAsync(request);
             return Ok(result);
         }
 

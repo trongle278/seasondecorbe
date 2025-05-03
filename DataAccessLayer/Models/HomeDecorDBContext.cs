@@ -551,6 +551,15 @@ namespace DataAccessObject.Models
                 new DecorationStyle { Id = 4, Name = "Scandinavian" },
                 new DecorationStyle { Id = 5, Name = "Industrial" }
             );
+
+            modelBuilder.Entity<TicketType>().HasData(
+                new TicketType { Id = 1, Type = "Service delay" },
+                new TicketType { Id = 2, Type = "Incorrect service implementation" },
+                new TicketType { Id = 3, Type = "Unprofessional behavior" },
+                new TicketType { Id = 4, Type = "Damage or loss report" },
+                new TicketType { Id = 5, Type = "Poor material quality" },
+                new TicketType { Id = 6, Type = "Other" }
+            );
         }
     }
 }

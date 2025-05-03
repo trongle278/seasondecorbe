@@ -11,6 +11,7 @@ using BusinessLogicLayer.ModelResponse;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Repository.UnitOfWork;
 
 namespace BusinessLogicLayer.Services
@@ -33,6 +34,18 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<SupportResponse>();
             try
             {
+                // Tìm kiếm Booking bằng BookingCode thay vì BookingId
+                var booking = await _unitOfWork.BookingRepository
+                    .Queryable()
+                    .FirstOrDefaultAsync(b => b.BookingCode == request.BookingCode);
+
+                if (booking == null)
+                {
+                    response.Success = false;
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
                 var ticket = new Support
                 {
                     Subject = request.Subject,
@@ -40,8 +53,8 @@ namespace BusinessLogicLayer.Services
                     CreateAt = DateTime.Now,
                     AccountId = accountId,
                     TicketTypeId = request.TicketTypeId,
-                    BookingId = request.BookingId,
-                    TicketStatus = Support.TicketStatusEnum.Pending,
+                    BookingId = booking.Id,  // Đặt BookingId vào ticket
+                    //TicketStatus = Support.TicketStatusEnum.Pending,
                     TicketAttachments = new List<TicketAttachment>()
                 };
 
@@ -78,7 +91,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<SupportReplyResponse>> AddReplyAsync(AddSupportReplyRequest request, int supportId, int accountId, bool isAdmin)
+        public async Task<BaseResponse<SupportReplyResponse>> AddReplyAsync(AddSupportReplyRequest request, int supportId, int accountId)
         {
             var response = new BaseResponse<SupportReplyResponse>();
             try
@@ -96,7 +109,7 @@ namespace BusinessLogicLayer.Services
                 var reply = new TicketReply
                 {
                     Description = request.Description,
-                    CreateAt = DateTime.UtcNow,
+                    CreateAt = DateTime.Now,
                     SupportId = supportId, // ✅ SupportId truyền từ ngoài vào
                     AccountId = accountId
                 };
@@ -117,7 +130,7 @@ namespace BusinessLogicLayer.Services
                             {
                                 FileName = file.FileName,
                                 FileUrl = fileUrl,
-                                UploadedAt = DateTime.UtcNow,
+                                UploadedAt = DateTime.Now,
                                 SupportId = supportId,     // ✅ truyền SupportId
                                 TicketReplyId = reply.Id   // ✅ gán ReplyId vừa tạo
                             };
@@ -128,8 +141,8 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.CommitAsync();
                 }
 
-                // 🔥 Update lại ticket
-                ticket.TicketStatus = isAdmin ? Support.TicketStatusEnum.Solved : Support.TicketStatusEnum.Pending;
+                //// 🔥 Update lại ticket
+                //ticket.TicketStatus = isProvider ? Support.TicketStatusEnum.Solved : Support.TicketStatusEnum.Pending;
                 _unitOfWork.SupportRepository.Update(ticket);
                 await _unitOfWork.CommitAsync();
 
@@ -165,7 +178,14 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse<SupportResponse>();
             try
             {
-                var ticket = await _unitOfWork.SupportRepository.GetByIdAsync(supportId);
+                var ticket = await _unitOfWork.SupportRepository
+                    .Queryable()
+                    .Include(t => t.TicketReplies)
+                        .ThenInclude(r => r.Account)
+                    .Include(t => t.TicketReplies)
+                        .ThenInclude(r => r.TicketAttachments)
+                    .FirstOrDefaultAsync(t => t.Id == supportId);
+
                 if (ticket == null)
                 {
                     response.Success = false;
@@ -173,8 +193,24 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var ticketResponse = _mapper.Map<SupportResponse>(ticket);
+
+                ticketResponse.Replies = ticket.TicketReplies
+                    .OrderBy(r => r.CreateAt)
+                    .Select(r => new SupportReplyResponse
+                    {
+                        Id = r.Id,
+                        Description = r.Description,
+                        CreateAt = r.CreateAt,
+                        AccountId = r.AccountId,
+                        AccountName = $"{r.Account.FirstName} {r.Account.LastName}",
+                        AttachmentUrls = r.TicketAttachments?
+                            .Select(a => a.FileUrl)
+                            .ToList() ?? new List<string>()
+                    }).ToList();
+
                 response.Success = true;
-                response.Data = _mapper.Map<SupportResponse>(ticket);
+                response.Data = ticketResponse;
                 response.Message = "Ticket retrieved successfully.";
             }
             catch (Exception ex)
@@ -185,6 +221,7 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
 
         /// <summary>
         /// Lấy danh sách ticket (lọc theo user hoặc booking)
@@ -215,22 +252,25 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<AdminSupportPaginateResponse>>> GetPaginatedSupportForAdminAsync(SupportFilterRequest request)
+        public async Task<BaseResponse<PageResult<ProviderSupportPaginateResponse>>> GetPaginatedSupportForProviderAsync(SupportFilterRequest request)
         {
-            var response = new BaseResponse<PageResult<AdminSupportPaginateResponse>>();
+            var response = new BaseResponse<PageResult<ProviderSupportPaginateResponse>>();
             try
             {
                 // 🔹 Filter condition
                 Expression<Func<Support, bool>> filter = ticket =>
-                    (!request.TicketStatus.HasValue || ticket.TicketStatus == request.TicketStatus.Value) &&
+                    //(!request.TicketStatus.HasValue || ticket.TicketStatus == request.TicketStatus.Value) &&
                     //(!request.AccountId.HasValue || ticket.AccountId == request.AccountId.Value) &&
-                    (!request.BookingId.HasValue || ticket.BookingId == request.BookingId.Value);
+                    (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value)&&
+                    (string.IsNullOrEmpty(request.BookingCode) || ticket.Booking.BookingCode.Contains(request.BookingCode));
+                    //(!request.BookingId.HasValue || ticket.BookingId == request.BookingId.Value);
 
                 // 🔹 Order by condition
                 Expression<Func<Support, object>> orderByExpression = request.SortBy switch
                 {
                     "BookingCode" => ticket => ticket.Booking.BookingCode,
-                    "TicketStatus" => ticket => ticket.TicketStatus,
+                    "TicketTypeId" => ticket => ticket.TicketTypeId,
+                    //"TicketStatus" => ticket => ticket.TicketStatus,
                     _ => ticket => ticket.CreateAt
                 };
 
@@ -252,13 +292,13 @@ namespace BusinessLogicLayer.Services
                 );
 
                 // 🔹 Map thủ công
-                var ticketResponses = tickets.Select(ticket => new AdminSupportPaginateResponse
+                var ticketResponses = tickets.Select(ticket => new ProviderSupportPaginateResponse
                 {
                     Id = ticket.Id,
                     Subject = ticket.Subject,
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
-                    TicketStatus = (int)ticket.TicketStatus,
+                    //TicketStatus = (int)ticket.TicketStatus,
                     BookingId = ticket.BookingId,
                     CustomerId = ticket.AccountId,
                     CustomerName = $"{ticket.Account.FirstName} {ticket.Account.LastName}",
@@ -271,7 +311,7 @@ namespace BusinessLogicLayer.Services
                 }).ToList();
 
                 response.Success = true;
-                response.Data = new PageResult<AdminSupportPaginateResponse>
+                response.Data = new PageResult<ProviderSupportPaginateResponse>
                 {
                     Data = ticketResponses,
                     TotalCount = totalCount
@@ -295,13 +335,16 @@ namespace BusinessLogicLayer.Services
                 // 🔹 Filter tickets theo AccountId của Customer
                 Expression<Func<Support, bool>> filter = ticket =>
                     ticket.AccountId == accountId &&
-                    (!request.TicketStatus.HasValue || ticket.TicketStatus == request.TicketStatus.Value);
+                    (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value)&&
+                    (string.IsNullOrEmpty(request.BookingCode) || ticket.Booking.BookingCode.Contains(request.BookingCode));
+                //(!request.TicketStatus.HasValue || ticket.TicketStatus == request.TicketStatus.Value);
 
                 // 🔹 Sắp xếp (mặc định mới nhất trước)
                 Expression<Func<Support, object>> orderByExpression = request.SortBy switch
                 {
                     "Subject" => ticket => ticket.Subject,
-                    "Status" => ticket => ticket.TicketStatus,
+                    "TicketTypeId" => ticket => ticket.TicketTypeId,
+                    //"Status" => ticket => ticket.TicketStatus,
                     _ => ticket => ticket.CreateAt
                 };
 
@@ -330,7 +373,7 @@ namespace BusinessLogicLayer.Services
                     Subject = ticket.Subject,
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
-                    TicketStatus = (int)ticket.TicketStatus,
+                    //TicketStatus = (int)ticket.TicketStatus,
                     TicketType = ticket.TicketType.Type,
 
                     AttachmentUrls = ticket.TicketAttachments?

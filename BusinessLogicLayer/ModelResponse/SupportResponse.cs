@@ -22,7 +22,7 @@ namespace BusinessLogicLayer.ModelResponse
         public List<string> AttachmentUrls { get; set; }
     }
 
-    public class AdminSupportPaginateResponse
+    public class ProviderSupportPaginateResponse
     {
         public int Id { get; set; }
         public string Subject { get; set; }
@@ -33,8 +33,8 @@ namespace BusinessLogicLayer.ModelResponse
         public string TicketType { get; set; }
         public int CustomerId { get; set; }
         public string CustomerName { get; set; }
-        public List<SupportReplyResponse> Replies { get; set; }
         public List<string> AttachmentUrls { get; set; }
+        public List<SupportReplyResponse> Replies { get; set; }     
     }
 
     public class SupportReplyResponse
@@ -42,6 +42,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public int SupportId { get; set; }
         public int AccountId { get; set; }
+        public string AccountName { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
         public List<string> AttachmentUrls { get; set; }
