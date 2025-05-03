@@ -150,7 +150,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 // Thêm check cho cả /chatHub và /notificationHub
                 if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/chatHub") || path.StartsWithSegments("/notificationHub")))
+                    (path.StartsWithSegments("/chatHub") || path.StartsWithSegments("/notificationHub") || path.StartsWithSegments("/callHub")))
                 {
                     context.Token = accessToken;
                 }
@@ -294,6 +294,7 @@ app.UseWebSockets();
 // Map SignalR hub
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<CallHub>("/callhub");
 
 app.MapControllers();
 

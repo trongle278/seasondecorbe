@@ -30,6 +30,9 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ApplicationCreateAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
 
@@ -44,6 +47,12 @@ namespace DataAccessObject.Migrations
 
                     b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("DecorationStyleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DecorationStyleId1")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -79,6 +88,12 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PastProjects")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PastWorkPlaces")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
@@ -103,6 +118,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SkillId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Slug")
                         .HasColumnType("nvarchar(max)");
 
@@ -124,9 +142,18 @@ namespace DataAccessObject.Migrations
                     b.Property<DateTime?>("VerificationTokenExpiry")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("DecorationStyleId");
+
+                    b.HasIndex("DecorationStyleId1");
+
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("SkillId");
 
                     b.HasIndex("SubscriptionId");
 
@@ -181,6 +208,31 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("AccountId");
 
                     b.ToTable("Address");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ApplicationHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("ApplicationHistories");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Booking", b =>
@@ -407,6 +459,28 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("CartItems");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.CertificateImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("CertificateImage");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
@@ -706,6 +780,50 @@ namespace DataAccessObject.Migrations
                     b.HasIndex("SeasonId");
 
                     b.ToTable("DecorServiceSeasons");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.DecorationStyle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DecorationStyles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Modern"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Traditional"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Coastal"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Scandinavian"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Industrial"
+                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
@@ -1503,6 +1621,50 @@ namespace DataAccessObject.Migrations
                         });
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.Skill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Skills");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Lighting Decoration"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Space Decoration"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Art Decoration"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Event Decoration"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Eco-friendly Decoration"
+                        });
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -1591,12 +1753,12 @@ namespace DataAccessObject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("IsSolved")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TicketStatus")
-                        .HasColumnType("int");
 
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("int");
@@ -1691,6 +1853,38 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TicketTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Type = "Service delay"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Type = "Incorrect service implementation"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Type = "Unprofessional behavior"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Type = "Damage or loss report"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Type = "Poor material quality"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Type = "Other"
+                        });
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.TimeSlot", b =>
@@ -1858,18 +2052,36 @@ namespace DataAccessObject.Migrations
 
             modelBuilder.Entity("DataAccessObject.Models.Account", b =>
                 {
+                    b.HasOne("DataAccessObject.Models.DecorationStyle", "DecorationStyle")
+                        .WithMany()
+                        .HasForeignKey("DecorationStyleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DataAccessObject.Models.DecorationStyle", null)
+                        .WithMany("Accounts")
+                        .HasForeignKey("DecorationStyleId1");
+
                     b.HasOne("DataAccessObject.Models.Role", "Role")
                         .WithMany("Accounts")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.Skill", "Skill")
+                        .WithMany("Accounts")
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("DataAccessObject.Models.Subscription", "Subscription")
                         .WithMany("Accounts")
                         .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.Navigation("DecorationStyle");
+
                     b.Navigation("Role");
+
+                    b.Navigation("Skill");
 
                     b.Navigation("Subscription");
                 });
@@ -1878,6 +2090,17 @@ namespace DataAccessObject.Migrations
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
                         .WithMany("Addresses")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.ApplicationHistory", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1964,6 +2187,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Cart");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.CertificateImage", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("CertificateImages")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Chat", b =>
@@ -2488,6 +2722,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Cart")
                         .IsRequired();
 
+                    b.Navigation("CertificateImages");
+
                     b.Navigation("DecorServices");
 
                     b.Navigation("DeviceTokens");
@@ -2574,6 +2810,11 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Reviews");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.DecorationStyle", b =>
+                {
+                    b.Navigation("Accounts");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.Order", b =>
                 {
                     b.Navigation("OrderDetails");
@@ -2632,6 +2873,11 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Season", b =>
                 {
                     b.Navigation("DecorServiceSeasons");
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.Skill", b =>
+                {
+                    b.Navigation("Accounts");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Subscription", b =>

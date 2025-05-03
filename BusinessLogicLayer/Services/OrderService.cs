@@ -496,6 +496,7 @@ namespace BusinessLogicLayer.Services
                 // ========================
 
                 string htmlOrderCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{order.OrderCode}</span>";
+                string customerName = $"<span style='font-weight:bold;'>#{order.FullName}</span>";              
 
                 string customerUrl = $"http://localhost:3000/user/purchase/{order.Id}?order-code=${order.OrderCode}"; // FE route cho customer
                 string providerUrl = "";       // FE route cho provider
@@ -523,7 +524,7 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = providerId,
                         Title = "Order Paid",
-                        Content = $"An order {htmlOrderCode} has been paid successfully by {order.FullName}.",
+                        Content = $"An order {htmlOrderCode} has been paid successfully by {customerName}.",
                         Url = providerUrl
                     });
                 }

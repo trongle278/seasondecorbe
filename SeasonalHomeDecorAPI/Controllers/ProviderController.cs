@@ -80,7 +80,7 @@ namespace SeasonalHomeDecorAPI.Controllers
 
         [HttpPost("create-profile")]
         [Authorize]
-        public async Task<IActionResult> CreateProviderProfile([FromBody] BecomeProviderRequest request)
+        public async Task<IActionResult> CreateProviderProfile([FromForm] BecomeProviderRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -150,6 +150,83 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
 
             // Directly return the response if it fails
+            return BadRequest(response);
+        }
+
+        [HttpPut("approveApplication/{accountId}")]
+        public async Task<IActionResult> ApproveProviderApplication(int accountId)
+        {
+            var response = await _providerService.ApproveProviderAsync(accountId);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        // Từ chối đơn đăng ký nhà cung cấp
+        [HttpPut("rejectApplication/{accountId}")]
+        public async Task<IActionResult> RejectProviderApplication(int accountId, string reason)
+        {
+            var response = await _providerService.RejectProviderAsync(accountId, reason);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpGet("getPendingApplicationList")]
+        public async Task<IActionResult> GetPendingApplicationList()
+        {
+            var response = await _providerService.GetPendingProviderApplicationListAsync();
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        // Lấy thông tin cụ thể của một provider đang chờ duyệt
+        [HttpGet("getPendingApplicationByAccountId/{accountId}")]
+        public async Task<IActionResult> GetPendingProviderByAccountId(int accountId)
+        {
+            var response = await _providerService.GetPendingProviderByIdAsync(accountId);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpGet("getProviderOptions")]
+        public async Task<IActionResult> GetProviderOptions()
+        {
+            var response = await _providerService.GetAllSkillsAndStylesAsync();
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpGet("getVerifiedApplicationList")]
+        public async Task<IActionResult> GetVerifiedProvidersApplicationList()
+        {
+            var response = await _providerService.GetVerifiedProvidersApplicationListAsync();
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        // Lấy thông tin cụ thể của một provider đang chờ duyệt
+        [HttpGet("getVerifiedApplicationByAccountId/{accountId}")]
+        public async Task<IActionResult> GetVerifiedProviderById(int accountId)
+        {
+            var response = await _providerService.GetVerifiedProviderByIdAsync(accountId);
+            if (response.Success)
+                return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpGet("getProviderApplicationPaginated")]
+        public async Task<IActionResult> GetProviderApplicationFilter([FromQuery] ProviderApplicationFilterRequest request)
+        {
+            var response = await _providerService.GetProviderApplicationFilter(request);
+            if (response.Success)
+                return Ok(response);
             return BadRequest(response);
         }
     }

@@ -62,6 +62,10 @@ namespace Repository.UnitOfWork
             TicketAttachmentRepository = new TicketAttachmentRepository(_context);
             TicketReplyRepository = new TicketReplyRepository(_context);
             TrackingImageRepository = new TrackingImageRepository(_context);
+            ApplicationHistoryRepository = new ApplicationHistoryRepository(_context);
+            SkillRepository = new SkillRepository(_context);
+            DecorationStyleRepository = new DecorationStyleRepository(_context);
+            CertificateImageRepository = new CertificateImageRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -107,6 +111,10 @@ namespace Repository.UnitOfWork
         public ITicketAttachmentRepository TicketAttachmentRepository { get; private set; }
         public ITicketReplyRepository TicketReplyRepository { get; private set; }
         public ITrackingImageRepository TrackingImageRepository { get; private set; }
+        public IApplicationHistoryRepository ApplicationHistoryRepository { get; private set; }
+        public ISkillRepository SkillRepository { get; private set; }
+        public IDecorationStyleRepository DecorationStyleRepository { get; private set; }
+        public ICertificateImageRepository CertificateImageRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

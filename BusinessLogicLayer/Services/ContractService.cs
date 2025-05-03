@@ -31,12 +31,14 @@ namespace BusinessLogicLayer.Services
         private readonly IEmailService _emailService;
         private readonly string _signatureSecretKey = "super_secret_key";
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly INotificationService _notificationService;
 
-        public ContractService(IUnitOfWork unitOfWork, IEmailService emailService, ICloudinaryService cloudinaryService)
+        public ContractService(IUnitOfWork unitOfWork, IEmailService emailService, ICloudinaryService cloudinaryService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
+            _notificationService = notificationService;
         }
 
         public async Task<BaseResponse<string>> GetContractContentAsync(string contractCode)
@@ -183,6 +185,15 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
+                // Gửi thông báo cho khách hàng
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = quotation.Booking.AccountId,
+                    Title = "Contract Created",
+                    Content = $"The contract for booking #{quotation.Booking.BookingCode} has been created. Please read it carefully before signing.",
+                    Url = $"http://localhost:3000/quotation/view-contract/{quotationCode}"
+                });
+
                 return response;
             }
             catch (Exception ex)
@@ -305,6 +316,19 @@ namespace BusinessLogicLayer.Services
 
                 _unitOfWork.ContractRepository.Update(contract);
                 await _unitOfWork.CommitAsync();
+
+                string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+                // 🔔 Gửi thông báo cho Provider
+                if (booking?.DecorService?.AccountId != null)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.DecorService.AccountId,
+                        Title = "Contract Signed",
+                        Content = $"Customer has signed the contract for booking #{colorbookingCode}.",
+                        Url = "http://localhost:3000/seller/quotation"
+                    });
+                }
 
                 response.Success = true;
                 response.Message = "Contract has been successfully signed.";

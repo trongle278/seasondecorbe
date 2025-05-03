@@ -73,7 +73,9 @@ namespace DataAccessObject.Models
         public DbSet<TrackingImage> TrackingImages { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<ProductDetail> ProductDetails { get; set; }
-
+        public DbSet<ApplicationHistory> ApplicationHistories { get; set; }
+        public DbSet<Skill> Skills { get; set; }
+        public DbSet<DecorationStyle> DecorationStyles { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -452,6 +454,18 @@ namespace DataAccessObject.Models
                 .Property(w => w.Balance)
                 .HasColumnType("decimal(18,2)");
 
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Skill)
+                .WithMany(s => s.Accounts)
+                .HasForeignKey(a => a.SkillId)
+                .OnDelete(DeleteBehavior.Cascade); // hoặc .SetNull nếu muốn
+
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.DecorationStyle)
+                .WithMany()
+                .HasForeignKey(a => a.DecorationStyleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Provider" },
@@ -520,6 +534,31 @@ namespace DataAccessObject.Models
                 new Subscription { Id = 2, Name = "Silver", RequiredSpending = 1, FreeRequestChange = 1, PrioritySupport = false, CommissionDiscount = 0.2 },
                 new Subscription { Id = 3, Name = "Gold", RequiredSpending = 20000000, FreeRequestChange = 2, PrioritySupport = true, CommissionDiscount = 0.5 },
                 new Subscription { Id = 4, Name = "Platinum", RequiredSpending = 60000000, FreeRequestChange = 5, PrioritySupport = true, CommissionDiscount = 1 }
+            );
+
+            modelBuilder.Entity<Skill>().HasData(
+                new Skill { Id = 1, Name = "Lighting Decoration" },
+                new Skill { Id = 2, Name = "Space Decoration" },
+                new Skill { Id = 3, Name = "Art Decoration" },
+                new Skill { Id = 4, Name = "Event Decoration" },
+                new Skill { Id = 5, Name = "Eco-friendly Decoration" }
+            );
+
+            modelBuilder.Entity<DecorationStyle>().HasData(
+                new DecorationStyle { Id = 1, Name = "Modern" },
+                new DecorationStyle { Id = 2, Name = "Traditional" },
+                new DecorationStyle { Id = 3, Name = "Coastal" },
+                new DecorationStyle { Id = 4, Name = "Scandinavian" },
+                new DecorationStyle { Id = 5, Name = "Industrial" }
+            );
+
+            modelBuilder.Entity<TicketType>().HasData(
+                new TicketType { Id = 1, Type = "Service delay" },
+                new TicketType { Id = 2, Type = "Incorrect service implementation" },
+                new TicketType { Id = 3, Type = "Unprofessional behavior" },
+                new TicketType { Id = 4, Type = "Damage or loss report" },
+                new TicketType { Id = 5, Type = "Poor material quality" },
+                new TicketType { Id = 6, Type = "Other" }
             );
         }
     }

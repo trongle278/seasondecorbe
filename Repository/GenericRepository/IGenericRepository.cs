@@ -32,5 +32,7 @@ namespace Repository.GenericRepository
         IQueryable<T> Queryable();
 
         void RemoveEntity(T entity);
+
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
     }
 }

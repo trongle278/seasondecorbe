@@ -78,11 +78,19 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<Account, ProviderResponse>()
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.BusinessName))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.BusinessAddress))
-                .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus)); ;
+                .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus))
+                
+                .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill.Name))
+                .ForMember(dest => dest.DecorationStyleName, opt => opt.MapFrom(src => src.DecorationStyle.Name))
+                .ForMember(dest => dest.YearsOfExperience, opt => opt.MapFrom(src => src.YearsOfExperience))
+                .ForMember(dest => dest.PastWorkPlaces, opt => opt.MapFrom(src => src.PastWorkPlaces))
+                .ForMember(dest => dest.PastProjects, opt => opt.MapFrom(src => src.PastProjects))
+                .ForMember(dest => dest.CertificateImageUrls, opt =>
+                                    opt.MapFrom(src => src.CertificateImages.Select(ci => ci.ImageUrl)));
 
-            // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
+        // FollowersCount và FollowingsCount sẽ gán trong service (chứ không map DB).
 
-            CreateMap<BecomeProviderRequest, Account>()
+        CreateMap<BecomeProviderRequest, Account>()
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
                 .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1));
@@ -109,9 +117,10 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => src.CreateAt))
                 // Chuyển enum TicketStatus thành string
-                .ForMember(dest => dest.TicketStatus, opt => opt.MapFrom(src => (int)src.TicketStatus))
+                //.ForMember(dest => dest.TicketStatus, opt => opt.MapFrom(src => (int)src.TicketStatus))
                 .ForMember(dest => dest.TicketType, opt => opt.MapFrom(src => src.TicketType.Type))
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.IsSolved, opt => opt.MapFrom(src => src.IsSolved))
                 // Mapping cho danh sách reply (sử dụng mapping đã định nghĩa bên dưới)
                 .ForMember(dest => dest.Replies, opt => opt.MapFrom(src => src.TicketReplies))
                 // Lấy URL từ các TicketAttachment của ticket chính

@@ -49,18 +49,33 @@ namespace DataAccessObject.Models
         public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public virtual ICollection<DecorService> DecorServices { get; set; }
         public ICollection<DeviceToken> DeviceTokens { get; set; }
+        public virtual ICollection<Product> Products { get; set; }
+        public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
+        public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
         public virtual Wallet Wallet { get; set; }
 
-        // Fields from Provider
+        // Thông tin Provider
         public string? BusinessName { get; set; }
         public string? Bio { get; set; }
         public string? BusinessAddress { get; set; }
         public DateTime JoinedDate { get; set; }
         public bool? IsProvider { get; set; }
         public bool? ProviderVerified { get; set; }
-        public virtual ICollection<Product> Products { get; set; }
-        public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
-        public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
+
+        // Thông tin chuyên môn
+        public int? YearsOfExperience { get; set; }
+        public string? PastWorkPlaces { get; set; }      // Đã từng hoạt động ở đâu?
+        public string? PastProjects { get; set; }        // Các dự án đã từng làm
+        public DateTime? ApplicationCreateAt { get; set; }
+
+        public int? SkillId { get; set; }//Kĩ năng chuyên môn
+        public virtual Skill Skill { get; set; }
+
+        public int? DecorationStyleId { get; set; }//Phong cách trang trí 
+        public virtual DecorationStyle DecorationStyle { get; set; }
+        // Chứng chỉ
+        public ICollection<CertificateImage> CertificateImages { get; set; }
+
         public string? Location { get; set; }
         public string? ProvinceCode { get; set; }
         public AccountStatus ProviderStatus { get; set; } // Trạng thái tài khoản
@@ -70,6 +85,7 @@ namespace DataAccessObject.Models
             Busy        // Đang bận (có job)          
         }
 
-        public int Reputation { get; set; }
+        public int Reputation { get; set; }     
+      
     }
 }

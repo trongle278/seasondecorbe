@@ -12,9 +12,6 @@ using BusinessLogicLayer.Interfaces;
 using Microsoft.AspNetCore.Http;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using System.Linq.Expressions;
-using CloudinaryDotNet.Actions;
-using BusinessLogicLayer.ModelResponse.Cart;
-using CloudinaryDotNet;
 using BusinessLogicLayer.ModelResponse.Product;
 using Org.BouncyCastle.Asn1.Ocsp;
 using BusinessLogicLayer.Utilities.DataMapping;
@@ -28,13 +25,15 @@ namespace BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
 
-        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper)
+        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         /// <summary>
@@ -159,6 +158,21 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.LaborDetailRepository.InsertRangeAsync(constructionDetails);
                 quotation.isQuoteExisted = true;
                 await _unitOfWork.CommitAsync();
+
+                // ========================
+                // ✅ Thêm thông báo cho khách hàng
+                // ========================
+
+                string quotationUrl = $"http://localhost:3000/quotation/{quotation.QuotationCode}"; // URL chi tiết báo giá
+                string htmlQuotationCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{quotation.QuotationCode}</span>";
+
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId, // ID khách hàng từ booking
+                    Title = "New Quotation",
+                    Content = $"A quotation {htmlQuotationCode} has been generated for your order.",
+                    Url = quotationUrl
+                });
 
                 response.Success = true;
                 response.Message = "Quotation created successfully.";
@@ -469,6 +483,7 @@ namespace BusinessLogicLayer.Services
                 // Tìm quotation theo mã
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService)
                     .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending)
                     .FirstOrDefaultAsync();
 
@@ -582,6 +597,29 @@ namespace BusinessLogicLayer.Services
                 }
 
                 await _unitOfWork.CommitAsync();
+
+                string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+                // Gửi thông báo cho provider
+                if (booking?.DecorService?.AccountId != null)
+                {
+                    var providerId = booking.DecorService.AccountId;
+                    var customerName = booking.Account?.LastName + " " + booking.Account?.FirstName;
+
+                    var title = isConfirmed ? "Quotation Confirmed" : "Quotation Denied";
+                    var content = isConfirmed
+                        ? $"Customer {customerName} has confirmed your quotation for booking #{colorbookingCode}."
+                        : $"Customer {customerName} has denied your quotation for booking #{colorbookingCode}. Please create again";
+
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId,
+                        Title = title,
+                        Content = content,
+                        Url = "" // cập nhật URL frontend thực tế nếu có
+                    });
+                }
+
+
                 response.Success = true;
             }
             catch (Exception ex)
@@ -906,9 +944,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<RelatedProductResponse>>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
+        public async Task<BaseResponse<RelatedProductPageResult>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
         {
-            var response = new BaseResponse<PageResult<RelatedProductResponse>>();
+            var response = new BaseResponse<RelatedProductPageResult>();
             try
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
@@ -962,7 +1000,8 @@ namespace BusinessLogicLayer.Services
 
                 // Filter expression
                 Expression<Func<Product, bool>> filter = p =>
-                    p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName);
+                    p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName) &&
+                    (string.IsNullOrEmpty(request.Category) || p.Category.CategoryName == request.Category);
 
                 // Check user
                 var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
@@ -1036,14 +1075,18 @@ namespace BusinessLogicLayer.Services
                         Status = product.Quantity > 0
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),
-                        ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
+                        ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>(),
+                        Category = product.Category.CategoryName
                     };
 
                     relatedProducts.Add(productResponse);
                 }
 
-                var result = new PageResult<RelatedProductResponse>
+                var decorCategory = quotation.Booking.DecorService.DecorCategory.CategoryName;
+
+                var result = new RelatedProductPageResult
                 {
+                    Category = decorCategory,
                     Data = relatedProducts,
                     TotalCount = totalCount
                 };

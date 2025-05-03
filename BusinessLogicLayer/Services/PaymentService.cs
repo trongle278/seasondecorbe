@@ -266,7 +266,7 @@ namespace BusinessLogicLayer.Services
                         .Where(x => x.AccountId == providerId)
                         .FirstOrDefaultAsync();
                     var adminWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .Where(x => x.AccountId == 1)
+                        .Where(x => x.Account.RoleId == 1)
                         .FirstOrDefaultAsync();
 
                     if (cusWallet == null || providerWallet == null || adminWallet == null)
@@ -376,7 +376,7 @@ namespace BusinessLogicLayer.Services
                         .FirstOrDefaultAsync();
 
                     var adminWallet = await _unitOfWork.WalletRepository.Queryable()
-                        .Where(x => x.AccountId == 1)
+                        .Where(x => x.Account.RoleId == 1)
                         .FirstOrDefaultAsync();
 
                     if (customerWallet == null || providerWallet == null || adminWallet == null)

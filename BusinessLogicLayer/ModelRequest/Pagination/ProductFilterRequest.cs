@@ -52,6 +52,7 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
         [Required]
         public string QuotationCode { get; set; }
         public int UserId { get; set; }
+        public string? Category { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 5;
         public string SortBy { get; set; } = "";
