@@ -17,5 +17,6 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<List<SupportResponse>>> GetAllTicketsByRoleUser(int? bookingId, int? accountId);
         Task<BaseResponse<PageResult<ProviderSupportPaginateResponse>>> GetPaginatedSupportForProviderAsync(SupportFilterRequest request);
         Task<BaseResponse<PageResult<SupportResponse>>> GetPaginatedTicketsForCustomerAsync(SupportFilterRequest request, int accountId);
+        Task<BaseResponse<string>> MarkTicketAsSolvedAsync(int supportId);
     }
 }

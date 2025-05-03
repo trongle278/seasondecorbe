@@ -120,6 +120,7 @@ namespace BusinessLogicLayer.ObjectMapper
                 //.ForMember(dest => dest.TicketStatus, opt => opt.MapFrom(src => (int)src.TicketStatus))
                 .ForMember(dest => dest.TicketType, opt => opt.MapFrom(src => src.TicketType.Type))
                 .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.AccountId))
+                .ForMember(dest => dest.IsSolved, opt => opt.MapFrom(src => src.IsSolved))
                 // Mapping cho danh sách reply (sử dụng mapping đã định nghĩa bên dưới)
                 .ForMember(dest => dest.Replies, opt => opt.MapFrom(src => src.TicketReplies))
                 // Lấy URL từ các TicketAttachment của ticket chính

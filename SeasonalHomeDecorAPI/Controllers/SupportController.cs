@@ -86,5 +86,11 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _supportService.GetPaginatedTicketsForCustomerAsync(request, accountId);
             return Ok(result);
         }
+
+        [HttpPost("markAsSolved/{supportId}")]
+        public async Task<BaseResponse<string>> MarkTicketAsSolvedAsync(int supportId)
+        {
+            return await _supportService.MarkTicketAsSolvedAsync(supportId);
+        }
     }
 }

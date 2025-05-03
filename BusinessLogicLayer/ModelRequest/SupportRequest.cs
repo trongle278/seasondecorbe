@@ -31,8 +31,9 @@ namespace BusinessLogicLayer.ModelRequest
     public class SupportFilterRequest
     {
         //public TicketStatusEnum? TicketStatus { get; set; }
-        public int? TicketTypeId { get; set; }
         public string? BookingCode { get; set; }
+        public int? TicketTypeId { get; set; }
+        public bool? IsSolved { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public string? SortBy { get; set; } = "CreateAt";

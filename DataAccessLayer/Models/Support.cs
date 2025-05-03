@@ -30,6 +30,8 @@ namespace DataAccessObject.Models
         //public TicketStatusEnum TicketStatus { get; set; }
 
         // Khóa ngoại và các navigation property
+
+        public bool? IsSolved { get; set; }
         public int AccountId { get; set; }
         public Account Account { get; set; }
 

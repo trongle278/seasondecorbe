@@ -12,14 +12,14 @@ namespace BusinessLogicLayer.ModelResponse
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
-        public int TicketStatus { get; set; }
+        public bool? IsSolved { get; set; }
         public int BookingId { get; set; }
         public string TicketType { get; set; }
         public int AccountId { get; set; }
         // Danh sách các reply của ticket
+        public List<string> AttachmentUrls { get; set; }
         public List<SupportReplyResponse> Replies { get; set; }
         // Danh sách URL (hoặc path) của file đính kèm
-        public List<string> AttachmentUrls { get; set; }
     }
 
     public class ProviderSupportPaginateResponse
@@ -28,7 +28,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime CreateAt { get; set; }
-        public int TicketStatus { get; set; }
+        public bool? IsSolved { get; set; }
         public int BookingId { get; set; }
         public string TicketType { get; set; }
         public int CustomerId { get; set; }

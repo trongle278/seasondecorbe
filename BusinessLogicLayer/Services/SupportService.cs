@@ -55,6 +55,7 @@ namespace BusinessLogicLayer.Services
                     TicketTypeId = request.TicketTypeId,
                     BookingId = booking.Id,  // Đặt BookingId vào ticket
                     //TicketStatus = Support.TicketStatusEnum.Pending,
+                    IsSolved = false,
                     TicketAttachments = new List<TicketAttachment>()
                 };
 
@@ -102,6 +103,14 @@ namespace BusinessLogicLayer.Services
                 {
                     response.Success = false;
                     response.Message = "Ticket not found.";
+                    return response;
+                }
+
+                // 🔒 Nếu ticket đã được mark solved thì không cho reply nữa
+                if (ticket.IsSolved == true)
+                {
+                    response.Success = false;
+                    response.Message = "This support ticket has already been marked as solved. You cannot reply to it.";
                     return response;
                 }
 
@@ -259,17 +268,16 @@ namespace BusinessLogicLayer.Services
             {
                 // 🔹 Filter condition
                 Expression<Func<Support, bool>> filter = ticket =>
-                    //(!request.TicketStatus.HasValue || ticket.TicketStatus == request.TicketStatus.Value) &&
-                    //(!request.AccountId.HasValue || ticket.AccountId == request.AccountId.Value) &&
-                    (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value)&&
+                    (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value) &&
+                    (!request.IsSolved.HasValue || ticket.IsSolved == request.IsSolved.Value) && 
                     (string.IsNullOrEmpty(request.BookingCode) || ticket.Booking.BookingCode.Contains(request.BookingCode));
-                    //(!request.BookingId.HasValue || ticket.BookingId == request.BookingId.Value);
 
                 // 🔹 Order by condition
                 Expression<Func<Support, object>> orderByExpression = request.SortBy switch
                 {
                     "BookingCode" => ticket => ticket.Booking.BookingCode,
                     "TicketTypeId" => ticket => ticket.TicketTypeId,
+                    "IsSolved" => ticket => ticket.IsSolved,
                     //"TicketStatus" => ticket => ticket.TicketStatus,
                     _ => ticket => ticket.CreateAt
                 };
@@ -298,6 +306,7 @@ namespace BusinessLogicLayer.Services
                     Subject = ticket.Subject,
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
+                    IsSolved = ticket.IsSolved,
                     //TicketStatus = (int)ticket.TicketStatus,
                     BookingId = ticket.BookingId,
                     CustomerId = ticket.AccountId,
@@ -336,14 +345,15 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<Support, bool>> filter = ticket =>
                     ticket.AccountId == accountId &&
                     (!request.TicketTypeId.HasValue || ticket.TicketTypeId == request.TicketTypeId.Value)&&
+                    (!request.IsSolved.HasValue || ticket.IsSolved == request.IsSolved.Value)&&
                     (string.IsNullOrEmpty(request.BookingCode) || ticket.Booking.BookingCode.Contains(request.BookingCode));
-                //(!request.TicketStatus.HasValue || ticket.TicketStatus == request.TicketStatus.Value);
 
                 // 🔹 Sắp xếp (mặc định mới nhất trước)
                 Expression<Func<Support, object>> orderByExpression = request.SortBy switch
                 {
                     "Subject" => ticket => ticket.Subject,
                     "TicketTypeId" => ticket => ticket.TicketTypeId,
+                    "IsSolved" => ticket => ticket.IsSolved,
                     //"Status" => ticket => ticket.TicketStatus,
                     _ => ticket => ticket.CreateAt
                 };
@@ -373,6 +383,7 @@ namespace BusinessLogicLayer.Services
                     Subject = ticket.Subject,
                     Description = ticket.Description,
                     CreateAt = ticket.CreateAt,
+                    IsSolved = ticket.IsSolved,
                     //TicketStatus = (int)ticket.TicketStatus,
                     TicketType = ticket.TicketType.Type,
 
@@ -396,6 +407,38 @@ namespace BusinessLogicLayer.Services
                 response.Message = "Error retrieving tickets.";
                 response.Errors.Add(ex.Message);
             }
+            return response;
+        }
+
+        public async Task<BaseResponse<string>> MarkTicketAsSolvedAsync(int supportId)
+        {
+            var response = new BaseResponse<string>();
+            try
+            {
+                // 🔥 Lấy ticket từ supportId
+                var ticket = await _unitOfWork.SupportRepository.GetByIdAsync(supportId);
+                if (ticket == null)
+                {
+                    response.Success = false;
+                    response.Message = "Ticket not found.";
+                    return response;
+                }
+
+                // 🔥 Đánh dấu ticket là đã giải quyết
+                ticket.IsSolved = true;
+                _unitOfWork.SupportRepository.Update(ticket);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Ticket marked as solved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "An error occurred while marking the ticket as solved.";
+                response.Errors.Add(ex.Message);
+            }
+
             return response;
         }
     }
