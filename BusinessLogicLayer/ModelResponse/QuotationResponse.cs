@@ -38,6 +38,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string MaterialName { get; set; }
         public int Quantity { get; set; }
         public decimal Cost { get; set; }
+        public string Note { get; set; }
         public decimal TotalCost => Quantity * Cost;
         //public MaterialDetail.MaterialCategory Category { get; set; }
     }
@@ -49,6 +50,7 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal Cost { get; set; }
         public string Unit { get; set; }
         public decimal? Area { get; set; }
+        public string Note { get; set; }
     }
 
     public class ProductsDetailResponse

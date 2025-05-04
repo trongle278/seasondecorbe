@@ -23,6 +23,8 @@ namespace DataAccessObject.Models
 
         public decimal Cost { get; set; } // Giá tiền của nguyên liệu đó (đơn giá)
 
+        public string? Note { get; set; }
+
         public MaterialCategory Category { get; set; } // Loại nguyên liệu (Nguyên liệu hoặc Nội thất)
 
         public enum MaterialCategory

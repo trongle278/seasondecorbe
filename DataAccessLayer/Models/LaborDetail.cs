@@ -21,5 +21,6 @@ namespace DataAccessObject.Models
         public decimal Cost { get; set; } // Chi phí nhân công cho hạng mục này
         public string Unit { get; set; } // Đơn vị tính (m2, cái, ...)
         public decimal? Area { get; set; }
+        public string? Note { get; set; }
     }
 }

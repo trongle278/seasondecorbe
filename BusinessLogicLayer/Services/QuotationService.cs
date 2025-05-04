@@ -142,8 +142,9 @@ namespace BusinessLogicLayer.Services
                 {
                     QuotationId = quotation.Id,
                     MaterialName = m.MaterialName,
-                    Quantity = m.Quantity,
+                    Quantity = m.Quantity,                   
                     Cost = m.Cost,
+                    Note = m.Note
                 }).ToList();
 
                 await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
@@ -155,7 +156,8 @@ namespace BusinessLogicLayer.Services
                     TaskName = c.TaskName,
                     Cost = c.Cost,
                     Unit = c.Unit,
-                    Area = c.Area
+                    Area = c.Area,
+                    Note = c.Note
                 }).ToList();
 
                 await _unitOfWork.LaborDetailRepository.InsertRangeAsync(constructionDetails);
@@ -259,7 +261,8 @@ namespace BusinessLogicLayer.Services
         ///// <summary>
         ///// Lấy báo giá theo BookingId
         ///// </summary>
-        //public async Task<BaseResponse> GetQuotationByBookingCodeAsync(string bookingCode)
+        //public async Task<BaseResponse>
+        //QuotationByBookingCodeAsync(string bookingCode)
         //{
         //    var response = new BaseResponse();
         //    try
@@ -703,6 +706,7 @@ namespace BusinessLogicLayer.Services
                         Quantity = m.Quantity,
                         Cost = m.Cost,
                         //Category = m.Category
+                        Note = m.Note
                     }).ToList(),
 
                     ConstructionDetails = q.LaborDetails.Select(c => new ConstructionDetailResponse
@@ -710,7 +714,8 @@ namespace BusinessLogicLayer.Services
                         TaskName = c.TaskName,
                         Cost = c.Cost,
                         Unit = c.Unit,
-                        Area = c.Area
+                        Area = c.Area,
+                        Note = c.Note
                     }).ToList(),
 
                     ProductDetails = q.ProductDetails.Select(p => new ProductsDetailResponse
@@ -817,6 +822,7 @@ namespace BusinessLogicLayer.Services
                         Quantity = m.Quantity,
                         Cost = m.Cost,
                         //Category = m.Category
+                        Note = m.Note
                     }).ToList(),
 
                     ConstructionDetails = q.LaborDetails.Select(c => new ConstructionDetailResponse
@@ -824,7 +830,8 @@ namespace BusinessLogicLayer.Services
                         TaskName = c.TaskName,
                         Cost = c.Cost,
                         Unit = c.Unit,
-                        Area = c.Area
+                        Area = c.Area,
+                        Note = c.Note
                     }).ToList(),
 
                     ProductDetails = q.ProductDetails.Select(p => new ProductsDetailResponse
@@ -904,7 +911,8 @@ namespace BusinessLogicLayer.Services
                     {
                         MaterialName = m.MaterialName,
                         Quantity = m.Quantity,
-                        Cost = m.Cost
+                        Cost = m.Cost,
+                        Note = m.Note,
                     }).ToList(),
 
                     ConstructionTasks = quotation.LaborDetails.Select(c => new ConstructionDetailResponse
@@ -912,7 +920,8 @@ namespace BusinessLogicLayer.Services
                         TaskName = c.TaskName,
                         Cost = c.Cost,
                         Unit = c.Unit,
-                        Area = c.Area
+                        Area = c.Area,
+                        Note = c.Note
                     }).ToList(),
 
                     ProductDetails = quotation.ProductDetails.Select(p => new ProductsDetailResponse

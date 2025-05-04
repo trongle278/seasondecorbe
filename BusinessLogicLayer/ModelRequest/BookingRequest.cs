@@ -50,8 +50,9 @@ namespace BusinessLogicLayer.ModelRequest
     public class MaterialItemRequest
     {
         public string MaterialName { get; set; }
-        public int Quantity { get; set; }
+        public int Quantity { get; set; }       
         public decimal Cost { get; set; }
+        public string Note { get; set; }
         //public MaterialDetail.MaterialCategory Category { get; set; }
     }
 
@@ -62,6 +63,7 @@ namespace BusinessLogicLayer.ModelRequest
         public string Unit { get; set; }
         // Chỉ áp dụng khi đơn vị là "m²"
         public decimal? Area { get; set; }
+        public string Note { get; set; }
     }
 
     public class ProductItemRequest
