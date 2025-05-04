@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLogicLayer.Interfaces
+namespace BusinessLogicLayer.ModelRequest
 {
     public class SettingRequest
     {
-        public decimal Commission {  get; set; }
+        public decimal Commission { get; set; }
     }
 }

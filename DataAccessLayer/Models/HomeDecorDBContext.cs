@@ -76,6 +76,7 @@ namespace DataAccessObject.Models
         public DbSet<ApplicationHistory> ApplicationHistories { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<DecorationStyle> DecorationStyles { get; set; }
+        public DbSet<ZoomMeeting> ZoomMeetings { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -465,6 +466,18 @@ namespace DataAccessObject.Models
                 .WithMany()
                 .HasForeignKey(a => a.DecorationStyleId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ZoomMeeting>()
+                .HasOne(z => z.Account)
+                .WithMany(a => a.ZoomMeetings)
+                .HasForeignKey(z => z.AccountId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ZoomMeeting>()
+                .HasOne(z => z.Booking)
+                .WithMany(b => b.ZoomMeetings)
+                .HasForeignKey(z => z.BookingId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },

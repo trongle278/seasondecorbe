@@ -18,6 +18,7 @@ using BusinessLogicLayer.Utilities.Hub;
 using Quartz;
 using Quartz.AspNetCore;
 using BusinessLogicLayer.Services.BackgroundJob;
+using BusinessLogicLayer.Utilities.Zoom;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,10 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
+// Đăng ký Zoom
+builder.Services.Configure<ZoomSettings>(builder.Configuration.GetSection("Zoom"));
+
+// Đăng ký SignalR
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
@@ -248,6 +253,7 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICancelTypeService, CancelTypeService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
+builder.Services.AddHttpClient<IZoomService, ZoomService>();
 builder.Services.AddHttpContextAccessor();
 
 // 11. Build the application
