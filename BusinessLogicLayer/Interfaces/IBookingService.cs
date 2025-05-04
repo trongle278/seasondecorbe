@@ -28,5 +28,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> ProcessFinalPaymentAsync(string bookingCode);
         Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId);
         Task<BaseResponse<PageResult<BookingResponseForProvider>>> GetPaginatedBookingsForProviderAsync(BookingFilterRequest request, int providerId);
+
+        Task<BaseResponse> ProcessCommitDepositAsync(string bookingCode);
     }
 }

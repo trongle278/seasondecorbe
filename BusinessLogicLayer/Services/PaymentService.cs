@@ -599,6 +599,86 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        //-------------------------------------------------------------------------------------------------
+        public async Task<bool> TrustDeposit(int customerId, int providerId, decimal amount, int bookingId)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Similar to Deposit method but with fixed amount
+                    var cusAccount = _unitOfWork.AccountRepository.Queryable()
+                        .Include(x => x.Wallet)
+                        .Where(x => x.Id == customerId)
+                        .FirstOrDefault();
+
+                    var providerAccount = _unitOfWork.AccountRepository.Queryable()
+                        .Include(x => x.Wallet)
+                        .Where(x => x.Id == providerId)
+                        .FirstOrDefault();
+
+                    if (cusAccount?.Wallet == null || providerAccount?.Wallet == null)
+                    {
+                        throw new Exception("Customer or provider wallet not found.");
+                    }
+
+                    var cusWallet = cusAccount.Wallet;
+                    var providerWallet = providerAccount.Wallet;
+
+                    if (cusWallet.Balance < amount)
+                    {
+                        throw new Exception("Customer wallet balance insufficient.");
+                    }
+
+                    var trustDepositTransaction = new PaymentTransaction
+                    {
+                        Amount = amount,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Pending,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Deposit,
+                        BookingId = bookingId
+                    };
+
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(trustDepositTransaction);
+                    await _unitOfWork.CommitAsync();
+
+                    // Update wallets
+                    await _walletService.UpdateWallet(cusWallet.Id, cusWallet.Balance - amount);
+                    await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance + amount);
+
+                    // Save wallet transactions
+                    var cusWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = trustDepositTransaction.Id,
+                        WalletId = cusWallet.Id,
+                    };
+
+                    var providerWalletTransaction = new WalletTransaction
+                    {
+                        PaymentTransactionId = trustDepositTransaction.Id,
+                        WalletId = providerWallet.Id,
+                    };
+
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(cusWalletTransaction);
+                    await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
+
+                    // Update transaction status
+                    trustDepositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
+                    _unitOfWork.PaymentTransactionRepository.Update(trustDepositTransaction);
+
+                    await _unitOfWork.CommitAsync();
+                    transaction.Commit();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return false;
+                }
+            }
+        }
     }
 }
 

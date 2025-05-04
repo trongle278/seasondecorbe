@@ -27,7 +27,10 @@ namespace DataAccessObject.Models
         {
             Pending,
             Confirmed,    // Đồng ý bảng báo giá         
-            Denied        // Từ chối bảng báo giá        
+            PendingDenied,        // Từ chối bảng báo giá
+            Denied,
+            PendingCancel,
+            Canceled
         }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool isQuoteExisted { get; set; }
@@ -35,5 +38,9 @@ namespace DataAccessObject.Models
         public virtual ICollection<MaterialDetail> MaterialDetails { get; set; }
         public virtual ICollection<LaborDetail> LaborDetails { get; set; }
         public virtual ICollection<ProductDetail> ProductDetails { get; set; }
+        
+        public int? CancelTypeId { get; set; }
+        public virtual CancelType? CancelType { get; set; }
+        public string? CancelReason { get; set; }
     }
 }
