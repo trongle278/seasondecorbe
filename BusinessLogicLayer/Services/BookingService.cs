@@ -620,7 +620,8 @@ namespace BusinessLogicLayer.Services
                     //RequestChangeCount = 0, //số lần đổi yêu cầu
                     //IsAdditionalFeeCharged = false,
                     CommitDepositAmount = 1000000,
-                    CreateAt = DateTime.Now
+                    CreateAt = DateTime.Now,
+                    IsCommitDepositPaid = false,
                 };
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
