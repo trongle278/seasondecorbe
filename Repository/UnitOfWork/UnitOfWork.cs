@@ -66,6 +66,7 @@ namespace Repository.UnitOfWork
             SkillRepository = new SkillRepository(_context);
             DecorationStyleRepository = new DecorationStyleRepository(_context);
             CertificateImageRepository = new CertificateImageRepository(_context);
+            ZoomRepository = new ZoomRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -115,6 +116,7 @@ namespace Repository.UnitOfWork
         public ISkillRepository SkillRepository { get; private set; }
         public IDecorationStyleRepository DecorationStyleRepository { get; private set; }
         public ICertificateImageRepository CertificateImageRepository { get; private set; }
+        public IZoomRepository ZoomRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

@@ -17,7 +17,6 @@ using BusinessLogicLayer.ModelResponse.Payment;
 using BusinessLogicLayer.ModelRequest.Review;
 using BusinessLogicLayer.ModelResponse.Review;
 using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
-using BusinessLogicLayer.Interfaces;
 
 namespace BusinessLogicLayer.ObjectMapper
 {
@@ -41,6 +40,7 @@ namespace BusinessLogicLayer.ObjectMapper
             WalletProfile();
             ReviewProfile();
             SettingProfile();
+            MeetingProfile();
         }
 
         private void AccountProfile()
@@ -289,6 +289,16 @@ namespace BusinessLogicLayer.ObjectMapper
         {
             CreateMap<SettingRequest, Setting>();
             CreateMap<Setting, SettingResponse>();
+        }
+
+        private void MeetingProfile()
+        {
+            CreateMap<CreateMeetingRequest, ZoomMeeting>();
+
+            CreateMap<ZoomMeeting, MeetingListResponse>();
+
+            CreateMap<ZoomMeeting, MeetingDetailResponse>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (MeetingDetailResponse.MeetingStatus)src.Status));
         }
     }
 }

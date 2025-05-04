@@ -68,6 +68,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
         public ICollection<Quotation> Quotations { get; set; } = new List<Quotation>();
         public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
+        public virtual ICollection<ZoomMeeting> ZoomMeetings { get; set; }
 
         public string? CancelReason { get; set; }
         public string? RejectReason { get; set; } // Lưu lý do reject

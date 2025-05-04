@@ -57,6 +57,7 @@ namespace Repository.UnitOfWork
         ISkillRepository SkillRepository { get; }
         IDecorationStyleRepository DecorationStyleRepository { get; }
         ICertificateImageRepository CertificateImageRepository { get; }
+        IZoomRepository ZoomRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

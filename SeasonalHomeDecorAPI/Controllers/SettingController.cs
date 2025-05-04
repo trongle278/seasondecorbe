@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

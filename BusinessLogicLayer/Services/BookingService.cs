@@ -17,6 +17,7 @@ using Nest;
 using static System.Net.WebRequestMethods;
 using Quartz.Impl.AdoJobStore.Common;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 //{_clientBaseUrl}/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
 
 namespace BusinessLogicLayer.Services
@@ -27,13 +28,17 @@ namespace BusinessLogicLayer.Services
         private readonly IPaymentService _paymentService;
         private readonly INotificationService _notificationService;
         private readonly string _clientBaseUrl;
+        private readonly IZoomService _zoomService;
+        private readonly ILogger<BookingService> _logger;
 
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService, IConfiguration configuration)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService, IConfiguration configuration, IZoomService zoomService, ILogger<BookingService> logger)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
             _notificationService = notificationService;
             _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
+            _zoomService = zoomService;
+            _logger = logger;
         }
 
         public async Task<BaseResponse<PendingCancelBookingDetailForProviderResponse>> GetPendingCancelBookingDetailByBookingCodeAsync(string bookingCode, int providerId)
@@ -634,15 +639,28 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
                 await _unitOfWork.CommitAsync();
 
-                // Thông báo cho Provider
-                string boldStyle = $"<span style='font-weight:bold;'>#{decorService.Style}</span>";
-                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
-                {
-                    AccountId = provider.Id,  // Gửi thông báo cho provider
-                    Title = "New Booking Request",
-                    Content = $"You have a new booking request for service {boldStyle}",
-                    Url = $"{_clientBaseUrl}/seller/request"
-                });
+                //var zoomMeetingRequest = new ZoomMeetingRequest
+                //{
+                //    Topic = $"Booking #{booking.BookingCode} - Meeting",
+                //    TimeZone = "Asia/Ho_Chi_Minh"
+                //};
+
+                //var zoomMeeting = await _zoomService.CreateMeetingAsync(zoomMeetingRequest);
+
+
+                //booking.ZoomUrl = zoomMeeting.JoinUrl;
+                //_unitOfWork.BookingRepository.Update(booking);
+                //await _unitOfWork.CommitAsync();
+
+                //// Thông báo cho Provider
+                //string boldStyle = $"<span style='font-weight:bold;'>#{decorService.Style}</span>";
+                //await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                //{
+                //    AccountId = provider.Id,  // Gửi thông báo cho provider
+                //    Title = "New Booking Request",
+                //    Content = $"You have a new booking request for service {boldStyle}",
+                //    Url = $"{_clientBaseUrl}/seller/request"
+                //});
 
                 response.Success = true;
                 response.Message = "Booking created successfully";
