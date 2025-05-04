@@ -751,7 +751,9 @@ namespace BusinessLogicLayer.Services
         #region Mobile
         private string GenerateMobileSignatureEmailContent(string contractCode, string token)
         {
-            string verifyUrl = $"com.baymaxphan.seasondecormobileapp:/signature_success?token={Uri.EscapeDataString(token)}";
+            // Thay vì trực tiếp sử dụng URI scheme, chuyển hướng qua API endpoint trước
+            string verifyUrl = $"https://f257-2001-ee1-e802-6da0-f99e-a008-39ac-4621.ngrok-free.app/api/Contract/verify-signature-mobile/{Uri.EscapeDataString(token)}";
+
             string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "SignatureEmailTemplate.html");
 
             string htmlContent = File.ReadAllText(templatePath);
@@ -813,6 +815,7 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
         #endregion
     }
 }
