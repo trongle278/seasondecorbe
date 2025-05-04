@@ -11,6 +11,6 @@ namespace DataAccessObject.Models
         public int Id { get; set; }
         public string Type { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<Quotation> Quotations { get; set; } = new List<Quotation>();
     }
-
 }

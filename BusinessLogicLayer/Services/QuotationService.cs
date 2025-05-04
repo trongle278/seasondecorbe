@@ -19,6 +19,8 @@ using AutoMapper;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using LinqKit;
 using Microsoft.Extensions.Configuration;
+using static DataAccessObject.Models.Booking;
+using static DataAccessObject.Models.Quotation;
 
 namespace BusinessLogicLayer.Services
 {
@@ -29,14 +31,16 @@ namespace BusinessLogicLayer.Services
         private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
         private readonly string _clientBaseUrl;
+        private readonly IWalletService _walletService;
 
-        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService, IConfiguration configuration)
+        public QuotationService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService, IMapper mapper, INotificationService notificationService, IConfiguration configuration, IWalletService walletService)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
             _mapper = mapper;
             _notificationService = notificationService;
             _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
+            _walletService = walletService;
         }
 
         /// <summary>
@@ -511,11 +515,11 @@ namespace BusinessLogicLayer.Services
 
                 if (quotation.ProductCost.HasValue)
                 {
-                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value;
+                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value - booking.CommitDepositAmount;
                 }
                 else
                 {
-                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost;
+                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost - booking.CommitDepositAmount;
                 }
 
                 if (isConfirmed)
@@ -882,6 +886,10 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.ProductDetails)
                     .Include(q => q.Booking)// cần để truy cập AccountId
                         .ThenInclude(b => b.DecorService).ThenInclude(ds => ds.Account)
+                    
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService).ThenInclude(ds => ds.DecorCategory)
+
                     .Include(q => q.Contract)
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Booking.AccountId == customerId);
 
@@ -895,6 +903,7 @@ namespace BusinessLogicLayer.Services
                 {
                     Id = quotation.Id,
                     QuotationCode = quotation.QuotationCode,
+                    DecorCategoryName = quotation.Booking.DecorService.DecorCategory.CategoryName,
                     Style = quotation.Booking.DecorService.Style,
                     MaterialCost = quotation.MaterialCost,
                     ConstructionCost = quotation.ConstructionCost,
@@ -1117,6 +1126,266 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse> RequestCancelQuotationAsync(string quotationCode, int quotationCancelId, string cancelReason)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.Booking)
+                    .ThenInclude(b => b.DecorService)
+                    .Where(q => q.QuotationCode == quotationCode)
+                    .FirstOrDefaultAsync();
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or not in confirmable state.";
+                    return response;
+                }
+
+                // Kiểm tra QuotationCancelId hợp lệ (lý do hủy phải hợp lệ từ QuotationCancel)
+                var cancelReasonSeletion = await _unitOfWork.CancelTypeRepository.Queryable()
+                    .FirstOrDefaultAsync(c => c.Id == quotationCancelId);
+
+                if (cancelReasonSeletion == null)
+                {
+                    response.Message = "Invalid cancellation reason.";
+                    return response;
+                }
+
+                // Cập nhật lý do hủy vào Quotation
+                quotation.Status = Quotation.QuotationStatus.PendingCancel;
+                quotation.CancelTypeId = quotationCancelId; // Lưu lý do hủy từ QuotationCancel
+                quotation.CancelReason = cancelReason; // Lý do hủy do người dùng nhập
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Quotation cancellation request submitted. Awaiting provider approval.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to request cancellation.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> ApproveCancelQuotationAsync(string quotationCode)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Lấy thông tin Quotation từ QuotationCode
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.PendingCancel)
+                    .FirstOrDefaultAsync();
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                // Lấy Booking liên quan đến Quotation này
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .Where(b => b.Id == quotation.Id)
+                    .FirstOrDefaultAsync();
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found for this quotation.";
+                    return response;
+                }
+
+                // Lấy Provider từ DecorService
+                var providerId = await _unitOfWork.BookingRepository.Queryable()
+                    .Where(ds => ds.Id == booking.DecorServiceId)
+                    .Select(ds => ds.DecorService.AccountId)
+                    .FirstOrDefaultAsync();
+
+                if (providerId == 0)
+                {
+                    response.Message = "Provider not found.";
+                    return response;
+                }
+
+                // Lấy % hoa hồng từ Setting (để tính số tiền trả lại cho Provider và Admin)
+                var commissionRate = await _unitOfWork.SettingRepository.Queryable()
+                    .Select(s => s.Commission)
+                    .FirstOrDefaultAsync();
+
+                // Lấy ví của Provider và Admin
+                var providerWallet = await _unitOfWork.WalletRepository.Queryable()
+                    .Where(w => w.AccountId == providerId)
+                    .FirstOrDefaultAsync();
+
+                var adminWallet = await _unitOfWork.WalletRepository.Queryable()
+                    .Where(w => w.AccountId == 1) // Giả sử role 1 là admin
+                    .FirstOrDefaultAsync();
+
+                if (providerWallet == null || adminWallet == null)
+                {
+                    response.Message = "Provider or Admin wallet not found.";
+                    return response;
+                }
+
+                // Tính toán số tiền trả lại cho Provider và Admin
+                decimal totalAmountToRefund = booking.CommitDepositAmount;
+                decimal adminComissionAmount = totalAmountToRefund * commissionRate;
+                decimal providerAmount = totalAmountToRefund - adminComissionAmount;
+
+                // Cập nhật ví của Provider và Admin
+                await _walletService.UpdateWallet(adminWallet.Id, adminWallet.Balance + adminComissionAmount);
+                await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance - adminComissionAmount);
+
+                // Lưu giao dịch hoàn trả cho Provider và Admin
+                var providerRefundTransaction = new PaymentTransaction
+                {
+                    Amount = providerAmount,
+                    TransactionDate = DateTime.Now,
+                    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                    TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+                    BookingId = booking.Id
+                };
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerRefundTransaction);
+
+                var adminRefundTransaction = new PaymentTransaction
+                {
+                    Amount = adminComissionAmount,
+                    TransactionDate = DateTime.Now,
+                    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                    TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+                    BookingId = booking.Id
+                };
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminRefundTransaction);
+
+                await _unitOfWork.CommitAsync(); // Lưu giao dịch vào cơ sở dữ liệu
+
+                // Cập nhật trạng thái của Booking
+                quotation.Status = QuotationStatus.Canceled;
+                _unitOfWork.QuotationRepository.Update(quotation);
+
+                booking.Status = Booking.BookingStatus.Canceled;
+                booking.IsBooked = false;
+                _unitOfWork.BookingRepository.Update(booking);
+
+                await _unitOfWork.CommitAsync();
+
+                // Thêm thông báo cho Provider và Admin
+                string providerUrl = ""; // FE route cho provider
+                string adminUrl = "";    // FE route cho admin
+
+                // Thông báo cho Provider
+                if (providerId > 0)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId,
+                        Title = "Booking Canceled",
+                        Content = $"The customer has canceled booking with quotation #{quotationCode}.",
+                        Url = providerUrl
+                    });
+                }
+
+                // Thông báo cho Admin
+                var adminIds = await _unitOfWork.AccountRepository.Queryable()
+                    .Where(a => a.RoleId == 1) // Giả sử role 1 là admin
+                    .Select(a => a.Id)
+                    .ToListAsync();
+
+                foreach (var adminId in adminIds)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = adminId,
+                        Title = "Quotation Canceled",
+                        Content = $"Quotation #{quotationCode} has been canceled.",
+                        Url = adminUrl
+                    });
+                }
+
+                response.Success = true;
+                response.Message = "Quotation successfully canceled.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to cancel the quotation.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> RequestDeniedQuotationAsync(string quotationCode, string? rejectReason)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending)
+                    .FirstOrDefaultAsync();
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or not in pending state.";
+                    return response;
+                }
+
+                quotation.Status = Quotation.QuotationStatus.PendingDenied;
+                quotation.CancelReason = rejectReason; // dùng chung field
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Quotation rejection request submitted. Awaiting provider approval.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to request rejection.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> ApproveDeniedQuotationAsync(string quotationCode)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.Booking)
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.PendingDenied)
+                    .FirstOrDefaultAsync();
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or not in pending rejection state.";
+                    return response;
+                }
+
+                quotation.Status = Quotation.QuotationStatus.Denied;
+                quotation.isQuoteExisted = false;
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Quotation has been rejected. Provider can now create a new quotation.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to approve rejection.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
         #region
         private string GenerateQuotationCode()
         {

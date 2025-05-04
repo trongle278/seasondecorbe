@@ -617,6 +617,7 @@ namespace BusinessLogicLayer.Services
                     Note = request.Note,
                     //RequestChangeCount = 0, //số lần đổi yêu cầu
                     //IsAdditionalFeeCharged = false,
+                    CommitDepositAmount = 1000000,
                     CreateAt = DateTime.Now
                 };
 
@@ -830,7 +831,7 @@ namespace BusinessLogicLayer.Services
                     {
                         AccountId = booking.AccountId,
                         Title = "Booking Status Update",
-                        Content = $"Provider has accepted your booking request #{colorbookingCode} and is planning a site survey.",
+                        Content = $"Provider has accepted your booking request #{colorbookingCode}. Please deposit commitmentfee.",
                         Url = $"{_clientBaseUrl}/booking/request"
                     });
                     break;
@@ -947,7 +948,6 @@ namespace BusinessLogicLayer.Services
                     booking.IsBooked = false;
                     booking.Status = newStatus.Value; // Đảm bảo cập nhật status
                     _unitOfWork.BookingRepository.Update(booking); // Cập nhật lại booking sau khi thay đổi IsBooked
-                    ///---------------------------------------------------------------------------------------
                     break;
             }
 
@@ -1427,7 +1427,7 @@ namespace BusinessLogicLayer.Services
                 string customerUrl = ""; // FE route cho customer
                 string providerUrl = "";       // FE route cho provider
                 string adminUrl = "";             // FE route cho admin
-                
+
                 string colorbookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{bookingCode}</span>";
                 // 1. Thông báo cho Customer
                 await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
@@ -1475,6 +1475,69 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Failed to process construction payment.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        // In BookingService.cs
+        public async Task<BaseResponse> ProcessCommitDepositAsync(string bookingCode)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                    .Include(b => b.DecorService)
+                    .ThenInclude(ds => ds.Account)
+                    .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found.";
+                    return response;
+                }
+
+                // Only allow trust deposit in Planning status
+                if (booking.Status != Booking.BookingStatus.Planning)
+                {
+                    response.Message = "Trust deposit can only be paid during Planning phase.";
+                    return response;
+                }
+
+                if (booking.IsCommitDepositPaid == true)
+                {
+                    response.Message = "Trust deposit already paid.";
+                    return response;
+                }
+
+                var provider = booking.DecorService.Account;
+                var customerId = booking.AccountId;
+
+                // Process payment
+                bool paymentSuccess = await _paymentService.TrustDeposit(
+                    customerId,
+                    provider.Id,
+                    booking.CommitDepositAmount,
+                    booking.Id);
+
+                if (!paymentSuccess)
+                {
+                    response.Message = "Trust deposit payment failed.";
+                    return response;
+                }
+
+                // Update booking status
+                booking.IsCommitDepositPaid = true;
+                _unitOfWork.BookingRepository.Update(booking);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Trust deposit paid successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to process trust deposit.";
                 response.Errors.Add(ex.Message);
             }
             return response;

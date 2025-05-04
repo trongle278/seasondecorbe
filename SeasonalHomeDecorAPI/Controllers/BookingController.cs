@@ -151,5 +151,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _bookingService.ProcessFinalPaymentAsync(bookingCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
+
+        [HttpPost("processCommitDeposit/{bookingCode}")]
+        public async Task<IActionResult> ProcessCommitDeposit(string bookingCode)
+        {
+            var response = await _bookingService.ProcessCommitDepositAsync(bookingCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }

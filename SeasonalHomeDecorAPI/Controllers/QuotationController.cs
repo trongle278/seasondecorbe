@@ -2,7 +2,6 @@
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
-using BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +9,6 @@ namespace SeasonalHomeDecorAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class QuotationController : ControllerBase
     {
         private readonly IQuotationService _quotationService;
@@ -24,6 +22,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         /// Tạo báo giá cho một booking
         /// </summary>
         [HttpPost("createQuotationByBookingCode/{bookingCode}")]
+        [Authorize]
         public async Task<IActionResult> CreateQuotation(string bookingCode, CreateQuotationRequest request)
         {
             var response = await _quotationService.CreateQuotationAsync(bookingCode, request);
@@ -31,6 +30,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("uploadQuotationFileByBookingCode/{bookingCode}")]
+        [Authorize]
         public async Task<IActionResult> UploadQuotationFile(string bookingCode, IFormFile quotationFile)
         {
             var response = await _quotationService.UploadQuotationFileAsync(bookingCode, quotationFile);
@@ -38,6 +38,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginatedQuotationsForCustomer")]
+        [Authorize]
         public async Task<IActionResult> GetPaginatedQuotationsForCustomer([FromQuery] QuotationFilterRequest request)
         {
             // Lấy accountId từ token
@@ -48,6 +49,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginatedQuotationsForProvider")]
+        [Authorize]
         public async Task<IActionResult> GetPaginatedQuotationsForProvider([FromQuery] QuotationFilterRequest request)
         {
             // Lấy accountId từ token
@@ -58,13 +60,47 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("confirmQuotation/{quotationCode}")]
+        [Authorize]
         public async Task<IActionResult> ConfirmQuotation(string quotationCode, [FromBody] bool isConfirmed)
         {
             var response = await _quotationService.ConfirmQuotationAsync(quotationCode, isConfirmed);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpPut("requestDeniedQuotation/{quotationCode}")]
+        [Authorize]
+        public async Task<IActionResult> RequestCancelQuotation(string quotationCode, string? rejectReason)
+        {
+            var response = await _quotationService.RequestDeniedQuotationAsync(quotationCode, rejectReason);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("approveDeniedQuotation/{quotationCode}")]
+        [Authorize]
+        public async Task<IActionResult> ApproveDeniedQuotation(string quotationCode)
+        {
+            var response = await _quotationService.ApproveDeniedQuotationAsync(quotationCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("requestCancelQuotation/{quotationCode}")]
+        [Authorize]
+        public async Task<IActionResult> RequestCancelQuotation(string quotationCode, int quotationCancelId, string cancelReason)
+        {
+            var response = await _quotationService.RequestCancelQuotationAsync(quotationCode, quotationCancelId, cancelReason);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("approveCancelQuotation/{quotationCode}")]
+        [Authorize]
+        public async Task<IActionResult> ApproveCancelQuotation(string quotationCode)
+        {
+            var response = await _quotationService.ApproveCancelQuotationAsync(quotationCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
         [HttpGet("getQuotationDetailByCustomer/{quotationCode}")]
+        [Authorize]
         public async Task<IActionResult> GetQuotationDetailByCustomer(string quotationCode)
         {
             // Lấy customerId từ token
@@ -75,6 +111,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginatedRelatedProduct")]
+        [Authorize]
         public async Task<IActionResult> GetPaginatedRelatedProduct([FromQuery] PagingRelatedProductRequest request)
         {
             var response = await _quotationService.GetPaginatedRelatedProductAsync(request);
@@ -82,6 +119,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("addProductToQuotation/{quotationCode}")]
+        [Authorize]
         public async Task<IActionResult> AddProductToQuotation(string quotationCode, int productId, int quantity)
         {
             var response = await _quotationService.AddProductToQuotationAsync(quotationCode, productId, quantity);
@@ -89,6 +127,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpDelete("removeProductFromQuotation/{quotationCode}")]
+        [Authorize]
         public async Task<IActionResult> RemoveProductFromQuotation(string quotationCode, int productId)
         {
             var response = await _quotationService.RemoveProductFromQuotationAsync(quotationCode, productId);

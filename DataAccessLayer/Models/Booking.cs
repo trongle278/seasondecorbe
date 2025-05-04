@@ -71,5 +71,8 @@ namespace DataAccessObject.Models
 
         public string? CancelReason { get; set; }
         public string? RejectReason { get; set; } // Lưu lý do reject
+
+        public decimal CommitDepositAmount { get; set; }
+        public bool? IsCommitDepositPaid { get; set; }
     }
 }
