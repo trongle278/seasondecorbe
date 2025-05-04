@@ -146,6 +146,7 @@ namespace BusinessLogicLayer.Services
                         Status = (int)booking.Status,
                         Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                         CancelDisable = booking.CancelDisable,
+                        IsCommitDepositPaid = booking.IsCommitDepositPaid,
                         CreatedAt = booking.CreateAt,
 
                         DecorService = new DecorServiceDTO
@@ -266,6 +267,7 @@ namespace BusinessLogicLayer.Services
                     CancelDisable = booking.CancelDisable,
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
+                    IsCommitDepositPaid = booking.IsCommitDepositPaid,
                     IsQuoteExisted = booking.Quotations.Any(),
                     IsTracked = booking.IsTracked ?? false,
                     IsReviewed = booking.IsReviewed ?? false,

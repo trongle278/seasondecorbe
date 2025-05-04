@@ -14,6 +14,7 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
         public bool? CancelDisable { get; set; }
+        public bool? IsCommitDepositPaid { get; set; }
         public bool IsQuoteExisted { get; set; }
         public bool IsContractSigned { get; set; }
         public bool IsTracked { get; set; }
@@ -66,6 +67,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
         //public DateTime? EstimatedCompletion { get; set; }
+        public bool? IsCommitDepositPaid { get; set; }
         public bool IsQuoteExisted { get; set; }
         public bool IsTracked { get; set; }
         public bool IsReviewed { get; set; }
