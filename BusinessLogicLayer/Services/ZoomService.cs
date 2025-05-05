@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -14,6 +15,7 @@ using BusinessLogicLayer.ModelResponse.Order;
 using BusinessLogicLayer.ModelResponse.Pagination;
 using BusinessLogicLayer.Utilities.Zoom;
 using DataAccessObject.Models;
+using FirebaseAdmin.Auth.Hash;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -77,13 +79,13 @@ namespace BusinessLogicLayer.Services
             {
                 topic = request.Topic,
                 type = 2, // Scheduled meeting
-                start_time = request.StartTime.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                start_time = request.StartTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                 duration = request.Duration,
                 timezone = request.TimeZone,
                 settings = new
                 {
                     join_before_host = true,
-                    waiting_room = true
+                    waiting_room = false
                 }
             };
 
@@ -116,7 +118,7 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse> CreateMeetingRequestAsync(string bookingCode, CreateMeetingRequest request)
+        public async Task<BaseResponse> CreateMeetingRequestAsync(string bookingCode, int customerId, CreateMeetingRequest request)
         {
             var response = new BaseResponse();
             try
@@ -152,12 +154,12 @@ namespace BusinessLogicLayer.Services
 
                 var zoomMeeting = new ZoomMeeting
                 {
-                    Topic = "{decorService} Booking Request Meeting",
+                    Topic = $"{decorService} Booking Request - Meeting",
                     StartTime = request.StartTime,
                     CreateAt = DateTime.Now,
                     Status = ZoomMeeting.MeetingStatus.Requested,
                     BookingId = booking.Id,
-                    AccountId = request.CustomerId,
+                    AccountId = customerId,
                 };
 
                 await _unitOfWork.ZoomRepository.InsertAsync(zoomMeeting);
@@ -177,7 +179,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> AcceptMeetingRequestAsync(string bookingCode)
+        public async Task<BaseResponse> AcceptMeetingRequestAsync(string bookingCode, int id)
         {
             var response = new BaseResponse();
             try
@@ -185,7 +187,7 @@ namespace BusinessLogicLayer.Services
                 var meeting = await _unitOfWork.ZoomRepository.Queryable()
                                     .Include(z => z.Booking)
                                         .ThenInclude(b => b.DecorService)
-                                    .Where(z => z.Booking.BookingCode == bookingCode && z.Status == ZoomMeeting.MeetingStatus.Requested)
+                                    .Where(z => z.Booking.BookingCode == bookingCode && z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Requested)
                                     .FirstOrDefaultAsync();
 
                 if (meeting == null)
@@ -210,6 +212,7 @@ namespace BusinessLogicLayer.Services
                 meeting.Duration = defaultDuration;
                 meeting.Status = ZoomMeeting.MeetingStatus.Scheduled;
                 meeting.ResponseAt = DateTime.Now;
+                meeting.MeetingId = zoomResponse.MeetingId;
 
                 _unitOfWork.ZoomRepository.Update(meeting);
                 await _unitOfWork.CommitAsync();
@@ -228,14 +231,14 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RejectMeetingRequestAsync(string bookingCode)
+        public async Task<BaseResponse> RejectMeetingRequestAsync(string bookingCode, int id)
         {
             var response = new BaseResponse();
             try
             {
                 var meeting = await _unitOfWork.ZoomRepository.Queryable()
                             .Include(z => z.Booking)
-                            .Where(z => z.Booking.BookingCode == bookingCode && z.Status == ZoomMeeting.MeetingStatus.Requested)
+                            .Where(z => z.Booking.BookingCode == bookingCode && z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Requested)
                             .FirstOrDefaultAsync();
 
                 if (meeting == null)
@@ -335,7 +338,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 response.Success = true;
-                response.Message = "Error fetching meeting detail";
+                response.Message = "Meeting detail fetched successfully.";
                 response.Data = _mapper.Map<MeetingDetailResponse>(meeting);
             }
             catch (Exception ex)
@@ -346,6 +349,79 @@ namespace BusinessLogicLayer.Services
             }
 
             return response;
+        }
+
+        public string GenerateZoomSignature(string meetingNumber, int role)
+        {
+            var ts = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds - 30000;
+
+            var message = $"{_zoomSettings.ClientId}{meetingNumber}{ts}{role}";
+            var encoding = new UTF8Encoding();
+            var keyByte = encoding.GetBytes(_zoomSettings.ClientSecret);
+            var messageBytes = encoding.GetBytes(message);
+            using (var hmacsha256 = new HMACSHA256(keyByte))
+            {
+                var hashmessage = hmacsha256.ComputeHash(messageBytes);
+                var hash = Convert.ToBase64String(hashmessage);
+                var token = $"{_zoomSettings.ClientId}.{meetingNumber}.{ts}.{role}.{hash}";
+                var bytes = Encoding.UTF8.GetBytes(token);
+                return Convert.ToBase64String(bytes);
+            }
+        }
+
+        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int meetingId, int role)
+        {
+            var response = new BaseResponse<ZoomJoinInfoResponse>();
+            try
+            {
+                var meeting = await _unitOfWork.ZoomRepository.GetByIdAsync(meetingId);
+
+                if (meeting == null || string.IsNullOrEmpty(meeting.ZoomUrl))
+                {
+                    response.Message = "Meeting not found or not yet scheduled!";
+                    return response;
+                }
+
+                // Parse Meeting Number từ ZoomUrl
+                var meetingNumber = ExtractMeetingNumber(meeting.ZoomUrl); 
+
+                var signature = GenerateZoomSignature(meetingNumber, role);
+
+                response.Success = true;
+                response.Message = "Success";
+                response.Data = new ZoomJoinInfoResponse
+                {
+                    ApiKey = _zoomSettings.ClientId,
+                    Signature = signature,
+                    MeetingNumber = meetingNumber,
+                    Role = role,
+                    ZoomUrl = meeting.ZoomUrl
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving join info!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        private string ExtractMeetingNumber(string zoomUrl)
+        {
+            var uri = new Uri(zoomUrl);
+            var segments = uri.Segments;
+            // segments có dạng: ["/", "j/", "12345678901"]
+            var meetingSegment = segments.FirstOrDefault(s => s.All(char.IsDigit));
+
+            if (string.IsNullOrEmpty(meetingSegment))
+            {
+                // fallback nếu URL dạng "j/12345678901"
+                meetingSegment = segments.LastOrDefault()?.Trim('/');
+            }
+
+            return meetingSegment;
         }
     }
 }

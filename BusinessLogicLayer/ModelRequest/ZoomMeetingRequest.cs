@@ -17,6 +17,5 @@ namespace BusinessLogicLayer.ModelRequest
     public class CreateMeetingRequest
     {
         public DateTime StartTime { get; set; }
-        public int CustomerId { get; set; }
     }
 }

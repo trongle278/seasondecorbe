@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250505090434_AddMeetingId")]
+    partial class AddMeetingId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,6 +265,9 @@ namespace DataAccessObject.Migrations
                     b.Property<int?>("CancelTypeId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CommitDepositAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime?>("ConstructionDate")
                         .HasColumnType("datetime2");
 
@@ -275,6 +281,9 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<bool?>("IsBooked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsCommitDepositPaid")
                         .HasColumnType("bit");
 
                     b.Property<bool?>("IsReviewed")
@@ -950,6 +959,9 @@ namespace DataAccessObject.Migrations
                     b.Property<decimal>("Cost")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("QuotationId")
                         .HasColumnType("int");
 
@@ -984,6 +996,9 @@ namespace DataAccessObject.Migrations
 
                     b.Property<string>("MaterialName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Quantity")
@@ -1372,6 +1387,12 @@ namespace DataAccessObject.Migrations
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CancelReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CancelTypeId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("ConstructionCost")
                         .HasColumnType("decimal(18,2)");
 
@@ -1403,6 +1424,8 @@ namespace DataAccessObject.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
+
+                    b.HasIndex("CancelTypeId");
 
                     b.ToTable("Quotation");
                 });
@@ -2573,7 +2596,13 @@ namespace DataAccessObject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessObject.Models.CancelType", "CancelType")
+                        .WithMany("Quotations")
+                        .HasForeignKey("CancelTypeId");
+
                     b.Navigation("Booking");
+
+                    b.Navigation("CancelType");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Review", b =>
@@ -2852,6 +2881,8 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.CancelType", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("Quotations");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Cart", b =>
