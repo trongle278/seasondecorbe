@@ -92,6 +92,15 @@ builder.Services.AddQuartz(q =>
         .WithSimpleSchedule(x => x
             .WithIntervalInSeconds(10)
             .RepeatForever()));
+
+    var zoomMeetingStatusUpdateJobKey = new JobKey("ZoomMeetingStatusUpdateJob");
+    q.AddJob<ZoomMeetingStatusUpdateJob>(opts => opts.WithIdentity(zoomMeetingStatusUpdateJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(zoomMeetingStatusUpdateJobKey)
+        .WithIdentity("ZoomMeetingStatusUpdateJobTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(30)
+            .RepeatForever()));
 }); 
 
 // Đăng ký dịch vụ Quartz background
