@@ -1394,6 +1394,13 @@ namespace BusinessLogicLayer.Services
                     .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.PendingDenied)
                     .FirstOrDefaultAsync();
 
+                var booking = quotation.Booking;
+                if (booking == null)
+                {
+                    response.Message = "Booking associated with this quotation was not found.";
+                    return response;
+                }
+
                 if (quotation == null)
                 {
                     response.Message = "Quotation not found or not in pending rejection state.";
@@ -1401,6 +1408,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 quotation.Status = Quotation.QuotationStatus.Denied;
+                booking.IsQuoted = false;
                 quotation.isQuoteExisted = false;
 
                 await _unitOfWork.CommitAsync();
