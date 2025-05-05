@@ -196,6 +196,7 @@ namespace BusinessLogicLayer.Services
                 }).ToList();
 
                 await _unitOfWork.LaborDetailRepository.InsertRangeAsync(constructionDetails);
+                booking.IsQuoted = true;
                 quotation.isQuoteExisted = true;
                 await _unitOfWork.CommitAsync();
 
@@ -1351,7 +1352,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RequestDeniedQuotationAsync(string quotationCode, string? rejectReason)
+        public async Task<BaseResponse> RequestChangeQuotationAsync(string quotationCode, string? changeReason)
         {
             var response = new BaseResponse();
             try
@@ -1367,7 +1368,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 quotation.Status = Quotation.QuotationStatus.PendingDenied;
-                quotation.CancelReason = rejectReason; // dùng chung field
+                quotation.CancelReason = changeReason; // dùng chung field
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
@@ -1383,7 +1384,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> ApproveDeniedQuotationAsync(string quotationCode)
+        public async Task<BaseResponse> ApproveChangeQuotationAsync(string quotationCode)
         {
             var response = new BaseResponse();
             try

@@ -45,6 +45,7 @@ namespace DataAccessObject.Models
         public BookingStatus Status { get; set; }
 
         public bool? IsBooked { get; set; }
+        public bool? IsQuoted { get; set; }
         public bool? IsTracked { get; set; }
         public bool? IsReviewed { get; set; }
         public bool? CancelDisable { get; set; }

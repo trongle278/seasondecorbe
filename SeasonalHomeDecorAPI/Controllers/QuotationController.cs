@@ -67,19 +67,19 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("requestDeniedQuotation/{quotationCode}")]
+        [HttpPut("requestToChangeChangeQuotation/{quotationCode}")]
         [Authorize]
-        public async Task<IActionResult> RequestCancelQuotation(string quotationCode, string? rejectReason)
+        public async Task<IActionResult> RequestToChangeQuotation(string quotationCode, string? changeReason)
         {
-            var response = await _quotationService.RequestDeniedQuotationAsync(quotationCode, rejectReason);
+            var response = await _quotationService.RequestChangeQuotationAsync(quotationCode, changeReason);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("approveDeniedQuotation/{quotationCode}")]
+        [HttpPut("approveToChangeQuotation/{quotationCode}")]
         [Authorize]
-        public async Task<IActionResult> ApproveDeniedQuotation(string quotationCode)
+        public async Task<IActionResult> ApproveToChangeQuotation(string quotationCode)
         {
-            var response = await _quotationService.ApproveDeniedQuotationAsync(quotationCode);
+            var response = await _quotationService.ApproveChangeQuotationAsync(quotationCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
