@@ -26,12 +26,28 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("getPaginatedList")]
-        public async Task<IActionResult> GetFilterMeetingList([FromQuery] ZoomFilterRequest request)
+        [HttpGet("getPaginatedListForCustomer")]
+        public async Task<IActionResult> GetMeetingListForCustomer([FromQuery] ZoomFilterRequest request)
         {
             var accountId = GetUserId();
 
-            var result = await _zoomService.GetMeetingByBookingAsync(accountId, request);
+            var result = await _zoomService.GetMeetingForCustomerAsync(accountId, request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpGet("getPaginatedListForProvider")]
+        public async Task<IActionResult> GetMeetingListForProvider([FromQuery] ZoomFilterRequest request)
+        {
+            var accountId = GetUserId();
+
+            var result = await _zoomService.GetMeetingForProviderAsync(accountId, request);
 
             if (result.Success)
             {

@@ -223,6 +223,7 @@ namespace BusinessLogicLayer.Services
                 meeting.MeetingNumber = zoomResponse.MeetingNumber;
                 meeting.Password = zoomResponse.Password;
                 meeting.StartTime = zoomResponse.StartTime;
+                meeting.StartUrl = zoomResponse.StartUrl;
 
                 _unitOfWork.ZoomRepository.Update(meeting);
                 await _unitOfWork.CommitAsync();
@@ -277,7 +278,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingByBookingAsync(int accountId, ZoomFilterRequest request)
+        public async Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingForCustomerAsync(int accountId, ZoomFilterRequest request)
         {
             var response = new BaseResponse<PageResult<MeetingListResponse>>();
             try
@@ -286,6 +287,63 @@ namespace BusinessLogicLayer.Services
                 // Filter
                 Expression<Func<ZoomMeeting, bool>> filter = meeting =>
                     meeting.AccountId == accountId &&
+                    meeting.Booking.BookingCode == request.BookingCode &&
+                    (!request.Status.HasValue || meeting.Status == request.Status);
+
+                // Sort
+                Expression<Func<ZoomMeeting, object>> orderByExpression = request.SortBy?.ToLower() switch
+                {
+                    "status" => meeting => meeting.Status,
+                    _ => meeting => meeting.CreateAt
+                };
+
+                // Include entities
+                Expression<Func<ZoomMeeting, object>>[] includeProperties =
+                {
+                    z => z.Booking
+                };
+
+                // Get paginated data and filter
+                (IEnumerable<ZoomMeeting> meetings, int totalCount) = await _unitOfWork.ZoomRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var meeting = _mapper.Map<List<MeetingListResponse>>(meetings);
+
+                var pageResult = new PageResult<MeetingListResponse>
+                {
+                    Data = meeting,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Retrieving meeting list successfully.";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving meeting list!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingForProviderAsync(int accountId, ZoomFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<MeetingListResponse>>();
+            try
+            {
+
+                // Filter
+                Expression<Func<ZoomMeeting, bool>> filter = meeting =>
+                    meeting.Booking.DecorService.AccountId == accountId &&
                     meeting.Booking.BookingCode == request.BookingCode &&
                     (!request.Status.HasValue || meeting.Status == request.Status);
 

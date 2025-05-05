@@ -64,7 +64,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime StartTime { get; set; }
         public string? ZoomUrl { get; set; }
         public DateTime CreateAt { get; set; }
-        public string? MeetingId { get; set; }
+        public string? MeetingNumber { get; set; }
     }
 
     public class MeetingDetailResponse
@@ -87,7 +87,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime? ResponseAt { get; set; }
         public int BookingId { get; set; }
         public int AccountId { get; set; }
-        public string? MeetingId { get; set; }
+        public string? MeetingNumber { get; set; }
     }
 
     public class ZoomJoinInfoResponse
