@@ -68,7 +68,7 @@ namespace BusinessLogicLayer.Services
 
                 // Kiểm tra nếu đã có báo giá và không phải bị từ chối thì không cho tạo
                 var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
-                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id && q.Status != Quotation.QuotationStatus.Denied);
+                    .FirstOrDefaultAsync(q => q.BookingId == booking.Id && q.Status != Quotation.QuotationStatus.Closed);
 
                 if (existingQuotation != null)
                 {
@@ -632,7 +632,7 @@ namespace BusinessLogicLayer.Services
                 else
                 {
                     // Từ chối báo giá
-                    quotation.Status = Quotation.QuotationStatus.Denied;
+                    quotation.Status = Quotation.QuotationStatus.Closed;
                     quotation.isQuoteExisted = false;
 
                     response.Message = "Quotation has been denied. You can now create a new quotation.";
