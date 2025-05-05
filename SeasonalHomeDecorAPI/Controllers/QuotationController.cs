@@ -67,7 +67,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPut("requestToChangeChangeQuotation/{quotationCode}")]
+        [HttpPut("requestToChangeQuotation/{quotationCode}")]
         [Authorize]
         public async Task<IActionResult> RequestToChangeQuotation(string quotationCode, string? changeReason)
         {
