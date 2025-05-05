@@ -12,7 +12,8 @@ namespace BusinessLogicLayer.Interfaces
 {
     public interface IZoomService
     {
-        Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingByBookingAsync(int accountId, ZoomFilterRequest request);
+        Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingForCustomerAsync(int accountId, ZoomFilterRequest request);
+        Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingForProviderAsync(int accountId, ZoomFilterRequest request);
         Task<BaseResponse<MeetingDetailResponse>> GetMeetingById (int id);
         Task<BaseResponse> CreateMeetingRequestAsync(string bookingCode, int customerId, CreateMeetingRequest request);
         Task<BaseResponse> AcceptMeetingRequestAsync(string bookingCode, int id);
