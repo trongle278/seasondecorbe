@@ -8,7 +8,7 @@ namespace DataAccessObject.Models
 {
     public class ZoomMeeting
     {
-        public int id { get; set; }
+        public int Id { get; set; }
         public string Topic { get; set; }
         public DateTime StartTime { get; set; }
         public int? Duration { get; set; }
@@ -30,5 +30,7 @@ namespace DataAccessObject.Models
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
+
+        public string? MeetingId { get; set; }
     }
 }

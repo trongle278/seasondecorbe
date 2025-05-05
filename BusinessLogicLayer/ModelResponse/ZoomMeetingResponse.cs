@@ -9,17 +9,16 @@ namespace BusinessLogicLayer.ModelResponse
 {
     public class ZoomMeetingResponse
     {
-        //[JsonProperty("join_url")]
-        //public string JoinUrl { get; set; }
-
-        //[JsonProperty("start_url")]
-        //public string StartUrl { get; set; }
-
-        //[JsonProperty("id")]
-        //public string MeetingId { get; set; }
         public string Id { get; set; }
+
+        [JsonProperty("join_url")]
         public string JoinUrl { get; set; }
+
+        [JsonProperty("start_url")]
         public string StartUrl { get; set; }
+
+        [JsonProperty("id")]
+        public string MeetingId { get; set; }
         public string Topic { get; set; }
         public int Duration { get; set; }
         public DateTime StartTime { get; set; }
@@ -39,11 +38,12 @@ namespace BusinessLogicLayer.ModelResponse
 
     public class MeetingListResponse
     {
-        public int id { get; set; }
+        public int Id { get; set; }
         public string Topic { get; set; }
         public DateTime StartTime { get; set; }
         public string? ZoomUrl { get; set; }
         public DateTime CreateAt { get; set; }
+        public string? MeetingId { get; set; }
     }
 
     public class MeetingDetailResponse
@@ -66,5 +66,15 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime? ResponseAt { get; set; }
         public int BookingId { get; set; }
         public int AccountId { get; set; }
+        public string? MeetingId { get; set; }
+    }
+
+    public class ZoomJoinInfoResponse
+    {
+        public string ApiKey { get; set; }
+        public string Signature { get; set; }
+        public string MeetingNumber { get; set; }
+        public int Role { get; set; }
+        public string ZoomUrl { get; set; }
     }
 }

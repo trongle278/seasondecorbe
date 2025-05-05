@@ -71,7 +71,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _zoomService.CreateMeetingRequestAsync(bookingCode, request);
+            var result = await _zoomService.CreateMeetingRequestAsync(bookingCode, accountId, request);
 
             if (result.Success)
             {
@@ -82,8 +82,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("acceptingMeetingRequest/{bookingCode}")]
-        public async Task<IActionResult> AcceptMeetingReqeust(string bookingCode)
+        [HttpPost("acceptingMeetingRequest")]
+        public async Task<IActionResult> AcceptMeetingReqeust([FromQuery] string bookingCode, [FromQuery] int id)
         {
             var accountId = GetUserId();
             if (accountId == 0)
@@ -91,7 +91,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _zoomService.AcceptMeetingRequestAsync(bookingCode);
+            var result = await _zoomService.AcceptMeetingRequestAsync(bookingCode, id);
 
             if (result.Success)
             {
@@ -102,8 +102,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("rejectMeetingRequest/{bookingCode}")]
-        public async Task<IActionResult> RejectMeetingRequest(string bookingCode)
+        [HttpPut("rejectMeetingRequest")]
+        public async Task<IActionResult> RejectMeetingRequest([FromQuery] string bookingCode, [FromQuery] int id)
         {
             var accountId = GetUserId();
             if (accountId == 0)
@@ -111,7 +111,20 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _zoomService.RejectMeetingRequestAsync(bookingCode);
+            var result = await _zoomService.RejectMeetingRequestAsync(bookingCode, id);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [HttpGet("join-info")]
+        public async Task<IActionResult> GetZoomJoinInfo([FromQuery] int meetingId, [FromQuery] int role)
+        {
+            var result = await _zoomService.GetZoomJoinInfo(meetingId, role);
 
             if (result.Success)
             {
