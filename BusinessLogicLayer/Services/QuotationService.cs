@@ -1297,7 +1297,7 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.CommitAsync(); // Lưu giao dịch vào cơ sở dữ liệu
 
                 // Cập nhật trạng thái của Booking
-                quotation.Status = QuotationStatus.Canceled;
+                quotation.Status = QuotationStatus.Closed;
                 _unitOfWork.QuotationRepository.Update(quotation);
 
                 booking.Status = Booking.BookingStatus.Canceled;
@@ -1367,7 +1367,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                quotation.Status = Quotation.QuotationStatus.PendingDenied;
+                quotation.Status = Quotation.QuotationStatus.PendingChanged;
                 quotation.CancelReason = changeReason; // dùng chung field
                 await _unitOfWork.CommitAsync();
 
@@ -1391,7 +1391,7 @@ namespace BusinessLogicLayer.Services
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.Booking)
-                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.PendingDenied)
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending)
                     .FirstOrDefaultAsync();
 
                 var booking = quotation.Booking;
@@ -1407,9 +1407,9 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                quotation.Status = Quotation.QuotationStatus.Denied;
+                quotation.Status = Quotation.QuotationStatus.Closed;
                 booking.IsQuoted = false;
-                quotation.isQuoteExisted = false;
+                quotation.isQuoteExisted = true;
 
                 await _unitOfWork.CommitAsync();
 

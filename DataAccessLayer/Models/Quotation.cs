@@ -27,10 +27,9 @@ namespace DataAccessObject.Models
         {
             Pending,
             Confirmed,    // Đồng ý bảng báo giá         
-            PendingDenied,        // Từ chối bảng báo giá
-            Denied,
+            PendingChanged,        // Từ chối bảng báo giá      
             PendingCancel,
-            Canceled
+            Closed
         }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool isQuoteExisted { get; set; }
