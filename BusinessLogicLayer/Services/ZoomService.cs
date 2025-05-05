@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +17,10 @@ using BusinessLogicLayer.ModelResponse.Pagination;
 using BusinessLogicLayer.Utilities.Zoom;
 using DataAccessObject.Models;
 using FirebaseAdmin.Auth.Hash;
+using Google.Apis.Auth.OAuth2.Responses;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Repository.UnitOfWork;
@@ -26,14 +30,18 @@ namespace BusinessLogicLayer.Services
 {
     public class ZoomService : IZoomService
     {
+        private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ZoomSettings _zoomSettings;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ZoomService(HttpClient httpClient, IOptions<ZoomSettings> options, IUnitOfWork unitOfWork, IMapper mapper)
+        public ZoomService(IConfiguration configuration, HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IOptions<ZoomSettings> options, IUnitOfWork unitOfWork, IMapper mapper)
         {
+            _configuration = configuration;
             _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
             _zoomSettings = options.Value;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -212,7 +220,9 @@ namespace BusinessLogicLayer.Services
                 meeting.Duration = defaultDuration;
                 meeting.Status = ZoomMeeting.MeetingStatus.Scheduled;
                 meeting.ResponseAt = DateTime.Now;
-                meeting.MeetingId = zoomResponse.MeetingId;
+                meeting.MeetingNumber = zoomResponse.MeetingNumber;
+                meeting.Password = zoomResponse.Password;
+                meeting.StartTime = zoomResponse.StartTime;
 
                 _unitOfWork.ZoomRepository.Update(meeting);
                 await _unitOfWork.CommitAsync();
@@ -324,12 +334,12 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<MeetingDetailResponse>> GetMeetingById(int meetingId)
+        public async Task<BaseResponse<MeetingDetailResponse>> GetMeetingById(int id)
         {
             var response = new BaseResponse<MeetingDetailResponse>();
             try
             {
-                var meeting = await _unitOfWork.ZoomRepository.GetByIdAsync(meetingId);
+                var meeting = await _unitOfWork.ZoomRepository.GetByIdAsync(id);
 
                 if (meeting == null)
                 {
@@ -369,12 +379,15 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int meetingId, int role)
+        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
         {
             var response = new BaseResponse<ZoomJoinInfoResponse>();
             try
             {
-                var meeting = await _unitOfWork.ZoomRepository.GetByIdAsync(meetingId);
+                var meeting = await _unitOfWork.ZoomRepository.Queryable()
+                            .Include(z => z.Booking)
+                                .ThenInclude(b => b.Account)
+                            .FirstOrDefaultAsync(z => z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Scheduled);
 
                 if (meeting == null || string.IsNullOrEmpty(meeting.ZoomUrl))
                 {
@@ -382,21 +395,72 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var accountId = GetCurrentAccountId();
+                if (accountId == null || meeting.AccountId != accountId)
+                {
+                    response.Message = "Unauthorized access.";
+                    return response;
+                }
+
+                var accessToken = await GetZoomAccessTokenAsync();
+
+                if (string.IsNullOrWhiteSpace(accessToken))
+                {
+                    response.Message = "Cannot get access token from Zoom!";
+                    return response;
+                }
+
+                var zoomMeetingData = new ZoomMeetingData();
+                var zoomZakData = new ZoomTokenOnlyResponse();
+
+                var apiUrl = $"{_configuration["Zoom:ApiBaseUrl"]}meetings/{meeting.MeetingNumber}";
+                var request = new HttpRequestMessage(HttpMethod.Get, apiUrl)
+                {
+                    Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
+                };
+
+                var apiResponse = await _httpClient.SendAsync(request);
+                var apiResponseString = await apiResponse.Content.ReadAsStringAsync();
+
+                // Deserialize tk
+                zoomMeetingData = JsonConvert.DeserializeObject<ZoomMeetingData>(apiResponseString);
+
+                // 2. Gọi API lấy "zak"
+                var zakRequest = new HttpRequestMessage(HttpMethod.Get, $"{_configuration["Zoom:ApiBaseUrl"]}users/me/token?type=zak")
+                {
+                    Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
+                };
+
+                var zakResponse = await _httpClient.SendAsync(zakRequest);
+                var zakResponseString = await zakResponse.Content.ReadAsStringAsync();
+
+                // Deserialize zak
+                zoomZakData = JsonConvert.DeserializeObject<ZoomTokenOnlyResponse>(zakResponseString);
+
+                var fullName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
+
                 // Parse Meeting Number từ ZoomUrl
                 var meetingNumber = ExtractMeetingNumber(meeting.ZoomUrl); 
 
-                var signature = GenerateZoomSignature(meetingNumber, role);
+                var signature = GenerateZoomSignature(meetingNumber, 0);
+
+                var joinInfo = new ZoomJoinInfoResponse
+                {
+                    ApiKey = _configuration["Zoom:AccountId"], // Use AccountId from config
+                    Signature = signature,
+                    MeetingNumber = meeting.MeetingNumber,
+                    Password = meeting.Password,
+                    UserName = fullName,
+                    UserEmail = meeting.Booking.Account.Email,
+                    Tk = zoomMeetingData.Tk,
+                    Zak = zoomZakData.Zak,
+                    Role = 0,
+                    ZoomUrl = meeting.ZoomUrl
+                };
 
                 response.Success = true;
                 response.Message = "Success";
-                response.Data = new ZoomJoinInfoResponse
-                {
-                    ApiKey = _zoomSettings.ClientId,
-                    Signature = signature,
-                    MeetingNumber = meetingNumber,
-                    Role = role,
-                    ZoomUrl = meeting.ZoomUrl
-                };
+                response.Data = joinInfo;
             }
             catch (Exception ex)
             {
@@ -422,6 +486,42 @@ namespace BusinessLogicLayer.Services
             }
 
             return meetingSegment;
+        }
+
+        private int? GetCurrentAccountId()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null)
+                return null;
+
+            var accountIdClaim = user.Claims.FirstOrDefault(c => c.Type == "accountId" || c.Type == ClaimTypes.NameIdentifier);
+            if (accountIdClaim == null)
+                return null;
+
+            return int.TryParse(accountIdClaim.Value, out var id) ? id : null;
+        }
+
+        private async Task<string> GetZoomAccessTokenAsync()
+        {
+            var zoomConfig = _configuration.GetSection("Zoom");
+            var clientId = zoomConfig["ClientId"];
+            var clientSecret = zoomConfig["ClientSecret"];
+            var tokenEndpoint = zoomConfig["TokenEndpoint"];
+
+            var requestBody = new Dictionary<string, string>
+        {
+            { "grant_type", "client_credentials" },
+            { "client_id", clientId },
+            { "client_secret", clientSecret }
+        };
+
+            var response = await _httpClient.PostAsync(tokenEndpoint, new FormUrlEncodedContent(requestBody));
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            // Deserialize to extract access token
+            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(responseString);
+
+            return tokenResponse?.AccessToken;
         }
     }
 }
