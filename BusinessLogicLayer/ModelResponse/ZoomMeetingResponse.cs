@@ -18,10 +18,19 @@ namespace BusinessLogicLayer.ModelResponse
         public string StartUrl { get; set; }
 
         [JsonProperty("id")]
-        public string MeetingId { get; set; }
+        public string MeetingNumber { get; set; }
+
+        [JsonProperty("topic")]
         public string Topic { get; set; }
+
+        [JsonProperty("duration")]
         public int Duration { get; set; }
+
+        [JsonProperty("start_time")]
         public DateTime StartTime { get; set; }
+
+        [JsonProperty("password")]
+        public string Password { get; set; }
     }
 
     public class ZoomTokenResponse
@@ -34,6 +43,18 @@ namespace BusinessLogicLayer.ModelResponse
 
         [JsonProperty("expires_in")]
         public int ExpiresIn { get; set; }
+    }
+
+    public class ZoomMeetingData
+    {
+        [JsonProperty("tk")]
+        public string Tk { get; set; }
+    }
+
+    public class ZoomTokenOnlyResponse
+    {
+        [JsonProperty("token")]
+        public string Zak { get; set; }
     }
 
     public class MeetingListResponse
@@ -71,9 +92,14 @@ namespace BusinessLogicLayer.ModelResponse
 
     public class ZoomJoinInfoResponse
     {
-        public string ApiKey { get; set; }
+        public string ApiKey { get; set; } // SdkKey
         public string Signature { get; set; }
         public string MeetingNumber { get; set; }
+        public string Password { get; set; }
+        public string UserName { get; set; }
+        public string UserEmail { get; set; }
+        public string Tk { get; set; }
+        public string Zak { get; set; }
         public int Role { get; set; }
         public string ZoomUrl { get; set; }
     }

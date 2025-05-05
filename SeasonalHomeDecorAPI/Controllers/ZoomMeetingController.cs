@@ -82,8 +82,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("acceptingMeetingRequest")]
-        public async Task<IActionResult> AcceptMeetingReqeust([FromQuery] string bookingCode, [FromQuery] int id)
+        [HttpPost("acceptingMeetingRequest/{bookingCode}")]
+        public async Task<IActionResult> AcceptMeetingReqeust(string bookingCode, [FromQuery] int id)
         {
             var accountId = GetUserId();
             if (accountId == 0)
@@ -102,8 +102,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("rejectMeetingRequest")]
-        public async Task<IActionResult> RejectMeetingRequest([FromQuery] string bookingCode, [FromQuery] int id)
+        [HttpPut("rejectMeetingRequest/{bookingCode}")]
+        public async Task<IActionResult> RejectMeetingRequest(string bookingCode, [FromQuery] int id)
         {
             var accountId = GetUserId();
             if (accountId == 0)
@@ -121,10 +121,16 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpGet("join-info")]
-        public async Task<IActionResult> GetZoomJoinInfo([FromQuery] int meetingId, [FromQuery] int role)
+        [Authorize]
+        [HttpGet("join-info/{id}")]
+        public async Task<IActionResult> GetZoomJoinInfo(int id)
         {
-            var result = await _zoomService.GetZoomJoinInfo(meetingId, role);
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+            var result = await _zoomService.GetZoomJoinInfo(id);
 
             if (result.Success)
             {

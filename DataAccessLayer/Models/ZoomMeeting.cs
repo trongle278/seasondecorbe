@@ -13,6 +13,9 @@ namespace DataAccessObject.Models
         public DateTime StartTime { get; set; }
         public int? Duration { get; set; }
         public string? ZoomUrl { get; set; }
+        public string? StartUrl { get; set; }
+        public string? MeetingNumber { get; set; }
+        public string? Password { get; set; }
         public enum MeetingStatus
         {
             Requested,
@@ -30,7 +33,5 @@ namespace DataAccessObject.Models
 
         public int AccountId { get; set; }
         public Account Account { get; set; }
-
-        public string? MeetingId { get; set; }
     }
 }

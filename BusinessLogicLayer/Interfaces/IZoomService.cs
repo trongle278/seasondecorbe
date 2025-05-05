@@ -13,11 +13,11 @@ namespace BusinessLogicLayer.Interfaces
     public interface IZoomService
     {
         Task<BaseResponse<PageResult<MeetingListResponse>>> GetMeetingByBookingAsync(int accountId, ZoomFilterRequest request);
-        Task<BaseResponse<MeetingDetailResponse>> GetMeetingById (int meetingId);
+        Task<BaseResponse<MeetingDetailResponse>> GetMeetingById (int id);
         Task<BaseResponse> CreateMeetingRequestAsync(string bookingCode, int customerId, CreateMeetingRequest request);
         Task<BaseResponse> AcceptMeetingRequestAsync(string bookingCode, int id);
         Task<BaseResponse> RejectMeetingRequestAsync(string bookingCode, int id);
         Task<ZoomMeetingResponse> CreateMeetingAsync(ZoomMeetingRequest request);
-        Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int meetingId, int role);
+        Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id);
     }
 }
