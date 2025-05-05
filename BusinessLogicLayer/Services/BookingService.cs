@@ -1030,25 +1030,55 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                //Thông báo
+                string colorBookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+                string customerUrl = $"";
+                string providerUrl = $"";
+
                 // Xử lý khác nhau theo trạng thái
                 if (booking.Status == BookingStatus.Pending)
                 {
-                    // Nếu là Pending -> hủy luôn
                     booking.Status = BookingStatus.Canceled;
                     booking.IsBooked = false;
 
-                    // Chuyển trạng thái DecorService về Available nếu có
                     if (booking.DecorService != null)
                     {
                         booking.DecorService.Status = DecorService.DecorServiceStatus.Available;
                         _unitOfWork.DecorServiceRepository.Update(booking.DecorService);
                     }
+
+                    // ✅ THÔNG BÁO CHO CẢ CUSTOMER VÀ PROVIDER
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.AccountId,
+                        Title = "Booking Canceled",
+                        Content = $"You have successfully canceled booking {colorBookingCode}.",
+                        Url = customerUrl
+                    });
+
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.DecorService.AccountId,
+                        Title = "Booking Canceled",
+                        Content = $"Customer has canceled booking {colorBookingCode}.",
+                        Url = providerUrl
+                    });
+
                     response.Message = "Booking has been canceled successfully.";
                 }
                 else if (booking.Status == BookingStatus.Planning)
                 {
-                    // Nếu là Planning -> chuyển sang PendingCancel
                     booking.Status = BookingStatus.PendingCancel;
+
+                    // ✅ THÔNG BÁO CHO PROVIDER CHỜ DUYỆT
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = booking.DecorService.AccountId,
+                        Title = "Booking Cancellation Request",
+                        Content = $"Customer has requested to cancel booking {colorBookingCode}. Please review and approve.",
+                        Url = providerUrl
+                    });
+
                     response.Message = "Cancellation request submitted successfully. Waiting for provider approval.";
                 }
 
@@ -1105,14 +1135,19 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.BookingRepository.Update(booking);
                 service.Status = DecorService.DecorServiceStatus.Available;
                 booking.IsBooked = false;
-                // 🔹 Cập nhật IsBooked của customer
-                //var customer = await _unitOfWork.AccountRepository.GetByIdAsync(booking.AccountId);
-                //if (customer != null)
-                //{
-                //    customer.IsBooked = false;
-                //    _unitOfWork.AccountRepository.Update(customer);
-                //}
+
                 await _unitOfWork.CommitAsync();
+
+                string colorBookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+                string customerUrl = "";
+
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId,
+                    Title = "Booking Canceled",
+                    Content = $"Your booking #{colorBookingCode} has been canceled successfully.",
+                    Url = customerUrl
+                });
 
                 response.Success = true;
                 response.Message = "Booking cancellation approved.";
@@ -1205,8 +1240,21 @@ namespace BusinessLogicLayer.Services
                 booking.Status = Booking.BookingStatus.Rejected;
                 booking.RejectReason = reason; // Lưu lý do reject
                 booking.IsBooked = false;
+
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
+
+                // ✅ THÔNG BÁO CHO CUSTOMER
+                string colorBookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+                string customerUrl = "";
+
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId,
+                    Title = "Booking Rejected",
+                    Content = $"Your booking #{colorBookingCode} has been rejected by the provider",
+                    Url = customerUrl
+                });
 
                 response.Success = true;
                 response.Message = "Booking has been rejected successfully.";
@@ -1521,13 +1569,13 @@ namespace BusinessLogicLayer.Services
                 // Only allow trust deposit in Planning status
                 if (booking.Status != Booking.BookingStatus.Planning)
                 {
-                    response.Message = "Trust deposit can only be paid during Planning phase.";
+                    response.Message = "Commit deposit can only be paid during Planning phase.";
                     return response;
                 }
 
                 if (booking.IsCommitDepositPaid == true)
                 {
-                    response.Message = "Trust deposit already paid.";
+                    response.Message = "Commit deposit already paid.";
                     return response;
                 }
 
@@ -1543,7 +1591,7 @@ namespace BusinessLogicLayer.Services
 
                 if (!paymentSuccess)
                 {
-                    response.Message = "Trust deposit payment failed.";
+                    response.Message = "Commit deposit payment failed.";
                     return response;
                 }
 
@@ -1552,13 +1600,37 @@ namespace BusinessLogicLayer.Services
                 _unitOfWork.BookingRepository.Update(booking);
                 await _unitOfWork.CommitAsync();
 
+                // ✅ THÊM THÔNG BÁO
+                string colorBookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";
+
+                string customerUrl = $"";
+                string providerUrl = $"";
+
+                // Thông báo cho Customer
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = customerId,
+                    Title = "Payment successful",
+                    Content = $"You have successfully deposited the commitment fee for booking #{colorBookingCode}.",
+                    Url = customerUrl
+                });
+
+                // Thông báo cho Provider
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = provider.Id,
+                    Title = "CommitmentFee Paid Booking",
+                    Content = $"Customer has deposited the commitment fee for booking #{colorBookingCode}.",
+                    Url = providerUrl
+                });
+
                 response.Success = true;
-                response.Message = "Trust deposit paid successfully.";
+                response.Message = "Commit deposit paid successfully.";
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Failed to process trust deposit.";
+                response.Message = "Failed to process commit deposit.";
                 response.Errors.Add(ex.Message);
             }
             return response;

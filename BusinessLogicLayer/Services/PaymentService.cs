@@ -62,7 +62,7 @@ namespace BusinessLogicLayer.Services
                     }
 
                     // 🔹 Tạo giao dịch đặt cọc (trạng thái Pending)
-                    var depositTransaction = new PaymentTransaction
+                    var cusDepositTransaction = new PaymentTransaction
                     {
                         Amount = amount,
                         TransactionDate = DateTime.Now,
@@ -71,7 +71,19 @@ namespace BusinessLogicLayer.Services
                         BookingId = bookingId
                     };
 
-                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(depositTransaction);
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(cusDepositTransaction);
+                    await _unitOfWork.CommitAsync(); // Lưu để lấy ID// 🔹 Tạo giao dịch đặt cọc (trạng thái Pending)
+                    
+                    var proDepositTransaction = new PaymentTransaction
+                    {
+                        Amount = amount,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Pending,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
+                        BookingId = bookingId
+                    };
+
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(proDepositTransaction);
                     await _unitOfWork.CommitAsync(); // Lưu để lấy ID
 
                     // 🔹 Cập nhật số dư ví (trừ tiền khách hàng, cộng tiền provider)
@@ -81,13 +93,13 @@ namespace BusinessLogicLayer.Services
                     // 🔹 Lưu giao dịch vào lịch sử ví của khách hàng & Provider
                     var cusWalletTransaction = new WalletTransaction
                     {
-                        PaymentTransactionId = depositTransaction.Id,
+                        PaymentTransactionId = cusDepositTransaction.Id,
                         WalletId = cusWallet.Id,
                     };
 
                     var providerWalletTransaction = new WalletTransaction
                     {
-                        PaymentTransactionId = depositTransaction.Id,
+                        PaymentTransactionId = proDepositTransaction.Id,
                         WalletId = providerWallet.Id,
                     };
 
@@ -95,8 +107,11 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
 
                     // 🔹 Cập nhật trạng thái giao dịch thành `Success`
-                    depositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
-                    _unitOfWork.PaymentTransactionRepository.Update(depositTransaction);
+                    cusDepositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
+                    _unitOfWork.PaymentTransactionRepository.Update(cusDepositTransaction);
+                    
+                    proDepositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
+                    _unitOfWork.PaymentTransactionRepository.Update(proDepositTransaction);
 
                     // 🔹 Commit giao dịch
                     await _unitOfWork.CommitAsync();
@@ -631,7 +646,8 @@ namespace BusinessLogicLayer.Services
                         throw new Exception("Customer wallet balance insufficient.");
                     }
 
-                    var trustDepositTransaction = new PaymentTransaction
+                    //transaction của customer
+                    var cusCommitDepositTransaction = new PaymentTransaction
                     {
                         Amount = amount,
                         TransactionDate = DateTime.Now,
@@ -640,7 +656,20 @@ namespace BusinessLogicLayer.Services
                         BookingId = bookingId
                     };
 
-                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(trustDepositTransaction);
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(cusCommitDepositTransaction);
+                    await _unitOfWork.CommitAsync();
+
+                    //transaction của provider
+                    var proCommitDepositTransaction = new PaymentTransaction
+                    {
+                        Amount = amount,
+                        TransactionDate = DateTime.Now,
+                        TransactionStatus = PaymentTransaction.EnumTransactionStatus.Pending,
+                        TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
+                        BookingId = bookingId
+                    };
+
+                    await _unitOfWork.PaymentTransactionRepository.InsertAsync(proCommitDepositTransaction);
                     await _unitOfWork.CommitAsync();
 
                     // Update wallets
@@ -650,13 +679,13 @@ namespace BusinessLogicLayer.Services
                     // Save wallet transactions
                     var cusWalletTransaction = new WalletTransaction
                     {
-                        PaymentTransactionId = trustDepositTransaction.Id,
+                        PaymentTransactionId = cusCommitDepositTransaction.Id,
                         WalletId = cusWallet.Id,
                     };
 
                     var providerWalletTransaction = new WalletTransaction
                     {
-                        PaymentTransactionId = trustDepositTransaction.Id,
+                        PaymentTransactionId = proCommitDepositTransaction.Id,
                         WalletId = providerWallet.Id,
                     };
 
@@ -664,8 +693,11 @@ namespace BusinessLogicLayer.Services
                     await _unitOfWork.WalletTransactionRepository.InsertAsync(providerWalletTransaction);
 
                     // Update transaction status
-                    trustDepositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
-                    _unitOfWork.PaymentTransactionRepository.Update(trustDepositTransaction);
+                    cusCommitDepositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
+                    _unitOfWork.PaymentTransactionRepository.Update(cusCommitDepositTransaction);
+
+                    proCommitDepositTransaction.TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success;
+                    _unitOfWork.PaymentTransactionRepository.Update(proCommitDepositTransaction);
 
                     await _unitOfWork.CommitAsync();
                     transaction.Commit();

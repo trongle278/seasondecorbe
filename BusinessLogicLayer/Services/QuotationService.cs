@@ -1301,8 +1301,8 @@ namespace BusinessLogicLayer.Services
                     await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
                     {
                         AccountId = adminId,
-                        Title = "Quotation Canceled",
-                        Content = $"Quotation #{quotationCode} has been canceled.",
+                        Title = "Revenue Notice",
+                        Content = $"You have been credited with an additional amount in your income.",
                         Url = adminUrl
                     });
                 }
@@ -1317,7 +1317,6 @@ namespace BusinessLogicLayer.Services
                 response.Message = "Failed to cancel the quotation.";
                 response.Errors.Add(ex.Message);
             }
-
             return response;
         }
 
