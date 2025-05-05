@@ -78,13 +78,44 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                // Validate labor task area
+                foreach (var task in request.ConstructionTasks)
+                {
+                    if (task.Area == null || task.Area <= 0)
+                    {
+                        response.Message = $"Invalid area for construction task \"{task.TaskName}\". Area must be greater than 0.";
+                        return response;
+                    }
+
+                    if (task.Cost <= 0)
+                    {
+                        response.Message = $"Invalid cost for construction task \"{task.TaskName}\". Cost must be greater than 0.";
+                        return response;
+                    }
+                }
+
+                // Validate materials
+                foreach (var material in request.Materials)
+                {
+                    if (material.Quantity <= 0)
+                    {
+                        response.Message = $"Invalid quantity for material \"{material.MaterialName}\". Quantity must be greater than 0.";
+                        return response;
+                    }
+
+                    if (material.Cost < 0)
+                    {
+                        response.Message = $"Invalid cost for material \"{material.MaterialName}\". Cost cannot be negative.";
+                        return response;
+                    }
+                }
+
                 // Tạo mã báo giá mới
                 var quotationCode = GenerateQuotationCode();
 
                 // Tính toán chi phí
                 decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
-                decimal totalConstructionCost = request.ConstructionTasks.Sum(c =>
-                    c.Unit == "m2" ? (c.Cost * ((c.Area ?? 0m))) : c.Cost);
+                decimal totalLaborCost = request.ConstructionTasks.Sum(c => c.Cost * (c.Area ?? 0m));
                 decimal? totalProductCost = null;
 
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
@@ -120,7 +151,7 @@ namespace BusinessLogicLayer.Services
                     BookingId = booking.Id,
                     QuotationCode = quotationCode,
                     MaterialCost = totalMaterialCost,
-                    ConstructionCost = totalConstructionCost,
+                    ConstructionCost = totalLaborCost,
                     DepositPercentage = depositPercentage,
                     CreatedAt = DateTime.Now,
                     Status = Quotation.QuotationStatus.Pending
