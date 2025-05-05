@@ -1194,6 +1194,22 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Quotation cancellation request submitted. Awaiting provider approval.";
+
+                // ✅ Gửi thông báo cho Provider
+                var providerId = quotation.Booking?.DecorService?.AccountId;
+                if (providerId != null)
+                {
+                    string colorBookingCode = $"<span style='color:#f66;font-weight:bold;'>#{quotation.Booking.BookingCode}</span>";
+                    string url = $"{_clientBaseUrl}/seller/quotation";
+
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId.Value,
+                        Title = "Requested To Cancel Booking",
+                        Content = $"Customer has requested to cancel #{colorBookingCode}.",
+                        Url = url
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -1358,6 +1374,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService)
                     .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending)
                     .FirstOrDefaultAsync();
 
@@ -1368,16 +1386,32 @@ namespace BusinessLogicLayer.Services
                 }
 
                 quotation.Status = Quotation.QuotationStatus.PendingChanged;
-                quotation.CancelReason = changeReason; // dùng chung field
+                quotation.CancelReason = changeReason;
                 await _unitOfWork.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Quotation rejection request submitted. Awaiting provider approval.";
+                response.Message = "Quotation change request submitted. Awaiting provider approval.";
+
+                // ✅ Gửi thông báo cho Provider
+                var providerId = quotation.Booking?.DecorService?.AccountId;
+                if (providerId != null)
+                {
+                    string colorQuotation = $"<span style='color:#5fc1f1;font-weight:bold;'>#{quotation.QuotationCode}</span>";
+                    string url = $"{_clientBaseUrl}/seller/quotation";
+
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId.Value,
+                        Title = "Requested To Change Quotation ",
+                        Content = $"Customer has requested changes to quotation {colorQuotation}.",
+                        Url = url
+                    });
+                }
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Failed to request rejection.";
+                response.Message = "Failed to request quotation change.";
                 response.Errors.Add(ex.Message);
             }
 
@@ -1415,6 +1449,22 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Quotation has been rejected. Provider can now create a new quotation.";
+
+                // ✅ Gửi thông báo cho Provider
+                var providerId = quotation.Booking?.DecorService?.AccountId;
+                if (providerId != null)
+                {
+                    string colorQuotationCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.Quotations}</span>";
+                    string url = $"{_clientBaseUrl}/seller/quotation";
+
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = providerId.Value,
+                        Title = "Quotation Change Successful",
+                        Content = $"Approved request to change quotation #{colorQuotationCode} success. Please create a new quotation.",
+                        Url = url
+                    });
+                }
             }
             catch (Exception ex)
             {
