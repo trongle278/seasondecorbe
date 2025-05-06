@@ -14,7 +14,7 @@ env:
   API_PROJECT_PATH: "SeasonalHomeDecorAPI"
   PUBLISH_DIR: "./publish"
   ZOOM_SDK_KEY: ${{ secrets.ZOOM_SDK_KEY }}
-  ZOOM_SDK_SIGNATURE: ${{ secrets.ZOOM_SDK_SIGNATURE }}
+  ZOOM_SDK_SECRET: ${{ secrets.ZOOM_SDK_SECRET }}
 
 jobs:
   build-and-test:
