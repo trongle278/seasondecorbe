@@ -133,5 +133,19 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _quotationService.RemoveProductFromQuotationAsync(quotationCode, productId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
+
+        [HttpGet("getRequestQuotationChangeDetail/{quotationCode}")]
+        public async Task<IActionResult> GetRequestQuotationChangeDetail(string quotationCode)
+        {
+            var response = await _quotationService.GetRequestQuotationChangeDetailAsync(quotationCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("getQuotationCancelDetail/{quotationCode}")]
+        public async Task<IActionResult> GetQuotationCancelDetail(string quotationCode)
+        {
+            var response = await _quotationService.GetQuotationCancelDetailAsync(quotationCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }

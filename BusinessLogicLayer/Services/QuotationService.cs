@@ -1475,6 +1475,80 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public async Task<BaseResponse<QuotationCancelDetailResponse>> GetQuotationCancelDetailAsync(string quotationCode)
+        {
+            var response = new BaseResponse<QuotationCancelDetailResponse>();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.CancelType)
+                    .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Status == QuotationStatus.PendingCancel);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                var result = new QuotationCancelDetailResponse
+                {
+                    QuotationCode = quotation.QuotationCode,
+                    Status = (int)quotation.Status,
+                    CancelType = quotation.CancelType?.Type,
+                    Reason = quotation.CancelReason
+                };
+
+                response.Success = true;
+                response.Message = "Get quotation cancellation detail successfully.";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to get cancellation details.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+
+        public async Task<BaseResponse<RequestQuotationChangeDetailResponse>> GetRequestQuotationChangeDetailAsync(string quotationCode)
+        {
+            var response = new BaseResponse<RequestQuotationChangeDetailResponse>();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == QuotationStatus.PendingChanged)
+                    .FirstOrDefaultAsync();
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found.";
+                    return response;
+                }
+
+                var result = new RequestQuotationChangeDetailResponse
+                {
+                    QuotationCode = quotation.QuotationCode,
+                    Status = (int)quotation.Status,
+                    Reason = quotation.CancelReason
+                };
+
+                response.Success = true;
+                response.Message = "Get request to change quotation detail successfully.";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to get request to change quotation detail.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
         #region
         private string GenerateQuotationCode()
         {

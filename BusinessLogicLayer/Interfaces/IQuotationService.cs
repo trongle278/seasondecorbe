@@ -28,5 +28,8 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> AddProductToQuotationAsync(string quotationCode, int productId, int quantity);
         Task<BaseResponse> RemoveProductFromQuotationAsync(string quotationCode, int productId);
         Task<BaseResponse<RelatedProductPageResult>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request);
+        Task<BaseResponse<QuotationCancelDetailResponse>> GetQuotationCancelDetailAsync(string quotationCode);
+        Task<BaseResponse<RequestQuotationChangeDetailResponse>> GetRequestQuotationChangeDetailAsync(string quotationCode);
+
     }
 }

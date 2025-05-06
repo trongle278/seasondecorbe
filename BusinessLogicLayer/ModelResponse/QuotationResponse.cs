@@ -99,4 +99,19 @@ namespace BusinessLogicLayer.ModelResponse
     {
         public CustomerResponse Customer { get; set; }
     }
+
+    public class QuotationCancelDetailResponse
+    {
+        public string QuotationCode { get; set; }
+        public int Status { get; set; }
+        public string CancelType { get; set; }
+        public string Reason { get; set; }
+    }
+
+    public class RequestQuotationChangeDetailResponse
+    {
+        public string QuotationCode { get; set; }
+        public int Status { get; set; }
+        public string Reason { get; set; }
+    }
 }

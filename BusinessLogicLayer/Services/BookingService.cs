@@ -624,7 +624,7 @@ namespace BusinessLogicLayer.Services
                     Note = request.Note,
                     //RequestChangeCount = 0, //số lần đổi yêu cầu
                     //IsAdditionalFeeCharged = false,
-                    CommitDepositAmount = 1000000,
+                    CommitDepositAmount = 500000,
                     CreateAt = DateTime.Now,
                     IsCommitDepositPaid = false,
                 };
