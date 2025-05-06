@@ -99,25 +99,25 @@ namespace BusinessLogicLayer.ModelResponse
         public string? MeetingNumber { get; set; }
     }
 
-    //public class ZoomJoinInfoResponse // Zoom Meeting
-    //{
-    //    public string Topic { get; set; }
-    //    public string Token { get; set; }
-    //    public string UserName { get; set; }
-    //    public string Password { get; set; }
-    //}
-
-    public class ZoomJoinInfoResponse // Zoom Meeting
+    public class ZoomJoinInfoResponse // Zoom Video
     {
-        public string SdkKey { get; set; }
-        public string Signature { get; set; }
-        public string MeetingNumber { get; set; }
+        public string Topic { get; set; }
+        public string Token { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-        public int Role { get; set; }
     }
 
-    //public class ZoomJoinInfoResponse // Zoom SDK
+    //public class ZoomJoinInfoResponse // Zoom Meeting
+    //{
+    //    public string SdkKey { get; set; }
+    //    public string Signature { get; set; }
+    //    public string MeetingNumber { get; set; }
+    //    public string UserName { get; set; }
+    //    public string Password { get; set; }
+    //    public int Role { get; set; }
+    //}
+
+    //public class ZoomJoinInfoResponse // Zoom
     //{
     //    public string ApiKey { get; set; } // SdkKey
     //    public string Signature { get; set; }
