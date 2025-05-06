@@ -632,7 +632,7 @@ namespace BusinessLogicLayer.Services
         public static string GenerateMeetingSdkSignature(string sdkKey, string sdkSecret, string meetingNumber, int role)
         {
             var iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 30;
-            var exp = iat + 3600;
+            var exp = iat + 60 * 60 * 2;
             var tokenExp = exp;
 
             var payload = new Dictionary<string, object>
@@ -667,7 +667,7 @@ namespace BusinessLogicLayer.Services
 
             // Nếu Zoom SDK yêu cầu full token thì return $"{message}.{signature}"
             // Nếu Zoom SDK chỉ cần chữ ký thì return signature;
-            return $"{signature}";
+            return $"{message}.{signature}";
         }
 
         private static string Base64UrlEncode(byte[] input)
