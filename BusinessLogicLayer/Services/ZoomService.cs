@@ -571,7 +571,7 @@ namespace BusinessLogicLayer.Services
             return tokenResponse?.AccessToken;
         }
 
-        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
+        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id, string userId)
         {
             var response = new BaseResponse<ZoomJoinInfoResponse>();
             try
@@ -596,7 +596,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // 1. Tạo token cho Zoom Video SDK
-                var token = GenerateVideoSdkToken(meeting.MeetingNumber);
+                var token = GenerateVideoSdkToken(meeting.MeetingNumber, userId);
 
                 // 2. Lấy tên người dùng để hiện trên Zoom
                 var userName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
@@ -623,36 +623,39 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public string GenerateVideoSdkToken(string meetingNumber)
+        public string GenerateVideoSdkToken(string meetingNumber, string userId)
         {
-            var expireTime = DateTime.Now.AddMinutes(60); // Thời gian token hết hạn, có thể thay đổi theo nhu cầu (thường khoảng 1 giờ)
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-
             var zoomConfig = _configuration.GetSection("Zoom");
-            var clientId = zoomConfig["ClientId"];
-            var clientSecret = zoomConfig["ClientSecret"];
-            var accountId = zoomConfig["AccountId"];
+            var sdkKey = zoomConfig["ClientId"];
+            var sdkSecret = zoomConfig["ClientSecret"];
 
-            var key = Encoding.ASCII.GetBytes(clientSecret); // Dùng API Secret làm key
+            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 30;
+            var expireAt = issuedAt + 60 * 60;
 
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var payload = new Dictionary<string, object>
             {
-                Issuer = clientId,
-                Audience = accountId,
-                Expires = expireTime,
-                Claims = new Dictionary<string, object>
-            {
-                { "meeting_number", meetingNumber },
-                { "role", 0 }
-            },
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature)
+                { "app_key", sdkKey },
+                { "tpc", meetingNumber },
+                { "role_type", 0 },
+                { "version", 1 },
+                { "iat", issuedAt },
+                { "exp", expireAt },
+                { "user_identity", userId }
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token); // Trả về token dưới dạng string
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(sdkSecret));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var header = new JwtHeader(credentials);
+
+            JwtPayload jwtPayload = new JwtPayload();
+            foreach (var pair in payload)
+            {
+                jwtPayload[pair.Key] = pair.Value;
+            }
+
+            var token = new JwtSecurityToken(header, jwtPayload);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         private int? GetCurrentAccountId()
