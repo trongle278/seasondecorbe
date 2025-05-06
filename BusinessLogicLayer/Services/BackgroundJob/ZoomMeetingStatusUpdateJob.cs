@@ -26,11 +26,11 @@ namespace BusinessLogicLayer.Services.BackgroundJob
         {
             try
             {
-                // Scheduled meetings
                 await Task.Delay(10000);
 
                 _logger.LogInformation("ZoomMeeting background job started at {Time}", DateTime.Now);
 
+                // Scheduled meetings
                 var scheduledMeetings = await GetScheduledMeetingAsync();
                 if (scheduledMeetings.Any())
                 {
@@ -42,6 +42,7 @@ namespace BusinessLogicLayer.Services.BackgroundJob
                     _logger.LogInformation("No scheduled Zoom meetings to update.");
                 }
 
+                // Started meetings
                 var startedMeetings = await GetStartedMeetingAsync();
                 if (startedMeetings.Any())
                 {

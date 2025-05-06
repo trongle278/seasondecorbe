@@ -99,7 +99,16 @@ builder.Services.AddQuartz(q =>
         .ForJob(zoomMeetingStatusUpdateJobKey)
         .WithIdentity("ZoomMeetingStatusUpdateJobTrigger")
         .WithSimpleSchedule(x => x
-            .WithIntervalInSeconds(30)
+            .WithIntervalInHours(2)
+            .RepeatForever()));
+
+    var ProductStatusUpdateJobKey = new JobKey("ProductStatusUpdateJob");
+    q.AddJob<ProductStatusUpdateJob>(opts => opts.WithIdentity(ProductStatusUpdateJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(ProductStatusUpdateJobKey)
+        .WithIdentity("ProductStatusUpdateJobTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(5)
             .RepeatForever()));
 }); 
 

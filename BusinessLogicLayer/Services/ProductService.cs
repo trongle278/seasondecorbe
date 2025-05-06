@@ -308,6 +308,9 @@ namespace BusinessLogicLayer.Services
                     Description = product.Description,
                     ProductPrice = product.ProductPrice,
                     Quantity = product.Quantity,
+                    Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
                     MadeIn = product.MadeIn,
                     ShipFrom = product.ShipFrom,
                     CategoryId = product.CategoryId,
@@ -794,6 +797,9 @@ namespace BusinessLogicLayer.Services
                     Description = request.Description,
                     ProductPrice = request.ProductPrice,
                     Quantity = request.Quantity,
+                    Status = request.Quantity == 0
+                        ? Product.ProductStatus.OutOfStock
+                        : Product.ProductStatus.InStock,
                     MadeIn = request.MadeIn,
                     ShipFrom = request.ShipFrom,
                     CategoryId = request.CategoryId,
