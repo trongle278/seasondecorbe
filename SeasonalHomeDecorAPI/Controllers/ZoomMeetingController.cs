@@ -147,9 +147,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var result = await _zoomService.GetZoomJoinInfo(id, userId);
+            var result = await _zoomService.GetZoomJoinInfo(id);
 
             if (result.Success)
             {

@@ -571,7 +571,7 @@ namespace BusinessLogicLayer.Services
             return tokenResponse?.AccessToken;
         }
 
-        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id, string userId)
+        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
         {
             var response = new BaseResponse<ZoomJoinInfoResponse>();
             try
@@ -596,7 +596,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // 1. Tạo token cho Zoom Video SDK
-                var token = await GenerateVideoSdkToken(meeting.MeetingNumber, userId);
+                var token = await GenerateVideoSdkToken(meeting.MeetingNumber);
 
                 // 2. Lấy tên người dùng để hiện trên Zoom
                 var userName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
@@ -623,7 +623,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<string> GenerateVideoSdkToken(string meetingNumber, string userId)
+        public async Task<string> GenerateVideoSdkToken(string meetingNumber)
         {
             var zoomConfig = _configuration.GetSection("Zoom");
             var sdkKey = zoomConfig["ClientId"];
@@ -642,8 +642,7 @@ namespace BusinessLogicLayer.Services
                 { "role_type", 0 },
                 { "tpc", zoom.Topic },
                 { "iat", issuedAt },
-                { "exp", expireAt },
-                { "user_identity", userId }
+                { "exp", expireAt }
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(sdkSecret));
