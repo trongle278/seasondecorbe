@@ -629,7 +629,7 @@ namespace BusinessLogicLayer.Services
             var sdkKey = zoomConfig["ClientId"];
             var sdkSecret = zoomConfig["ClientSecret"];
 
-            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 30;
+            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var expireAt = issuedAt + 60 * 60;
 
             var zoom = await _unitOfWork.ZoomRepository.Queryable()
