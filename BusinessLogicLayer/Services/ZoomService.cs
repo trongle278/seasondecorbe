@@ -646,18 +646,36 @@ namespace BusinessLogicLayer.Services
                 { "tokenExp", tokenExp }
             };
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(sdkSecret));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var header = new JwtHeader(credentials);
-            JwtPayload jwtPayload = new JwtPayload();
-            foreach (var pair in payload)
+            var header = new Dictionary<string, object>
             {
-                jwtPayload[pair.Key] = pair.Value;
-            }
+                { "alg", "HS256" },
+                { "typ", "JWT" }
+            };
 
-            var token = new JwtSecurityToken(header, jwtPayload);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            string headerJson = System.Text.Json.JsonSerializer.Serialize(header);
+            string payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
+
+            string encodedHeader = Base64UrlEncode(Encoding.UTF8.GetBytes(headerJson));
+            string encodedPayload = Base64UrlEncode(Encoding.UTF8.GetBytes(payloadJson));
+
+            string message = $"{encodedHeader}.{encodedPayload}";
+
+            var encodingKey = new HMACSHA256(Encoding.UTF8.GetBytes(sdkSecret));
+            byte[] hash = encodingKey.ComputeHash(Encoding.UTF8.GetBytes(message));
+
+            string signature = Base64UrlEncode(hash);
+
+            // Nếu Zoom SDK yêu cầu full token thì return $"{message}.{signature}"
+            // Nếu Zoom SDK chỉ cần chữ ký thì return signature;
+            return $"{signature}";
+        }
+
+        private static string Base64UrlEncode(byte[] input)
+        {
+            return Convert.ToBase64String(input)
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
         }
 
         //public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
