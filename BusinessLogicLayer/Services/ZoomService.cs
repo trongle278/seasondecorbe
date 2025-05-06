@@ -421,98 +421,98 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        //public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
-        //{
-        //    var response = new BaseResponse<ZoomJoinInfoResponse>();
-        //    try
-        //    {
-        //        var meeting = await _unitOfWork.ZoomRepository.Queryable()
-        //                    .Include(z => z.Booking)
-        //                        .ThenInclude(b => b.Account)
-        //                    .FirstOrDefaultAsync(z => z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Scheduled);
+        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
+        {
+            var response = new BaseResponse<ZoomJoinInfoResponse>();
+            try
+            {
+                var meeting = await _unitOfWork.ZoomRepository.Queryable()
+                            .Include(z => z.Booking)
+                                .ThenInclude(b => b.Account)
+                            .FirstOrDefaultAsync(z => z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Scheduled);
 
-        //        if (meeting == null || string.IsNullOrEmpty(meeting.ZoomUrl))
-        //        {
-        //            response.Message = "Meeting not found or not yet scheduled!";
-        //            return response;
-        //        }
+                if (meeting == null || string.IsNullOrEmpty(meeting.ZoomUrl))
+                {
+                    response.Message = "Meeting not found or not yet scheduled!";
+                    return response;
+                }
 
-        //        var accountId = GetCurrentAccountId();
-        //        if (accountId == null || meeting.AccountId != accountId)
-        //        {
-        //            response.Message = "Unauthorized access.";
-        //            return response;
-        //        }
+                var accountId = GetCurrentAccountId();
+                if (accountId == null || meeting.AccountId != accountId)
+                {
+                    response.Message = "Unauthorized access.";
+                    return response;
+                }
 
-        //        var accessToken = await GetZoomAccessTokenAsync();
+                var accessToken = await GetZoomAccessTokenAsync();
 
-        //        if (string.IsNullOrWhiteSpace(accessToken))
-        //        {
-        //            response.Message = "Cannot get access token from Zoom!";
-        //            return response;
-        //        }
+                if (string.IsNullOrWhiteSpace(accessToken))
+                {
+                    response.Message = "Cannot get access token from Zoom!";
+                    return response;
+                }
 
-        //        var zoomMeetingData = new ZoomMeetingData();
-        //        var zoomZakData = new ZoomTokenOnlyResponse();
+                var zoomMeetingData = new ZoomMeetingData();
+                var zoomZakData = new ZoomTokenOnlyResponse();
 
-        //        var apiUrl = $"{_configuration["Zoom:ApiBaseUrl"]}meetings/{meeting.MeetingNumber}";
-        //        var request = new HttpRequestMessage(HttpMethod.Get, apiUrl)
-        //        {
-        //            Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
-        //        };
+                var apiUrl = $"{_configuration["Zoom:ApiBaseUrl"]}meetings/{meeting.MeetingNumber}";
+                var request = new HttpRequestMessage(HttpMethod.Get, apiUrl)
+                {
+                    Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
+                };
 
-        //        var apiResponse = await _httpClient.SendAsync(request);
-        //        var apiResponseString = await apiResponse.Content.ReadAsStringAsync();
+                var apiResponse = await _httpClient.SendAsync(request);
+                var apiResponseString = await apiResponse.Content.ReadAsStringAsync();
 
-        //        // Deserialize tk
-        //        zoomMeetingData = JsonConvert.DeserializeObject<ZoomMeetingData>(apiResponseString);
+                // Deserialize tk
+                zoomMeetingData = JsonConvert.DeserializeObject<ZoomMeetingData>(apiResponseString);
 
-        //        // 2. Gọi API lấy "zak"
-        //        var zakRequest = new HttpRequestMessage(HttpMethod.Get, $"{_configuration["Zoom:ApiBaseUrl"]}users/me/token?type=zak")
-        //        {
-        //            Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
-        //        };
+                // 2. Gọi API lấy "zak"
+                var zakRequest = new HttpRequestMessage(HttpMethod.Get, $"{_configuration["Zoom:ApiBaseUrl"]}users/me/token?type=zak")
+                {
+                    Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
+                };
 
-        //        var zakResponse = await _httpClient.SendAsync(zakRequest);
-        //        var zakResponseString = await zakResponse.Content.ReadAsStringAsync();
+                var zakResponse = await _httpClient.SendAsync(zakRequest);
+                var zakResponseString = await zakResponse.Content.ReadAsStringAsync();
 
-        //        // Deserialize zak
-        //        zoomZakData = JsonConvert.DeserializeObject<ZoomTokenOnlyResponse>(zakResponseString);
+                // Deserialize zak
+                zoomZakData = JsonConvert.DeserializeObject<ZoomTokenOnlyResponse>(zakResponseString);
 
-        //        var fullName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
+                var fullName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
 
-        //        // Parse Meeting Number từ ZoomUrl
-        //        var meetingNumber = ExtractMeetingNumber(meeting.ZoomUrl); 
+                // Parse Meeting Number từ ZoomUrl
+                var meetingNumber = ExtractMeetingNumber(meeting.ZoomUrl);
 
-        //        var signature = GenerateZoomSignature(meetingNumber, 0);
+                var signature = GenerateZoomSignature(meetingNumber, 0);
 
-        //        var joinInfo = new ZoomJoinInfoResponse
-        //        {
-        //            ApiKey = _configuration["Zoom:AccountId"], // Use AccountId from config
-        //            Signature = signature,
-        //            MeetingNumber = meeting.MeetingNumber,
-        //            Password = meeting.Password,
-        //            UserName = fullName,
-        //            UserEmail = meeting.Booking.Account.Email,
-        //            Tk = zoomMeetingData.Tk,
-        //            Zak = zoomZakData.Zak,
-        //            Role = 0,
-        //            ZoomUrl = meeting.ZoomUrl
-        //        };
+                var joinInfo = new ZoomJoinInfoResponse
+                {
+                    ApiKey = _configuration["Zoom:AccountId"], // Use AccountId from config
+                    Signature = signature,
+                    MeetingNumber = meeting.MeetingNumber,
+                    Password = meeting.Password,
+                    UserName = fullName,
+                    UserEmail = meeting.Booking.Account.Email,
+                    Tk = zoomMeetingData.Tk,
+                    Zak = zoomZakData.Zak,
+                    Role = 0,
+                    ZoomUrl = meeting.ZoomUrl
+                };
 
-        //        response.Success = true;
-        //        response.Message = "Success";
-        //        response.Data = joinInfo;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        response.Success = false;
-        //        response.Message = "Error retrieving join info!";
-        //        response.Errors.Add(ex.Message);
-        //    }
+                response.Success = true;
+                response.Message = "Success";
+                response.Data = joinInfo;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving join info!";
+                response.Errors.Add(ex.Message);
+            }
 
-        //    return response;
-        //}
+            return response;
+        }
 
         public string GenerateZoomSignature(string meetingNumber, int role)
         {
@@ -571,57 +571,57 @@ namespace BusinessLogicLayer.Services
             return tokenResponse?.AccessToken;
         }
 
-        public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
-        {
-            var response = new BaseResponse<ZoomJoinInfoResponse>();
-            try
-            {
-                var meeting = await _unitOfWork.ZoomRepository.Queryable()
-                            .Include(z => z.Booking)
-                                .ThenInclude(b => b.Account)
-                            .FirstOrDefaultAsync(z => z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Scheduled);
+        //public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
+        //{
+        //    var response = new BaseResponse<ZoomJoinInfoResponse>();
+        //    try
+        //    {
+        //        var meeting = await _unitOfWork.ZoomRepository.Queryable()
+        //                    .Include(z => z.Booking)
+        //                        .ThenInclude(b => b.Account)
+        //                    .FirstOrDefaultAsync(z => z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Scheduled);
 
-                if (meeting == null || string.IsNullOrEmpty(meeting.ZoomUrl))
-                {
-                    response.Message = "Meeting not found or not yet scheduled!";
-                    return response;
-                }
+        //        if (meeting == null || string.IsNullOrEmpty(meeting.ZoomUrl))
+        //        {
+        //            response.Message = "Meeting not found or not yet scheduled!";
+        //            return response;
+        //        }
 
-                var accountId = GetCurrentAccountId();
+        //        var accountId = GetCurrentAccountId();
 
-                if (accountId == null || meeting.AccountId != accountId)
-                {
-                    response.Message = "Unauthorized access.";
-                    return response;
-                }
+        //        if (accountId == null || meeting.AccountId != accountId)
+        //        {
+        //            response.Message = "Unauthorized access.";
+        //            return response;
+        //        }
 
-                // 1. Tạo token cho Zoom Video SDK
-                var token = await GenerateVideoSdkToken(meeting.MeetingNumber);
+        //        // 1. Tạo token cho Zoom Video SDK
+        //        var token = await GenerateVideoSdkToken(meeting.MeetingNumber);
 
-                // 2. Lấy tên người dùng để hiện trên Zoom
-                var userName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
+        //        // 2. Lấy tên người dùng để hiện trên Zoom
+        //        var userName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
 
-                var joinInfo = new ZoomJoinInfoResponse
-                {
-                    Topic = meeting.Topic,
-                    Token = token,
-                    UserName = userName,
-                    Password = meeting.Password
-                };
+        //        var joinInfo = new ZoomJoinInfoResponse
+        //        {
+        //            Topic = meeting.Topic,
+        //            Token = token,
+        //            UserName = userName,
+        //            Password = meeting.Password
+        //        };
 
-                response.Success = true;
-                response.Message = "Success";
-                response.Data = joinInfo;
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "Error retrieving join info!";
-                response.Errors.Add(ex.Message);
-            }
+        //        response.Success = true;
+        //        response.Message = "Success";
+        //        response.Data = joinInfo;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.Message = "Error retrieving join info!";
+        //        response.Errors.Add(ex.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         public async Task<string> GenerateVideoSdkToken(string meetingNumber)
         {
@@ -629,7 +629,7 @@ namespace BusinessLogicLayer.Services
             var sdkKey = zoomConfig["ClientId"];
             var sdkSecret = zoomConfig["ClientSecret"];
 
-            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 30;
             var expireAt = issuedAt + 60 * 60;
 
             var zoom = await _unitOfWork.ZoomRepository.Queryable()
