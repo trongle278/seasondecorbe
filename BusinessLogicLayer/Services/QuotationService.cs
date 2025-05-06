@@ -1425,19 +1425,20 @@ namespace BusinessLogicLayer.Services
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.Booking)
-                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.Pending)
+                    .ThenInclude(b => b.DecorService) // để dùng .DecorService?.AccountId bên dưới
+                    .Where(q => q.QuotationCode == quotationCode && q.Status == Quotation.QuotationStatus.PendingChanged)
                     .FirstOrDefaultAsync();
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or not in pending rejection state.";
+                    return response;
+                }
 
                 var booking = quotation.Booking;
                 if (booking == null)
                 {
                     response.Message = "Booking associated with this quotation was not found.";
-                    return response;
-                }
-
-                if (quotation == null)
-                {
-                    response.Message = "Quotation not found or not in pending rejection state.";
                     return response;
                 }
 
@@ -1451,17 +1452,17 @@ namespace BusinessLogicLayer.Services
                 response.Message = "Quotation has been rejected. Provider can now create a new quotation.";
 
                 // ✅ Gửi thông báo cho Provider
-                var providerId = quotation.Booking?.DecorService?.AccountId;
+                var providerId = booking.DecorService?.AccountId;
                 if (providerId != null)
                 {
-                    string colorQuotationCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.Quotations}</span>";
+                    string colorQuotationCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{quotation.QuotationCode}</span>";
                     string url = $"{_clientBaseUrl}/seller/quotation";
 
                     await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
                     {
                         AccountId = providerId.Value,
                         Title = "Quotation Change Successful",
-                        Content = $"Approved request to change quotation #{colorQuotationCode} success. Please create a new quotation.",
+                        Content = $"Approved request to change quotation {colorQuotationCode} success. Please create a new quotation.",
                         Url = url
                     });
                 }
@@ -1475,6 +1476,7 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
 
         public async Task<BaseResponse<QuotationCancelDetailResponse>> GetQuotationCancelDetailAsync(string quotationCode)
         {
