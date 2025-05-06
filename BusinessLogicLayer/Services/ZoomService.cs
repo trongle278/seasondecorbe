@@ -596,7 +596,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // 1. Tạo token cho Zoom Video SDK
-                var token = GenerateVideoSdkToken(meeting.MeetingNumber, userId);
+                var token = await GenerateVideoSdkToken(meeting.MeetingNumber, userId);
 
                 // 2. Lấy tên người dùng để hiện trên Zoom
                 var userName = $"{meeting.Booking.Account?.FirstName} {meeting.Booking.Account?.LastName}";
@@ -623,7 +623,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public string GenerateVideoSdkToken(string meetingNumber, string userId)
+        public async Task<string> GenerateVideoSdkToken(string meetingNumber, string userId)
         {
             var zoomConfig = _configuration.GetSection("Zoom");
             var sdkKey = zoomConfig["ClientId"];
@@ -632,12 +632,15 @@ namespace BusinessLogicLayer.Services
             var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 30;
             var expireAt = issuedAt + 60 * 60;
 
+            var zoom = await _unitOfWork.ZoomRepository.Queryable()
+                                    .Where(z => z.MeetingNumber == meetingNumber)
+                                    .FirstOrDefaultAsync();
+
             var payload = new Dictionary<string, object>
             {
                 { "app_key", sdkKey },
-                { "tpc", meetingNumber },
                 { "role_type", 0 },
-                { "version", 1 },
+                { "tpc", zoom.Topic },
                 { "iat", issuedAt },
                 { "exp", expireAt },
                 { "user_identity", userId }
