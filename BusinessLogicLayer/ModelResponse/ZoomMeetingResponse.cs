@@ -65,6 +65,15 @@ namespace BusinessLogicLayer.ModelResponse
         public string? ZoomUrl { get; set; }
         public DateTime CreateAt { get; set; }
         public string? MeetingNumber { get; set; }
+        public enum MeetingStatus
+        {
+            Requested,
+            Scheduled,
+            Started,
+            Ended,
+            Rejected
+        }
+        public MeetingStatus Status { get; set; }
     }
 
     public class MeetingDetailResponse

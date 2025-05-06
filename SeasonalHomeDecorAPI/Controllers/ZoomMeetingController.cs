@@ -26,8 +26,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("getPaginatedListForCustomer")]
-        public async Task<IActionResult> GetMeetingListForCustomer([FromQuery] ZoomFilterRequest request)
+        [HttpPost("getPaginatedListForCustomer")]
+        public async Task<IActionResult> GetMeetingListForCustomer([FromBody] ZoomFilterRequest request)
         {
             var accountId = GetUserId();
 
