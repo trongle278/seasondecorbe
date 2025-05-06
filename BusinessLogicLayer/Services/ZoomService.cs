@@ -643,7 +643,7 @@ namespace BusinessLogicLayer.Services
                 { "user_identity", userId }
             };
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(sdkSecret));
+            var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(sdkSecret));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var header = new JwtHeader(credentials);
