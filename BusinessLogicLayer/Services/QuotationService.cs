@@ -1314,6 +1314,7 @@ namespace BusinessLogicLayer.Services
 
                 // Cập nhật trạng thái của Booking
                 quotation.Status = QuotationStatus.Closed;
+                quotation.isQuoteExisted = false;
                 _unitOfWork.QuotationRepository.Update(quotation);
 
                 booking.Status = Booking.BookingStatus.Canceled;
@@ -1444,7 +1445,7 @@ namespace BusinessLogicLayer.Services
 
                 quotation.Status = Quotation.QuotationStatus.Closed;
                 booking.IsQuoted = false;
-                quotation.isQuoteExisted = true;
+                quotation.isQuoteExisted = false;
 
                 await _unitOfWork.CommitAsync();
 
