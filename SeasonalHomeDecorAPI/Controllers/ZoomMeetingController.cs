@@ -137,24 +137,24 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
 
-        [Authorize]
-        [HttpGet("join-info/{id}")]
-        public async Task<IActionResult> GetZoomJoinInfo(int id)
-        {
-            var accountId = GetUserId();
-            if (accountId == 0)
-            {
-                return Unauthorized(new { Message = "Unauthorized" });
-            }
+        //[Authorize]
+        //[HttpGet("join-info/{id}")]
+        //public async Task<IActionResult> GetZoomJoinInfo(int id)
+        //{
+        //    var accountId = GetUserId();
+        //    if (accountId == 0)
+        //    {
+        //        return Unauthorized(new { Message = "Unauthorized" });
+        //    }
 
-            var result = await _zoomService.GetZoomJoinInfo(id);
+        //    var result = await _zoomService.GetZoomJoinInfo(id);
 
-            if (result.Success)
-            {
-                return Ok(result);
-            }
+        //    if (result.Success)
+        //    {
+        //        return Ok(result);
+        //    }
 
-            return BadRequest(result);
-        }
+        //    return BadRequest(result);
+        //}
     }
 }
