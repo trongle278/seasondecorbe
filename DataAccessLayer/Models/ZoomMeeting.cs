@@ -16,6 +16,7 @@ namespace DataAccessObject.Models
         public string? StartUrl { get; set; }
         public string? MeetingNumber { get; set; }
         public string? Password { get; set; }
+        public string? Token { get; set; }
         public enum MeetingStatus
         {
             Requested,
