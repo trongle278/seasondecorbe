@@ -1313,7 +1313,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 // 🔹 Tính tổng chi phí booking
-                var totalAmount = quotation.MaterialCost + quotation.ConstructionCost;
+                var totalAmount = booking.TotalPrice;
 
                 // 🔹 Lấy phần trăm đặt cọc từ báo giá, tối đa 20%
                 var depositRate = Math.Min(quotation.DepositPercentage, 20m) / 100m;
