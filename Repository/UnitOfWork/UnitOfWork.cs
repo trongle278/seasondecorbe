@@ -34,7 +34,6 @@ namespace Repository.UnitOfWork
             SupportRepository = new SupportRepository(_context);
             NotificationRepository = new NotificationRepository(_context);
             FollowRepository = new FollowRepository(_context);
-            DeviceTokenRepository = new DeviceTokenRepository(_context);
             DecorServiceRepository = new DecorServiceRepository(_context);
             AddressRepository = new AddressRepository(_context);
             ReviewRepository = new ReviewRepository(_context);
@@ -55,8 +54,6 @@ namespace Repository.UnitOfWork
             LaborDetailRepository = new LaborDetailRepository(_context);
             TimeSlotRepository = new TimeSlotRepository(_context);
             ContractRepository = new ContractRepository(_context);
-            SubscriptionRepository = new SubscriptionRepository(_context);
-            VoucherRepository = new VoucherRepository(_context);
             CancelTypeRepository = new CancelTypeRepository(_context);
             ProductDetailRepository = new ProductDetailRepository(_context);
             TicketAttachmentRepository = new TicketAttachmentRepository(_context);
@@ -84,7 +81,6 @@ namespace Repository.UnitOfWork
         public ISupportRepository SupportRepository { get; private set; }
         public INotificationRepository NotificationRepository { get; private set; }
         public IFollowRepository FollowRepository { get; private set; }
-        public IDeviceTokenRepository DeviceTokenRepository { get; private set; }
         public IDecorServiceRepository DecorServiceRepository { get; private set; }
         public IAddressRepository AddressRepository { get; private set; }   
         public IReviewRepository ReviewRepository { get; private set; }
@@ -105,8 +101,6 @@ namespace Repository.UnitOfWork
         public ILaborDetailRepository LaborDetailRepository { get; private set; }
         public ITimeSlotRepository TimeSlotRepository { get; private set; }
         public IContractRepository ContractRepository { get; private set; }
-        public ISubscriptionRepository SubscriptionRepository { get; private set; }
-        public IVoucherRepository VoucherRepository { get; private set; }
         public ICancelTypeRepository CancelTypeRepository { get; private set; }
         public IProductDetailRepository ProductDetailRepository { get; private set; }
         public ITicketAttachmentRepository TicketAttachmentRepository { get; private set; }

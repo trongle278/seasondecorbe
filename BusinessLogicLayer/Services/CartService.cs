@@ -49,8 +49,7 @@ namespace BusinessLogicLayer.Services
                 {
                     AccountId = request.AccountId,
                     TotalItem = 0,
-                    TotalPrice = 0,
-                    VoucherId = null // or set a default voucher if needed
+                    TotalPrice = 0
                 };
 
                 await _unitOfWork.CartRepository.InsertAsync(newCart);

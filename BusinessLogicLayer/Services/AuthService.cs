@@ -237,8 +237,7 @@ namespace BusinessLogicLayer.Services
                         Email = adminEmail,
                         FirstName = "Admin",
                         LastName = "",
-                        RoleId = 1,
-                        SubscriptionId = 0
+                        RoleId = 1
                     };
                 }
 
@@ -248,7 +247,6 @@ namespace BusinessLogicLayer.Services
                     Success = true,
                     Token = token,
                     AccountId = adminAccount.Id,
-                    SubscriptionId = adminAccount.SubscriptionId,
                     RoleId = adminAccount.RoleId,
                     WalletId = adminAccount.Wallet.Id
                 };
@@ -302,7 +300,6 @@ namespace BusinessLogicLayer.Services
                 Success = true,
                 Token = userToken,
                 AccountId = account.Id,
-                SubscriptionId = account.SubscriptionId,
                 RoleId = account.RoleId,
                 WalletId = account.Wallet.Id  // ✅ Trả WalletId cho người dùng bình thường
             };
@@ -456,7 +453,6 @@ namespace BusinessLogicLayer.Services
                     Token = token,
                     RoleId = account.RoleId,
                     AccountId = account.Id,
-                    SubscriptionId = account.SubscriptionId,
                     WalletId = account.Wallet.Id
                 };
             }

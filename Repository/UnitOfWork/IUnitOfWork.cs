@@ -25,7 +25,6 @@ namespace Repository.UnitOfWork
         ISupportRepository SupportRepository { get; }
         INotificationRepository NotificationRepository { get; }
         IFollowRepository FollowRepository { get; }
-        IDeviceTokenRepository DeviceTokenRepository { get; }
         IDecorServiceRepository DecorServiceRepository { get; }
         IAddressRepository AddressRepository { get; }
         IReviewRepository ReviewRepository { get; }
@@ -46,8 +45,6 @@ namespace Repository.UnitOfWork
         ILaborDetailRepository LaborDetailRepository { get; }
         ITimeSlotRepository TimeSlotRepository { get; }
         IContractRepository ContractRepository { get; }
-        ISubscriptionRepository SubscriptionRepository { get; }
-        IVoucherRepository VoucherRepository { get; }
         ICancelTypeRepository CancelTypeRepository { get; }
         IProductDetailRepository ProductDetailRepository { get; }
         ITicketAttachmentRepository TicketAttachmentRepository { get; }

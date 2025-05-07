@@ -151,6 +151,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 const string subject = "Welcome to Seasonal Home Decor - Become a Provider!";
+                //string registrationLink = "http://localhost:3000/seller/registration"; // FE link
                 string registrationLink = "http://localhost:3000/seller/registration"; // FE link
 
                 // Sử dụng đường dẫn tương đối
@@ -314,6 +315,7 @@ namespace BusinessLogicLayer.Services
                         AccountId = adminId,
                         Title = "New Provider Application",
                         Content = $"New provider application needs review.",
+                        //Url = "http://localhost:3000/admin/manage/application/"
                         Url = "http://localhost:3000/admin/manage/application/"
                     });
                 }

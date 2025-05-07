@@ -21,17 +21,14 @@ namespace BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly FcmService _fcmService;
-        private readonly IDeviceTokenRepository _deviceTokenRepository; // Repository cho device tokens
 
         public NotificationService(IUnitOfWork unitOfWork,
                                    IHubContext<NotificationHub> hubContext,
-                                   FcmService fcmService,
-                                   IDeviceTokenRepository deviceTokenRepository)
+                                   FcmService fcmService)
         {
             _unitOfWork = unitOfWork;
             _hubContext = hubContext;
             _fcmService = fcmService;
-            _deviceTokenRepository = deviceTokenRepository;
         }
 
         public async Task<BaseResponse<Notification>> CreateNotificationAsync(NotificationCreateRequest request)

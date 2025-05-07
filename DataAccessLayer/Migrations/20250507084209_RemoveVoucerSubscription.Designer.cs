@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250507084209_RemoveVoucerSubscription")]
+    partial class RemoveVoucerSubscription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -823,6 +826,35 @@ namespace DataAccessObject.Migrations
                             Id = 5,
                             Name = "Industrial"
                         });
+                });
+
+            modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("DeviceTokens");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
@@ -2217,6 +2249,17 @@ namespace DataAccessObject.Migrations
                     b.Navigation("Season");
                 });
 
+            modelBuilder.Entity("DataAccessObject.Models.DeviceToken", b =>
+                {
+                    b.HasOne("DataAccessObject.Models.Account", "Account")
+                        .WithMany("DeviceTokens")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("DataAccessObject.Models.FavoriteProduct", b =>
                 {
                     b.HasOne("DataAccessObject.Models.Account", "Account")
@@ -2633,6 +2676,8 @@ namespace DataAccessObject.Migrations
                     b.Navigation("CertificateImages");
 
                     b.Navigation("DecorServices");
+
+                    b.Navigation("DeviceTokens");
 
                     b.Navigation("FavoriteProducts");
 

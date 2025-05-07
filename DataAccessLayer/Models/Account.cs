@@ -35,8 +35,6 @@ namespace DataAccessObject.Models
         public int RoleId { get; set; }
         public Role Role { get; set; }
 
-        public int? SubscriptionId { get; set; }
-        public Subscription Subscription { get; set; }
         public Cart Cart { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }
         public virtual ICollection<Follow> Followers { get; set; }
@@ -48,7 +46,6 @@ namespace DataAccessObject.Models
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public virtual ICollection<DecorService> DecorServices { get; set; }
-        public ICollection<DeviceToken> DeviceTokens { get; set; }
         public virtual ICollection<Product> Products { get; set; }
         public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
         public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
