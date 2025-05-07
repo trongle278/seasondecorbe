@@ -571,11 +571,11 @@ namespace BusinessLogicLayer.Services
                     decimal totalCost = 0m;
                     if (quotation.ProductCost.HasValue)
                     {
-                        totalCost = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value;
+                        totalCost = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value -booking.CommitDepositAmount;
                     }
                     else
                     {
-                        totalCost = quotation.MaterialCost + quotation.ConstructionCost;
+                        totalCost = quotation.MaterialCost + quotation.ConstructionCost -booking.CommitDepositAmount;
                     }
 
                     decimal depositAmount = (quotation.DepositPercentage / 100) * totalCost;
