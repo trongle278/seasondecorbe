@@ -77,10 +77,10 @@ namespace SeasonalHomeDecorAPI.Controllers
                 }
                 // Xử lý đơn hàng (Cập nhật trạng thái đơn hàng thành "Đã thanh toán"
                 //return Redirect("http://localhost:3000/payment/success");
-                return Redirect("http://localhost:3000/payment/success");
+                return Redirect("https://seasondecor.netlify.app/payment/success");
             }
             //return Redirect("http://localhost:3000/payment/failure");//trang thất bại
-            return Redirect("http://localhost:3000/payment/failure");//trang thất bại
+            return Redirect("https://seasondecor.netlify.app/payment/failure");//trang thất bại
         }
 
         [HttpGet("mobileReturn")]

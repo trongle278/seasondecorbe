@@ -152,7 +152,7 @@ namespace BusinessLogicLayer.Services
             {
                 const string subject = "Welcome to Seasonal Home Decor - Become a Provider!";
                 //string registrationLink = "http://localhost:3000/seller/registration"; // FE link
-                string registrationLink = "http://localhost:3000/seller/registration"; // FE link
+                string registrationLink = "https://seasondecor.netlify.app/seller/registration"; // FE link
 
                 // Sử dụng đường dẫn tương đối
                 string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "DecoratorInvitationTemplate.html");
@@ -316,7 +316,7 @@ namespace BusinessLogicLayer.Services
                         Title = "New Provider Application",
                         Content = $"New provider application needs review.",
                         //Url = "http://localhost:3000/admin/manage/application/"
-                        Url = "http://localhost:3000/admin/manage/application/"
+                        Url = "https://seasondecor.netlify.app/admin/manage/application/"
                     });
                 }
 
