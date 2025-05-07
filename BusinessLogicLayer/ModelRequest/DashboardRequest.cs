@@ -19,6 +19,7 @@ namespace BusinessLogicLayer.ModelRequest
         {
             Deposit = 2,
             FinalPay = 4,
+            Revenue = 5,
             OrderPay = 6
         }
     }
