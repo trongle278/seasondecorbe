@@ -76,8 +76,10 @@ namespace SeasonalHomeDecorAPI.Controllers
                     await _paymentService.TopUp(customerId, response.vnp_Amount);
                 }
                 // Xử lý đơn hàng (Cập nhật trạng thái đơn hàng thành "Đã thanh toán"
+                //return Redirect("http://localhost:3000/payment/success");
                 return Redirect("http://localhost:3000/payment/success");
             }
+            //return Redirect("http://localhost:3000/payment/failure");//trang thất bại
             return Redirect("http://localhost:3000/payment/failure");//trang thất bại
         }
 

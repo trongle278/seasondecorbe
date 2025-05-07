@@ -92,8 +92,7 @@ namespace BusinessLogicLayer.ObjectMapper
 
         CreateMap<BecomeProviderRequest, Account>()
                 .ForMember(dest => dest.JoinedDate, opt => opt.MapFrom(src => DateTime.UtcNow.ToLocalTime()))
-                .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true))
-                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => 1));
+                .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => true));
         }
 
         private void TicketTypeProfile()

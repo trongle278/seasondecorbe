@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branch:
-      - Deployment
+      - main
 
 env:
   AZURE_WEBAPP_NAME: seasondecor

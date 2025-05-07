@@ -248,7 +248,6 @@ builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<FcmService>();
-builder.Services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IDecorServiceService, DecorServiceService>();

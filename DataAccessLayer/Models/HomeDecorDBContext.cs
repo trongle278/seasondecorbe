@@ -45,11 +45,9 @@ namespace DataAccessObject.Models
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
-        public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReviewImage> ReviewImages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Support> Supports { get; set; }
         public DbSet<TicketType> TicketTypes { get; set; }
         public DbSet<TicketReply> TicketReplies { get; set; }
@@ -58,7 +56,6 @@ namespace DataAccessObject.Models
         public DbSet<ChatFile> ChatFiles { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
-        public DbSet<DeviceToken> DeviceTokens { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<FavoriteService> FavoriteServices { get; set; }
         public DbSet<FavoriteProduct> FavoriteProducts { get; set; }
@@ -256,22 +253,6 @@ namespace DataAccessObject.Models
                 .HasForeignKey(pd => pd.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure 1-N relationship between Voucher and Cart
-            modelBuilder.Entity<Cart>()
-                .HasOne(c => c.Voucher)
-                .WithMany(v => v.Carts)
-                .HasForeignKey(c => c.VoucherId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Configure 1-N relationship between Subscription and Voucher
-            modelBuilder.Entity<Voucher>()
-                .HasOne(v => v.Subscription)
-                .WithMany(s => s.Vouchers)
-                .HasForeignKey(v => v.SubscriptionId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Configure 1-N relationship between User and Order
             modelBuilder.Entity<Account>()
                 .HasMany(a => a.Orders)
@@ -323,14 +304,6 @@ namespace DataAccessObject.Models
                 .HasForeignKey(ri => ri.ReviewId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure 1-N relationship between Subscription and Account
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.Subscription)
-                .WithMany(sb => sb.Accounts)
-                .HasForeignKey(a => a.SubscriptionId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
-
             modelBuilder.Entity<Chat>()
                 .HasOne(c => c.Sender)
                 .WithMany()
@@ -362,12 +335,6 @@ namespace DataAccessObject.Models
                 .WithMany(a => a.Followers)
                 .HasForeignKey(f => f.FollowingId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<DeviceToken>()
-                .HasOne(dt => dt.Account)
-                .WithMany(a => a.DeviceTokens)
-                .HasForeignKey(dt => dt.AccountId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Contact>()
                 .HasOne(c => c.User)
@@ -540,13 +507,6 @@ namespace DataAccessObject.Models
                 new CancelType { Id = 5, Type = "The address was incorrect" },
                 new CancelType { Id = 6, Type = "I want to change my request" },
                 new CancelType { Id = 7, Type = "Other reason" }
-            );
-
-            modelBuilder.Entity<Subscription>().HasData(
-                new Subscription { Id = 1, Name = "Silver", RequiredSpending = 0, FreeRequestChange = 0, PrioritySupport = false, CommissionDiscount = 0 },
-                new Subscription { Id = 2, Name = "Silver", RequiredSpending = 1, FreeRequestChange = 1, PrioritySupport = false, CommissionDiscount = 0.2 },
-                new Subscription { Id = 3, Name = "Gold", RequiredSpending = 20000000, FreeRequestChange = 2, PrioritySupport = true, CommissionDiscount = 0.5 },
-                new Subscription { Id = 4, Name = "Platinum", RequiredSpending = 60000000, FreeRequestChange = 5, PrioritySupport = true, CommissionDiscount = 1 }
             );
 
             modelBuilder.Entity<Skill>().HasData(
