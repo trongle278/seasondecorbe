@@ -1239,7 +1239,7 @@ namespace BusinessLogicLayer.Services
 
                 // Lấy Booking liên quan đến Quotation này
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                    .Where(b => b.Id == quotation.Id)
+                    .Where(b => b.Id == quotation.BookingId)
                     .FirstOrDefaultAsync();
 
                 if (booking == null)
@@ -1271,7 +1271,7 @@ namespace BusinessLogicLayer.Services
                     .FirstOrDefaultAsync();
 
                 var adminWallet = await _unitOfWork.WalletRepository.Queryable()
-                    .Where(w => w.AccountId == 1) // Giả sử role 1 là admin
+                    .Where(w => w.Account.RoleId == 1) // Giả sử role 1 là admin
                     .FirstOrDefaultAsync();
 
                 if (providerWallet == null || adminWallet == null)
