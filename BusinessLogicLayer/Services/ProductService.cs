@@ -417,7 +417,6 @@ namespace BusinessLogicLayer.Services
 
                 if (productCategory == null)
                 {
-                    response.Success = false;
                     response.Message = "Category not found";
                     return response;
                 }
@@ -546,7 +545,6 @@ namespace BusinessLogicLayer.Services
 
                 if (account == null || account.IsProvider == false)
                 {
-                    response.Success = false;
                     response.Message = "Provider not found";
                     return response;
                 }
@@ -632,7 +630,6 @@ namespace BusinessLogicLayer.Services
 
                 if (providerAccount == null)
                 {
-                    response.Success = false;
                     response.Message = "Invalid provider slug";
                     return response;
                 }
@@ -757,36 +754,31 @@ namespace BusinessLogicLayer.Services
             {
                 if (request == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid product request";
+                    response.Message = "Invalid product request!";
                     return response;
                 }
 
                 if (string.IsNullOrWhiteSpace(request.ProductName))
                 {
-                    response.Success = false;
-                    response.Message = "Product name is required";
+                    response.Message = "Product name is required!";
                     return response;
                 }
 
-                if (request.ProductPrice < 0)
+                if (request.ProductPrice <= 0)
                 {
-                    response.Success = false;
-                    response.Message = "Negative product price";
+                    response.Message = "Product price has to be greater than 0!";
                     return response;
                 }
 
                 if (request.Quantity < 0)
                 {
-                    response.Success = false;
-                    response.Message = "Negative quantity";
+                    response.Message = "Product quantity cannot be less than 0!";
                     return response;
                 }
 
                 if (request.Images != null && request.Images.Count > 5)
                 {
-                    response.Success = false;
-                    response.Message = "Maximum 5 images";
+                    response.Message = "Maximum 5 images!";
                     return response;
                 }
 
@@ -833,7 +825,7 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error creating product";
+                response.Message = "Error creating product!";
                 response.Errors.Add(ex.Message);
             }
 
@@ -845,34 +837,6 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                if (request == null)
-                {
-                    response.Success = false;
-                    response.Message = "Invalid product";
-                    return response;
-                }
-
-                if (string.IsNullOrWhiteSpace(request.ProductName))
-                {
-                    response.Success = false;
-                    response.Message = "Product name is required";
-                    return response;
-                }
-
-                if (request.ProductPrice < 0)
-                {
-                    response.Success = false;
-                    response.Message = "Negative product price";
-                    return response;
-                }
-
-                if (request.Quantity < 0)
-                {
-                    response.Success = false;
-                    response.Message = "Negative quantity";
-                    return response;
-                }
-
                 var product = await _unitOfWork.ProductRepository
                                         .Query(p => p.Id == id)
                                         .Include(p => p.ProductImages)
@@ -880,15 +844,37 @@ namespace BusinessLogicLayer.Services
 
                 if (product == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid product";
+                    response.Message = "Invalid product!";
+                    return response;
+                }
+
+                if (request == null)
+                {
+                    response.Message = "Invalid product detail!";
+                    return response;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.ProductName))
+                {
+                    response.Message = "Product name is required!";
+                    return response;
+                }
+
+                if (request.ProductPrice <= 0)
+                {
+                    response.Message = "Product price has to be greater than 0!";
+                    return response;
+                }
+
+                if (request.Quantity < 0)
+                {
+                    response.Message = "Quantity cannot not be negative!";
                     return response;
                 }
 
                 if (request.Images != null && request.Images.Count > 5)
                 {
-                    response.Success = false;
-                    response.Message = "Maximum 5 images";
+                    response.Message = "Maximum 5 images!";
                     return response;
                 }
 
@@ -929,7 +915,7 @@ namespace BusinessLogicLayer.Services
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error updating product";
+                response.Message = "Error updating product!";
                 response.Errors.Add(ex.Message);
             }
 
@@ -948,8 +934,7 @@ namespace BusinessLogicLayer.Services
 
                 if (product == null)
                 {
-                    response.Success = false;
-                    response.Message = "Invalid product";
+                    response.Message = "Invalid product!";
                     return response;
                 }
 
