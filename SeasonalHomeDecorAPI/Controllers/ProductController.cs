@@ -30,7 +30,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-
             return BadRequest();     
         }
 
@@ -43,7 +42,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-
             return BadRequest();
         }
 
@@ -56,7 +54,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-
             return BadRequest();
         }
 
@@ -69,8 +66,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getProductByProvider/{slug}")]
@@ -82,7 +78,6 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-
             return BadRequest();
         }
 
@@ -95,8 +90,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getById/{id}")]
@@ -104,19 +98,11 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var result = await _productService.GetProductById(id);
 
-            if (result.Success == false && result.Message == "Invalid product")
+            if (result.Success)
             {
-                ModelState.AddModelError("", $"Product not found!");
-                return StatusCode(400, ModelState);
+                return Ok(result);
             }
-
-            if (result.Success == false && result.Message == "Error retrieving product")
-            {
-                ModelState.AddModelError("", $"Error retrieving product!");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok(result);
+            return BadRequest(result);
         }
 
         [Authorize]
@@ -131,43 +117,11 @@ namespace SeasonalHomeDecorAPI.Controllers
 
             var result = await _productService.CreateProduct(request);
 
-            if (result.Success == false && result.Message == "Invalid product request")
+            if (result.Success)
             {
-                ModelState.AddModelError("", $"Invalid product request!");
-                return StatusCode(403, ModelState);
+                return Ok(result);
             }
-
-            if (result.Success == false && result.Message == "Product name is required")
-            {
-                ModelState.AddModelError("", $"Product name is required!");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Negative product price")
-            {
-                ModelState.AddModelError("", $"Product price has to be > 0.!");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Negative quantity")
-            {
-                ModelState.AddModelError("", $"Product quantity has to be > 0.");
-                return StatusCode(403, ModelState);
-            }
-            
-            if (result.Success == false && result.Message == "Maximum 5 images")
-            {
-                ModelState.AddModelError("", $"Product Images cannot exceed 5.");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Error creating product")
-            {
-                ModelState.AddModelError("", $"Error creating product!");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok(result);
+            return BadRequest(result);
         }
 
         [Authorize]
@@ -182,43 +136,11 @@ namespace SeasonalHomeDecorAPI.Controllers
 
             var result = await _productService.UpdateProduct(id, request);
 
-            if (result.Success == false && result.Message == "Invalid product")
+            if (result.Success)
             {
-                ModelState.AddModelError("", $"Product not found!");
-                return StatusCode(400, ModelState);
+                return Ok(result);
             }
-
-            if (result.Success == false && result.Message == "Product name is required")
-            {
-                ModelState.AddModelError("", $"Product name is required!");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Negative product price")
-            {
-                ModelState.AddModelError("", $"Product price has to be > 0.!");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Negative quantity")
-            {
-                ModelState.AddModelError("", $"Product quantity has to be > 0.");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Maximum 5 images")
-            {
-                ModelState.AddModelError("", $"Product Images cannot exceed 5.");
-                return StatusCode(403, ModelState);
-            }
-
-            if (result.Success == false && result.Message == "Error updating product")
-            {
-                ModelState.AddModelError("", $"Error updating product!");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok(result);
+            return BadRequest(result);
         }
 
         [Authorize]
@@ -233,19 +155,11 @@ namespace SeasonalHomeDecorAPI.Controllers
 
             var result = await _productService.DeleteProduct(id);
 
-            if (result.Success == false && result.Message == "Invalid product")
+            if (result.Success)
             {
-                ModelState.AddModelError("", $"Product not found!");
-                return StatusCode(400, ModelState);
+                return Ok(result);
             }
-
-            if (result.Success == false && result.Message == "Error deleting product")
-            {
-                ModelState.AddModelError("", $"Error deleting product!");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok(result);
+            return BadRequest(result);
         }
 
         [HttpGet("search")]
@@ -269,7 +183,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-            return BadRequest();
+            return BadRequest(result);
         }
     }
 }
