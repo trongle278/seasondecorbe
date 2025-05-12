@@ -18,5 +18,10 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<string>> RequestSignatureForMobileAsync(string contractCode);
         Task<BaseResponse<string>> VerifyContractSignatureAsync(string signatureToken);
         Task<BaseResponse<ContractFileResponse>> GetContractFileAsync(string quotationCode);
+
+        Task<BaseResponse<ContractCancelDetailResponse>> GetRequestContractCancelDetailAsync(string contractCode);
+        Task<BaseResponse> RequestCancelContractAsync(string contractCode, int cancelReasonId, string cancelReason);
+        Task<BaseResponse> ApproveCancelContractAsync(string contractCode);
+        Task<BaseResponse> TerminateContract(string contractCode);
     }
 }

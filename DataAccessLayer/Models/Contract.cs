@@ -29,9 +29,14 @@ namespace DataAccessObject.Models
 
         public enum ContractStatus
         {
-            Pending,
-            Signed
+            Pending,    // Chờ ký
+            Signed,     // Đã ký
+            Rejected,   // Từ chối ký
+            PendingCancel,
+            Canceled   // Đã hủy, cho trường hợp 2 bên và cả 1 bên đơn phương
         }
+
+        public string? Reason { get; set; }
     }
 
 }

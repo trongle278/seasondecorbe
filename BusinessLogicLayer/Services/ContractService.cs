@@ -34,14 +34,16 @@ namespace BusinessLogicLayer.Services
         private readonly ICloudinaryService _cloudinaryService;
         private readonly INotificationService _notificationService;
         private readonly string _clientBaseUrl;
+        private readonly IWalletService _walletService;
 
-        public ContractService(IUnitOfWork unitOfWork, IEmailService emailService, ICloudinaryService cloudinaryService, INotificationService notificationService, IConfiguration configuration)
+        public ContractService(IUnitOfWork unitOfWork, IEmailService emailService, ICloudinaryService cloudinaryService, INotificationService notificationService, IConfiguration configuration, IWalletService walletService)
         {
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
             _notificationService = notificationService;
             _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
+            _walletService = walletService;
         }
 
         public async Task<BaseResponse<string>> GetContractContentAsync(string contractCode)
@@ -622,9 +624,9 @@ namespace BusinessLogicLayer.Services
         <h2>4. COST AND PAYMENT</h2>
         <p>(Via platform wallet)</p>
         <ul>
-            <li>Total Cost (includes materials, labor, and any additional costs): {(quotation.Booking.TotalPrice):N0} VND</li>
-            <li>Deposit from Party A to Party B ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.Booking.TotalPrice):N0} VND</li>
-            <li>Remaining Balance: Payable upon project completion</li>
+            <li>Total Cost (includes materials, labor, any additional costs and after deducting commitment fee deposit): {(quotation.Booking.TotalPrice):N0} VND</li>
+            <li>Materials deposit from Party A to Party B ({quotation.DepositPercentage}%): {(quotation.DepositPercentage / 100) * (quotation.Booking.TotalPrice):N0} VND</li>
+            <li>Remaining Balance: {(quotation.Booking.TotalPrice) - ((quotation.DepositPercentage / 100) * (quotation.Booking.TotalPrice)):N0} VND (Payable upon project completion)</li>
         </ul>
     </div>
 
@@ -683,6 +685,7 @@ namespace BusinessLogicLayer.Services
             <li>Party B is responsible for providing all necessary documentation related to the project and will be held liable if insufficient.</li>
             <li>Party A agrees not to use the documents provided by Party B for other purposes outside the scope of this contract.</li>
             <li>Both parties commit to fully implementing the terms and conditions of this contract.</li>
+            <li>After signing, Party A is not entitled to cancel the contract under any circumstances; any loss or cost arising thereafter shall be borne entirely by Party A.</li>
         </ul>
     </div>
 </body>
@@ -818,5 +821,294 @@ namespace BusinessLogicLayer.Services
         }
 
         #endregion
+
+        //test
+        //public async Task<BaseResponse> TerminateContractAsync(string contractCode,TerminationType type, string reason, decimal? penaltyFee = null)
+        //hủy đơn phương
+        public async Task<BaseResponse> TerminateContract(string contractCode)
+        {
+            var response = new BaseResponse();
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                // 1. Lấy thông tin hợp đồng
+                var contract = await _unitOfWork.ContractRepository
+                    .Queryable()
+                    .Include(c => c.Quotation.Booking)
+                        .ThenInclude(b => b.Account.Wallet)
+                    .Include(c => c.Quotation.Booking.DecorService.Account.Wallet)
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+
+                if (contract?.Status != Contract.ContractStatus.Signed)
+                {
+                    response.Message = "Contract not found or not signed";
+                    return response;
+                }
+
+                var booking = contract.Quotation.Booking;
+                decimal penaltyAmount = booking.TotalPrice * 0.5m;
+
+                // 2. Kiểm tra số dư
+                if (booking.Account.Wallet.Balance < penaltyAmount)
+                {
+                    response.Message = "Customer wallet balance insufficient for penalty";
+                    return response;
+                }
+
+                // 3. Tạo transaction phạt
+                var penaltyTransaction = new PaymentTransaction
+                {
+                    Amount = penaltyAmount,
+                    TransactionDate = DateTime.Now,
+                    TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+                    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                    BookingId = booking.Id
+                };
+
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(penaltyTransaction);
+                await _unitOfWork.CommitAsync();
+
+                // 4. Trừ tiền khách, cộng tiền provider
+                booking.Account.Wallet.Balance -= penaltyAmount;
+                booking.DecorService.Account.Wallet.Balance += penaltyAmount;
+
+                // 5. Lưu lịch sử giao dịch
+                await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
+                {
+                    WalletId = booking.Account.Wallet.Id,
+                    PaymentTransactionId = penaltyTransaction.Id
+                });
+
+                await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
+                {
+                    WalletId = booking.DecorService.Account.Wallet.Id,
+                    PaymentTransactionId = penaltyTransaction.Id
+                });
+
+                // 6. Cập nhật trạng thái hợp đồng
+                contract.Status = Contract.ContractStatus.Canceled;
+                booking.Status = BookingStatus.Canceled;
+                booking.IsBooked = false;
+
+                await _unitOfWork.CommitAsync();
+                await transaction.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Contract terminated successful";
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                response.Message = $"Termination failed: {ex.Message}";
+            }
+
+            return response;
+        }
+
+        //hủy 2 bên
+        public async Task<BaseResponse> RequestCancelContractAsync(string contractCode, int cancelReasonId, string cancelReason)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                // Lấy thông tin hợp đồng
+                var contract = await _unitOfWork.ContractRepository.Queryable()
+                    .Include(c => c.Quotation.Booking.DecorService)
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found or not eligible for cancellation";
+                    return response;
+                }
+
+                // Validate lý do hủy
+                var validReason = await _unitOfWork.CancelTypeRepository.Queryable()
+                    .AnyAsync(c => c.Id == cancelReasonId);
+
+                if (!validReason)
+                {
+                    response.Message = "Invalid cancellation reason";
+                    return response;
+                }
+
+                // Cập nhật trạng thái chờ hủy
+                contract.Status = Contract.ContractStatus.PendingCancel;
+                contract.Quotation.Booking.CancelTypeId = cancelReasonId;
+                contract.Reason = cancelReason;
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Cancellation request submitted";
+            }
+            catch (Exception ex)
+            {
+                response.Message = $"Request failed: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse> ApproveCancelContractAsync(string contractCode)
+        {
+            var response = new BaseResponse();
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                // Lấy hợp đồng cần huỷ
+                var contract = await _unitOfWork.ContractRepository.Queryable()
+                    .Include(c => c.Quotation.Booking)
+                        .ThenInclude(b => b.DecorService.Account)
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode && c.Status == Contract.ContractStatus.PendingCancel);
+
+                if (contract?.Quotation?.Booking == null)
+                {
+                    response.Message = "Contract not found or not in cancellable state.";
+                    return response;
+                }
+
+                var booking = contract.Quotation.Booking;
+                var providerId = booking.DecorService.AccountId;
+
+                // Lấy % hoa hồng
+                var commissionRate = await _unitOfWork.SettingRepository.Queryable()
+                    .Select(s => s.Commission)
+                    .FirstOrDefaultAsync();
+
+                // Lấy ví
+                var providerWallet = await _unitOfWork.WalletRepository.Queryable()
+                    .FirstOrDefaultAsync(w => w.AccountId == providerId);
+
+                var adminWallet = await _unitOfWork.WalletRepository.Queryable()
+                    .FirstOrDefaultAsync(w => w.Account.RoleId == 1);
+
+                if (providerWallet == null || adminWallet == null)
+                {
+                    response.Message = "Provider or Admin wallet not found.";
+                    return response;
+                }
+
+                // Tính toán hoàn tiền
+                decimal totalAmountToRefund = booking.CommitDepositAmount;
+                decimal adminCommissionAmount = totalAmountToRefund * commissionRate;
+                decimal providerAmount = totalAmountToRefund - adminCommissionAmount;
+
+                // Cập nhật ví
+                await _walletService.UpdateWallet(adminWallet.Id, adminWallet.Balance + adminCommissionAmount);
+                await _walletService.UpdateWallet(providerWallet.Id, providerWallet.Balance - adminCommissionAmount);
+
+                // Ghi giao dịch
+                var providerRefundTransaction = new PaymentTransaction
+                {
+                    Amount = providerAmount,
+                    TransactionDate = DateTime.Now,
+                    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                    TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+                    BookingId = booking.Id
+                };
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerRefundTransaction);
+
+                var adminRefundTransaction = new PaymentTransaction
+                {
+                    Amount = adminCommissionAmount,
+                    TransactionDate = DateTime.Now,
+                    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                    TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+                    BookingId = booking.Id
+                };
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminRefundTransaction);
+
+                // Cập nhật trạng thái
+                contract.Status = Contract.ContractStatus.Canceled;
+                booking.Status = Booking.BookingStatus.Canceled;
+                booking.IsBooked = false;
+
+                await _unitOfWork.CommitAsync();
+
+                // Gửi thông báo
+                string providerUrl = ""; // frontend URL cho Provider
+                string adminUrl = "";    // frontend URL cho Admin
+
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = providerId,
+                    Title = "Contract Canceled",
+                    Content = $"The customer has canceled contract #{contractCode}.",
+                    Url = providerUrl
+                });
+
+                var adminIds = await _unitOfWork.AccountRepository.Queryable()
+                    .Where(a => a.RoleId == 1)
+                    .Select(a => a.Id)
+                    .ToListAsync();
+
+                foreach (var adminId in adminIds)
+                {
+                    await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                    {
+                        AccountId = adminId,
+                        Title = "Revenue Notice",
+                        Content = $"You have been credited with an additional amount in your income.",
+                        Url = adminUrl
+                    });
+                }
+
+                await transaction.CommitAsync();
+                response.Success = true;
+                response.Message = "Contract cancelled successfully.";
+                response.Data = booking;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                response.Success = false;
+                response.Message = "Failed to cancel the contract.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<ContractCancelDetailResponse>> GetRequestContractCancelDetailAsync(string contractCode)
+        {
+            var response = new BaseResponse<ContractCancelDetailResponse>();
+            try
+            {
+                // Get contract with cancellation details
+                var contract = await _unitOfWork.ContractRepository.Queryable()
+                    .Include(c => c.Quotation.Booking)
+                        .ThenInclude(b => b.CancelType)
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode &&
+                                             c.Status == Contract.ContractStatus.PendingCancel);
+
+                if (contract == null)
+                {
+                    response.Message = "Contract not found or not in cancellation pending state";
+                    return response;
+                }
+
+                var result = new ContractCancelDetailResponse
+                {
+                    ContractCode = contract.ContractCode,
+                    Status = (int)contract.Status,
+                    CancelType = contract.Quotation.Booking.CancelType?.Type,
+                    Reason = contract.Quotation.Booking.CancelReason
+                };
+
+                response.Success = true;
+                response.Message = "Contract cancellation details retrieved successfully";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to get contract cancellation details";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
     }
 }

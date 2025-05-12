@@ -1131,11 +1131,11 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                booking.IsBooked = false;
                 booking.Status = BookingStatus.Canceled;
                 _unitOfWork.BookingRepository.Update(booking);
                 service.Status = DecorService.DecorServiceStatus.Available;
-                booking.IsBooked = false;
-
+                
                 await _unitOfWork.CommitAsync();
 
                 string colorBookingCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{booking.BookingCode}</span>";

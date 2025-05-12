@@ -43,4 +43,12 @@ namespace BusinessLogicLayer.ModelResponse
         public string ProviderEmail { get; set; }
         public string ProviderPhone { get; set; }
     }
+
+    public class ContractCancelDetailResponse
+    {
+        public string ContractCode { get; set; }
+        public int Status { get; set; }
+        public string CancelType { get; set; }
+        public string Reason { get; set; }
+    }
 }

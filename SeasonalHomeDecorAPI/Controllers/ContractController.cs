@@ -165,6 +165,38 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var response = await _contractService.GetContractFileAsync(quotationCode);
             return response.Success ? Ok(response) : BadRequest(response);
-        }      
+        }
+
+        [HttpGet("getRequestContractCancelDetail/{contractCode}")]
+        public async Task<IActionResult> GetRequestContractCancelDetail(string contractCode)
+        {
+
+            var response = await _contractService.GetRequestContractCancelDetailAsync(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("requestCancelContract/{contractCode}")]
+        public async Task<IActionResult> RequestCancelContract(string contractCode, int cancelReasonId, string cancelReason)
+        {
+
+            var response = await _contractService.RequestCancelContractAsync(contractCode, cancelReasonId, cancelReason);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("approveCancelContract/{contractCode}")]
+        public async Task<IActionResult> ApproveCancelContract(string contractCode)
+        {
+
+            var response = await _contractService.ApproveCancelContractAsync(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("terminateContract/{contractCode}")]
+        public async Task<IActionResult> TerminateContract(string contractCode)
+        {
+
+            var response = await _contractService.TerminateContract(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }
