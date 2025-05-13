@@ -18,6 +18,9 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> CreateMeetingRequestAsync(string bookingCode, int customerId, CreateMeetingRequest request);
         Task<BaseResponse> AcceptMeetingRequestAsync(string bookingCode, int id);
         Task<BaseResponse> RejectMeetingRequestAsync(string bookingCode, int id);
+        Task<BaseResponse> CreateMeetingScheduleAsync(string bookingCode, int providerId, List<DateTime> scheduledTime);
+        Task<BaseResponse> SelectMeetingAsync(string bookingCode, int id);
+        Task<BaseResponse> CancelMeetingAsync(int id);
         Task<ZoomMeetingResponse> CreateMeetingAsync(ZoomMeetingRequest request);
         //Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id);
     }
