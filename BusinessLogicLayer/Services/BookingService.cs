@@ -419,6 +419,11 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.TimeSlots) // Survey times
                     .Include(b => b.Address) // Address
                     .Include(b => b.BookingDetails) // Booking details
+
+                    .Include(b => b.DecorationStyle) // ✅ Include style
+                    .Include(b => b.BookingThemeColors)
+                        .ThenInclude(btc => btc.ThemeColor) // ✅ Include theme colors
+
                     .Where(b => b.BookingCode == bookingCode)
                     .FirstOrDefaultAsync();
 
@@ -497,7 +502,16 @@ namespace BusinessLogicLayer.Services
                         Email = booking.Account.Email,
                         Phone = booking.Account.Phone,
                         Avatar = booking.Account.Avatar
-                    }
+                    },
+
+                    DecorationStyle = booking.DecorationStyle.Name,
+                    ThemeColors = booking.BookingThemeColors?
+                    .Select(tc => new ThemeColorResponse
+                    {
+                        Id = tc.ThemeColor.Id,
+                        ColorCode = tc.ThemeColor.ColorCode
+                    })
+                    .ToList() ?? new List<ThemeColorResponse>()
                 };
 
                 response.Success = true;
@@ -622,12 +636,27 @@ namespace BusinessLogicLayer.Services
                     DecorServiceId = request.DecorServiceId,
                     Status = BookingStatus.Pending,
                     Note = request.Note,
-                    //RequestChangeCount = 0, //số lần đổi yêu cầu
-                    //IsAdditionalFeeCharged = false,
                     CommitDepositAmount = 500000,
                     CreateAt = DateTime.Now,
                     IsCommitDepositPaid = false,
                 };
+
+                // Gán phong cách trang trí nếu có
+                if (request.DecorationStyleId.HasValue)
+                {
+                    booking.DecorationStyleId = request.DecorationStyleId.Value;
+                }
+
+                // Gán các màu sắc chủ đạo nếu có
+                if (request.ThemeColorIds != null && request.ThemeColorIds.Any())
+                {
+                    booking.BookingThemeColors = request.ThemeColorIds
+                        .Distinct()
+                        .Select(colorId => new BookingThemeColor
+                        {
+                            ThemeColorId = colorId
+                        }).ToList();
+                }
 
                 await _unitOfWork.BookingRepository.InsertAsync(booking);
                 booking.IsBooked = true;

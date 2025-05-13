@@ -41,5 +41,12 @@ namespace DataAccessObject.Models
         public virtual ICollection<DecorServiceSeason> DecorServiceSeasons { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
         public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
+        public virtual ICollection<DecorServiceOffering> DecorServiceOfferings { get; set; } = new List<DecorServiceOffering>();
+
+
+        //1 dịch vụ add được nhiều màu
+        public virtual ICollection<DecorServiceThemeColor> DecorServiceThemeColors { get; set; } = new List<DecorServiceThemeColor>();
+        //1 dịch vụ add được nhiều style
+        public virtual ICollection<DecorServiceStyle> DecorServiceStyles { get; set; } = new List<DecorServiceStyle>();
     }
 }

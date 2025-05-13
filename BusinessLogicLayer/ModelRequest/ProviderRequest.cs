@@ -38,8 +38,8 @@ namespace BusinessLogicLayer.ModelRequest
         [Required(ErrorMessage = "SkillId is required")]
         public int SkillId { get; set; }
 
-        [Required(ErrorMessage = "DecorationStyleId is required")]
-        public int DecorationStyleId { get; set; }
+        //[Required(ErrorMessage = "DecorationStyleId is required")]
+        //public int DecorationStyleId { get; set; }
 
         public List<IFormFile> CertificateImages { get; set; }
     }

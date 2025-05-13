@@ -88,6 +88,12 @@ namespace BusinessLogicLayer.ModelResponse
         public int FavoriteCount { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
+
+        public List<ThemeColorResponse> ThemeColors { get; set; }
+        public List<StyleResponse> Styles { get; set; }
+        public List<OfferingResponse> Offerings { get; set; }
+
+
         public ProviderResponse Provider { get; set; }
         public List<DecorServiceReviewResponse> Reviews { get; set; } = new();
     }
@@ -109,4 +115,24 @@ namespace BusinessLogicLayer.ModelResponse
         }
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///
+
+    public class ThemeColorResponse
+    {
+        public int Id { get; set; }
+        public string ColorCode { get; set; }
+    }
+
+    public class StyleResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class OfferingResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+    }
 }

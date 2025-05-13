@@ -58,6 +58,13 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(r => r.ReviewImages)
                     .Include(ds => ds.Reviews)
                         .ThenInclude(r => r.Account)
+
+                    .Include(ds => ds.DecorServiceThemeColors)
+                        .ThenInclude(dstc => dstc.ThemeColor)
+                    .Include(ds => ds.DecorServiceStyles)
+                        .ThenInclude(dss => dss.DecorationStyle)
+                    .Include(ds => ds.DecorServiceOfferings)
+                        .ThenInclude(dso => dso.Offering)
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -90,6 +97,31 @@ namespace BusinessLogicLayer.Services
                     {
                         Id = dss.Season.Id,
                         SeasonName = dss.Season.SeasonName
+                    })
+                    .ToList();
+
+                dto.ThemeColors = decorService.DecorServiceThemeColors?
+                    .Select(tc => new ThemeColorResponse
+                    {
+                        Id = tc.ThemeColor.Id,
+                        ColorCode = tc.ThemeColor.ColorCode
+                    })
+                    .ToList();
+
+                dto.Styles = decorService.DecorServiceStyles?
+                    .Select(s => new StyleResponse
+                    {
+                        Id = s.DecorationStyle.Id,
+                        Name = s.DecorationStyle.Name
+                    })
+                    .ToList();
+
+                dto.Offerings = decorService.DecorServiceOfferings?
+                    .Select(o => new OfferingResponse
+                    {
+                        Id = o.Offering.Id,
+                        Name = o.Offering.Name,
+                        Description = o.Offering.Description,
                     })
                     .ToList();
 
@@ -700,7 +732,7 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var account = await _unitOfWork.AccountRepository
-                        .Query(a => a.Id == accountId && a.IsProvider == true)
+                        .Query(a => a.Id == accountId && a.RoleId == 2)
                         .FirstOrDefaultAsync();
 
                 if (account == null)
@@ -735,10 +767,14 @@ namespace BusinessLogicLayer.Services
                     StartDate = request.StartDate,
                     Status = DecorService.DecorServiceStatus.Incoming,
                     DecorImages = new List<DecorImage>(),
-                    DecorServiceSeasons = new List<DecorServiceSeason>()
+                    DecorServiceSeasons = new List<DecorServiceSeason>(),
+
+                    DecorServiceThemeColors = new List<DecorServiceThemeColor>(),
+                    DecorServiceStyles = new List<DecorServiceStyle>(),
+                    DecorServiceOfferings = new List<DecorServiceOffering>()    
                 };
 
-                // Thêm mùa vào dịch vụ
+                // Thêm tag mùa vào dịch vụ
                 if (request.SeasonIds != null && request.SeasonIds.Any())
                 {
                     foreach (var seasonId in request.SeasonIds)
@@ -746,6 +782,59 @@ namespace BusinessLogicLayer.Services
                         decorService.DecorServiceSeasons.Add(new DecorServiceSeason
                         {
                             SeasonId = seasonId
+                        });
+                    }
+                }
+
+                // Thêm style đã seed (nhiều style)
+                if (request.StyleIds != null && request.StyleIds.Any())
+                {
+                    foreach (var styleId in request.StyleIds.Distinct())
+                    {
+                        decorService.DecorServiceStyles.Add(new DecorServiceStyle
+                        {
+                            DecorationStyleId = styleId
+                        });
+                    }
+                }
+
+                // Thêm màu người dùng nhập
+                if (request.ThemeColorNames != null && request.ThemeColorNames.Any())
+                {
+                    foreach (var colorName in request.ThemeColorNames.Distinct())
+                    {
+                        var trimmedName = colorName.Trim();
+
+                        var existingColor = await _unitOfWork.ThemeColorRepository
+                            .Query(t => t.ColorCode.ToLower() == trimmedName.ToLower())
+                            .FirstOrDefaultAsync();
+
+                        if (existingColor == null)
+                        {
+                            existingColor = new ThemeColor 
+                            { 
+                                ColorCode = trimmedName 
+                            };
+
+                            await _unitOfWork.ThemeColorRepository.InsertAsync(existingColor);
+                            await _unitOfWork.CommitAsync(); // Để lấy Id
+                        }
+
+                        decorService.DecorServiceThemeColors.Add(new DecorServiceThemeColor
+                        {
+                            ThemeColorId = existingColor.Id
+                        });
+                    }
+                }
+
+                // Thêm offerings đã chọn (chỉ ID)
+                if (request.OfferingIds != null && request.OfferingIds.Any())
+                {
+                    foreach (var offeringId in request.OfferingIds.Distinct())
+                    {
+                        decorService.DecorServiceOfferings.Add(new DecorServiceOffering
+                        {
+                            OfferingId = offeringId
                         });
                     }
                 }
@@ -767,17 +856,6 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.DecorServiceRepository.InsertAsync(decorService);
                 await _unitOfWork.CommitAsync();
-
-                //// *** Index lên Elasticsearch (không throw exception nếu lỗi)
-                //try
-                //{
-                //    await _elasticClientService.IndexDecorServiceAsync(decorService);
-                //}
-                //catch (Exception ex)
-                //{
-                //    // Log lỗi (nếu cần) nhưng không trả về lỗi cho client
-                //    // Ví dụ: _logger.LogError(ex, "Elastic index error in CreateDecorServiceAsync");
-                //}
 
                 response.Success = true;
                 response.Message = "Decor service created successfully.";
@@ -1278,6 +1356,84 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Error retrieving decor services.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<List<ThemeColorResponse>>> GetThemeColorsByDecorServiceIdAsync(int decorServiceId)
+        {
+            var response = new BaseResponse<List<ThemeColorResponse>>();
+            try
+            {
+                var service = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => ds.Id == decorServiceId)
+                    .Include(ds => ds.DecorServiceThemeColors)
+                        .ThenInclude(dstc => dstc.ThemeColor)
+                    .FirstOrDefaultAsync();
+
+                if (service == null)
+                {
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
+                    return response;
+                }
+
+                var themeColors = service.DecorServiceThemeColors?
+                    .Select(tc => new ThemeColorResponse
+                    {
+                        Id = tc.ThemeColor.Id,
+                        ColorCode = tc.ThemeColor.ColorCode
+                    })
+                    .ToList();
+
+                response.Success = true;
+                response.Data = themeColors;
+                response.Message = "Theme colors fetched successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error fetching theme colors.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<List<StyleResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId)
+        {
+            var response = new BaseResponse<List<StyleResponse>>();
+            try
+            {
+                var service = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => ds.Id == decorServiceId)
+                    .Include(ds => ds.DecorServiceStyles)
+                        .ThenInclude(dss => dss.DecorationStyle)
+                    .FirstOrDefaultAsync();
+
+                if (service == null)
+                {
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
+                    return response;
+                }
+
+                var styles = service.DecorServiceStyles?
+                    .Select(s => new StyleResponse
+                    {
+                        Id = s.DecorationStyle.Id,
+                        Name = s.DecorationStyle.Name
+                    })
+                    .ToList();
+
+                response.Success = true;
+                response.Data = styles;
+                response.Message = "Styles fetched successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error fetching styles.";
                 response.Errors.Add(ex.Message);
             }
             return response;

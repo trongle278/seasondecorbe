@@ -68,6 +68,8 @@ namespace BusinessLogicLayer.Services
             {
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Id == accountId && a.ProviderVerified == true)
+                    .Include(a => a.Skill)
+                    .Include(a => a.CertificateImages)
                     .FirstOrDefaultAsync();
 
                 if (account == null)
@@ -110,7 +112,7 @@ namespace BusinessLogicLayer.Services
                 var account = await _unitOfWork.AccountRepository
                     .Query(a => a.Slug == slug && a.ProviderVerified == true)
                     .Include(a => a.Skill)
-                    .Include(a => a.DecorationStyle)
+                    //.Include(a => a.DecorationStyle)
                     .Include(a => a.CertificateImages)
                     .FirstOrDefaultAsync();
 
@@ -234,15 +236,15 @@ namespace BusinessLogicLayer.Services
                     };
                 }
 
-                var styleExists = await _unitOfWork.DecorationStyleRepository.AnyAsync(s => s.Id == request.DecorationStyleId);
-                if (!styleExists)
-                {
-                    return new BaseResponse
-                    {
-                        Success = false,
-                        Errors = new List<string> { "Decoration style not found." }
-                    };
-                }
+                //var styleExists = await _unitOfWork.DecorationStyleRepository.AnyAsync(s => s.Id == request.DecorationStyleId);
+                //if (!styleExists)
+                //{
+                //    return new BaseResponse
+                //    {
+                //        Success = false,
+                //        Errors = new List<string> { "Decoration style not found." }
+                //    };
+                //}
 
                 // Cập nhật tài khoản thành provider
                 //account.IsProvider = false;
@@ -257,7 +259,7 @@ namespace BusinessLogicLayer.Services
                 account.PastWorkPlaces = request.PastWorkPlaces;
                 account.PastProjects = request.PastProjects;
                 account.SkillId = request.SkillId;
-                account.DecorationStyleId = request.DecorationStyleId;
+                //account.DecorationStyleId = request.DecorationStyleId;
                 account.ApplicationCreateAt = DateTime.Now;
                
                 _unitOfWork.AccountRepository.Update(account);
@@ -498,7 +500,7 @@ namespace BusinessLogicLayer.Services
             account.PastWorkPlaces = null;
             account.PastProjects = null;
             account.SkillId = null;
-            account.DecorationStyleId = null;
+            //account.DecorationStyleId = null;
             account.ApplicationCreateAt = null;
 
             // Lấy tất cả ảnh chứng chỉ và xóa
@@ -547,7 +549,7 @@ namespace BusinessLogicLayer.Services
             var pendingAccounts = await _unitOfWork.AccountRepository
                 .Query(a => a.ProviderVerified == false)
                 .Include(a => a.Skill)  // Lấy kỹ năng của provider
-                .Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
+                //.Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
                 .Include(a => a.CertificateImages)
                 .ToListAsync();
 
@@ -565,7 +567,7 @@ namespace BusinessLogicLayer.Services
                 ProviderVerified = a.ProviderVerified,
 
                 SkillName = a.Skill?.Name,
-                DecorationStyleName = a.DecorationStyle?.Name,
+                //DecorationStyleName = a.DecorationStyle?.Name,
                 YearsOfExperience = a.YearsOfExperience,
                 PastWorkPlaces = a.PastWorkPlaces,
                 PastProjects = a.PastProjects,
@@ -586,7 +588,7 @@ namespace BusinessLogicLayer.Services
             var account = await _unitOfWork.AccountRepository
                 .Query(a => a.Id == accountId && a.ProviderVerified == false)
                 .Include(a => a.Skill)  // Lấy kỹ năng của provider
-                .Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
+                //.Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
                 .Include(a => a.CertificateImages)
                 .FirstOrDefaultAsync();
 
@@ -613,7 +615,7 @@ namespace BusinessLogicLayer.Services
                 ProviderVerified = account.ProviderVerified,
 
                 SkillName = account.Skill?.Name,
-                DecorationStyleName = account.DecorationStyle?.Name,
+                //DecorationStyleName = account.DecorationStyle?.Name,
                 YearsOfExperience = account.YearsOfExperience,
                 PastWorkPlaces = account.PastWorkPlaces,
                 PastProjects = account.PastProjects,
@@ -683,7 +685,7 @@ namespace BusinessLogicLayer.Services
                 var providers = await _unitOfWork.AccountRepository
                     .Query(a => a.RoleId == 2 && a.ProviderVerified == true)
                     .Include(a => a.Skill)
-                    .Include(a => a.DecorationStyle)
+                    //.Include(a => a.DecorationStyle)
                     .Include(a => a.CertificateImages)
                     .ToListAsync();
 
@@ -707,7 +709,7 @@ namespace BusinessLogicLayer.Services
                     Bio = p.Bio,
                     BusinessAddress = p.BusinessAddress,
                     SkillName = p.Skill?.Name,
-                    DecorationStyleName = p.DecorationStyle?.Name,
+                    //DecorationStyleName = p.DecorationStyle?.Name,
                     CertificateImageUrls = p.CertificateImages?.Select(ci => ci.ImageUrl).ToList() ?? new()
                 }).ToList();
 
@@ -728,7 +730,7 @@ namespace BusinessLogicLayer.Services
             var account = await _unitOfWork.AccountRepository
                 .Query(a => a.Id == accountId && a.ProviderVerified == true && a.RoleId == 2)
                 .Include(a => a.Skill)  // Lấy kỹ năng của provider
-                .Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
+                //.Include(a => a.DecorationStyle)  // Lấy phong cách trang trí
                 .Include(a => a.CertificateImages)
                 .FirstOrDefaultAsync();
 
@@ -755,7 +757,7 @@ namespace BusinessLogicLayer.Services
                 ProviderVerified = account.ProviderVerified,
 
                 SkillName = account.Skill?.Name,
-                DecorationStyleName = account.DecorationStyle?.Name,
+                //DecorationStyleName = account.DecorationStyle?.Name,
                 YearsOfExperience = account.YearsOfExperience,
                 PastWorkPlaces = account.PastWorkPlaces,
                 PastProjects = account.PastProjects,
@@ -794,7 +796,7 @@ namespace BusinessLogicLayer.Services
                 // Include related entities
                 Func<IQueryable<DataAccessObject.Models.Account>, IQueryable<DataAccessObject.Models.Account>> customQuery = query =>
                     query.Include(a => a.Skill)
-                         .Include(a => a.DecorationStyle)
+                         //.Include(a => a.DecorationStyle)
                          .Include(a => a.CertificateImages);
 
                 // Get paginated data
@@ -824,7 +826,7 @@ namespace BusinessLogicLayer.Services
                     Bio = p.Bio,
                     BusinessAddress = p.BusinessAddress,
                     SkillName = p.Skill?.Name,
-                    DecorationStyleName = p.DecorationStyle?.Name,
+                    //DecorationStyleName = p.DecorationStyle?.Name,
                     YearsOfExperience = p.YearsOfExperience,
                     PastWorkPlaces = p.PastWorkPlaces,
                     PastProjects = p.PastProjects,

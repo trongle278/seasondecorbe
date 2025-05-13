@@ -76,5 +76,11 @@ namespace DataAccessObject.Models
 
         public decimal CommitDepositAmount { get; set; }
         public bool? IsCommitDepositPaid { get; set; }
+
+        public int? DecorationStyleId { get; set; }
+        public DecorationStyle DecorationStyle { get; set; }
+
+        //1 booking có thể chọn nhiều màu
+        public virtual ICollection<BookingThemeColor> BookingThemeColors { get; set; } = new List<BookingThemeColor>();
     }
 }

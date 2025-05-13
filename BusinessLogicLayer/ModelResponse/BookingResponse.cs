@@ -45,6 +45,9 @@ namespace BusinessLogicLayer.ModelResponse
         public string Address { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public CustomerResponse Customer { get; set; }
+
+        public string DecorationStyle { get; set; }
+        public List<ThemeColorResponse> ThemeColors { get; set; } = new();
     }
 
     public class BookingDetailResponse

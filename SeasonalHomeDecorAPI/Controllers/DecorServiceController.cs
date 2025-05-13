@@ -187,5 +187,23 @@ namespace SeasonalHomeDecorAPI.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("getColorsByDecorServiceId/{decorServiceId}")]
+        public async Task<IActionResult> GetColorsByDecorServiceId(int decorServiceId)
+        {
+            var result = await _decorServiceService.GetThemeColorsByDecorServiceIdAsync(decorServiceId);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
+        }
+
+        [HttpGet("getStylesByDecorServiceId/{decorServiceId}")]
+        public async Task<IActionResult> GetStylesByDecorServiceId(int decorServiceId)
+        {
+            var result = await _decorServiceService.GetStylesByDecorServiceIdAsync(decorServiceId);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
+        }
     }
 }

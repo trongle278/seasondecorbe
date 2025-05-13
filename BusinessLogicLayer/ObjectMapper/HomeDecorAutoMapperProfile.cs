@@ -81,7 +81,7 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.ProviderStatus, opt => opt.MapFrom(src => src.ProviderStatus))
                 
                 .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill.Name))
-                .ForMember(dest => dest.DecorationStyleName, opt => opt.MapFrom(src => src.DecorationStyle.Name))
+                //.ForMember(dest => dest.DecorationStyleName, opt => opt.MapFrom(src => src.DecorationStyle.Name))
                 .ForMember(dest => dest.YearsOfExperience, opt => opt.MapFrom(src => src.YearsOfExperience))
                 .ForMember(dest => dest.PastWorkPlaces, opt => opt.MapFrom(src => src.PastWorkPlaces))
                 .ForMember(dest => dest.PastProjects, opt => opt.MapFrom(src => src.PastProjects))

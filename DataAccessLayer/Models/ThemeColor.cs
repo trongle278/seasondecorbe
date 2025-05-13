@@ -8,15 +8,14 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class DecorationStyle
+    public class ThemeColor
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string Name { get; set; } // Modern, Scandinavian, etc.
-        //public ICollection<Account> Accounts { get; set; }
+        public string ColorCode { get; set; }
 
-        public virtual ICollection<DecorServiceStyle> DecorServiceStyles { get; set; } = new List<DecorServiceStyle>();
-        public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public virtual ICollection<DecorServiceThemeColor> DecorServiceThemeColors { get; set; } = new List<DecorServiceThemeColor>();
+        public virtual ICollection<BookingThemeColor> BookingThemeColors { get; set; } = new List<BookingThemeColor>();
     }
 }

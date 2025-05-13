@@ -322,7 +322,7 @@ namespace DataAccessObject.Models
                 .WithMany(c => c.ChatFiles)
                 .HasForeignKey(cf => cf.ChatId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             //sửa quan hệ follow
             modelBuilder.Entity<Follow>()
                 .HasOne(f => f.Follower)
@@ -428,11 +428,11 @@ namespace DataAccessObject.Models
                 .HasForeignKey(a => a.SkillId)
                 .OnDelete(DeleteBehavior.Cascade); // hoặc .SetNull nếu muốn
 
-            modelBuilder.Entity<Account>()
-                .HasOne(a => a.DecorationStyle)
-                .WithMany()
-                .HasForeignKey(a => a.DecorationStyleId)
-                .OnDelete(DeleteBehavior.Cascade);
+            //modelBuilder.Entity<Account>()
+            //    .HasOne(a => a.DecorationStyle)
+            //    .WithMany()
+            //    .HasForeignKey(a => a.DecorationStyleId)
+            //    .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ZoomMeeting>()
                 .HasOne(z => z.Account)
@@ -446,27 +446,40 @@ namespace DataAccessObject.Models
                 .HasForeignKey(z => z.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<DecorServiceOffering>()
+                .HasKey(dso => new { dso.DecorServiceId, dso.OfferingId });
+
+            modelBuilder.Entity<DecorServiceOffering>()
+                .HasOne(dso => dso.Offering)
+                .WithMany(o => o.DecorServiceOfferings)
+                .HasForeignKey(dso => dso.OfferingId);
+
+            modelBuilder.Entity<DecorServiceOffering>()
+                .HasOne(dso => dso.DecorService)
+                .WithMany(ds => ds.DecorServiceOfferings)
+                .HasForeignKey(dso => dso.DecorServiceId);
+
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Provider" },
                 new Role { Id = 3, RoleName = "Customer" }
             );
-
+        
             modelBuilder.Entity<ProductCategory>().HasData(
-                new ProductCategory { Id = 1, CategoryName = "Lamp"},
-                new ProductCategory { Id = 2, CategoryName = "Clock"},
-                new ProductCategory { Id = 3, CategoryName = "Bed"},
-                new ProductCategory { Id = 4, CategoryName = "Chest"},
-                new ProductCategory { Id = 5, CategoryName = "Desk"},
-                new ProductCategory { Id = 6, CategoryName = "Cabinet"},
-                new ProductCategory { Id = 7, CategoryName = "Chair"},
-                new ProductCategory { Id = 8, CategoryName = "Sofa"},
-                new ProductCategory { Id = 9, CategoryName = "Bookshelf"},
-                new ProductCategory { Id = 10, CategoryName = "Table"},
-                new ProductCategory { Id = 11, CategoryName = "Couch"},
-                new ProductCategory { Id = 12, CategoryName = "Hanger"},
-                new ProductCategory { Id = 13, CategoryName = "Closet"},
-                new ProductCategory { Id = 14, CategoryName = "Vanity"}
+                new ProductCategory { Id = 1, CategoryName = "Lamp" },
+                new ProductCategory { Id = 2, CategoryName = "Clock" },
+                new ProductCategory { Id = 3, CategoryName = "Bed" },
+                new ProductCategory { Id = 4, CategoryName = "Chest" },
+                new ProductCategory { Id = 5, CategoryName = "Desk" },
+                new ProductCategory { Id = 6, CategoryName = "Cabinet" },
+                new ProductCategory { Id = 7, CategoryName = "Chair" },
+                new ProductCategory { Id = 8, CategoryName = "Sofa" },
+                new ProductCategory { Id = 9, CategoryName = "Bookshelf" },
+                new ProductCategory { Id = 10, CategoryName = "Table" },
+                new ProductCategory { Id = 11, CategoryName = "Couch" },
+                new ProductCategory { Id = 12, CategoryName = "Hanger" },
+                new ProductCategory { Id = 13, CategoryName = "Closet" },
+                new ProductCategory { Id = 14, CategoryName = "Vanity" }
             );
 
             modelBuilder.Entity<DecorCategory>().HasData(
@@ -532,6 +545,16 @@ namespace DataAccessObject.Models
                 new TicketType { Id = 4, Type = "Damage or loss report" },
                 new TicketType { Id = 5, Type = "Poor material quality" },
                 new TicketType { Id = 6, Type = "Other" }
+            );
+
+            modelBuilder.Entity<Offering>().HasData(
+                new Offering { Id = 1, Name = "Eco-friendly Package", Description = "Materials and methods that are environmentally friendly" },
+                new Offering { Id = 2, Name = "Theme Furniture", Description = "Furniture and items designed to match the selected theme" },
+                new Offering { Id = 3, Name = "Consultation Support", Description = "One-on-one consultation support with experts" },
+                new Offering { Id = 4, Name = "Color Palette Matching", Description = "Harmonized color scheme across decor elements" },
+                new Offering { Id = 5, Name = "Custom Design", Description = "Design on request" },
+                new Offering { Id = 6, Name = "Visual Focal Point", Description = "Create a highlight for the space" },
+                new Offering { Id = 7, Name = "Artwork & Decor Placement", Description = "Support in selecting and arranging furniture related to the service" }
             );
         }
     }

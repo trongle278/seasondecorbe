@@ -27,7 +27,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool? ProviderVerified { get; set; }
 
         public string? SkillName { get; set; }  // Tên kỹ năng
-        public string? DecorationStyleName { get; set; }  // Phong cách trang trí
+        //public string? DecorationStyleName { get; set; }  // Phong cách trang trí
         public int? YearsOfExperience { get; set; }  // Số năm kinh nghiệm
         public string? PastWorkPlaces { get; set; }  // Các công ty đã làm việc
         public string? PastProjects { get; set; }  // Các dự án đã thực hiện

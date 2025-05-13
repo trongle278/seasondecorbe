@@ -27,5 +27,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<DecorServiceListResponse> SearchMultiCriteriaDecorServices(SearchDecorServiceRequest request);
         Task<BaseResponse> ChangeStartDateAsync(int decorServiceId, ChangeStartDateRequest request, int accountId);
         Task<DecorServiceListResponse> GetIncomingDecorServiceListAsync();
+        Task<BaseResponse<List<StyleResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId);
+        Task<BaseResponse<List<ThemeColorResponse>>> GetThemeColorsByDecorServiceIdAsync(int decorServiceId);
     }
 }

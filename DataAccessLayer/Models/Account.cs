@@ -68,8 +68,8 @@ namespace DataAccessObject.Models
         public int? SkillId { get; set; }//Kĩ năng chuyên môn
         public virtual Skill Skill { get; set; }
 
-        public int? DecorationStyleId { get; set; }//Phong cách trang trí 
-        public virtual DecorationStyle DecorationStyle { get; set; }
+        //public int? DecorationStyleId { get; set; }//Phong cách trang trí 
+        //public virtual DecorationStyle DecorationStyle { get; set; }
         // Chứng chỉ
         public ICollection<CertificateImage> CertificateImages { get; set; }
 

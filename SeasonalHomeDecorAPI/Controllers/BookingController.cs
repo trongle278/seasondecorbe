@@ -44,7 +44,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
+        public async Task<IActionResult> CreateBooking([FromQuery] CreateBookingRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var response = await _bookingService.CreateBookingAsync(request, accountId);

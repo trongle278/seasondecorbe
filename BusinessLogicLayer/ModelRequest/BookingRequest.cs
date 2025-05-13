@@ -20,6 +20,8 @@ namespace BusinessLogicLayer.ModelRequest
         [DefaultValue("2025-04-30")]
         public DateTime SurveyDate { get; set; } // Ngày khảo sát
         public string? Note { get; set; }
+        public int? DecorationStyleId { get; set; } // Chọn 1 style
+        public List<int> ThemeColorIds { get; set; } = new(); // Chọn nhiều màu
     }
 
     public class UpdateBookingRequest

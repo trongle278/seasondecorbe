@@ -24,11 +24,15 @@ namespace BusinessLogicLayer.ModelRequest
 
         [Required(ErrorMessage = "StartDate is required")]
         public DateTime StartDate { get; set; }
+        
+        // Danh sách Tag Season để gán vào dịch vụ
+        public List<int> SeasonIds { get; set; } = new List<int>();
+        public List<string> ThemeColorNames { get; set; } // mới: nhập tay tên màu
+        public List<int> StyleIds { get; set; }  // mới: chọn từ danh sách đã seed      
+        public List<int> OfferingIds { get; set; }
+
         // Danh sách file ảnh đính kèm, tối đa 5 ảnh
         public List<IFormFile> Images { get; set; }
-
-        // Danh sách SeasonIds để gán vào dịch vụ
-        public List<int> SeasonIds { get; set; } = new List<int>();
     }
 
     public class UpdateDecorServiceRequest
