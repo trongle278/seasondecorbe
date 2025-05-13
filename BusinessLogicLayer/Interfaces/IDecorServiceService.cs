@@ -29,5 +29,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<DecorServiceListResponse> GetIncomingDecorServiceListAsync();
         Task<BaseResponse<List<StyleResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId);
         Task<BaseResponse<List<ThemeColorResponse>>> GetThemeColorsByDecorServiceIdAsync(int decorServiceId);
+        Task<BaseResponse<DecorServiceDetailsResponse>> GetStyleNColorByServiceIdAsync(int decorServiceId);
+        Task<BaseResponse<OfferingAndStyleResponse>> GetAllOfferingAndStylesAsync();
     }
 }

@@ -135,4 +135,16 @@ namespace BusinessLogicLayer.ModelResponse
         public string Name { get; set; }
         public string Description { get; set; }
     }
+
+    public class DecorServiceDetailsResponse
+    {
+        public List<ThemeColorResponse> ThemeColors { get; set; }
+        public List<StyleResponse> DecorationStyles { get; set; }
+    }
+
+    public class OfferingAndStyleResponse
+    {
+        public List<OfferingResponse> Offerings { get; set; }
+        public List<StyleResponse> DecorationStyles { get; set; }
+    }
 }

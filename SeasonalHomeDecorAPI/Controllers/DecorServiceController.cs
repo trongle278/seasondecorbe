@@ -188,19 +188,37 @@ namespace SeasonalHomeDecorAPI.Controllers
             return Ok(response);
         }
 
-        [HttpGet("getColorsByDecorServiceId/{decorServiceId}")]
-        public async Task<IActionResult> GetColorsByDecorServiceId(int decorServiceId)
+        //[HttpGet("getColorsByDecorServiceId/{decorServiceId}")]
+        //public async Task<IActionResult> GetColorsByDecorServiceId(int decorServiceId)
+        //{
+        //    var result = await _decorServiceService.GetThemeColorsByDecorServiceIdAsync(decorServiceId);
+        //    if (result.Success)
+        //        return Ok(result);
+        //    return BadRequest(result.Message);
+        //}
+
+        //[HttpGet("getStylesByDecorServiceId/{decorServiceId}")]
+        //public async Task<IActionResult> GetStylesByDecorServiceId(int decorServiceId)
+        //{
+        //    var result = await _decorServiceService.GetStylesByDecorServiceIdAsync(decorServiceId);
+        //    if (result.Success)
+        //        return Ok(result);
+        //    return BadRequest(result.Message);
+        //}
+
+        [HttpGet("getStyleNColorByServiceId/{decorServiceId}")]
+        public async Task<IActionResult> GetStyleNColorByServiceId(int decorServiceId)
         {
-            var result = await _decorServiceService.GetThemeColorsByDecorServiceIdAsync(decorServiceId);
+            var result = await _decorServiceService.GetStyleNColorByServiceIdAsync(decorServiceId);
             if (result.Success)
                 return Ok(result);
             return BadRequest(result.Message);
         }
 
-        [HttpGet("getStylesByDecorServiceId/{decorServiceId}")]
-        public async Task<IActionResult> GetStylesByDecorServiceId(int decorServiceId)
+        [HttpGet("getAllOfferingAndStyles")]
+        public async Task<IActionResult> GetAllOfferingAndStyles()
         {
-            var result = await _decorServiceService.GetStylesByDecorServiceIdAsync(decorServiceId);
+            var result = await _decorServiceService.GetAllOfferingAndStylesAsync();
             if (result.Success)
                 return Ok(result);
             return BadRequest(result.Message);

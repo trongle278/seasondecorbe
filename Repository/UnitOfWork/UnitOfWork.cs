@@ -65,6 +65,7 @@ namespace Repository.UnitOfWork
             CertificateImageRepository = new CertificateImageRepository(_context);
             ZoomRepository = new ZoomRepository(_context);
             ThemeColorRepository = new ThemeColorRepository(_context);
+            OfferingRepository  = new OfferingRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -113,6 +114,7 @@ namespace Repository.UnitOfWork
         public ICertificateImageRepository CertificateImageRepository { get; private set; }
         public IZoomRepository ZoomRepository { get; private set; }
         public IThemeColorRepository ThemeColorRepository { get; private set; }
+        public IOfferingRepository OfferingRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

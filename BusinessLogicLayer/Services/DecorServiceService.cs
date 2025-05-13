@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Repository.UnitOfWork;
 using BusinessLogicLayer.ModelResponse.Review;
 using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
+using iText.Layout;
 
 namespace BusinessLogicLayer.Services
 {
@@ -1437,6 +1438,106 @@ namespace BusinessLogicLayer.Services
                 response.Errors.Add(ex.Message);
             }
             return response;
+        }
+
+        public async Task<BaseResponse<DecorServiceDetailsResponse>> GetStyleNColorByServiceIdAsync(int decorServiceId)
+        {
+            var response = new BaseResponse<DecorServiceDetailsResponse>();
+            try
+            {
+                var service = await _unitOfWork.DecorServiceRepository
+                    .Query(ds => ds.Id == decorServiceId)
+                    .Include(ds => ds.DecorServiceThemeColors)
+                        .ThenInclude(dstc => dstc.ThemeColor)
+                    .Include(ds => ds.DecorServiceStyles)
+                        .ThenInclude(dss => dss.DecorationStyle)
+                    .FirstOrDefaultAsync();
+
+                if (service == null)
+                {
+                    response.Success = false;
+                    response.Message = "Decor service not found.";
+                    return response;
+                }
+
+                var themeColors = service.DecorServiceThemeColors?
+                    .Select(tc => new ThemeColorResponse
+                    {
+                        Id = tc.ThemeColor.Id,
+                        ColorCode = tc.ThemeColor.ColorCode
+                    })
+                    .ToList();
+
+                var styles = service.DecorServiceStyles?
+                    .Select(s => new StyleResponse
+                    {
+                        Id = s.DecorationStyle.Id,
+                        Name = s.DecorationStyle.Name
+                    })
+                    .ToList();
+
+                response.Success = true;
+                response.Data = new DecorServiceDetailsResponse
+                {
+                    ThemeColors = themeColors,
+                    DecorationStyles = styles
+                };
+                response.Message = "Theme colors and styles fetched successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error fetching theme colors and styles.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<OfferingAndStyleResponse>> GetAllOfferingAndStylesAsync()
+        {
+            try
+            {
+                // Sử dụng GenericRepository thông qua UnitOfWork
+                var offerings = await _unitOfWork.OfferingRepository.Queryable()
+                    .Select(s => new OfferingResponse
+                    {
+                        Id = s.Id,
+                        Name = s.Name,
+                        Description = s.Description
+                    })
+                    .ToListAsync();
+
+                var styles = await _unitOfWork.DecorationStyleRepository.Queryable()
+                    .Select(ds => new StyleResponse
+                    {
+                        Id = ds.Id,
+                        Name = ds.Name
+                    })
+                    .ToListAsync();
+
+                // Tạo response object
+                var response = new OfferingAndStyleResponse
+                {
+                    Offerings = offerings,
+                    DecorationStyles = styles
+                };
+
+                return new BaseResponse<OfferingAndStyleResponse>
+                {
+                    Success = true,
+                    Message = "Skills and decoration styles retrieved successfully",
+                    Data = response
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponse<OfferingAndStyleResponse>
+                {
+                    Success = false,
+                    Message = "Failed to retrieve offerings and decoration styles",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
         }
     }
 }
