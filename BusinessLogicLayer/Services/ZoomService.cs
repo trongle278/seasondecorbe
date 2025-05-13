@@ -128,6 +128,37 @@ namespace BusinessLogicLayer.Services
             }
         }
 
+        public async Task<bool> CancelMeetingAsync(string meetingId)
+        {
+            try
+            {
+                var accessToken = await GetAccessTokenAsync();
+
+                var request = new HttpRequestMessage(
+                    HttpMethod.Delete,
+                    $"https://api.zoom.us/v2/meetings/{meetingId}"
+                );
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Zoom meeting cancellation failed: {error}");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception while cancelling Zoom meeting: {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<BaseResponse> CreateMeetingRequestAsync(string bookingCode, int customerId, CreateMeetingRequest request)
         {
             var response = new BaseResponse();
@@ -169,7 +200,7 @@ namespace BusinessLogicLayer.Services
                     CreateAt = DateTime.Now,
                     Status = ZoomMeeting.MeetingStatus.Requested,
                     BookingId = booking.Id,
-                    AccountId = customerId,
+                    AccountId = customerId
                 };
 
                 await _unitOfWork.ZoomRepository.InsertAsync(zoomMeeting);
@@ -328,6 +359,174 @@ namespace BusinessLogicLayer.Services
             {
                 response.Success = false;
                 response.Message = "Error rejecting meeting request!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> CreateMeetingScheduleAsync(string bookingCode, int providerId, List<DateTime> scheduledTime)
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                                                .Include(b => b.DecorService)
+                                                .Where(b => b.BookingCode == bookingCode)
+                                                .FirstOrDefaultAsync();
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found!";
+                    return response;
+                }
+
+                var validStatuses = new[] {
+                    BookingStatus.Planning,
+                    BookingStatus.Quoting,
+                    BookingStatus.Contracting,
+                    BookingStatus.Confirm,
+                    BookingStatus.DepositPaid,
+                    BookingStatus.Preparing,
+                    BookingStatus.InTransit
+                };
+
+                if (!validStatuses.Contains(booking.Status))
+                {
+                    response.Message = "Invalid status phase!";
+                    return response;
+                }
+
+                var decorService = booking.DecorService.Style;
+
+                var meetings = new List<ZoomMeeting>();
+                
+                foreach (var time in scheduledTime)
+                {
+                    var zoomMeeting = new ZoomMeeting
+                    {
+                        Topic = $"{decorService} Booking Request - Meeting",
+                        StartTime = time,
+                        CreateAt = DateTime.Now,
+                        Status = ZoomMeeting.MeetingStatus.Requested,
+                        BookingId = booking.Id,
+                        AccountId = providerId
+                    };
+
+                    await _unitOfWork.ZoomRepository.InsertAsync(zoomMeeting);
+                    meetings.Add(zoomMeeting);
+                }            
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Meeting schedule created successfully.";
+                response.Data = meetings;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error createing meeting schedule.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> SelectMeetingAsync(string bookingCode, int id)
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                var meeting = await _unitOfWork.ZoomRepository.Queryable()
+                                    .Include(z => z.Booking)
+                                        .ThenInclude(b => b.DecorService)
+                                    .Where(z => z.Booking.BookingCode == bookingCode && z.Id == id && z.Status == ZoomMeeting.MeetingStatus.Requested)
+                                    .FirstOrDefaultAsync();
+
+                if (meeting == null)
+                {
+                    response.Message = "No matching meeting schedule found!";
+                    return response;
+                }
+
+                const int defaultDuration = 1440;
+
+                var zoomRequest = new ZoomMeetingRequest
+                {
+                    Topic = meeting.Topic,
+                    TimeZone = "Asia/Ho_Chi_Minh",
+                    StartTime = meeting.StartTime,
+                    Duration = defaultDuration,
+                };
+
+                var zoomResponse = await CreateMeetingAsync(zoomRequest);
+
+                meeting.ZoomUrl = zoomResponse.JoinUrl;
+                meeting.Duration = defaultDuration;
+                meeting.Status = ZoomMeeting.MeetingStatus.Scheduled;
+                meeting.ResponseAt = DateTime.Now;
+                meeting.MeetingNumber = zoomResponse.MeetingNumber;
+                meeting.Password = zoomResponse.Password;
+                meeting.StartUrl = zoomResponse.StartUrl;
+
+                _unitOfWork.ZoomRepository.Update(meeting);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Meeting schedule selected.";
+                response.Data = meeting;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error selecting meeting schedule.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> CancelMeetingAsync(int id)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var meeting = await _unitOfWork.ZoomRepository.GetByIdAsync(id);
+
+                if (meeting == null || meeting.Status != ZoomMeeting.MeetingStatus.Scheduled)
+                {
+                    response.Message = "Meeting not found or cannot be cancelled.";
+                    return response;
+                }
+
+                var cancelled = await CancelMeetingAsync(meeting.MeetingNumber);
+
+                if (!cancelled)
+                {
+                    response.Message = "Failed to cancel Zoom meeting.";
+                    return response;
+                }
+
+                meeting.ZoomUrl = null;
+                meeting.Duration = null;
+                meeting.Status = ZoomMeeting.MeetingStatus.Requested;
+                meeting.ResponseAt = DateTime.Now;
+                meeting.MeetingNumber = null;
+                meeting.Password = null;
+                meeting.StartUrl = null;
+                _unitOfWork.ZoomRepository.Update(meeting);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Meeting cancelled successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error cancelling meeting.";
                 response.Errors.Add(ex.Message);
             }
 

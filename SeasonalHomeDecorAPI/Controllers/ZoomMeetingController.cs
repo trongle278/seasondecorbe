@@ -137,6 +137,66 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
 
+        [Authorize]
+        [HttpPost("createMeetingSchedule/{bookingCode}")]
+        public async Task<IActionResult> CreateMeetingSchedule(string bookingCode, [FromBody] List<DateTime> scheduleTime)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomService.CreateMeetingScheduleAsync(bookingCode, accountId, scheduleTime);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPost("selectMeetingRequest/{bookingCode}")]
+        public async Task<IActionResult> SelectMeetingReqeust(string bookingCode, [FromQuery] int id)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomService.SelectMeetingAsync(bookingCode, id);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPut("cancelMeetingRequest/{id}")]
+        public async Task<IActionResult> CancelMeetingRequest(int id)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomService.CancelMeetingAsync(id);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
         //[Authorize]
         //[HttpGet("join-info/{id}")]
         //public async Task<IActionResult> GetZoomJoinInfo(int id)
