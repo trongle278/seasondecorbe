@@ -26,7 +26,7 @@ namespace BusinessLogicLayer.ModelResponse
         //public DateTime? EstimatedCompletion { get; set; }
         public DecorServiceDTO DecorService { get; set; } // Dịch vụ decor
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public StyleResponse? DecorationStyle { get; set; }
+        public DesignResponse? Design { get; set; }
         public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)    
         public string CancelType { get; set; }
         public string? CancelReason { get; set; }
@@ -77,7 +77,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsReviewed { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public StyleResponse? DecorationStyle { get; set; }
+        public DesignResponse? Design { get; set; }
         public CustomerResponse Customer { get; set; }
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
     }

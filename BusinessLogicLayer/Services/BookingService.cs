@@ -184,7 +184,7 @@ namespace BusinessLogicLayer.Services
                             ColorCode = tc.ThemeColor.ColorCode
                         }).ToList(),
 
-                        DecorationStyle = booking.DecorationStyle != null ? new StyleResponse
+                        Design = booking.DecorationStyle != null ? new DesignResponse
                         {
                             Id = booking.DecorationStyle.Id,
                             Name = booking.DecorationStyle.Name
@@ -326,7 +326,7 @@ namespace BusinessLogicLayer.Services
                         ColorCode = tc.ThemeColor.ColorCode
                     }).ToList(),
 
-                    DecorationStyle = booking.DecorationStyle != null ? new StyleResponse
+                    Design = booking.DecorationStyle != null ? new DesignResponse
                     {
                         Id = booking.DecorationStyle.Id,
                         Name = booking.DecorationStyle.Name
