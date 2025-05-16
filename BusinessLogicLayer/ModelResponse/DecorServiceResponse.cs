@@ -40,6 +40,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int FavoriteCount { get; set; }
         public List<DecorImageResponse> Images { get; set; } = new List<DecorImageResponse>();
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
+        public List<DesignResponse> Designs { get; set; } = new List<DesignResponse>();
         public ProviderResponse Provider { get; set; }
     }
 
@@ -62,7 +63,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string? CategoryName { get; set; }  // Tìm theo tên danh mục
         public List<string>? SeasonNames { get; set; }  // Tìm theo tên mùa
 
-        public List<string>? DesignNames { get; set; }
+        public string? DesignName { get; set; }
     }
 
     /// <summary>

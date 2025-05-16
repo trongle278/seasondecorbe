@@ -156,14 +156,16 @@ namespace SeasonalHomeDecorAPI.Controllers
         [FromQuery] string? Style,
         [FromQuery] string? Sublocation,
         [FromQuery] string? CategoryName,
-        [FromQuery] List<string>? SeasonNames) // Nhận danh sách thay vì string đơn lẻ
+        [FromQuery] List<string>? SeasonNames,
+        [FromQuery] string? DesignName) // Nhận danh sách thay vì string đơn lẻ
         {
             var request = new SearchDecorServiceRequest
             {
                 Style = Style,
                 Sublocation = Sublocation,
                 CategoryName = CategoryName,
-                SeasonNames = SeasonNames
+                SeasonNames = SeasonNames,
+                DesignName = DesignName
             };
 
             var result = await _decorServiceService.SearchMultiCriteriaDecorServices(request);

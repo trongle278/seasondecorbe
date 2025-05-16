@@ -1190,11 +1190,12 @@ namespace BusinessLogicLayer.Services
                     query = query.Where(ds => ds.DecorServiceSeasons.Any(dss => request.SeasonNames.Contains(dss.Season.SeasonName)));
                 }
 
-                if (request.DesignNames != null && request.DesignNames.Any())
+                if (!string.IsNullOrEmpty(request.DesignName))
                 {
+                    string keyword = request.DesignName.ToLower();
                     query = query.Where(ds =>
                         ds.DecorServiceStyles.Any(style =>
-                            request.DesignNames.Contains(style.DecorationStyle.Name)));
+                            style.DecorationStyle.Name.ToLower().Contains(keyword)));
                 }
 
                 var decorServices = await query
@@ -1226,7 +1227,14 @@ namespace BusinessLogicLayer.Services
                     {
                         Id = dss.Season.Id,
                         SeasonName = dss.Season.SeasonName
-                    }).ToList()
+                    }).ToList(),
+
+                    Designs = ds.DecorServiceStyles.Select(dss => new DesignResponse
+                    {
+                        Id = dss.DecorationStyle.Id,
+                        Name = dss.DecorationStyle.Name
+                    }).ToList(),
+
                 }).ToList();
 
                 response.Success = true;
