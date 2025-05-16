@@ -142,12 +142,12 @@ namespace BusinessLogicLayer.ModelResponse
     public class DecorServiceDetailsResponse
     {
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public List<DesignResponse> DecorationStyles { get; set; }
+        public List<DesignResponse> Designs { get; set; }
     }
 
     public class OfferingAndDesignResponse
     {
         public List<OfferingResponse> Offerings { get; set; }
-        public List<DesignResponse> DecorationStyles { get; set; }
+        public List<DesignResponse> Designs { get; set; }
     }
 }

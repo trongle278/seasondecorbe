@@ -1317,14 +1317,6 @@ namespace BusinessLogicLayer.Services
                 // Map mỗi service sang DecorServiceDTO
                 var dtos = _mapper.Map<List<DecorServiceDTO>>(services);
 
-                //// Hiện số lượng yêu thích
-                //var favoriteCounts = await _unitOfWork.FavoriteServiceRepository
-                //    .Query(f => services.Select(s => s.Id).Contains(f.DecorServiceId))
-                //    .GroupBy(f => f.DecorServiceId)
-                //    .Select(g => new { ServiceId = g.Key, Count = g.Count() })
-                //    .ToDictionaryAsync(x => x.ServiceId, x => x.Count);
-
-                // Map DecorImages -> DecorImageDTO
                 for (int i = 0; i < services.Count; i++)
                 {
                     var service = services[i];
@@ -1338,10 +1330,6 @@ namespace BusinessLogicLayer.Services
                             ImageURL = img.ImageURL
                         })
                         .ToList();
-
-                    //dtos[i].FavoriteCount = favoriteCounts.ContainsKey(services[i].Id)
-                    //                      ? favoriteCounts[services[i].Id]
-                    //                      : 0;
 
                     dtos[i].Seasons = services[i].DecorServiceSeasons
                         .Select(dss => new SeasonResponse
@@ -1436,7 +1424,7 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                var styles = service.DecorServiceStyles?
+                var designs = service.DecorServiceStyles?
                     .Select(s => new DesignResponse
                     {
                         Id = s.DecorationStyle.Id,
@@ -1445,7 +1433,7 @@ namespace BusinessLogicLayer.Services
                     .ToList();
 
                 response.Success = true;
-                response.Data = styles;
+                response.Data = designs;
                 response.Message = "Styles fetched successfully.";
             }
             catch (Exception ex)
@@ -1485,7 +1473,7 @@ namespace BusinessLogicLayer.Services
                     })
                     .ToList();
 
-                var styles = service.DecorServiceStyles?
+                var designs = service.DecorServiceStyles?
                     .Select(s => new DesignResponse
                     {
                         Id = s.DecorationStyle.Id,
@@ -1497,7 +1485,7 @@ namespace BusinessLogicLayer.Services
                 response.Data = new DecorServiceDetailsResponse
                 {
                     ThemeColors = themeColors,
-                    DecorationStyles = styles
+                    Designs = designs
                 };
                 response.Message = "Theme colors and styles fetched successfully.";
             }
@@ -1536,13 +1524,13 @@ namespace BusinessLogicLayer.Services
                 var response = new OfferingAndDesignResponse
                 {
                     Offerings = offerings,
-                    DecorationStyles = styles
+                    Designs = styles
                 };
 
                 return new BaseResponse<OfferingAndDesignResponse>
                 {
                     Success = true,
-                    Message = "Skills and decoration styles retrieved successfully",
+                    Message = "Offerings and designs retrieved successfully",
                     Data = response
                 };
             }
@@ -1551,7 +1539,7 @@ namespace BusinessLogicLayer.Services
                 return new BaseResponse<OfferingAndDesignResponse>
                 {
                     Success = false,
-                    Message = "Failed to retrieve offerings and decoration styles",
+                    Message = "Failed to retrieve offerings and designs",
                     Errors = new List<string> { ex.Message }
                 };
             }
