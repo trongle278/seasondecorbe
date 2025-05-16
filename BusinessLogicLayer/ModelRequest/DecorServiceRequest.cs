@@ -58,12 +58,5 @@ namespace BusinessLogicLayer.ModelRequest
         [Required(ErrorMessage = "StartDate is required")]
         public DateTime StartDate { get; set; }
     }
-
-    public class SetPreferenceRequest
-    {
-        public List<int> StyleIds { get; set; } = new();
-        public List<int> SeasonIds { get; set; } = new();
-        public List<int> CategoryIds { get; set; } = new();
-    }
 }
 

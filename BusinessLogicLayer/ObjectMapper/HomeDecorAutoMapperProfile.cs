@@ -48,8 +48,7 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<Account, AccountDTO>()
                 .ForMember(dest => dest.IsProvider, opt => opt.MapFrom(src => src.IsProvider))
                 .ForMember(dest => dest.ProviderVerified, opt => opt.MapFrom(src => src.ProviderVerified))
-                .ForMember(dest => dest.IsDisable, opt => opt.MapFrom(src => src.IsDisable))
-                .ForMember(dest => dest.IsFilterEnabled, opt => opt.MapFrom(src => src.IsFilterEnabled)); ;
+                .ForMember(dest => dest.IsDisable, opt => opt.MapFrom(src => src.IsDisable));
             CreateMap<CreateAccountRequest, Account>();
             CreateMap<UpdateAccountRequest, Account>();
         }

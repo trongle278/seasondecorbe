@@ -85,13 +85,5 @@ namespace DataAccessObject.Models
         public int Reputation { get; set; }     
         
         public ICollection<ZoomMeeting> ZoomMeetings { get; set; }
-
-
-        public bool? IsFilterEnabled { get; set; }
-
-        public virtual ICollection<AccountStylePreference> StylePreferences { get; set; }
-        public virtual ICollection<AccountSeasonPreference> SeasonPreferences { get; set; }
-        public virtual ICollection<AccountCategoryPreference> CategoryPreferences { get; set; }
-
     }
 }

@@ -123,11 +123,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.BookingDetails)
                     .Include(b => b.Address)
                     .Include(b => b.Quotations) // 🔥 Lấy thêm Quotations để check isQuoteExisted
-                        .ThenInclude(q => q.Contract) // 🔥 Lấy thêm Contract để check isContractExisted
-
-                    .Include(b => b.BookingThemeColors)
-                        .ThenInclude(btc => btc.ThemeColor)
-                    .Include(b => b.DecorationStyle);
+                        .ThenInclude(q => q.Contract); // 🔥 Lấy thêm Contract để check isContractExisted
 
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
                     filter,
@@ -177,18 +173,6 @@ namespace BusinessLogicLayer.Services
                                 SeasonName = ds.Season.SeasonName
                             }).ToList()
                         },
-
-                        ThemeColors = booking.BookingThemeColors.Select(tc => new ThemeColorResponse
-                        {
-                            Id = tc.ThemeColor.Id,
-                            ColorCode = tc.ThemeColor.ColorCode
-                        }).ToList(),
-
-                        DecorationStyle = booking.DecorationStyle != null ? new StyleResponse
-                        {
-                            Id = booking.DecorationStyle.Id,
-                            Name = booking.DecorationStyle.Name
-                        } : null,
 
                         Provider = new ProviderResponse
                         {
@@ -265,11 +249,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.Account) // Customer (khách hàng đặt booking)
                     .Include(b => b.BookingDetails) // Booking details
                     .Include(b => b.Quotations)
-                    .Include(b => b.Address)
-                    
-                    .Include(b => b.BookingThemeColors)
-                        .ThenInclude(btc => btc.ThemeColor)
-                    .Include(b => b.DecorationStyle);
+                    .Include(b => b.Address);
 
                 // 🔹 Get paginated data & filter
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
@@ -319,18 +299,6 @@ namespace BusinessLogicLayer.Services
                                 SeasonName = ds.Season.SeasonName
                             }).ToList() ?? new List<SeasonResponse>()
                     },
-
-                    ThemeColors = booking.BookingThemeColors.Select(tc => new ThemeColorResponse
-                    {
-                        Id = tc.ThemeColor.Id,
-                        ColorCode = tc.ThemeColor.ColorCode
-                    }).ToList(),
-
-                    DecorationStyle = booking.DecorationStyle != null ? new StyleResponse
-                    {
-                        Id = booking.DecorationStyle.Id,
-                        Name = booking.DecorationStyle.Name
-                    } : null,
 
                     // Thông tin Customer (khách hàng đặt booking)
                     Customer = new CustomerResponse

@@ -34,7 +34,5 @@ namespace Repository.GenericRepository
         void RemoveEntity(T entity);
 
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
-
-        Task DeleteAsync(Expression<Func<T, bool>> predicate);
     }
 }

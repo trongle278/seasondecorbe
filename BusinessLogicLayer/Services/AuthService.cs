@@ -96,7 +96,6 @@ namespace BusinessLogicLayer.Services
                     VerificationToken = otp,
                     VerificationTokenExpiry = DateTime.Now.AddMinutes(15),
                     JoinedDate = DateTime.Now,
-                    IsFilterEnabled = false,
                     Reputation = 100
                 };
 

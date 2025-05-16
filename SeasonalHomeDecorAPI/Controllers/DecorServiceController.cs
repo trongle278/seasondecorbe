@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Azure;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
@@ -31,9 +30,9 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpGet("getPaginated")]
-        public async Task<IActionResult> GetPaginatedDecorService([FromQuery] DecorServiceFilterRequest request, int? accountId = null)
+        public async Task<IActionResult> GetPaginatedDecorService([FromQuery] DecorServiceFilterRequest request)
         {
-            var result = await _decorServiceService.GetFilterDecorServicesAsync(accountId, request);
+            var result = await _decorServiceService.GetFilterDecorServicesAsync(request);
 
             if (result.Success)
             {
@@ -210,32 +209,19 @@ namespace SeasonalHomeDecorAPI.Controllers
         [HttpGet("getStyleNColorByServiceId/{decorServiceId}")]
         public async Task<IActionResult> GetStyleNColorByServiceId(int decorServiceId)
         {
-            var response = await _decorServiceService.GetStyleNColorByServiceIdAsync(decorServiceId);
-            return response.Success ? Ok(response) : BadRequest(response);
+            var result = await _decorServiceService.GetStyleNColorByServiceIdAsync(decorServiceId);
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
         }
 
         [HttpGet("getAllOfferingAndStyles")]
         public async Task<IActionResult> GetAllOfferingAndStyles()
         {
-            var response = await _decorServiceService.GetAllOfferingAndStylesAsync();
-            return response.Success ? Ok(response) : BadRequest(response);
-        }
-
-        //[HttpGet("getPaginatedDecorServices")]
-        //public async Task<IActionResult> GetPaginatedDecorServices([FromQuery] DecorServiceFilterRequest request, int? accountId = null)
-        //{
-        //    var response = await _decorServiceService.GetPaginatedDecorServicesAsync(accountId, request);
-        //    return response.Success ? Ok(response) : BadRequest(response);
-        //}
-
-        [HttpPost("setUserPreferences")]
-        [Authorize]
-        public async Task<IActionResult> SetPreferences([FromQuery] SetPreferenceRequest request)
-        {
-
-            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var response = await _decorServiceService.SetUserPreferencesAsync(request, accountId);
-            return response.Success ? Ok(response) : BadRequest(response);
+            var result = await _decorServiceService.GetAllOfferingAndStylesAsync();
+            if (result.Success)
+                return Ok(result);
+            return BadRequest(result.Message);
         }
     }
 }

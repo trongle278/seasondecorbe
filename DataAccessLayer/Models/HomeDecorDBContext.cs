@@ -74,9 +74,6 @@ namespace DataAccessObject.Models
         public DbSet<Skill> Skills { get; set; }
         public DbSet<DecorationStyle> DecorationStyles { get; set; }
         public DbSet<ZoomMeeting> ZoomMeetings { get; set; }
-        public DbSet<AccountStylePreference> AccountStylePreferences { get; set; }
-        public DbSet<AccountSeasonPreference> AccountSeasonPreferences { get; set; }
-        public DbSet<AccountCategoryPreference> AccountCategoryPreferences { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -461,15 +458,6 @@ namespace DataAccessObject.Models
                 .HasOne(dso => dso.DecorService)
                 .WithMany(ds => ds.DecorServiceOfferings)
                 .HasForeignKey(dso => dso.DecorServiceId);
-
-            modelBuilder.Entity<AccountCategoryPreference>()
-                .HasKey(x => new { x.AccountId, x.DecorCategoryId });
-
-            modelBuilder.Entity<AccountStylePreference>()
-                .HasKey(x => new { x.AccountId, x.DecorationStyleId });
-
-            modelBuilder.Entity<AccountSeasonPreference>()
-                .HasKey(x => new { x.AccountId, x.SeasonId });
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },

@@ -61,6 +61,8 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Sublocation { get; set; }
         public string? CategoryName { get; set; }  // Tìm theo tên danh mục
         public List<string>? SeasonNames { get; set; }  // Tìm theo tên mùa
+
+        public List<string>? DesignNames { get; set; }
     }
 
     /// <summary>
@@ -90,7 +92,7 @@ namespace BusinessLogicLayer.ModelResponse
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
 
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public List<StyleResponse> Styles { get; set; }
+        public List<DesignResponse> Styles { get; set; }
         public List<OfferingResponse> Offerings { get; set; }
 
 
@@ -123,7 +125,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string ColorCode { get; set; }
     }
 
-    public class StyleResponse
+    public class DesignResponse
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -139,12 +141,12 @@ namespace BusinessLogicLayer.ModelResponse
     public class DecorServiceDetailsResponse
     {
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public List<StyleResponse> DecorationStyles { get; set; }
+        public List<DesignResponse> DecorationStyles { get; set; }
     }
 
-    public class OfferingAndStyleResponse
+    public class OfferingAndDesignResponse
     {
         public List<OfferingResponse> Offerings { get; set; }
-        public List<StyleResponse> DecorationStyles { get; set; }
+        public List<DesignResponse> DecorationStyles { get; set; }
     }
 }

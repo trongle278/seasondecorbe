@@ -27,8 +27,6 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsDisable { get; set; }
         public bool IsProvider { get; set; }
         public bool ProviderVerified { get; set; }
-
-        public bool IsFilterEnabled { get; set; }
     }
 
     public class AccountResponse

@@ -19,8 +19,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<DecorServiceBySlugResponse> GetDecorServiceBySlugAsync(string slug);
         Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId, ProviderServiceFilterRequest request);
         Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListForCustomerAsync(int? providerId, DecorServiceFilterRequest request);
-        //Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request);
-        Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(int? accountId, DecorServiceFilterRequest request);
+        Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request);
         Task<BaseResponse> UpdateDecorServiceAsync(int id, UpdateDecorServiceRequest request, int accountId);
         //Task<BaseResponse> UpdateDecorServiceAsyncWithImage(int id, UpdateDecorServiceRequest request, int accountId);
         Task<BaseResponse> DeleteDecorServiceAsync(int id, int accountId);
@@ -28,17 +27,9 @@ namespace BusinessLogicLayer.Interfaces
         Task<DecorServiceListResponse> SearchMultiCriteriaDecorServices(SearchDecorServiceRequest request);
         Task<BaseResponse> ChangeStartDateAsync(int decorServiceId, ChangeStartDateRequest request, int accountId);
         Task<DecorServiceListResponse> GetIncomingDecorServiceListAsync();
-        Task<BaseResponse<List<StyleResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId);
+        Task<BaseResponse<List<DesignResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId);
         Task<BaseResponse<List<ThemeColorResponse>>> GetThemeColorsByDecorServiceIdAsync(int decorServiceId);
         Task<BaseResponse<DecorServiceDetailsResponse>> GetStyleNColorByServiceIdAsync(int decorServiceId);
-<<<<<<< HEAD
         Task<BaseResponse<OfferingAndDesignResponse>> GetAllOfferingAndStylesAsync();
-
-
-        Task<BaseResponse> SetUserPreferencesAsync(SetPreferenceRequest request, int accountId);
-        //Task<BaseResponse<PageResult<DecorServiceDTO>>> GetPaginatedDecorServicesAsync(int? accountId, DecorServiceFilterRequest request);
-=======
-        Task<BaseResponse<OfferingAndStyleResponse>> GetAllOfferingAndStylesAsync();
->>>>>>> parent of f7ffd7d (rename response of decorationStyle)
     }
 }
