@@ -212,5 +212,15 @@ namespace Repository.GenericRepository
         {
             return await _context.Set<T>().AnyAsync(predicate);
         }
+
+        public virtual async Task DeleteAsync(Expression<Func<T, bool>> predicate)
+        {
+            var entities = await _context.Set<T>().Where(predicate).ToListAsync();
+            if (entities.Any())
+            {
+                _context.Set<T>().RemoveRange(entities);
+            }
+        }
+
     }
 }

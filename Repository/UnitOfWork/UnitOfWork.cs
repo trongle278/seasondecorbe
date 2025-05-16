@@ -66,6 +66,9 @@ namespace Repository.UnitOfWork
             ZoomRepository = new ZoomRepository(_context);
             ThemeColorRepository = new ThemeColorRepository(_context);
             OfferingRepository  = new OfferingRepository(_context);
+            AccountCategoryPreferenceRepository = new AccountCategoryPreferenceRepository(_context);
+            AccountSeasonPreferenceRepository = new AccountSeasonPreferenceRepository(_context);
+            AccountStylePreferenceRepository = new AccountStylePreferenceRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -115,6 +118,10 @@ namespace Repository.UnitOfWork
         public IZoomRepository ZoomRepository { get; private set; }
         public IThemeColorRepository ThemeColorRepository { get; private set; }
         public IOfferingRepository OfferingRepository { get; private set; }
+        public IAccountCategoryPreferenceRepository AccountCategoryPreferenceRepository { get; private set; }
+        public IAccountSeasonPreferenceRepository AccountSeasonPreferenceRepository { get; private set; }
+        public IAccountStylePreferenceRepository AccountStylePreferenceRepository { get; private set; }
+
         public void Dispose()
         {
             _context.Dispose();

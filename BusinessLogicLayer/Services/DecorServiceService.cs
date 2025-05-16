@@ -495,6 +495,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+
         public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetDecorServiceListByProvider(int accountId, ProviderServiceFilterRequest request)
         {
             var response = new BaseResponse<PageResult<DecorServiceDTO>>();
@@ -1539,5 +1540,333 @@ namespace BusinessLogicLayer.Services
                 };
             }
         }
+
+        public async Task<BaseResponse> SetUserPreferencesAsync(SetPreferenceRequest request, int accountId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                await _unitOfWork.AccountStylePreferenceRepository.DeleteAsync(p => p.AccountId == accountId);
+                await _unitOfWork.AccountSeasonPreferenceRepository.DeleteAsync(p => p.AccountId == accountId);
+                await _unitOfWork.AccountCategoryPreferenceRepository.DeleteAsync(p => p.AccountId == accountId);
+
+                await _unitOfWork.AccountStylePreferenceRepository.InsertRangeAsync(
+                    request.StyleIds.Select(id => new AccountStylePreference
+                    {
+                        AccountId = accountId,
+                        DecorationStyleId = id
+                    }));
+
+                await _unitOfWork.AccountSeasonPreferenceRepository.InsertRangeAsync(
+                    request.SeasonIds.Select(id => new AccountSeasonPreference
+                    {
+                        AccountId = accountId,
+                        SeasonId = id
+                    }));
+
+                await _unitOfWork.AccountCategoryPreferenceRepository.InsertRangeAsync(
+                    request.CategoryIds.Select(id => new AccountCategoryPreference
+                    {
+                        AccountId = accountId,
+                        DecorCategoryId = id
+                    }));
+
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId);
+                if (account != null)
+                {
+                    account.IsFilterEnabled = true;
+                    _unitOfWork.AccountRepository.Update(account);
+                }
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Preferences saved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to save preferences.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(int? accountId, DecorServiceFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<DecorServiceDTO>>();
+
+            try
+            {
+                // 🔍 1. Lấy preference nếu có accountId
+                List<int> styleIds = new();
+                List<int> seasonIds = new();
+                List<int> categoryIds = new();
+
+                if (accountId.HasValue)
+                {
+                    var account = await _unitOfWork.AccountRepository.GetByIdAsync(accountId.Value);
+                    if (account?.IsFilterEnabled == true)
+                    {
+                        styleIds = await _unitOfWork.AccountStylePreferenceRepository
+                            .Query(p => p.AccountId == accountId.Value)
+                            .Select(p => p.DecorationStyleId)
+                            .ToListAsync();
+
+                        seasonIds = await _unitOfWork.AccountSeasonPreferenceRepository
+                            .Query(p => p.AccountId == accountId.Value)
+                            .Select(p => p.SeasonId)
+                            .ToListAsync();
+
+                        categoryIds = await _unitOfWork.AccountCategoryPreferenceRepository
+                            .Query(p => p.AccountId == accountId.Value)
+                            .Select(p => p.DecorCategoryId)
+                            .ToListAsync();
+                    }
+                }
+
+                // 🔍 2. Tạo filter expression
+                Expression<Func<DecorService, bool>> filter = ds =>
+                    ds.IsDeleted == false &&
+                    ds.Status == DecorService.DecorServiceStatus.Available &&
+                    (string.IsNullOrEmpty(request.Style) || ds.Style.Contains(request.Style)) &&
+                    (string.IsNullOrEmpty(request.Sublocation) || ds.Sublocation.Contains(request.Sublocation)) &&
+                    (!request.MinPrice.HasValue || ds.BasePrice >= request.MinPrice.Value) &&
+                    (!request.MaxPrice.HasValue || ds.BasePrice <= request.MaxPrice.Value) &&
+                    (!request.DecorCategoryId.HasValue || ds.DecorCategoryId == request.DecorCategoryId.Value) &&
+                    (!request.StartDate.HasValue || ds.StartDate >= request.StartDate.Value);
+
+                if (request.SeasonIds != null && request.SeasonIds.Any())
+                {
+                    filter = filter.And(ds => ds.DecorServiceSeasons.Any(s => request.SeasonIds.Contains(s.SeasonId)));
+                }
+
+                // 🔍 3. Thêm personalization nếu có
+                if (styleIds.Any())
+                {
+                    filter = filter.And(ds => ds.DecorServiceStyles.Any(s => styleIds.Contains(s.DecorationStyleId)));
+                }
+
+                if (seasonIds.Any())
+                {
+                    filter = filter.And(ds => ds.DecorServiceSeasons.Any(s => seasonIds.Contains(s.SeasonId)));
+                }
+
+                if (categoryIds.Any())
+                {
+                    filter = filter.And(ds => categoryIds.Contains(ds.DecorCategoryId));
+                }
+
+                // 🔍 4. Sắp xếp
+                Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
+                {
+                    "Style" => ds => ds.Style,
+                    "Sublocation" => ds => ds.Sublocation,
+                    "CreateAt" => ds => ds.CreateAt,
+                    "Favorite" => ds => ds.FavoriteServices.Count,
+                    "StartDate" => ds => ds.StartDate,
+                    _ => ds => ds.Id
+                };
+
+                // 🔍 5. Include liên quan
+                Func<IQueryable<DecorService>, IQueryable<DecorService>> customQuery = query =>
+                    query.Include(ds => ds.DecorImages)
+                         .Include(ds => ds.DecorCategory)
+                         .Include(ds => ds.FavoriteServices)
+                         .Include(ds => ds.DecorServiceSeasons)
+                            .ThenInclude(s => s.Season)
+                         .Include(ds => ds.Account)
+                            .ThenInclude(a => a.Followers)
+                         .Include(ds => ds.Account)
+                            .ThenInclude(a => a.Followings);
+
+                // 🔍 6. Phân trang
+                var (decorServices, totalCount) = await _unitOfWork.DecorServiceRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    null,
+                    customQuery
+                );
+
+                // 🔁 7. Map DTO
+                var dtos = _mapper.Map<List<DecorServiceDTO>>(decorServices);
+
+                for (int i = 0; i < decorServices.Count(); i++)
+                {
+                    var service = decorServices.ElementAt(i);
+                    dtos[i].CategoryName = service.DecorCategory?.CategoryName;
+                    dtos[i].Images = service.DecorImages
+                        .Select(img => new DecorImageResponse { Id = img.Id, ImageURL = img.ImageURL }).ToList();
+                    dtos[i].Seasons = service.DecorServiceSeasons
+                        .Select(s => new SeasonResponse { Id = s.Season.Id, SeasonName = s.Season.SeasonName }).ToList();
+                    dtos[i].FavoriteCount = service.FavoriteServices.Count;
+                    dtos[i].Provider = new ProviderResponse
+                    {
+                        Id = service.Account.Id,
+                        BusinessName = service.Account.BusinessName,
+                        Bio = service.Account.Bio,
+                        Avatar = service.Account.Avatar,
+                        Phone = service.Account.Phone,
+                        Address = service.Account.BusinessAddress,
+                        JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
+                        FollowersCount = service.Account.Followers?.Count ?? 0,
+                        FollowingsCount = service.Account.Followings?.Count ?? 0
+                    };
+                }
+
+                // ✅ Trả kết quả
+                response.Success = true;
+                response.Message = "Decor services retrieved successfully.";
+                response.Data = new PageResult<DecorServiceDTO>
+                {
+                    Data = dtos,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving decor services.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+
+        //public async Task<BaseResponse<PageResult<DecorServiceDTO>>> GetFilterDecorServicesAsync(DecorServiceFilterRequest request)
+        //{
+        //    var response = new BaseResponse<PageResult<DecorServiceDTO>>();
+        //    try
+        //    {
+        //        //string? userLocation = null;
+
+        //        //// ✅ Nếu user đăng nhập, lấy Location từ Account
+        //        //if (accountId.HasValue)
+        //        //{
+        //        //    var userAccount = await _unitOfWork.AccountRepository.GetByIdAsync(accountId.Value);
+        //        //    if (userAccount != null && !string.IsNullOrEmpty(userAccount.Location))
+        //        //    {
+        //        //        userLocation = userAccount.Location;
+        //        //    }
+        //        //}
+
+        //        //// ✅ Nếu user có chọn Sublocation, dùng Sublocation. Nếu không có, dùng Location từ Account.
+        //        //string locationFilter = !string.IsNullOrEmpty(request.Sublocation) ? request.Sublocation : userLocation;
+
+        //        // ✅ Nếu user chưa đăng nhập, hoặc không có Location, thì không lọc theo Sublocation
+        //        Expression<Func<DecorService, bool>> filter = decorService =>
+        //            decorService.IsDeleted == false &&
+        //            decorService.Status == DecorService.DecorServiceStatus.Available && // Chỉ lấy những service Available
+        //            (string.IsNullOrEmpty(request.Style) || decorService.Style.Contains(request.Style)) &&
+        //            //(string.IsNullOrEmpty(locationFilter) || decorService.Sublocation.Contains(locationFilter)) && // Mặc định theo Location hoặc Sublocation
+        //            (string.IsNullOrEmpty(request.Sublocation) || decorService.Sublocation.Contains(request.Sublocation)) &&
+        //            (!request.MinPrice.HasValue || decorService.BasePrice >= request.MinPrice.Value) &&
+        //            (!request.MaxPrice.HasValue || decorService.BasePrice <= request.MaxPrice.Value) &&
+        //            (!request.DecorCategoryId.HasValue || decorService.DecorCategoryId == request.DecorCategoryId.Value) &&
+        //            (!request.StartDate.HasValue || decorService.StartDate >= request.StartDate.Value); ;
+
+        //        if (request.SeasonIds != null && request.SeasonIds.Any())
+        //        {
+        //            filter = filter.And(decorService =>
+        //                decorService.DecorServiceSeasons.Any(ds => request.SeasonIds.Contains(ds.SeasonId))
+        //            );
+        //        }
+
+        //        // Sort
+        //        Expression<Func<DecorService, object>> orderByExpression = request.SortBy switch
+        //        {
+        //            "Style" => decorService => decorService.Style,
+        //            "Sublocation" => decorService => decorService.Sublocation,
+        //            "CreateAt" => decorService => decorService.CreateAt,
+        //            "Favorite" => decorService => decorService.FavoriteServices.Count,
+        //            "StartDate" => decorService => decorService.StartDate,
+        //            _ => decorService => decorService.Id
+        //        };
+
+        //        // Include Entities
+        //        Func<IQueryable<DecorService>, IQueryable<DecorService>> customQuery = query =>
+        //            query.Include(ds => ds.DecorImages)
+        //                 .Include(ds => ds.DecorCategory)
+        //                 .Include(ds => ds.FavoriteServices)
+        //                 .Include(ds => ds.DecorServiceSeasons)
+        //                     .ThenInclude(dss => dss.Season)
+        //                 .Include(ds => ds.Account)
+        //                    .ThenInclude(a => a.Followers)
+        //                 .Include(ds => ds.Account)
+        //                    .ThenInclude(a => a.Followings);
+
+        //        // Get paginated data and filter
+        //        (IEnumerable<DecorService> decorServices, int totalCount) = await _unitOfWork.DecorServiceRepository.GetPagedAndFilteredAsync(
+        //            filter,
+        //            request.PageIndex,
+        //            request.PageSize,
+        //            orderByExpression,
+        //            request.Descending,
+        //            null,
+        //            customQuery
+        //        );
+
+        //        var dtos = _mapper.Map<List<DecorServiceDTO>>(decorServices);
+
+        //        // Map dữ liệu
+        //        for (int i = 0; i < decorServices.Count(); i++)
+        //        {
+        //            var service = decorServices.ElementAt(i);
+        //            dtos[i].CategoryName = service.DecorCategory.CategoryName;
+
+        //            dtos[i].Images = service.DecorImages
+        //                .Select(img => new DecorImageResponse
+        //                {
+        //                    Id = img.Id,
+        //                    ImageURL = img.ImageURL
+        //                })
+        //                .ToList();
+
+        //            dtos[i].Seasons = service.DecorServiceSeasons
+        //                .Select(dss => new SeasonResponse
+        //                {
+        //                    Id = dss.Season.Id,
+        //                    SeasonName = dss.Season.SeasonName
+        //                })
+        //                .ToList();
+
+        //            dtos[i].FavoriteCount = service.FavoriteServices.Count;
+
+        //            dtos[i].Provider = new ProviderResponse
+        //            {
+        //                Id = service.Account.Id,
+        //                BusinessName = service.Account.BusinessName,
+        //                Bio = service.Account.Bio,
+        //                Avatar = service.Account.Avatar,
+        //                Phone = service.Account.Phone,
+        //                Address = service.Account.BusinessAddress,
+        //                JoinedDate = service.Account.JoinedDate.ToString("dd/MM/yyyy"),
+        //                FollowersCount = service.Account.Followers?.Count ?? 0,
+        //                FollowingsCount = service.Account.Followings?.Count ?? 0
+        //            };
+        //        }
+
+        //        var pageResult = new PageResult<DecorServiceDTO>
+        //        {
+        //            Data = dtos,
+        //            TotalCount = totalCount
+        //        };
+
+        //        response.Success = true;
+        //        response.Data = pageResult;
+        //        response.Message = "Decor services retrieved successfully.";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.Message = "Error retrieving decor services.";
+        //        response.Errors.Add(ex.Message);
+        //    }
+        //    return response;
+        //}
     }
 }
