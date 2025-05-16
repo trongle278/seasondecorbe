@@ -90,7 +90,7 @@ namespace BusinessLogicLayer.ModelResponse
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
 
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public List<DesignResponse> Designs { get; set; }
+        public List<StyleResponse> Styles { get; set; }
         public List<OfferingResponse> Offerings { get; set; }
 
 
@@ -123,7 +123,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string ColorCode { get; set; }
     }
 
-    public class DesignResponse
+    public class StyleResponse
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -139,12 +139,12 @@ namespace BusinessLogicLayer.ModelResponse
     public class DecorServiceDetailsResponse
     {
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public List<DesignResponse> Designs{ get; set; }
+        public List<StyleResponse> DecorationStyles { get; set; }
     }
 
-    public class OfferingAndDesignResponse
+    public class OfferingAndStyleResponse
     {
         public List<OfferingResponse> Offerings { get; set; }
-        public List<DesignResponse> Designs { get; set; }
+        public List<StyleResponse> DecorationStyles { get; set; }
     }
 }

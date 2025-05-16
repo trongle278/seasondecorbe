@@ -28,13 +28,17 @@ namespace BusinessLogicLayer.Interfaces
         Task<DecorServiceListResponse> SearchMultiCriteriaDecorServices(SearchDecorServiceRequest request);
         Task<BaseResponse> ChangeStartDateAsync(int decorServiceId, ChangeStartDateRequest request, int accountId);
         Task<DecorServiceListResponse> GetIncomingDecorServiceListAsync();
-        Task<BaseResponse<List<DesignResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId);
+        Task<BaseResponse<List<StyleResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId);
         Task<BaseResponse<List<ThemeColorResponse>>> GetThemeColorsByDecorServiceIdAsync(int decorServiceId);
         Task<BaseResponse<DecorServiceDetailsResponse>> GetStyleNColorByServiceIdAsync(int decorServiceId);
+<<<<<<< HEAD
         Task<BaseResponse<OfferingAndDesignResponse>> GetAllOfferingAndStylesAsync();
 
 
         Task<BaseResponse> SetUserPreferencesAsync(SetPreferenceRequest request, int accountId);
         //Task<BaseResponse<PageResult<DecorServiceDTO>>> GetPaginatedDecorServicesAsync(int? accountId, DecorServiceFilterRequest request);
+=======
+        Task<BaseResponse<OfferingAndStyleResponse>> GetAllOfferingAndStylesAsync();
+>>>>>>> parent of f7ffd7d (rename response of decorationStyle)
     }
 }

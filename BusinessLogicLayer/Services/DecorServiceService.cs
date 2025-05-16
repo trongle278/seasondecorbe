@@ -109,8 +109,8 @@ namespace BusinessLogicLayer.Services
                     })
                     .ToList();
 
-                dto.Designs = decorService.DecorServiceStyles?
-                    .Select(s => new DesignResponse
+                dto.Styles = decorService.DecorServiceStyles?
+                    .Select(s => new StyleResponse
                     {
                         Id = s.DecorationStyle.Id,
                         Name = s.DecorationStyle.Name
@@ -1402,9 +1402,9 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<List<DesignResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId)
+        public async Task<BaseResponse<List<StyleResponse>>> GetStylesByDecorServiceIdAsync(int decorServiceId)
         {
-            var response = new BaseResponse<List<DesignResponse>>();
+            var response = new BaseResponse<List<StyleResponse>>();
             try
             {
                 var service = await _unitOfWork.DecorServiceRepository
@@ -1421,7 +1421,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var styles = service.DecorServiceStyles?
-                    .Select(s => new DesignResponse
+                    .Select(s => new StyleResponse
                     {
                         Id = s.DecorationStyle.Id,
                         Name = s.DecorationStyle.Name
@@ -1470,7 +1470,7 @@ namespace BusinessLogicLayer.Services
                     .ToList();
 
                 var styles = service.DecorServiceStyles?
-                    .Select(s => new DesignResponse
+                    .Select(s => new StyleResponse
                     {
                         Id = s.DecorationStyle.Id,
                         Name = s.DecorationStyle.Name
@@ -1481,7 +1481,7 @@ namespace BusinessLogicLayer.Services
                 response.Data = new DecorServiceDetailsResponse
                 {
                     ThemeColors = themeColors,
-                    Designs = styles
+                    DecorationStyles = styles
                 };
                 response.Message = "Theme colors and styles fetched successfully.";
             }
@@ -1494,7 +1494,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse<OfferingAndDesignResponse>> GetAllOfferingAndStylesAsync()
+        public async Task<BaseResponse<OfferingAndStyleResponse>> GetAllOfferingAndStylesAsync()
         {
             try
             {
@@ -1509,7 +1509,7 @@ namespace BusinessLogicLayer.Services
                     .ToListAsync();
 
                 var styles = await _unitOfWork.DecorationStyleRepository.Queryable()
-                    .Select(ds => new DesignResponse
+                    .Select(ds => new StyleResponse
                     {
                         Id = ds.Id,
                         Name = ds.Name
@@ -1517,13 +1517,13 @@ namespace BusinessLogicLayer.Services
                     .ToListAsync();
 
                 // Tạo response object
-                var response = new OfferingAndDesignResponse
+                var response = new OfferingAndStyleResponse
                 {
                     Offerings = offerings,
-                    Designs = styles
+                    DecorationStyles = styles
                 };
 
-                return new BaseResponse<OfferingAndDesignResponse>
+                return new BaseResponse<OfferingAndStyleResponse>
                 {
                     Success = true,
                     Message = "Skills and decoration styles retrieved successfully",
@@ -1532,7 +1532,7 @@ namespace BusinessLogicLayer.Services
             }
             catch (Exception ex)
             {
-                return new BaseResponse<OfferingAndDesignResponse>
+                return new BaseResponse<OfferingAndStyleResponse>
                 {
                     Success = false,
                     Message = "Failed to retrieve offerings and decoration styles",
