@@ -93,7 +93,7 @@ namespace BusinessLogicLayer.ModelResponse
         public List<SeasonResponse> Seasons { get; set; } = new List<SeasonResponse>();
 
         public List<ThemeColorResponse> ThemeColors { get; set; }
-        public List<DesignResponse> Styles { get; set; }
+        public List<DesignResponse> Designs { get; set; }
         public List<OfferingResponse> Offerings { get; set; }
 
 

@@ -109,7 +109,7 @@ namespace BusinessLogicLayer.Services
                     })
                     .ToList();
 
-                dto.Styles = decorService.DecorServiceStyles?
+                dto.Designs = decorService.DecorServiceStyles?
                     .Select(s => new DesignResponse
                     {
                         Id = s.DecorationStyle.Id,
@@ -420,6 +420,8 @@ namespace BusinessLogicLayer.Services
                          .Include(ds => ds.FavoriteServices)
                          .Include(ds => ds.DecorServiceSeasons)
                              .ThenInclude(dss => dss.Season)
+                         .Include(ds => ds.DecorServiceStyles)
+                            .ThenInclude(dss => dss.DecorationStyle)
                          .Include(ds => ds.Account)
                             .ThenInclude(a => a.Followers)
                          .Include(ds => ds.Account)
@@ -457,6 +459,14 @@ namespace BusinessLogicLayer.Services
                         {
                             Id = dss.Season.Id,
                             SeasonName = dss.Season.SeasonName
+                        })
+                        .ToList();
+
+                    dtos[i].Designs = service.DecorServiceStyles
+                        .Select(dss => new DesignResponse
+                        {
+                            Id = dss.DecorationStyle.Id,
+                            Name = dss.DecorationStyle.Name
                         })
                         .ToList();
 
