@@ -57,6 +57,7 @@ namespace Repository.UnitOfWork
         IZoomRepository ZoomRepository { get; }
         IThemeColorRepository ThemeColorRepository { get; }
         IOfferingRepository OfferingRepository { get; }
+        IBookingThemeColorRepository BookingThemeColorRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

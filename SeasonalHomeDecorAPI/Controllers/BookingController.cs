@@ -52,7 +52,7 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [HttpPut("updateBookingRequest/{bookingCode}")]
-        public async Task<IActionResult> UpdateBookingRequest(string bookingCode, [FromBody] UpdateBookingRequest request)
+        public async Task<IActionResult> UpdateBookingRequest(string bookingCode, [FromQuery] UpdateBookingRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _bookingService.UpdateBookingRequestAsync(bookingCode, request, accountId);

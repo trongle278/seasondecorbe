@@ -29,6 +29,9 @@ namespace BusinessLogicLayer.ModelRequest
         public int? AddressId { get; set; }
         public DateTime? SurveyDate { get; set; }
         public string? Note { get; set; }
+
+        public int? DecorationStyleId { get; set; }         // chọn 1
+        public List<int>? ThemeColorIds { get; set; }       // chọn nhiều
     }
 
     public class CreateQuotationRequest

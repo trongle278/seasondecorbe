@@ -747,28 +747,9 @@ namespace BusinessLogicLayer.Services
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
                     .Include(b => b.TimeSlots)
+                    .Include(b => b.DecorService)
                     .Where(b => b.BookingCode == bookingCode && b.AccountId == accountId)
                     .FirstOrDefaultAsync();
-
-                //// Kiểm tra nếu là thành viên và còn lượt đổi miễn phí
-                //var customer = await _unitOfWork.AccountRepository
-                //    .Queryable()
-                //    .Include(a => a.Subscription)
-                //    .FirstOrDefaultAsync(a => a.Id == accountId);
-
-                //int freeChangesAllowed = customer?.Subscription?.MaxFreeRequestChanges ?? 0;
-                //bool isMember = customer?.Subscription != null && customer.Subscription.Status == Subscription.SubscriptionStatus.Subcribed;
-
-                //// Nếu đã vượt quá số lần đổi miễn phí
-                //if (!isMember || booking.RequestChangeCount >= freeChangesAllowed)
-                //{
-                //    booking.AdditionalCost = (booking.AdditionalCost ?? 0) + 50000; // ví dụ: 50k phí phát sinh
-                //    booking.IsAdditionalFeeCharged = true;
-                //}
-                //else
-                //{
-                //    booking.RequestChangeCount++;
-                //}
 
                 if (booking == null)
                 {
@@ -807,6 +788,32 @@ namespace BusinessLogicLayer.Services
                         slot.SurveyDate = request.SurveyDate.Value;
                         _unitOfWork.TimeSlotRepository.Update(slot);
                     }
+                }
+
+                // Cập nhật Style (nếu có)
+                if (request.DecorationStyleId.HasValue)
+                {
+                    booking.DecorationStyleId = request.DecorationStyleId.Value;
+                }
+
+                // Cập nhật danh sách màu sắc (nếu có)
+                if (request.ThemeColorIds != null)
+                {
+                    var oldColors = await _unitOfWork.BookingThemeColorRepository
+                        .Query(bc => bc.BookingId == booking.Id)
+                        .ToListAsync();
+
+                    _unitOfWork.BookingThemeColorRepository.RemoveRange(oldColors);
+
+                    var newColors = request.ThemeColorIds
+                        .Distinct()
+                        .Select(colorId => new BookingThemeColor
+                        {
+                            BookingId = booking.Id,
+                            ThemeColorId = colorId
+                        });
+
+                    await _unitOfWork.BookingThemeColorRepository.InsertRangeAsync(newColors);
                 }
 
                 _unitOfWork.BookingRepository.Update(booking);
