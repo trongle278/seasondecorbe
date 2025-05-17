@@ -40,5 +40,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<ProductImage>? ProductImages { get; set; }
         public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
         public virtual ICollection<ProductDetail> ProductDetails { get; set; }
+        public virtual ICollection<ProductSeason> ProductSeasons { get; set; }
+        public virtual ICollection<RelatedProductItem> RelatedProductItems { get; set; }
     }
 }

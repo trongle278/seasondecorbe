@@ -3,6 +3,7 @@ using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.ModelRequest;
 using BusinessLogicLayer.ModelRequest.Pagination;
 using BusinessLogicLayer.ModelResponse;
+using BusinessLogicLayer.Services;
 using DataAccessObject.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -222,6 +223,75 @@ namespace SeasonalHomeDecorAPI.Controllers
             if (result.Success)
                 return Ok(result);
             return BadRequest(result.Message);
+        }
+
+        [HttpGet("getPaginatedRelatedProduct")]
+        public async Task<IActionResult> GetPaginatedRelatedProduct([FromQuery] ServiceRelatedProductRequest request)
+        {
+            var result = await _decorServiceService.GetRelatedProductsAsync(request);
+            
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPost("addProductToServiceHolder/{serviceId}")]
+        public async Task<IActionResult> AddProductToServiceHolder(int serviceId, int productId, int quantity)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _decorServiceService.AddRelatedProductAsync(serviceId, accountId, productId, quantity);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPut("updateProductInServiceHolder/{relatedProductId}")]
+        public async Task<IActionResult> UpdateProductIndServiceHolder(int relatedProductId, int productId, int quantity)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _decorServiceService.UpdateQuantityAsync(relatedProductId, productId, quantity);
+            
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpDelete("removeProductFromServiceHolder/{relatedProductId}")]
+        public async Task<IActionResult> RemoveProductFromServiceHolder(int relatedProductId, int productId)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _decorServiceService.RemoveRelatedProductAsync(relatedProductId, productId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
     }
 }

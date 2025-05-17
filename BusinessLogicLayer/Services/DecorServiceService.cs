@@ -18,6 +18,9 @@ using Repository.UnitOfWork;
 using BusinessLogicLayer.ModelResponse.Review;
 using static BusinessLogicLayer.ModelResponse.DecorServiceReviewResponse;
 using iText.Layout;
+using BusinessLogicLayer.ModelResponse.Cart;
+using Microsoft.Identity.Client;
+using BusinessLogicLayer.Utilities.DataMapping;
 
 namespace BusinessLogicLayer.Services
 {
@@ -1538,6 +1541,366 @@ namespace BusinessLogicLayer.Services
                     Errors = new List<string> { ex.Message }
                 };
             }
+        }
+
+        public async Task<BaseResponse<RelatedProductPageResult>> GetRelatedProductsAsync(ServiceRelatedProductRequest request)
+        {
+            var response = new BaseResponse<RelatedProductPageResult>();
+            try
+            {
+                var decorService = await _unitOfWork.DecorServiceRepository.Queryable()
+                    .Include(ds => ds.DecorCategory)
+                    .Include(ds => ds.Account)
+                    .Include(ds => ds.DecorServiceSeasons)
+                        .ThenInclude(dss => dss.Season)
+                    .FirstOrDefaultAsync(ds => ds.Id == request.ServiceId);
+
+                if (decorService == null)
+                {
+                    response.Message = "Decor service not found!";
+                    return response;
+                }
+
+                var provider = decorService.Account;
+                var providerDecorCategory = decorService.DecorCategory?.CategoryName;
+
+                if (string.IsNullOrEmpty(providerDecorCategory))
+                {
+                    response.Message = "Decor category is missing!";
+                    return response;
+                }
+
+                var decorServiceSeasonIds = decorService.DecorServiceSeasons
+                    .Select(dss => dss.SeasonId)
+                    .ToList();
+
+                // Map decor category -> allowed product categories
+                var allowedProductCategories = DecorCategoryMapping.DecorToProductCategoryMap.TryGetValue(
+                    providerDecorCategory, out var relatedCategories)
+                    ? relatedCategories.Distinct().ToList()
+                    : new List<string>();
+
+                // Build product filter
+                Expression<Func<Product, bool>> filter = p =>
+                    p.AccountId == provider.Id &&
+                    allowedProductCategories.Contains(p.Category.CategoryName) &&
+                    p.ProductSeasons.Any(ps => decorServiceSeasonIds.Contains(ps.SeasonId)) &&
+                    (string.IsNullOrEmpty(request.Category) || p.Category.CategoryName == request.Category);
+
+                // Check account permission
+                var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
+
+                if ((account != null && account.RoleId != 1) &&
+                    !(account?.RoleId == 3 && account.ProviderVerified == true))
+                {
+                    // Only show in-stock for regular or unverified users
+                    filter = filter.And(p => p.Quantity > 0);
+                }
+
+                // Sorting
+                Expression<Func<Product, object>> orderBy = request.SortBy switch
+                {
+                    "ProductName" => p => p.ProductName,
+                    "ProductPrice" => p => p.ProductPrice,
+                    "CreateAt" => p => p.CreateAt,
+                    _ => p => p.Id
+                };
+
+                Expression<Func<Product, object>>[] includes =
+                {
+                    p => p.ProductImages,
+                    p => p.Category,
+                    p => p.ProductSeasons
+                };
+
+                var (products, totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderBy,
+                    request.Descending,
+                    includes
+                );
+
+                var relatedProducts = new List<RelatedProductResponse>();
+
+                foreach (var product in products)
+                {
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.Queryable()
+                        .Where(od => od.ProductId == product.Id && od.Order.Status == Order.OrderStatus.Paid)
+                        .Include(od => od.Order)
+                            .ThenInclude(o => o.Reviews)
+                        .ToListAsync();
+
+                    var reviews = orderDetails.SelectMany(od => od.Order.Reviews).ToList();
+                    var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
+                    var totalSold = orderDetails.Sum(od => od.Quantity);
+
+                    relatedProducts.Add(new RelatedProductResponse
+                    {
+                        Id = product.Id,
+                        ProductName = product.ProductName,
+                        ProductPrice = product.ProductPrice,
+                        Rate = averageRate,
+                        TotalSold = totalSold,
+                        Quantity = product.Quantity,
+                        Status = product.Quantity > 0
+                            ? Product.ProductStatus.InStock.ToString()
+                            : Product.ProductStatus.OutOfStock.ToString(),
+                        ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>(),
+                        Category = product.Category.CategoryName
+                    });
+                }
+
+                response.Success = true;
+                response.Message = "Related products retrieved successfully.";
+                response.Data = new RelatedProductPageResult
+                {
+                    Category = providerDecorCategory,
+                    Data = relatedProducts,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving related products!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> AddRelatedProductAsync(int serviceId, int accountId, int productId, int quantity)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
+                                                    .Include(rp => rp.RelatedProductItems)
+                                                    .Where(rp => rp.ServiceId == serviceId && rp.AccountId == accountId)
+                                                    .FirstOrDefaultAsync();
+
+                if (relatedProduct == null)
+                {
+                    // Create related product holder
+                    relatedProduct = new RelatedProduct
+                    {
+                        ServiceId = serviceId,
+                        AccountId = accountId,
+                        RelatedProductItems = new List<RelatedProductItem>()
+                    };
+
+                    await _unitOfWork.RelatedProductRepository.InsertAsync(relatedProduct);
+                    await _unitOfWork.CommitAsync();
+                }
+
+                var product = await _unitOfWork.ProductRepository.Queryable()
+                                                    .Include(p => p.ProductImages)
+                                                    .Where(p => p.Id == productId)
+                                                    .FirstOrDefaultAsync();
+
+                if (product == null)
+                {
+                    response.Message = "Product not found!";
+                    return response;
+                }
+
+                // Check existing product quantity
+                if (product.Quantity < quantity)
+                {
+                    response.Success = false;
+                    response.Message = "Not enough existing product";
+                    return response;
+                }
+
+                if (product.Quantity < 0)
+                {
+                    response.Success = false;
+                    response.Message = "Product quantity has to be > 0";
+                    return response;
+                }
+
+                decimal unitPrice = product.ProductPrice;
+
+                var item = relatedProduct.RelatedProductItems
+                        .Where(ri => ri.ProductId == productId)
+                        .FirstOrDefault();
+
+                if (item == null)
+                {
+                    // Add item to related product holder
+                    item = new RelatedProductItem
+                    {
+                        ProductId = productId,
+                        ProductName = product.ProductName,
+                        Quantity = quantity,
+                        UnitPrice = unitPrice * quantity,
+                        Image = product.ProductImages?.FirstOrDefault()?.ImageUrl
+                    };
+
+                    relatedProduct.RelatedProductItems.Add(item);
+                    await _unitOfWork.RelatedProductItemRepository.InsertAsync(item);
+                }
+                else
+                {
+                    if (product.Quantity < item.Quantity + quantity)
+                    {
+                        response.Message = "Not enough existing product";
+                        return response;
+                    }
+
+                    item.Quantity += quantity;
+                    item.UnitPrice = item.Quantity * unitPrice;
+                    _unitOfWork.RelatedProductItemRepository.Update(item);
+                }
+
+                // Update related product holder
+                relatedProduct.TotalItem = relatedProduct.RelatedProductItems.Sum(i => i.Quantity);
+                relatedProduct.TotalPrice = relatedProduct.RelatedProductItems.Sum(i => i.UnitPrice);
+
+                _unitOfWork.RelatedProductRepository.Update(relatedProduct);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Product added to related product successfully.";
+                response.Data = relatedProduct;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error while adding related product";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> UpdateQuantityAsync(int relatedProductId, int productId, int quantity)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
+                                            .Where(r => r.Id == relatedProductId)
+                                            .FirstOrDefaultAsync();
+
+                if (relatedProduct == null)
+                {
+                    response.Message = "Related product holder not found!";
+                    return response;
+                }
+
+                var item = await _unitOfWork.RelatedProductItemRepository.Queryable()
+                                            .Where(rp => rp.RelatedProductId == relatedProductId && rp.ProductId == productId)
+                                            .FirstOrDefaultAsync();
+
+                if (item == null || quantity <= 0)
+                {
+                    response.Message = "Product not found!";
+                    return response;
+                }
+
+                var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
+
+                if (product == null)
+                {
+                    response.Message = "Product not found!";
+                    return response;
+                }
+
+                // Check existing product before update item
+                if (product.Quantity < quantity)
+                {
+                    response.Message = "Not enough existing product";
+                    return response;
+                }
+
+                if (product.Quantity < 0)
+                {
+                    response.Message = "Product quantity cannot be negative";
+                    return response;
+                }
+
+                decimal unitPrice = product.ProductPrice;
+
+                // Save old item value before update
+                int oldQuantity = item.Quantity;
+                decimal oldUnitPrice = item.UnitPrice;
+
+                // Update item
+                item.Quantity = quantity;
+                item.UnitPrice = quantity * product.ProductPrice;
+
+                // Update holder using old value
+                relatedProduct.TotalItem += quantity - oldQuantity;
+                relatedProduct.TotalPrice += (item.UnitPrice - oldUnitPrice);
+
+                _unitOfWork.RelatedProductItemRepository.Update(item);
+
+                _unitOfWork.RelatedProductRepository.Update(relatedProduct);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Product in related product holder updated successfully.";
+                response.Data = relatedProduct;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error updating product in related product holder!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse> RemoveRelatedProductAsync(int relatedProductId, int productId)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
+                                            .Where(rp => rp.Id == relatedProductId)
+                                            .FirstOrDefaultAsync();
+
+                if (relatedProduct == null)
+                {
+                    response.Message = "Related product holder not found!";
+                    return response;
+                }
+
+                var item = await _unitOfWork.RelatedProductItemRepository.Queryable()
+                                            .Where(rp => rp.RelatedProductId == relatedProductId && rp.ProductId == productId)
+                                            .FirstOrDefaultAsync();
+
+                if (item == null)
+                {
+                    response.Message = "Product not found!";
+                    return response;
+                }
+
+                // Update holder
+                relatedProduct.TotalItem -= item.Quantity;
+                relatedProduct.TotalPrice -= item.UnitPrice;
+
+                _unitOfWork.RelatedProductItemRepository.Delete(item.Id);
+                _unitOfWork.RelatedProductRepository.Update(relatedProduct);
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Product in related product holder removed successfully.";
+                response.Data = relatedProduct;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error removing product in related product holder!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
         }
     }
 }

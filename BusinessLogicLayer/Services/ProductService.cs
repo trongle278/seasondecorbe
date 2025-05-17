@@ -797,7 +797,8 @@ namespace BusinessLogicLayer.Services
                     CategoryId = request.CategoryId,
                     AccountId = request.AccountId,
                     CreateAt = DateTime.UtcNow.ToLocalTime(),
-                    ProductImages = new List<ProductImage>()
+                    ProductImages = new List<ProductImage>(),
+                    ProductSeasons = new List<ProductSeason>()
                 };
 
                 // Upload images
@@ -812,6 +813,18 @@ namespace BusinessLogicLayer.Services
                             imageFile.ContentType
                             );
                         product.ProductImages.Add(new ProductImage { ImageUrl = imageUrl });
+                    }
+                }
+
+                // Add seasons
+                if (request.SeasonIds != null && request.SeasonIds.Any())
+                {
+                    foreach (var seasonId in request.SeasonIds)
+                    {
+                        product.ProductSeasons.Add(new ProductSeason
+                        {
+                            SeasonId = seasonId
+                        });
                     }
                 }
 
@@ -840,6 +853,7 @@ namespace BusinessLogicLayer.Services
                 var product = await _unitOfWork.ProductRepository
                                         .Query(p => p.Id == id)
                                         .Include(p => p.ProductImages)
+                                        .Include(p => p.ProductSeasons)
                                         .FirstOrDefaultAsync();
 
                 if (product == null)
@@ -886,6 +900,19 @@ namespace BusinessLogicLayer.Services
                 product.ShipFrom = request.ShipFrom;
                 product.CategoryId = request.CategoryId;
 
+                if (request.SeasonIds != null)
+                {
+                    product.ProductSeasons.Clear();
+
+                    foreach (var seasonId in request.SeasonIds)
+                    {
+                        product.ProductSeasons.Add(new ProductSeason
+                        {
+                            SeasonId = seasonId
+                        });
+                    }
+                }
+
                 if (request.Images != null && request.Images.Any())
                 {
                     if (product.ProductImages.Any())
@@ -929,6 +956,7 @@ namespace BusinessLogicLayer.Services
             {
                 var product = await _unitOfWork.ProductRepository
                                         .Query(p => p.Id == id)
+                                        .Include(p => p.ProductSeasons)
                                         .Include(p => p.ProductImages)
                                         .FirstOrDefaultAsync();
 
@@ -936,6 +964,12 @@ namespace BusinessLogicLayer.Services
                 {
                     response.Message = "Invalid product!";
                     return response;
+                }
+
+                // Delete ProductSeasons
+                if (product.ProductSeasons != null && product.ProductSeasons.Any())
+                {
+                    _unitOfWork.ProductSeasonRepository.RemoveRange(product.ProductSeasons);
                 }
 
                 // Delete ProductImages

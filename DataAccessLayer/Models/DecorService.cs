@@ -48,5 +48,6 @@ namespace DataAccessObject.Models
         public virtual ICollection<DecorServiceThemeColor> DecorServiceThemeColors { get; set; } = new List<DecorServiceThemeColor>();
         //1 dịch vụ add được nhiều style
         public virtual ICollection<DecorServiceStyle> DecorServiceStyles { get; set; } = new List<DecorServiceStyle>();
+        public virtual ICollection<RelatedProduct> RelatedProducts { get; set; }
     }
 }

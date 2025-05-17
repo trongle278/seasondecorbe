@@ -627,6 +627,12 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
+                                            .Where(rp => rp.ServiceId == request.DecorServiceId && rp.AccountId == accountId)
+                                            .FirstOrDefaultAsync();
+                
+                int? relatedProductId = relatedProduct?.Id;
+
                 // 7. Create New Booking
                 var booking = new Booking
                 {
@@ -639,6 +645,7 @@ namespace BusinessLogicLayer.Services
                     CommitDepositAmount = 500000,
                     CreateAt = DateTime.Now,
                     IsCommitDepositPaid = false,
+                    RelatedProductId = relatedProductId
                 };
 
                 // Gán phong cách trang trí nếu có

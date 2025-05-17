@@ -19,5 +19,6 @@ namespace DataAccessObject.Models
 
         // Quan hệ Many-to-Many với DecorService
         public virtual ICollection<DecorServiceSeason> DecorServiceSeasons { get; set; }
+        public virtual ICollection<ProductSeason> ProductSeasons { get; set; }
     }
 }

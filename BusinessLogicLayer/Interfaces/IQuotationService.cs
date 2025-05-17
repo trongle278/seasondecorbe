@@ -30,6 +30,5 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<RelatedProductPageResult>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request);
         Task<BaseResponse<QuotationCancelDetailResponse>> GetQuotationCancelDetailAsync(string quotationCode);
         Task<BaseResponse<RequestQuotationChangeDetailResponse>> GetRequestQuotationChangeDetailAsync(string quotationCode);
-
     }
 }

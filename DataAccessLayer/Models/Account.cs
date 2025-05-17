@@ -47,6 +47,7 @@ namespace DataAccessObject.Models
         public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
         public virtual ICollection<DecorService> DecorServices { get; set; }
         public virtual ICollection<Product> Products { get; set; }
+        public virtual ICollection<RelatedProduct> RelatedProducts { get; set; }
         public virtual ICollection<FavoriteProduct> FavoriteProducts { get; set; }
         public virtual ICollection<FavoriteService> FavoriteServices { get; set; } = new List<FavoriteService>();
         public virtual Wallet Wallet { get; set; }

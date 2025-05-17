@@ -28,6 +28,7 @@ namespace BusinessLogicLayer.ModelRequest.Product
         public int CategoryId { get; set; }
         [Required]
         public int AccountId { get; set; }
+        public List<int> SeasonIds { get; set; }
         public List<IFormFile> Images { get; set; }
     }
 
@@ -47,6 +48,7 @@ namespace BusinessLogicLayer.ModelRequest.Product
         public string? ShipFrom { get; set; }
         [Required]
         public int CategoryId { get; set; }
+        public List<int> SeasonIds { get; set; }
         public List<IFormFile> Images { get; set; }
     }
 

@@ -74,6 +74,9 @@ namespace DataAccessObject.Models
         public DbSet<Skill> Skills { get; set; }
         public DbSet<DecorationStyle> DecorationStyles { get; set; }
         public DbSet<ZoomMeeting> ZoomMeetings { get; set; }
+        public DbSet<ProductSeason> ProductSeasons { get; set; }
+        public DbSet<RelatedProduct> RelatedProducts { get; set; }
+        public DbSet<RelatedProductItem> RelatedProductItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -458,6 +461,47 @@ namespace DataAccessObject.Models
                 .HasOne(dso => dso.DecorService)
                 .WithMany(ds => ds.DecorServiceOfferings)
                 .HasForeignKey(dso => dso.DecorServiceId);
+
+            modelBuilder.Entity<ProductSeason>()
+                .HasOne(ps => ps.Product)
+                .WithMany(p => p.ProductSeasons)
+                .HasForeignKey(ps => ps.ProductId);
+
+            modelBuilder.Entity<ProductSeason>()
+                .HasOne(ps => ps.Season)
+                .WithMany(s => s.ProductSeasons)
+                .HasForeignKey(ps => ps.SeasonId);
+
+            modelBuilder.Entity<RelatedProduct>()
+                .HasOne(rp => rp.Booking)
+                .WithOne(b => b.RelatedProduct)
+                .HasForeignKey<Booking>(b => b.RelatedProductId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RelatedProduct>()
+                .HasOne(rp => rp.DecorService)
+                .WithMany(ds => ds.RelatedProducts)
+                .HasForeignKey(rp => rp.ServiceId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RelatedProduct>()
+                .HasOne(rp => rp.Account)
+                .WithMany(a => a.RelatedProducts)
+                .HasForeignKey(rp => rp.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RelatedProductItem>()
+                .HasOne(ri => ri.RelatedProduct)
+                .WithMany(rp => rp.RelatedProductItems)
+                .HasForeignKey(ri => ri.RelatedProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RelatedProductItem>()
+                .HasOne(ri => ri.Product)
+                .WithMany(p => p.RelatedProductItems)
+                .HasForeignKey(ri => ri.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },

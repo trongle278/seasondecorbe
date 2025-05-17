@@ -31,5 +31,9 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<List<ThemeColorResponse>>> GetThemeColorsByDecorServiceIdAsync(int decorServiceId);
         Task<BaseResponse<DecorServiceDetailsResponse>> GetStyleNColorByServiceIdAsync(int decorServiceId);
         Task<BaseResponse<OfferingAndStyleResponse>> GetAllOfferingAndStylesAsync();
+        Task<BaseResponse<RelatedProductPageResult>> GetRelatedProductsAsync(ServiceRelatedProductRequest request);
+        Task<BaseResponse> AddRelatedProductAsync(int serviceId, int accountId ,int productId, int quantity);
+        Task<BaseResponse> UpdateQuantityAsync(int relatedProductId, int productId, int quantity);
+        Task<BaseResponse> RemoveRelatedProductAsync(int relatedProductId, int productId);
     }
 }
