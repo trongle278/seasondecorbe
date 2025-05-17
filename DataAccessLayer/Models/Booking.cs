@@ -82,5 +82,8 @@ namespace DataAccessObject.Models
 
         //1 booking có thể chọn nhiều màu
         public virtual ICollection<BookingThemeColor> BookingThemeColors { get; set; } = new List<BookingThemeColor>();
+
+        public int? RelatedProductId { get; set; }
+        public RelatedProduct RelatedProduct { get; set; }
     }
 }

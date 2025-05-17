@@ -121,28 +121,72 @@ namespace BusinessLogicLayer.Services
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
 
                 List<ProductDetail> productDetails = new();
-                if (request.Products != null && request.Products.Any())
-                {
-                    // Lấy thông tin sản phẩm từ cơ sở dữ liệu
-                    foreach (var p in request.Products)
-                    {
-                        var product = await _unitOfWork.ProductRepository.Queryable()
-                            .FirstOrDefaultAsync(prod => prod.Id == p.ProductId);
+                //if (request.Products != null && request.Products.Any())
+                //{
+                //    // Lấy thông tin sản phẩm từ cơ sở dữ liệu
+                //    foreach (var p in request.Products)
+                //    {
+                //        var product = await _unitOfWork.ProductRepository.Queryable()
+                //            .FirstOrDefaultAsync(prod => prod.Id == p.ProductId);
 
+                //        if (product != null)
+                //        {
+                //            productDetails.Add(new ProductDetail
+                //            {
+                //                ProductId = p.ProductId,
+                //                ProductName = product.ProductName,
+                //                Quantity = p.Quantity,
+                //                UnitPrice = product.ProductPrice,
+                //                TotalPrice = p.Quantity * product.ProductPrice
+                //            });
+                //        }
+                //    }
+
+                //    totalProductCost = productDetails.Sum(p => p.Quantity * p.UnitPrice);
+                //}
+
+                if (booking.RelatedProductId.HasValue)
+                {
+                    var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
+                        .Where(rp => rp.Id == booking.RelatedProductId.Value)
+                        .FirstOrDefaultAsync();
+
+                    var relatedItems = await _unitOfWork.RelatedProductItemRepository.Queryable()
+                        .Where(item => item.RelatedProductId == relatedProduct.Id)
+                        .ToListAsync();
+
+                    var productIds = relatedItems.Select(i => i.ProductId).Distinct().ToList();
+                    var products = await _unitOfWork.ProductRepository.Queryable()
+                        .Include(p => p.ProductImages)
+                        .Where(p => productIds.Contains(p.Id))
+                        .ToListAsync();
+
+                    foreach (var item in relatedItems)
+                    {
+                        var product = products.FirstOrDefault(p => p.Id == item.ProductId);
                         if (product != null)
                         {
                             productDetails.Add(new ProductDetail
                             {
-                                ProductId = p.ProductId,
+                                ProductId = product.Id,
                                 ProductName = product.ProductName,
-                                Quantity = p.Quantity,
+                                Quantity = item.Quantity,
                                 UnitPrice = product.ProductPrice,
-                                TotalPrice = p.Quantity * product.ProductPrice
+                                TotalPrice = item.Quantity * product.ProductPrice
                             });
                         }
                     }
 
-                    totalProductCost = productDetails.Sum(p => p.Quantity * p.UnitPrice);
+                    totalProductCost = productDetails.Sum(p => p.TotalPrice);
+
+                    // Remove RelatedProductId
+                    booking.RelatedProductId = null;
+
+                    // Remove RelatedProductItem
+                    _unitOfWork.RelatedProductItemRepository.RemoveRange(relatedItems);
+
+                    // Remove RelatedProduct
+                    _unitOfWork.RelatedProductRepository.Delete(relatedProduct.Id);
                 }
 
                 // Tạo báo giá mới hoàn toàn
@@ -1042,7 +1086,14 @@ namespace BusinessLogicLayer.Services
                     .Distinct()
                     .ToList();
 
-                // Get allowed product categories
+                var decorServiceSeasons = await _unitOfWork.DecorServiceRepository.Queryable()
+                                            .Where(ds => ds.Id == quotation.Booking.DecorServiceId)
+                                            .Include(ds => ds.DecorServiceSeasons)
+                                                .ThenInclude(dss => dss.Season)
+                                            .SelectMany(ds =>ds.DecorServiceSeasons.Select(dss => dss.SeasonId))
+                                            .ToListAsync();
+
+                // Map decor category -> allowed product categories
                 var allowedProductCategories = providerDecorCategories
                     .SelectMany(decorCategory =>
                         DecorCategoryMapping.DecorToProductCategoryMap.TryGetValue(decorCategory, out var relatedProductCats)
@@ -1054,6 +1105,7 @@ namespace BusinessLogicLayer.Services
                 // Filter expression
                 Expression<Func<Product, bool>> filter = p =>
                     p.AccountId == provider.Id && allowedProductCategories.Contains(p.Category.CategoryName) &&
+                    p.ProductSeasons.Any(ps => decorServiceSeasons.Contains(ps.SeasonId)) &&
                     (string.IsNullOrEmpty(request.Category) || p.Category.CategoryName == request.Category);
 
                 // Check user
@@ -1081,7 +1133,8 @@ namespace BusinessLogicLayer.Services
                 Expression<Func<Product, object>>[] includes =
                 {
                     p => p.ProductImages,
-                    p => p.Category
+                    p => p.Category,
+                    p => p.ProductSeasons
                 };
 
                 // Get paginated products
