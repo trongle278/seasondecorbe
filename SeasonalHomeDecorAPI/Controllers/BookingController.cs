@@ -161,8 +161,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("getPaginatedFormsForCustomer")]
-        public async Task<IActionResult> GetPaginatedFormsForCustomer([FromQuery] FormFilterRequest request)
+        [HttpGet("getPaginatedFormsForCustomer/{bookingCode}")]
+        public async Task<IActionResult> GetPaginatedFormsForCustomer(string bookingCode, [FromQuery] FormFilterRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             if (accountId == 0)
@@ -170,7 +170,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _bookingService.GetBookingFormForCustomer(request, accountId);
+            var result = await _bookingService.GetBookingFormForCustomer(bookingCode, request, accountId);
 
             if (result.Success)
             {
@@ -180,8 +180,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("getPaginatedFormsForProvider")]
-        public async Task<IActionResult> GetPaginatedFormsForProvider([FromQuery] FormFilterRequest request)
+        [HttpGet("getPaginatedFormsForProvider/{bookingCode}")]
+        public async Task<IActionResult> GetPaginatedFormsForProvider(string bookingCode, [FromQuery] FormFilterRequest request)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             if (accountId == 0)
@@ -189,7 +189,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _bookingService.GetBooingFormForProvider(request, accountId);
+            var result = await _bookingService.GetBooingFormForProvider(bookingCode, request, accountId);
 
             if (result.Success)
             {

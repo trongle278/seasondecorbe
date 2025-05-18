@@ -30,7 +30,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<PageResult<BookingResponse>>> GetPaginatedBookingsForCustomerAsync(BookingFilterRequest request, int accountId);
         Task<BaseResponse<PageResult<BookingResponseForProvider>>> GetPaginatedBookingsForProviderAsync(BookingFilterRequest request, int providerId);
         Task<BaseResponse> ProcessCommitDepositAsync(string bookingCode);
-        Task<BaseResponse<PageResult<BookingFormResponse>>> GetBookingFormForCustomer(FormFilterRequest request, int customerId);
-        Task<BaseResponse<PageResult<BookingFormResponse>>> GetBooingFormForProvider(FormFilterRequest request, int providerId);
+        Task<BaseResponse<PageResult<BookingFormResponse>>> GetBookingFormForCustomer(string bookingCode, FormFilterRequest request, int customerId);
+        Task<BaseResponse<PageResult<BookingFormResponse>>> GetBooingFormForProvider(string bookingCode, FormFilterRequest request, int providerId);
     }
 }

@@ -666,29 +666,39 @@ namespace BusinessLogicLayer.Services
 
                 BookingForm? bookingForm = null;
 
-                if (request.BookingForm != null && !request.BookingForm.IsEmpty())
+                bool hasBookingFormData =
+                    !string.IsNullOrWhiteSpace(request.SpaceStyle) ||
+                    !string.IsNullOrWhiteSpace(request.Style) ||
+                    !string.IsNullOrWhiteSpace(request.ThemeColor) ||
+                    !string.IsNullOrWhiteSpace(request.PrimaryUser) ||
+                    (request.RoomSize.HasValue && request.RoomSize > 0) ||
+                    (request.Images != null && request.Images.Any()) ||
+                    (request.ScopeOfWorkId != null && request.ScopeOfWorkId.Any());
+
+                if (hasBookingFormData)
                 {
                     bookingForm = new BookingForm
                     {
-                        SpaceStyle = request.BookingForm.SpaceStyle,
-                        RoomSize = request.BookingForm.RoomSize,
-                        Style = request.BookingForm.Style,
-                        ThemeColor = request.BookingForm.ThemeColor,
-                        PrimaryUser = request.BookingForm.PrimaryUser,
+                        SpaceStyle = request.SpaceStyle,
+                        RoomSize = request.RoomSize,
+                        Style = request.Style,
+                        ThemeColor = request.ThemeColor,
+                        PrimaryUser = request.PrimaryUser,
                         ScopeOfWorkForms = new List<ScopeOfWorkForm>(),
-                        FormImages = new List<FormImage>()
+                        FormImages = new List<FormImage>(),
+                        AccountId = accountId
                     };
 
                     // Upload images
-                    if (request.BookingForm.Images != null && request.BookingForm.Images.Any())
+                    if (request.Images != null && request.Images.Any())
                     {
-                        bookingForm.FormImages = await UploadFormImagesAsync(request.BookingForm.Images);
+                        bookingForm.FormImages = await UploadFormImagesAsync(request.Images);
                     }
 
                     // Add Scope of Work
-                    if (request.BookingForm.ScopeOfWorkId != null && request.BookingForm.ScopeOfWorkId.Any())
+                    if (request.ScopeOfWorkId != null && request.ScopeOfWorkId.Any())
                     {
-                        foreach (var scopeOfWorkId in request.BookingForm.ScopeOfWorkId)
+                        foreach (var scopeOfWorkId in request.ScopeOfWorkId)
                         {
                             bookingForm.ScopeOfWorkForms.Add(new ScopeOfWorkForm
                             {
@@ -1755,13 +1765,13 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
-        public async Task<BaseResponse<PageResult<BookingFormResponse>>> GetBookingFormForCustomer(FormFilterRequest request, int customerId)
+        public async Task<BaseResponse<PageResult<BookingFormResponse>>> GetBookingFormForCustomer(string bookingCode, FormFilterRequest request, int customerId)
         {
             var response = new BaseResponse<PageResult<BookingFormResponse>>();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                                    .Where(b => b.BookingCode == request.BookingCode)
+                                    .Where(b => b.BookingCode == bookingCode)
                                     .FirstOrDefaultAsync();
 
                 if (booking == null)
@@ -1772,7 +1782,7 @@ namespace BusinessLogicLayer.Services
 
                 if (!booking.BookingFormId.HasValue)
                 {
-                    response.Message = "BookingFormId not found in booking";
+                    response.Message = "Form not found!";
                     return response;
                 }
 
@@ -1845,26 +1855,26 @@ namespace BusinessLogicLayer.Services
                 };
 
                 response.Success = true;
-                response.Message = "Booking form retrieved successfully";
+                response.Message = "Form retrieved successfully.";
                 response.Data = pageResult;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error while retrieving booking form";
+                response.Message = "Error while retrieving form!";
                 response.Errors.Add(ex.Message);
             }
 
             return response;
         }
 
-        public async Task<BaseResponse<PageResult<BookingFormResponse>>> GetBooingFormForProvider(FormFilterRequest request, int providerId)
+        public async Task<BaseResponse<PageResult<BookingFormResponse>>> GetBooingFormForProvider(string bookingCode, FormFilterRequest request, int providerId)
         {
             var response = new BaseResponse<PageResult<BookingFormResponse>>();
             try
             {
                 var booking = await _unitOfWork.BookingRepository.Queryable()
-                                    .Where(b => b.BookingCode == request.BookingCode)
+                                    .Where(b => b.BookingCode == bookingCode)
                                     .FirstOrDefaultAsync();
 
                 if (booking == null)
@@ -1875,7 +1885,7 @@ namespace BusinessLogicLayer.Services
 
                 if (!booking.BookingFormId.HasValue)
                 {
-                    response.Message = "BookingFormId not found in booking";
+                    response.Message = "Form not found!";
                     return response;
                 }
 
@@ -1948,13 +1958,13 @@ namespace BusinessLogicLayer.Services
                 };
 
                 response.Success = true;
-                response.Message = "Booking form retrieved successfully";
+                response.Message = "Form retrieved successfully.";
                 response.Data = pageResult;
             }
             catch (Exception ex)
             {
                 response.Success = false;
-                response.Message = "Error while retrieving booking form";
+                response.Message = "Error while retrieving form!";
                 response.Errors.Add(ex.Message);
             }
 

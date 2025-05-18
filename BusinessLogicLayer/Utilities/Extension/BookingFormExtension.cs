@@ -16,7 +16,8 @@ namespace BusinessLogicLayer.Utilities.Extension
                 && string.IsNullOrWhiteSpace(form.Style)
                 && string.IsNullOrWhiteSpace(form.ThemeColor)
                 && string.IsNullOrWhiteSpace(form.PrimaryUser)
-                && (form.Images == null || !form.Images.Any());
+                && (form.Images == null || !form.Images.Any())
+                && (form.ScopeOfWorkId == null || !form.ScopeOfWorkId.Any());
         }
     }
 }

@@ -8,7 +8,6 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
 {
     public class FormFilterRequest
     {
-        public string BookingCode { get; set; }
         public string? SpaceStyle { get; set; }
         public double? MinSize { get; set; }
         public double? MaxSize { get; set; }

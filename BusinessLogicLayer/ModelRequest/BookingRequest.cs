@@ -22,7 +22,13 @@ namespace BusinessLogicLayer.ModelRequest
         public string? Note { get; set; }
         public int? DecorationStyleId { get; set; } // Chọn 1 style
         public List<int> ThemeColorIds { get; set; } = new(); // Chọn nhiều màu
-        public BookingFormRequest? BookingForm { get; set; }
+        public string? SpaceStyle { get; set; }
+        public double? RoomSize { get; set; }
+        public string? Style { get; set; }
+        public string? ThemeColor { get; set; }
+        public string? PrimaryUser { get; set; }
+        public List<int>? ScopeOfWorkId { get; set; }
+        public List<IFormFile>? Images { get; set; }
     }
 
     public class UpdateBookingRequest
