@@ -299,5 +299,10 @@ namespace BusinessLogicLayer.ObjectMapper
             CreateMap<ZoomMeeting, MeetingDetailResponse>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (MeetingDetailResponse.MeetingStatus)src.Status));
         }
+
+        private void BookingFormProfile()
+        {
+
+        }
     }
 }

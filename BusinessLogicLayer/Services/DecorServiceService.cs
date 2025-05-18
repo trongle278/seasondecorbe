@@ -1917,5 +1917,15 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public Task<BaseResponse<PageResult<ProductsDetailResponse>>> GetProductServiceForCustomerAsync(ServiceRelatedProductRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseResponse<PageResult<ProductsDetailResponse>>> GetProductServiceForProviderAsync(ServiceRelatedProductRequest request)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -42,7 +42,7 @@ namespace SeasonalHomeDecorAPI.Controllers
             {
                 return Ok(result);
             }
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getPaginatedList")]
@@ -57,7 +57,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getPaginatedListForProvider")]
@@ -72,7 +72,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest(result);
         }
 
         [HttpGet("getById/{id}")]

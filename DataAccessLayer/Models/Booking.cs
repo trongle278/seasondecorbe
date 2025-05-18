@@ -85,5 +85,8 @@ namespace DataAccessObject.Models
 
         public int? RelatedProductId { get; set; }
         public RelatedProduct RelatedProduct { get; set; }
+
+        public int? BookingFormId { get; set; }
+        public BookingForm? BookingForm { get; set; }
     }
 }

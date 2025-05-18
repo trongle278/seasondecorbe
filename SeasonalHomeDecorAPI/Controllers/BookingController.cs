@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using BusinessLogicLayer.Interfaces;
 using static DataAccessObject.Models.Booking;
 using CloudinaryDotNet;
+using BusinessLogicLayer.ModelRequest.Pagination;
 
 namespace SeasonalHomeDecorAPI.Controllers
 {
@@ -157,6 +158,44 @@ namespace SeasonalHomeDecorAPI.Controllers
         {
             var response = await _bookingService.ProcessCommitDepositAsync(bookingCode);
             return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [Authorize]
+        [HttpGet("getPaginatedFormsForCustomer")]
+        public async Task<IActionResult> GetPaginatedFormsForCustomer([FromQuery] FormFilterRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _bookingService.GetBookingFormForCustomer(request, accountId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpGet("getPaginatedFormsForProvider")]
+        public async Task<IActionResult> GetPaginatedFormsForProvider([FromQuery] FormFilterRequest request)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _bookingService.GetBooingFormForProvider(request, accountId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataAccessObject.Models;
 
 namespace BusinessLogicLayer.ModelResponse
 {
@@ -121,5 +122,30 @@ namespace BusinessLogicLayer.ModelResponse
         public string CancelReason { get; set; }
         public DateTime? SurveyDate { get; set; }
         public string Address { get; set; }   
+    }
+
+    public class BookingFormResponse
+    {
+        public int Id { get; set; }
+        public string? SpaceStyle { get; set; }
+        public double? RoomSize { get; set; }
+        public string? Style { get; set; }
+        public string? ThemeColor { get; set; }
+        public string? PrimaryUser { get; set; }
+        public ScopeOfWorkResponse? ScopeOfWork { get; set; }
+        public int AccountId { get; set; }
+        public List<FormImageResponse>? Images { get; set; }
+    }
+
+    public class FormImageResponse
+    {
+        public int Id { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    public class ScopeOfWorkResponse
+    {
+        public int Id { get; set; }
+        public string WorkType { get; set; }
     }
 }

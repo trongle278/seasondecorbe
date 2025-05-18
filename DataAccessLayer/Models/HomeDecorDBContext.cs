@@ -503,6 +503,31 @@ namespace DataAccessObject.Models
                 .HasForeignKey(ri => ri.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.BookingForm)
+                .WithOne(bf => bf.Booking)
+                .HasForeignKey<Booking>(b => b.BookingFormId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookingForm>()
+                .HasOne(bf => bf.Account)
+                .WithMany(a => a.BookingForms)
+                .HasForeignKey(bf => bf.AccountId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FormImage>()
+                .HasOne(fi => fi.BookingForm)
+                .WithMany(bf => bf.FormImages)
+                .HasForeignKey(fi => fi.BookingFormId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<BookingForm>()
+                .HasOne(bf => bf.ScopeOfWork)
+                .WithMany(sow => sow.BookingForms)
+                .HasForeignKey(sow => sow.ScopeOfWorkId)
+                .IsRequired(false);
+
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Provider" },
@@ -599,6 +624,20 @@ namespace DataAccessObject.Models
                 new Offering { Id = 5, Name = "Custom Design", Description = "Design on request" },
                 new Offering { Id = 6, Name = "Visual Focal Point", Description = "Create a highlight for the space" },
                 new Offering { Id = 7, Name = "Artwork & Decor Placement", Description = "Support in selecting and arranging furniture related to the service" }
+            );
+
+            modelBuilder.Entity<ScopeOfWork>().HasData(
+                new ScopeOfWork { Id = 1, WorkType = "Full Decoration & Styling" },
+                new ScopeOfWork { Id = 2, WorkType = "Furniture Selection" },
+                new ScopeOfWork { Id = 3, WorkType = "Lighting Setup" },
+                new ScopeOfWork { Id = 4, WorkType = "Wall Paint / Wallpaper" },
+                new ScopeOfWork { Id = 5, WorkType = "Curtains / Blinds" },
+                new ScopeOfWork { Id = 6, WorkType = "Rugs / Carpets" },
+                new ScopeOfWork { Id = 7, WorkType = "Wall Art & Decor Items" },
+                new ScopeOfWork { Id = 8, WorkType = "Custom Built-ins or Shelving" },
+                new ScopeOfWork { Id = 9, WorkType = "Indoor Plants" },
+                new ScopeOfWork { Id = 10, WorkType = "Space Optimization" },
+                new ScopeOfWork { Id = 11, WorkType = "Decluttering" }
             );
         }
     }

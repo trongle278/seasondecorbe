@@ -86,5 +86,6 @@ namespace DataAccessObject.Models
         public int Reputation { get; set; }     
         
         public ICollection<ZoomMeeting> ZoomMeetings { get; set; }
+        public virtual ICollection<BookingForm>? BookingForms { get; set; }
     }
 }

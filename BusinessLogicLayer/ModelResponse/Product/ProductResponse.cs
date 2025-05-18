@@ -81,4 +81,26 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public List<string>? ImageUrls { get; set; }
         public string Category { get; set; }
     }
+
+    public class RelatedProductItemResponse
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public string Image { get; set; }
+
+        public decimal ActualPrice { get; set; }
+        public string ProductImage { get; set; }
+    }
+
+    public class ProductServiceResponse
+    {
+        public int Id { get; set; }
+        public int ServiceId { get; set; }
+        public int AccountId { get; set; }
+        public int TotalItem { get; set; }
+        public decimal TotalPrice { get; set; }
+        public List<RelatedProductItemResponse> Items { get; set; }
+    }
 }

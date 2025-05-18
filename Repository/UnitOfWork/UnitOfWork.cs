@@ -70,6 +70,7 @@ namespace Repository.UnitOfWork
             ProductSeasonRepository = new ProductSeasonRepository(_context);
             RelatedProductRepository = new RelatedProductRepository(_context);
             RelatedProductItemRepository = new RelatedProductItemRepository(_context);
+            BookingFormRepository = new BookingFormRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -123,6 +124,7 @@ namespace Repository.UnitOfWork
         public IProductSeasonRepository ProductSeasonRepository { get; private set; }
         public IRelatedProductRepository RelatedProductRepository { get; private set; }
         public IRelatedProductItemRepository RelatedProductItemRepository { get; private set; }
+        public IBookingFormRepository BookingFormRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

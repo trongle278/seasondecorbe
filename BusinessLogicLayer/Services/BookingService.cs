@@ -18,6 +18,9 @@ using static System.Net.WebRequestMethods;
 using Quartz.Impl.AdoJobStore.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using BusinessLogicLayer.Utilities.Extension;
+using BusinessLogicLayer.ModelRequest.Pagination;
 //{_clientBaseUrl}/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
 
 namespace BusinessLogicLayer.Services
@@ -29,15 +32,17 @@ namespace BusinessLogicLayer.Services
         private readonly INotificationService _notificationService;
         private readonly string _clientBaseUrl;
         private readonly IZoomService _zoomService;
+        private readonly ICloudinaryService _cloudinaryService;
         private readonly ILogger<BookingService> _logger;
 
-        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService, IConfiguration configuration, IZoomService zoomService, ILogger<BookingService> logger)
+        public BookingService(IUnitOfWork unitOfWork, IPaymentService paymentService, INotificationService notificationService, IConfiguration configuration, IZoomService zoomService, ICloudinaryService cloudinaryService, ILogger<BookingService> logger)
         {
             _unitOfWork = unitOfWork;
             _paymentService = paymentService;
             _notificationService = notificationService;
             _clientBaseUrl = configuration["AppSettings:ClientBaseUrl"];
             _zoomService = zoomService;
+            _cloudinaryService = cloudinaryService;
             _logger = logger;
         }
 
@@ -659,11 +664,38 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
+                BookingForm? bookingForm = null;
+
+                if (request.BookingForm != null && !request.BookingForm.IsEmpty())
+                {
+                    bookingForm = new BookingForm
+                    {
+                        SpaceStyle = request.BookingForm.SpaceStyle,
+                        RoomSize = request.BookingForm.RoomSize,
+                        Style = request.BookingForm.Style,
+                        ThemeColor = request.BookingForm.ThemeColor,
+                        PrimaryUser = request.BookingForm.PrimaryUser,
+                        ScopeOfWorkId = request.BookingForm.ScopeOfWorkId,
+                        FormImages = new List<FormImage>()
+                    };
+
+                    // Upload images
+                    if (request.BookingForm.Images != null && request.BookingForm.Images.Any())
+                    {
+                        bookingForm.FormImages = await UploadFormImagesAsync(request.BookingForm.Images);
+                    }
+
+                    await _unitOfWork.BookingFormRepository.InsertAsync(bookingForm);
+                    await _unitOfWork.CommitAsync();
+                }
+
                 var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
                                             .Where(rp => rp.ServiceId == request.DecorServiceId && rp.AccountId == accountId)
                                             .FirstOrDefaultAsync();
                 
                 int? relatedProductId = relatedProduct?.Id;
+
+                int? bookFormId = bookingForm?.Id;
 
                 // 7. Create New Booking
                 var booking = new Booking
@@ -677,7 +709,8 @@ namespace BusinessLogicLayer.Services
                     CommitDepositAmount = 500000,
                     CreateAt = DateTime.Now,
                     IsCommitDepositPaid = false,
-                    RelatedProductId = relatedProductId
+                    RelatedProductId = relatedProductId,
+                    BookingFormId = bookFormId
                 };
 
                 // Gán phong cách trang trí nếu có
@@ -1710,10 +1743,228 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+        public async Task<BaseResponse<PageResult<BookingFormResponse>>> GetBookingFormForCustomer(FormFilterRequest request, int customerId)
+        {
+            var response = new BaseResponse<PageResult<BookingFormResponse>>();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                                    .Where(b => b.BookingCode == request.BookingCode)
+                                    .FirstOrDefaultAsync();
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found!";
+                    return response;
+                }
+
+                if (!booking.BookingFormId.HasValue)
+                {
+                    response.Message = "BookingFormId not found in booking";
+                    return response;
+                }
+
+                var bookingFormId = booking.BookingFormId.Value;
+
+                // Filter
+                Expression<Func<BookingForm, bool>> filter = form =>
+                    form.Id == bookingFormId && form.AccountId == customerId &&
+                    (string.IsNullOrEmpty(request.SpaceStyle) || form.SpaceStyle.Contains(request.SpaceStyle)) &&
+                    (string.IsNullOrEmpty(request.Style) || form.Style.Contains(request.Style)) &&
+                    (string.IsNullOrEmpty(request.ThemeColor) || form.ThemeColor.Contains(request.ThemeColor)) &&
+                    (string.IsNullOrEmpty(request.PrimaryUser) || form.PrimaryUser.Contains(request.PrimaryUser)) &&
+                    (!request.MinSize.HasValue || form.RoomSize >= request.MinSize.Value) &&
+                    (!request.MaxSize.HasValue || form.RoomSize <= request.MaxSize.Value);
+
+                // Sort
+                Expression<Func<BookingForm, object>> orderByExpression = request.SortBy?.ToLower() switch
+                {
+                    "roomsize" => form => form.RoomSize,
+                    _ => form => form.Id
+                };
+
+                // Include entities
+                Expression<Func<BookingForm, object>>[] includeProperties =
+                {
+                    form => form.FormImages,
+                    form => form.ScopeOfWork
+                };
+
+                (IEnumerable<BookingForm> forms, int totalCount) = await _unitOfWork.BookingFormRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var formResponses = forms.Select(f => new BookingFormResponse
+                {
+                    Id = f.Id,
+                    SpaceStyle = f.SpaceStyle,
+                    RoomSize = f.RoomSize,
+                    Style = f.Style,
+                    ThemeColor = f.ThemeColor,
+                    PrimaryUser = f.PrimaryUser,
+                    AccountId = f.AccountId,
+                    ScopeOfWork = f.ScopeOfWork != null
+                    ? new ScopeOfWorkResponse
+                    {
+                        Id = f.ScopeOfWork.Id,
+                        WorkType = f.ScopeOfWork.WorkType
+                    }
+                    : null,
+                    Images = f.FormImages?.Select(img => new FormImageResponse
+                    {
+                        Id = img.Id,
+                        ImageUrl = img.ImageUrl
+                    }).ToList() ?? new List<FormImageResponse>()
+                }).ToList();
+
+                var pageResult = new PageResult<BookingFormResponse>
+                {
+                    Data = formResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Booking form retrieved successfully";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error while retrieving booking form";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PageResult<BookingFormResponse>>> GetBooingFormForProvider(FormFilterRequest request, int providerId)
+        {
+            var response = new BaseResponse<PageResult<BookingFormResponse>>();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                                    .Where(b => b.BookingCode == request.BookingCode)
+                                    .FirstOrDefaultAsync();
+
+                if (booking == null)
+                {
+                    response.Message = "Booking not found!";
+                    return response;
+                }
+
+                if (!booking.BookingFormId.HasValue)
+                {
+                    response.Message = "BookingFormId not found in booking";
+                    return response;
+                }
+
+                var bookingFormId = booking.BookingFormId.Value;
+
+                // Filter
+                Expression<Func<BookingForm, bool>> filter = form =>
+                    form.Id == bookingFormId && form.Booking.DecorService.AccountId == providerId &&
+                    (string.IsNullOrEmpty(request.SpaceStyle) || form.SpaceStyle.Contains(request.SpaceStyle)) &&
+                    (string.IsNullOrEmpty(request.Style) || form.Style.Contains(request.Style)) &&
+                    (string.IsNullOrEmpty(request.ThemeColor) || form.ThemeColor.Contains(request.ThemeColor)) &&
+                    (string.IsNullOrEmpty(request.PrimaryUser) || form.PrimaryUser.Contains(request.PrimaryUser)) &&
+                    (!request.MinSize.HasValue || form.RoomSize >= request.MinSize.Value) &&
+                    (!request.MaxSize.HasValue || form.RoomSize <= request.MaxSize.Value);
+
+                // Sort
+                Expression<Func<BookingForm, object>> orderByExpression = request.SortBy?.ToLower() switch
+                {
+                    "roomsize" => form => form.RoomSize,
+                    _ => form => form.Id
+                };
+
+                // Include entities
+                Expression<Func<BookingForm, object>>[] includeProperties =
+                {
+                    form => form.FormImages,
+                    form => form.ScopeOfWork
+                };
+
+                (IEnumerable<BookingForm> forms, int totalCount) = await _unitOfWork.BookingFormRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var formResponses = forms.Select(f => new BookingFormResponse
+                {
+                    Id = f.Id,
+                    SpaceStyle = f.SpaceStyle,
+                    RoomSize = f.RoomSize,
+                    Style = f.Style,
+                    ThemeColor = f.ThemeColor,
+                    PrimaryUser = f.PrimaryUser,
+                    AccountId = f.AccountId,
+                    ScopeOfWork = f.ScopeOfWork != null
+                    ? new ScopeOfWorkResponse
+                    {
+                        Id = f.ScopeOfWork.Id,
+                        WorkType = f.ScopeOfWork.WorkType
+                    }
+                    : null,
+                    Images = f.FormImages?.Select(img => new FormImageResponse
+                    {
+                        Id = img.Id,
+                        ImageUrl = img.ImageUrl
+                    }).ToList() ?? new List<FormImageResponse>()
+                }).ToList();
+
+                var pageResult = new PageResult<BookingFormResponse>
+                {
+                    Data = formResponses,
+                    TotalCount = totalCount
+                };
+
+                response.Success = true;
+                response.Message = "Booking form retrieved successfully";
+                response.Data = pageResult;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error while retrieving booking form";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
         #region
         private string GenerateBookingCode()
         {
             return "BKG" + DateTime.Now.Ticks;
+        }
+
+        private async Task<List<FormImage>> UploadFormImagesAsync(List<IFormFile> imageFiles)
+        {
+            var uploadedImages = new List<FormImage>();
+
+            foreach (var imageFile in imageFiles)
+            {
+                if (imageFile.Length == 0) continue;
+
+                using var stream = imageFile.OpenReadStream();
+                var imageUrl = await _cloudinaryService.UploadFileAsync(
+                    stream,
+                    imageFile.FileName,
+                    imageFile.ContentType
+                );
+
+                uploadedImages.Add(new FormImage { ImageUrl = imageUrl });
+            }
+
+            return uploadedImages;
         }
         #endregion
     }

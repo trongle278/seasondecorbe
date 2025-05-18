@@ -4,6 +4,7 @@ using DataAccessObject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObject.Migrations
 {
     [DbContext(typeof(HomeDecorDBContext))]
-    partial class HomeDecorDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250517144609_BookingForm")]
+    partial class BookingForm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,17 +364,11 @@ namespace DataAccessObject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
                     b.Property<string>("PrimaryUser")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double?>("RoomSize")
                         .HasColumnType("float");
-
-                    b.Property<int?>("ScopeOfWorkId")
-                        .HasColumnType("int");
 
                     b.Property<string>("SpaceStyle")
                         .HasColumnType("nvarchar(max)");
@@ -383,10 +380,6 @@ namespace DataAccessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("ScopeOfWorkId");
 
                     b.ToTable("BookingForm");
                 });
@@ -1807,80 +1800,6 @@ namespace DataAccessObject.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DataAccessObject.Models.ScopeOfWork", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("WorkType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ScopeOfWork");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            WorkType = "Full Decoration & Styling"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            WorkType = "Furniture Selection"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            WorkType = "Lighting Setup"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            WorkType = "Wall Paint / Wallpaper"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            WorkType = "Curtains / Blinds"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            WorkType = "Rugs / Carpets"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            WorkType = "Wall Art & Decor Items"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            WorkType = "Custom Built-ins or Shelving"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            WorkType = "Indoor Plants"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            WorkType = "Space Optimization"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            WorkType = "Decluttering"
-                        });
-                });
-
             modelBuilder.Entity("DataAccessObject.Models.Season", b =>
                 {
                     b.Property<int>("Id")
@@ -2474,23 +2393,6 @@ namespace DataAccessObject.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.BookingForm", b =>
-                {
-                    b.HasOne("DataAccessObject.Models.Account", "Account")
-                        .WithMany("BookingForms")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DataAccessObject.Models.ScopeOfWork", "ScopeOfWork")
-                        .WithMany("BookingForms")
-                        .HasForeignKey("ScopeOfWorkId");
-
-                    b.Navigation("Account");
-
-                    b.Navigation("ScopeOfWork");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.BookingThemeColor", b =>
@@ -3195,8 +3097,6 @@ namespace DataAccessObject.Migrations
                 {
                     b.Navigation("Addresses");
 
-                    b.Navigation("BookingForms");
-
                     b.Navigation("Bookings");
 
                     b.Navigation("Cart")
@@ -3391,11 +3291,6 @@ namespace DataAccessObject.Migrations
             modelBuilder.Entity("DataAccessObject.Models.Role", b =>
                 {
                     b.Navigation("Accounts");
-                });
-
-            modelBuilder.Entity("DataAccessObject.Models.ScopeOfWork", b =>
-                {
-                    b.Navigation("BookingForms");
                 });
 
             modelBuilder.Entity("DataAccessObject.Models.Season", b =>
