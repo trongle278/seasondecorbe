@@ -8,13 +8,16 @@ using System.Threading.Tasks;
 
 namespace DataAccessObject.Models
 {
-    public class ScopeOfWork
+    public class ScopeOfWorkForm
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public string WorkType { get; set; }
+        
+        public int BookingFormId { get; set; }
+        public BookingForm BookingForm { get; set; }
 
-        public virtual ICollection<ScopeOfWorkForm>? ScopeOfWorkForms { get; set; }
+        public int ScopeOfWorkId { get; set; }
+        public ScopeOfWork ScopeOfWork { get; set; }
     }
 }

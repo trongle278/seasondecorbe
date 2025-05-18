@@ -19,14 +19,12 @@ namespace DataAccessObject.Models
         public string? ThemeColor { get; set; }
         public string? PrimaryUser { get; set; }
 
-        public int? ScopeOfWorkId { get; set; }
-        public ScopeOfWork? ScopeOfWork { get; set; }
-
         public int AccountId { get; set; }
         public Account Account { get; set; }
 
         public Booking Booking { get; set; }
 
         public virtual ICollection<FormImage>? FormImages { get; set; }
+        public virtual ICollection<ScopeOfWorkForm>? ScopeOfWorkForms { get; set; }
     }
 }

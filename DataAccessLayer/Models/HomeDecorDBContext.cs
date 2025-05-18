@@ -77,6 +77,9 @@ namespace DataAccessObject.Models
         public DbSet<ProductSeason> ProductSeasons { get; set; }
         public DbSet<RelatedProduct> RelatedProducts { get; set; }
         public DbSet<RelatedProductItem> RelatedProductItems { get; set; }
+        public DbSet<BookingForm> BookingForms { get; set; }
+        public DbSet<ScopeOfWork> ScopeOfWorks { get; set; }
+        public DbSet<ScopeOfWorkForm> ScopeOfWorkForms { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -522,11 +525,15 @@ namespace DataAccessObject.Models
                 .HasForeignKey(fi => fi.BookingFormId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<BookingForm>()
-                .HasOne(bf => bf.ScopeOfWork)
-                .WithMany(sow => sow.BookingForms)
-                .HasForeignKey(sow => sow.ScopeOfWorkId)
-                .IsRequired(false);
+            modelBuilder.Entity<ScopeOfWorkForm>()
+                .HasOne(sowf => sowf.BookingForm)
+                .WithMany(bf => bf.ScopeOfWorkForms)
+                .HasForeignKey(sowf => sowf.BookingFormId);
+
+            modelBuilder.Entity<ScopeOfWorkForm>()
+                .HasOne(sowf => sowf.ScopeOfWork)
+                .WithMany(sow => sow.ScopeOfWorkForms)
+                .HasForeignKey(sowf => sowf.ScopeOfWorkId);
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },

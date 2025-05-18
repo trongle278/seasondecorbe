@@ -132,9 +132,9 @@ namespace BusinessLogicLayer.ModelResponse
         public string? Style { get; set; }
         public string? ThemeColor { get; set; }
         public string? PrimaryUser { get; set; }
-        public ScopeOfWorkResponse? ScopeOfWork { get; set; }
         public int AccountId { get; set; }
         public List<FormImageResponse>? Images { get; set; }
+        public List<ScopeOfWorkResponse>? ScopeOfWorks { get; set; }
     }
 
     public class FormImageResponse

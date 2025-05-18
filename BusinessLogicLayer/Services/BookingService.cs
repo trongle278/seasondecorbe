@@ -675,7 +675,7 @@ namespace BusinessLogicLayer.Services
                         Style = request.BookingForm.Style,
                         ThemeColor = request.BookingForm.ThemeColor,
                         PrimaryUser = request.BookingForm.PrimaryUser,
-                        ScopeOfWorkId = request.BookingForm.ScopeOfWorkId,
+                        ScopeOfWorkForms = new List<ScopeOfWorkForm>(),
                         FormImages = new List<FormImage>()
                     };
 
@@ -683,6 +683,18 @@ namespace BusinessLogicLayer.Services
                     if (request.BookingForm.Images != null && request.BookingForm.Images.Any())
                     {
                         bookingForm.FormImages = await UploadFormImagesAsync(request.BookingForm.Images);
+                    }
+
+                    // Add Scope of Work
+                    if (request.BookingForm.ScopeOfWorkId != null && request.BookingForm.ScopeOfWorkId.Any())
+                    {
+                        foreach (var scopeOfWorkId in request.BookingForm.ScopeOfWorkId)
+                        {
+                            bookingForm.ScopeOfWorkForms.Add(new ScopeOfWorkForm
+                            {
+                                ScopeOfWorkId = scopeOfWorkId
+                            });
+                        }
                     }
 
                     await _unitOfWork.BookingFormRepository.InsertAsync(bookingForm);
@@ -1784,11 +1796,10 @@ namespace BusinessLogicLayer.Services
                 };
 
                 // Include entities
-                Expression<Func<BookingForm, object>>[] includeProperties =
-                {
-                    form => form.FormImages,
-                    form => form.ScopeOfWork
-                };
+                Func<IQueryable<BookingForm>, IQueryable<BookingForm>> customQuery = query =>
+                    query.Include(bf => bf.FormImages)
+                         .Include(bf => bf.ScopeOfWorkForms)
+                            .ThenInclude(sowf => sowf.ScopeOfWork);
 
                 (IEnumerable<BookingForm> forms, int totalCount) = await _unitOfWork.BookingFormRepository.GetPagedAndFilteredAsync(
                     filter,
@@ -1796,7 +1807,8 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderByExpression,
                     request.Descending,
-                    includeProperties
+                    null,
+                    customQuery
                 );
 
                 var formResponses = forms.Select(f => new BookingFormResponse
@@ -1808,18 +1820,22 @@ namespace BusinessLogicLayer.Services
                     ThemeColor = f.ThemeColor,
                     PrimaryUser = f.PrimaryUser,
                     AccountId = f.AccountId,
-                    ScopeOfWork = f.ScopeOfWork != null
-                    ? new ScopeOfWorkResponse
-                    {
-                        Id = f.ScopeOfWork.Id,
-                        WorkType = f.ScopeOfWork.WorkType
-                    }
-                    : null,
-                    Images = f.FormImages?.Select(img => new FormImageResponse
-                    {
-                        Id = img.Id,
-                        ImageUrl = img.ImageUrl
-                    }).ToList() ?? new List<FormImageResponse>()
+                    ScopeOfWorks = f.ScopeOfWorkForms?
+                        .Where(sow => sow.ScopeOfWork != null)
+                        .Select(sow => new ScopeOfWorkResponse
+                        {
+                            Id = sow.ScopeOfWork.Id,
+                            WorkType = sow.ScopeOfWork.WorkType
+                        })
+                        .ToList() ?? new List<ScopeOfWorkResponse>(),
+                    Images = f.FormImages?
+                        .Where(img => img.ImageUrl != null)
+                        .Select(img => new FormImageResponse
+                        {
+                            Id = img.Id,
+                            ImageUrl = img.ImageUrl
+                        })
+                        .ToList() ?? new List<FormImageResponse>()
                 }).ToList();
 
                 var pageResult = new PageResult<BookingFormResponse>
@@ -1883,11 +1899,10 @@ namespace BusinessLogicLayer.Services
                 };
 
                 // Include entities
-                Expression<Func<BookingForm, object>>[] includeProperties =
-                {
-                    form => form.FormImages,
-                    form => form.ScopeOfWork
-                };
+                Func<IQueryable<BookingForm>, IQueryable<BookingForm>> customQuery = query =>
+                    query.Include(bf => bf.FormImages)
+                         .Include(bf => bf.ScopeOfWorkForms)
+                            .ThenInclude(sowf => sowf.ScopeOfWork);
 
                 (IEnumerable<BookingForm> forms, int totalCount) = await _unitOfWork.BookingFormRepository.GetPagedAndFilteredAsync(
                     filter,
@@ -1895,7 +1910,8 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderByExpression,
                     request.Descending,
-                    includeProperties
+                    null,
+                    customQuery
                 );
 
                 var formResponses = forms.Select(f => new BookingFormResponse
@@ -1907,18 +1923,22 @@ namespace BusinessLogicLayer.Services
                     ThemeColor = f.ThemeColor,
                     PrimaryUser = f.PrimaryUser,
                     AccountId = f.AccountId,
-                    ScopeOfWork = f.ScopeOfWork != null
-                    ? new ScopeOfWorkResponse
-                    {
-                        Id = f.ScopeOfWork.Id,
-                        WorkType = f.ScopeOfWork.WorkType
-                    }
-                    : null,
-                    Images = f.FormImages?.Select(img => new FormImageResponse
-                    {
-                        Id = img.Id,
-                        ImageUrl = img.ImageUrl
-                    }).ToList() ?? new List<FormImageResponse>()
+                    ScopeOfWorks = f.ScopeOfWorkForms?
+                        .Where(sow => sow.ScopeOfWork != null)
+                        .Select(sow => new ScopeOfWorkResponse
+                        {
+                            Id = sow.ScopeOfWork.Id,
+                            WorkType = sow.ScopeOfWork.WorkType
+                        })
+                        .ToList() ?? new List<ScopeOfWorkResponse>(),
+                    Images = f.FormImages?
+                        .Where(img => img.ImageUrl != null)
+                        .Select(img => new FormImageResponse
+                        {
+                            Id = img.Id,
+                            ImageUrl = img.ImageUrl
+                        })
+                        .ToList() ?? new List<FormImageResponse>()
                 }).ToList();
 
                 var pageResult = new PageResult<BookingFormResponse>
