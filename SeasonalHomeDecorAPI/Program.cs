@@ -270,6 +270,7 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICancelTypeService, CancelTypeService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
+builder.Services.AddScoped<IScopeOfWorkService, ScopeOfWorkService>();
 builder.Services.AddHttpClient<IZoomService, ZoomService>();
 builder.Services.AddHttpContextAccessor();
 

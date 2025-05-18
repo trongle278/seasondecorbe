@@ -71,6 +71,7 @@ namespace Repository.UnitOfWork
             RelatedProductRepository = new RelatedProductRepository(_context);
             RelatedProductItemRepository = new RelatedProductItemRepository(_context);
             BookingFormRepository = new BookingFormRepository(_context);
+            ScopeOfWorkRepository = new ScopeOfWorkRepository(_context);
         }
 
         public IAccountRepository AccountRepository { get; private set; }
@@ -125,6 +126,7 @@ namespace Repository.UnitOfWork
         public IRelatedProductRepository RelatedProductRepository { get; private set; }
         public IRelatedProductItemRepository RelatedProductItemRepository { get; private set; }
         public IBookingFormRepository BookingFormRepository { get; private set; }
+        public IScopeOfWorkRepository ScopeOfWorkRepository { get; private set; }
         public void Dispose()
         {
             _context.Dispose();

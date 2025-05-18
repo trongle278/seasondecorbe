@@ -41,6 +41,7 @@ namespace BusinessLogicLayer.ObjectMapper
             ReviewProfile();
             SettingProfile();
             MeetingProfile();
+            ScopeOfWorkProfile();
         }
 
         private void AccountProfile()
@@ -300,9 +301,9 @@ namespace BusinessLogicLayer.ObjectMapper
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (MeetingDetailResponse.MeetingStatus)src.Status));
         }
 
-        private void BookingFormProfile()
+        private void ScopeOfWorkProfile()
         {
-
+            CreateMap<ScopeOfWork, ScopeOfWorkResponse>();
         }
     }
 }

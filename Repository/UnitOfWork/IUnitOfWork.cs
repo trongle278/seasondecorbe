@@ -62,6 +62,7 @@ namespace Repository.UnitOfWork
         IRelatedProductRepository RelatedProductRepository { get; }
         IRelatedProductItemRepository RelatedProductItemRepository { get; }
         IBookingFormRepository BookingFormRepository { get; }
+        IScopeOfWorkRepository ScopeOfWorkRepository { get; }
         int Save();
         Task CommitAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
