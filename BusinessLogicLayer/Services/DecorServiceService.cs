@@ -1605,8 +1605,7 @@ namespace BusinessLogicLayer.Services
                 // Check account permission
                 var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
 
-                if ((account != null && account.RoleId != 1) &&
-                    !(account?.RoleId == 3 && account.ProviderVerified == true))
+                if ((account != null) && (account.RoleId != 1) && !(account?.RoleId == 2 && account.ProviderVerified == true))
                 {
                     // Only show in-stock for regular or unverified users
                     filter = filter.And(p => p.Quantity > 0);
