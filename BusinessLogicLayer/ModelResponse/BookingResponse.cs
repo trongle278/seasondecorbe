@@ -31,6 +31,7 @@ namespace BusinessLogicLayer.ModelResponse
         public ProviderResponse Provider { get; set; } // Thông tin nhà cung cấp (Provider)    
         public string CancelType { get; set; }
         public string? CancelReason { get; set; }
+        public BookingFormResponse? BookingForm { get; set; }
     }
 
     public class BookingDetailForProviderResponse
@@ -51,6 +52,8 @@ namespace BusinessLogicLayer.ModelResponse
 
         public string DesignName { get; set; }
         public List<ThemeColorResponse> ThemeColors { get; set; } = new();
+
+        public BookingFormResponse? BookingForm { get; set; }
     }
 
     public class BookingDetailResponse
@@ -82,6 +85,7 @@ namespace BusinessLogicLayer.ModelResponse
         public DesignResponse? Design { get; set; }
         public CustomerResponse Customer { get; set; }
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
+        public BookingFormResponse? BookingForm { get; set; }
     }
 
     public class CustomerResponse

@@ -132,7 +132,13 @@ namespace BusinessLogicLayer.Services
 
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor)
-                    .Include(b => b.DecorationStyle);
+                    .Include(b => b.DecorationStyle)
+                    
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.FormImages)
+                     .Include(b => b.BookingForm)   
+                        .ThenInclude(bf => bf.ScopeOfWorkForms)
+                        .ThenInclude(sowf => sowf.ScopeOfWork);
 
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
                     filter,
@@ -221,6 +227,30 @@ namespace BusinessLogicLayer.Services
                         IsContractSigned = latestQuotation?.Contract?.isSigned ?? false,
                         IsTracked = booking.IsTracked ?? false,
                         IsReviewed = booking.IsReviewed ?? false,
+
+                        BookingForm = booking.BookingForm == null ? null : new BookingFormResponse
+                        {
+                            Id = booking.BookingForm.Id,
+                            SpaceStyle = booking.BookingForm.SpaceStyle,
+                            RoomSize = booking.BookingForm.RoomSize,
+                            Style = booking.BookingForm.Style,
+                            ThemeColor = booking.BookingForm.ThemeColor,
+                            PrimaryUser = booking.BookingForm.PrimaryUser,
+
+                            Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
+                            {
+                                Id = img.Id,
+                                ImageUrl = img.ImageUrl
+                            }).ToList() ?? new List<FormImageResponse>(),
+
+                            ScopeOfWorks = booking.BookingForm.ScopeOfWorkForms?
+                        .Where(sowf => sowf.ScopeOfWork != null)
+                        .Select(sowf => new ScopeOfWorkResponse
+                        {
+                            Id = sowf.ScopeOfWork.Id,
+                            WorkType = sowf.ScopeOfWork.WorkType
+                        }).ToList() ?? new List<ScopeOfWorkResponse>()
+                        }
                     };
                 }).ToList();
 
@@ -274,7 +304,13 @@ namespace BusinessLogicLayer.Services
 
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor)
-                    .Include(b => b.DecorationStyle);
+                    .Include(b => b.DecorationStyle)
+                    
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.FormImages)
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.ScopeOfWorkForms)
+                        .ThenInclude(sowf => sowf.ScopeOfWork);
 
                 // 🔹 Get paginated data & filter
                 (IEnumerable<Booking> bookings, int totalCount) = await _unitOfWork.BookingRepository.GetPagedAndFilteredAsync(
@@ -367,6 +403,30 @@ namespace BusinessLogicLayer.Services
                     //EstimatedCompletion = booking.BookingDetails.Any()
                     //    ? booking.BookingDetails.Max(bd => bd.EstimatedCompletion)
                     //    : null
+
+                    BookingForm = booking.BookingForm == null ? null : new BookingFormResponse
+                    {
+                        Id = booking.BookingForm.Id,
+                        SpaceStyle = booking.BookingForm.SpaceStyle,
+                        RoomSize = booking.BookingForm.RoomSize,
+                        Style = booking.BookingForm.Style,
+                        ThemeColor = booking.BookingForm.ThemeColor,
+                        PrimaryUser = booking.BookingForm.PrimaryUser,
+
+                        Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
+                        {
+                            Id = img.Id,
+                            ImageUrl = img.ImageUrl
+                        }).ToList() ?? new List<FormImageResponse>(),
+
+                        ScopeOfWorks = booking.BookingForm.ScopeOfWorkForms?
+                        .Where(sowf => sowf.ScopeOfWork != null)
+                        .Select(sowf => new ScopeOfWorkResponse
+                        {
+                            Id = sowf.ScopeOfWork.Id,
+                            WorkType = sowf.ScopeOfWork.WorkType
+                        }).ToList() ?? new List<ScopeOfWorkResponse>()
+                    }
                 }).ToList();
 
                 response.Success = true;
@@ -395,6 +455,12 @@ namespace BusinessLogicLayer.Services
                     .Where(b => b.AccountId == accountId)
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.Account) // ⭐ Join Provider
+
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.FormImages)
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.ScopeOfWorkForms)
+                        .ThenInclude(sowf => sowf.ScopeOfWork)
                     .ToListAsync();
 
                 var result = bookings.Select(booking => new BookingResponse
@@ -422,6 +488,30 @@ namespace BusinessLogicLayer.Services
                         Id = booking.DecorService.Account.Id,
                         BusinessName = booking.DecorService.Account.BusinessName,
                         Avatar = booking.DecorService.Account.Avatar,
+                    },
+
+                    BookingForm = booking.BookingForm == null ? null : new BookingFormResponse
+                    {
+                        Id = booking.BookingForm.Id,
+                        SpaceStyle = booking.BookingForm.SpaceStyle,
+                        RoomSize = booking.BookingForm.RoomSize,
+                        Style = booking.BookingForm.Style,
+                        ThemeColor = booking.BookingForm.ThemeColor,
+                        PrimaryUser = booking.BookingForm.PrimaryUser,
+
+                        Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
+                        {
+                            Id = img.Id,
+                            ImageUrl = img.ImageUrl
+                        }).ToList() ?? new List<FormImageResponse>(),
+
+                        ScopeOfWorks = booking.BookingForm.ScopeOfWorkForms?
+                        .Where(sowf => sowf.ScopeOfWork != null)
+                        .Select(sowf => new ScopeOfWorkResponse
+                        {
+                            Id = sowf.ScopeOfWork.Id,
+                            WorkType = sowf.ScopeOfWork.WorkType
+                        }).ToList() ?? new List<ScopeOfWorkResponse>()
                     }
                 }).ToList();
 
@@ -460,6 +550,12 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.DecorationStyle) // ✅ Include style
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor) // ✅ Include theme colors
+
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.FormImages)
+                    .Include(b => b.BookingForm)
+                        .ThenInclude(bf => bf.ScopeOfWorkForms)
+                        .ThenInclude(sowf => sowf.ScopeOfWork)
 
                     .Where(b => b.BookingCode == bookingCode)
                     .FirstOrDefaultAsync();
@@ -548,7 +644,31 @@ namespace BusinessLogicLayer.Services
                         Id = tc.ThemeColor.Id,
                         ColorCode = tc.ThemeColor.ColorCode
                     })
-                    .ToList() ?? new List<ThemeColorResponse>()
+                    .ToList() ?? new List<ThemeColorResponse>(),
+
+                    BookingForm = booking.BookingForm == null ? null : new BookingFormResponse
+                    {
+                        Id = booking.BookingForm.Id,
+                        SpaceStyle = booking.BookingForm.SpaceStyle,
+                        RoomSize = booking.BookingForm.RoomSize,
+                        Style = booking.BookingForm.Style,
+                        ThemeColor = booking.BookingForm.ThemeColor,
+                        PrimaryUser = booking.BookingForm.PrimaryUser,
+
+                        Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
+                        {
+                            Id = img.Id,
+                            ImageUrl = img.ImageUrl
+                        }).ToList() ?? new List<FormImageResponse>(),
+
+                        ScopeOfWorks = booking.BookingForm.ScopeOfWorkForms?
+                        .Where(sowf => sowf.ScopeOfWork != null)
+                        .Select(sowf => new ScopeOfWorkResponse
+                        {
+                            Id = sowf.ScopeOfWork.Id,
+                            WorkType = sowf.ScopeOfWork.WorkType
+                        }).ToList() ?? new List<ScopeOfWorkResponse>()
+                    }
                 };
 
                 response.Success = true;
