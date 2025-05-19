@@ -1111,7 +1111,7 @@ namespace BusinessLogicLayer.Services
                 // Check user
                 var account = await _unitOfWork.AccountRepository.GetByIdAsync(request.UserId);
 
-                if ((account != null && account.RoleId == 1) || (account != null && account.RoleId == 3 && account.ProviderVerified == true))
+                if ((account != null && account.RoleId == 1) || (account != null && account.RoleId == 2))
                 {
                     // Display all products
                 }
