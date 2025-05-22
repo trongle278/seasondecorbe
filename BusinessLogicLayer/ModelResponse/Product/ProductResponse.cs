@@ -64,7 +64,9 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string? MadeIn { get; set; }
         public string? ShipFrom { get; set; }
         public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
         public List<string>? ImageUrls { get; set; }
+        public List<string> Seasons { get; set; }
         public ProductProviderResponse? Provider { get; set; }
         public List<ReviewResponse>? Reviews { get; set; }
     }

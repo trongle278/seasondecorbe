@@ -1578,6 +1578,10 @@ namespace BusinessLogicLayer.Services
 
                 var provider = decorService.Account;
                 var providerDecorCategory = decorService.DecorCategory?.CategoryName;
+                var seasons = decorService.DecorServiceSeasons
+                    .Select(dss => dss.Season.SeasonName)
+                    .Distinct()
+                    .ToList();
 
                 if (string.IsNullOrEmpty(providerDecorCategory))
                 {
@@ -1671,6 +1675,7 @@ namespace BusinessLogicLayer.Services
                 response.Data = new RelatedProductPageResult
                 {
                     Category = providerDecorCategory,
+                    Seasons = seasons,
                     Data = relatedProducts,
                     TotalCount = totalCount
                 };

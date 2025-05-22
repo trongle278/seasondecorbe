@@ -229,7 +229,17 @@ namespace BusinessLogicLayer.Services
                 var product = await _unitOfWork.ProductRepository
                                         .Query(p => p.Id == id)
                                         .Include(p => p.ProductImages)
+                                        .Include(p => p.Category)
+                                        .Include(p => p.ProductSeasons)
+                                            .ThenInclude(ps => ps.Season)
                                         .FirstOrDefaultAsync();
+
+                // Get seasons
+                var seasons = await _unitOfWork.ProductSeasonRepository
+                    .Query(ps => ps.ProductId == product.Id)
+                    .Include(ps => ps.Season)
+                    .Select(ps => ps.Season.SeasonName)
+                    .ToListAsync();
 
                 // Get orderDetail of product
                 var orderDetails = await _unitOfWork.OrderDetailRepository
@@ -314,7 +324,9 @@ namespace BusinessLogicLayer.Services
                     MadeIn = product.MadeIn,
                     ShipFrom = product.ShipFrom,
                     CategoryId = product.CategoryId,
+                    CategoryName = product.Category.CategoryName,
                     ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>(),
+                    Seasons = seasons,
                     Provider = providerResponse,
                     Reviews = reviewResponses
                 };
