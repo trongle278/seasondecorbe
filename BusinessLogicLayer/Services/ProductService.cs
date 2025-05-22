@@ -138,11 +138,11 @@ namespace BusinessLogicLayer.Services
                 };
 
                 // Include entities
-                Expression<Func<Product, object>>[] includeProperties =
-                {
-                    p => p.ProductImages,
-                    p => p.Category
-                };
+                Func<IQueryable<Product>, IQueryable<Product>> customQuery = query =>
+                    query.Include(p => p.ProductImages)
+                         .Include(p => p.Category)
+                         .Include(p => p.ProductSeasons)
+                            .ThenInclude(ps => ps.Season);
 
                 // Get paginated data and filter
                 (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
@@ -151,7 +151,8 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderByExpression,
                     request.Descending,
-                    includeProperties
+                    null,
+                    customQuery
                 );
 
                 var productResponses = new List<ProductListResponse>();
@@ -195,7 +196,10 @@ namespace BusinessLogicLayer.Services
                         },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
-                            : new List<string>()
+                            : new List<string>(),
+                        Seasons = product.ProductSeasons?
+                            .Select(ps => ps.Season.SeasonName)
+                            .ToList() ?? new List<string>()
                     };
 
                     productResponses.Add(productResponse);
@@ -461,12 +465,12 @@ namespace BusinessLogicLayer.Services
                     _ => product => product.Id
                 };
 
-                // Include Entities
-                Expression<Func<Product, object>>[] includeProperties =
-                {
-                    p => p.ProductImages,
-                    p => p.Category
-                };
+                // Include entities
+                Func<IQueryable<Product>, IQueryable<Product>> customQuery = query =>
+                    query.Include(p => p.ProductImages)
+                         .Include(p => p.Category)
+                         .Include(p => p.ProductSeasons)
+                            .ThenInclude(ps => ps.Season);
 
                 // Get paginated data and filter
                 (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
@@ -475,7 +479,8 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderByExpression,
                     request.Descending,
-                    includeProperties
+                    null,
+                    customQuery
                 );
 
                 var productResponses = new List<ProductListResponse>();
@@ -520,7 +525,10 @@ namespace BusinessLogicLayer.Services
                         },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
-                            : new List<string>()
+                            : new List<string>(),
+                        Seasons = product.ProductSeasons?
+                            .Select(ps => ps.Season.SeasonName)
+                            .ToList() ?? new List<string>()
                     };
 
                     productResponses.Add(productResponse);
@@ -674,12 +682,12 @@ namespace BusinessLogicLayer.Services
                     _ => product => product.Id
                 };
 
-                // Include Entities
-                Expression<Func<Product, object>>[] includeProperties =
-                {
-                    product => product.ProductImages,
-                    product => product.Category
-                };
+                // Include entities
+                Func<IQueryable<Product>, IQueryable<Product>> customQuery = query =>
+                    query.Include(p => p.ProductImages)
+                         .Include(p => p.Category)
+                         .Include(p => p.ProductSeasons)
+                            .ThenInclude(ps => ps.Season);
 
                 // Get paginated data and filter
                 (IEnumerable<Product> products, int totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
@@ -688,7 +696,8 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderByExpression,
                     request.Descending,
-                    includeProperties
+                    null,
+                    customQuery
                 );
 
                 var productResponses = new List<ProductListResponse>();
@@ -733,7 +742,10 @@ namespace BusinessLogicLayer.Services
                         },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
-                            : new List<string>()
+                            : new List<string>(),
+                        Seasons = product.ProductSeasons?
+                            .Select(ps => ps.Season.SeasonName)
+                            .ToList() ?? new List<string>()
                     };
 
                     productResponses.Add(productResponse);
