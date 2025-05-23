@@ -110,6 +110,15 @@ builder.Services.AddQuartz(q =>
         .WithSimpleSchedule(x => x
             .WithIntervalInMinutes(5)
             .RepeatForever()));
+
+    var autoCancelContractJobKey = new JobKey("AutoCancelExpiredContractsJob");
+    q.AddJob<AutoCancelExpiredContractsJob>(opts => opts.WithIdentity(autoCancelContractJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(autoCancelContractJobKey)
+        .WithIdentity("AutoCancelExpiredContractsJobTrigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(5)
+            .RepeatForever()));
 }); 
 
 // Đăng ký dịch vụ Quartz background
@@ -292,6 +301,7 @@ using (var scope = app.Services.CreateScope())
     await scheduler.TriggerJob(new JobKey("SurveyDateExpiredJob"));
     await scheduler.TriggerJob(new JobKey("DecorServiceStatusUpdateJob"));
     await scheduler.TriggerJob(new JobKey("BookingCancelDisableJob"));
+    await scheduler.TriggerJob(new JobKey("AutoCancelExpiredContractsJob"));
 }
 
 // 12. Configure the HTTP request pipeline
