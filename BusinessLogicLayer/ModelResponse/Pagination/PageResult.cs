@@ -24,4 +24,9 @@ namespace BusinessLogicLayer.ModelResponse.Pagination
     {
         public string Category { get; set; }
     }
+
+    public class ServiceRelatedProductPageResult : PageResult<ServiceRelatedProductResponse>
+    {
+        public string Category { get; set; }
+    }
 }

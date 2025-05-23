@@ -1558,9 +1558,9 @@ namespace BusinessLogicLayer.Services
             }
         }
 
-        public async Task<BaseResponse<RelatedProductPageResult>> GetRelatedProductsAsync(ServiceRelatedProductRequest request)
+        public async Task<BaseResponse<ServiceRelatedProductPageResult>> GetRelatedProductsAsync(ServiceRelatedProductRequest request)
         {
-            var response = new BaseResponse<RelatedProductPageResult>();
+            var response = new BaseResponse<ServiceRelatedProductPageResult>();
             try
             {
                 var decorService = await _unitOfWork.DecorServiceRepository.Queryable()
@@ -1640,7 +1640,7 @@ namespace BusinessLogicLayer.Services
                     customQuery
                 );
 
-                var relatedProducts = new List<RelatedProductResponse>();
+                var relatedProducts = new List<ServiceRelatedProductResponse>();
 
                 foreach (var product in products)
                 {
@@ -1654,10 +1654,11 @@ namespace BusinessLogicLayer.Services
                     var averageRate = reviews.Any() ? reviews.Average(r => r.Rate) : 0;
                     var totalSold = orderDetails.Sum(od => od.Quantity);
 
-                    relatedProducts.Add(new RelatedProductResponse
+                    relatedProducts.Add(new ServiceRelatedProductResponse
                     {
                         Id = product.Id,
                         ProductName = product.ProductName,
+                        Description = product.Description,
                         ProductPrice = product.ProductPrice,
                         Rate = averageRate,
                         TotalSold = totalSold,
@@ -1676,7 +1677,7 @@ namespace BusinessLogicLayer.Services
 
                 response.Success = true;
                 response.Message = "Related products retrieved successfully.";
-                response.Data = new RelatedProductPageResult
+                response.Data = new ServiceRelatedProductPageResult
                 {
                     Category = providerDecorCategory,
                     Data = relatedProducts,
@@ -1925,14 +1926,39 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public Task<BaseResponse<PageResult<ProductsDetailResponse>>> GetProductServiceForCustomerAsync(ServiceRelatedProductRequest request)
+        public async Task<BaseResponse> GetAddedProductServiceAsync(int serviceId, int accountId)
         {
-            throw new NotImplementedException();
-        }
+            var response = new BaseResponse();
+            try
+            {
+                var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
+                    .Where(rp => rp.ServiceId == serviceId && rp.AccountId == accountId)
+                    .FirstOrDefaultAsync();
 
-        public Task<BaseResponse<PageResult<ProductsDetailResponse>>> GetProductServiceForProviderAsync(ServiceRelatedProductRequest request)
-        {
-            throw new NotImplementedException();
+                if (relatedProduct == null)
+                {
+                    response.Success = true;
+                    response.Message = "No related product was added.";
+                    response.Data = new List<RelatedProductItemResponse>();
+                    return response;
+                }
+
+                var relatedProductItem = await _unitOfWork.RelatedProductItemRepository.Queryable()
+                    .Where(rpi => rpi.RelatedProductId == relatedProduct.Id)
+                    .ToListAsync();
+
+                response.Success = true;
+                response.Message = "Added related product retrieved successfully.";
+                response.Data = _mapper.Map<List<RelatedProductItemResponse>>(relatedProductItem);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Added related product holder retrieving cart";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
         }
     }
 }

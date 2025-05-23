@@ -295,5 +295,24 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return BadRequest(result);
         }
+
+        [Authorize]
+        [HttpGet("getAddedProduct/{serviceId}")]
+        public async Task<IActionResult> GetAddedRelatedProduct(int serviceId)
+        {
+            var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _decorServiceService.GetAddedProductServiceAsync(serviceId, accountId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
     }
 }
