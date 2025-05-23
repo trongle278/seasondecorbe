@@ -41,8 +41,12 @@ namespace BusinessLogicLayer.Services
             var response = new BaseResponse();
             try
             {
-                Expression<Func<Product, object>>[] includeProperties = { p => p.ProductImages, p => p.Category };
-                var products = await _unitOfWork.ProductRepository.GetAllAsync(includeProperties);
+                var products = await _unitOfWork.ProductRepository.Queryable()
+                                                .Include(p => p.ProductImages)
+                                                .Include(p => p.Category)
+                                                .Include(p => p.ProductSeasons)
+                                                    .ThenInclude(ps => ps.Season)
+                                                .ToListAsync();
 
                 var productResponses = new List<ProductListResponse>();
 
@@ -85,7 +89,10 @@ namespace BusinessLogicLayer.Services
                         },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
-                            : new List<string>()
+                            : new List<string>(),
+                        Seasons = product.ProductSeasons?
+                            .Select(ps => ps.Season.SeasonName)
+                            .ToList() ?? new List<string>()
                     };
 
                     productResponses.Add(productResponse);
@@ -358,6 +365,8 @@ namespace BusinessLogicLayer.Services
                                                 .Query(p => p.CategoryId == id)
                                                 .Include(p => p.ProductImages)
                                                 .Include(p => p.Category)
+                                                .Include(p => p.ProductSeasons)
+                                                    .ThenInclude(ps => ps.Season)
                                                 .ToListAsync();
 
                 var productResponses = new List<ProductListResponse>();
@@ -402,7 +411,10 @@ namespace BusinessLogicLayer.Services
                         },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
-                            : new List<string>()
+                            : new List<string>(),
+                        Seasons = product.ProductSeasons?
+                            .Select(ps => ps.Season.SeasonName)
+                            .ToList() ?? new List<string>()
                     };
 
                     productResponses.Add(productResponse);
@@ -575,6 +587,8 @@ namespace BusinessLogicLayer.Services
                                                 .Query(p => p.AccountId == accountId)
                                                 .Include(p => p.ProductImages)
                                                 .Include(p => p.Category)
+                                                .Include(p => p.ProductSeasons)
+                                                    .ThenInclude(ps => ps.Season)
                                                 .ToListAsync();
 
                 var productResponses = new List<ProductListResponse>();
@@ -619,7 +633,10 @@ namespace BusinessLogicLayer.Services
                         },
                         ImageUrls = product.ProductImages?.FirstOrDefault()?.ImageUrl != null
                             ? new List<string> { product.ProductImages.FirstOrDefault()?.ImageUrl }
-                            : new List<string>()
+                            : new List<string>(),
+                        Seasons = product.ProductSeasons?
+                            .Select(ps => ps.Season.SeasonName)
+                            .ToList() ?? new List<string>()
                     };
 
                     productResponses.Add(productResponse);

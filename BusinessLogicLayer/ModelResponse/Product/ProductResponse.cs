@@ -83,6 +83,7 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public string Status { get; set; }
         public List<string>? ImageUrls { get; set; }
         public string Category { get; set; }
+        public List<string> Seasons { get; set; }
     }
 
     public class RelatedProductItemResponse

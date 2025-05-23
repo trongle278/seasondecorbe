@@ -1624,12 +1624,11 @@ namespace BusinessLogicLayer.Services
                     _ => p => p.Id
                 };
 
-                Expression<Func<Product, object>>[] includes =
-                {
-                    p => p.ProductImages,
-                    p => p.Category,
-                    p => p.ProductSeasons
-                };
+                Func<IQueryable<Product>, IQueryable<Product>> customQuery = query =>
+                    query.Include(p => p.ProductImages)
+                         .Include(p => p.Category)
+                         .Include(p => p.ProductSeasons)
+                            .ThenInclude(ps => ps.Season);
 
                 var (products, totalCount) = await _unitOfWork.ProductRepository.GetPagedAndFilteredAsync(
                     filter,
@@ -1637,7 +1636,8 @@ namespace BusinessLogicLayer.Services
                     request.PageSize,
                     orderBy,
                     request.Descending,
-                    includes
+                    null,
+                    customQuery
                 );
 
                 var relatedProducts = new List<RelatedProductResponse>();
@@ -1666,7 +1666,11 @@ namespace BusinessLogicLayer.Services
                             ? Product.ProductStatus.InStock.ToString()
                             : Product.ProductStatus.OutOfStock.ToString(),
                         ImageUrls = product.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>(),
-                        Category = product.Category.CategoryName
+                        Category = product.Category.CategoryName,
+                        Seasons = product.ProductSeasons?
+                             .Select(ps => ps.Season.SeasonName)
+                             .Distinct()
+                             .ToList() ?? new List<string>()
                     });
                 }
 
@@ -1675,7 +1679,6 @@ namespace BusinessLogicLayer.Services
                 response.Data = new RelatedProductPageResult
                 {
                     Category = providerDecorCategory,
-                    Seasons = seasons,
                     Data = relatedProducts,
                     TotalCount = totalCount
                 };

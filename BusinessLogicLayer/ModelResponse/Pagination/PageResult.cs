@@ -23,6 +23,5 @@ namespace BusinessLogicLayer.ModelResponse.Pagination
     public class RelatedProductPageResult : PageResult<RelatedProductResponse>
     {
         public string Category { get; set; }
-        public List<string> Seasons { get; set; }
     }
 }
