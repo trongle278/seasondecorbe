@@ -259,8 +259,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("updateProductInServiceHolder/{relatedProductId}")]
-        public async Task<IActionResult> UpdateProductIndServiceHolder(int relatedProductId, int productId, int quantity)
+        [HttpPut("updateProductInServiceHolder/{serviceId}")]
+        public async Task<IActionResult> UpdateProductIndServiceHolder(int serviceId, int productId, int quantity)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             if (accountId == 0)
@@ -268,7 +268,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _decorServiceService.UpdateQuantityAsync(relatedProductId, productId, quantity);
+            var result = await _decorServiceService.UpdateQuantityAsync(serviceId, accountId, productId, quantity);
             
             if (result.Success)
             {
@@ -278,8 +278,8 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
-        [HttpDelete("removeProductFromServiceHolder/{relatedProductId}")]
-        public async Task<IActionResult> RemoveProductFromServiceHolder(int relatedProductId, int productId)
+        [HttpDelete("removeProductFromServiceHolder/{serviceId}")]
+        public async Task<IActionResult> RemoveProductFromServiceHolder(int serviceId, int productId)
         {
             var accountId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             if (accountId == 0)
@@ -287,7 +287,7 @@ namespace SeasonalHomeDecorAPI.Controllers
                 return Unauthorized(new { Message = "Unauthorized" });
             }
 
-            var result = await _decorServiceService.RemoveRelatedProductAsync(relatedProductId, productId);
+            var result = await _decorServiceService.RemoveRelatedProductAsync(serviceId, accountId, productId);
 
             if (result.Success)
             {
