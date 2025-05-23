@@ -104,7 +104,6 @@ namespace BusinessLogicLayer.ModelResponse.Product
     public class RelatedProductItemResponse
     {
         public int Id { get; set; }
-        public int RelatedProductId { get; set; }
         public int ProductId { get; set; }
         public string ProductName { get; set; }
         public string Image { get; set; }
