@@ -86,16 +86,30 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public List<string> Seasons { get; set; }
     }
 
+    public class ServiceRelatedProductResponse
+    {
+        public int Id { get; set; }
+        public string ProductName { get; set; }
+        public string? Description {  get; set; }
+        public double Rate { get; set; }
+        public decimal ProductPrice { get; set; }
+        public int TotalSold { get; set; }
+        public int? Quantity { get; set; }
+        public string Status { get; set; }
+        public List<string>? ImageUrls { get; set; }
+        public string Category { get; set; }
+        public List<string> Seasons { get; set; }
+    }
+
     public class RelatedProductItemResponse
     {
+        public int Id { get; set; }
+        public int RelatedProductId { get; set; }
         public int ProductId { get; set; }
         public string ProductName { get; set; }
+        public string Image { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
-        public string Image { get; set; }
-
-        public decimal ActualPrice { get; set; }
-        public string ProductImage { get; set; }
     }
 
     public class ProductServiceResponse
@@ -105,6 +119,6 @@ namespace BusinessLogicLayer.ModelResponse.Product
         public int AccountId { get; set; }
         public int TotalItem { get; set; }
         public decimal TotalPrice { get; set; }
-        public List<RelatedProductItemResponse> Items { get; set; }
+        public List<RelatedProductItemResponse> RelatedProductItems { get; set; }
     }
 }
