@@ -1799,13 +1799,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> UpdateQuantityAsync(int relatedProductId, int productId, int quantity)
+        public async Task<BaseResponse> UpdateQuantityAsync(int serviceId, int accountId, int productId, int quantity)
         {
             var response = new BaseResponse();
             try
             {
                 var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
-                                            .Where(r => r.Id == relatedProductId)
+                                            .Where(rp => rp.ServiceId == serviceId && rp.AccountId == accountId)
                                             .FirstOrDefaultAsync();
 
                 if (relatedProduct == null)
@@ -1815,7 +1815,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var item = await _unitOfWork.RelatedProductItemRepository.Queryable()
-                                            .Where(rp => rp.RelatedProductId == relatedProductId && rp.ProductId == productId)
+                                            .Where(rp => rp.RelatedProductId == relatedProduct.Id && rp.ProductId == productId)
                                             .FirstOrDefaultAsync();
 
                 if (item == null || quantity <= 0)
@@ -1878,13 +1878,13 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
-        public async Task<BaseResponse> RemoveRelatedProductAsync(int relatedProductId, int productId)
+        public async Task<BaseResponse> RemoveRelatedProductAsync(int serviceId, int accountId, int productId)
         {
             var response = new BaseResponse();
             try
             {
                 var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
-                                            .Where(rp => rp.Id == relatedProductId)
+                                            .Where(rp => rp.ServiceId == serviceId && rp.AccountId == accountId)
                                             .FirstOrDefaultAsync();
 
                 if (relatedProduct == null)
@@ -1894,7 +1894,7 @@ namespace BusinessLogicLayer.Services
                 }
 
                 var item = await _unitOfWork.RelatedProductItemRepository.Queryable()
-                                            .Where(rp => rp.RelatedProductId == relatedProductId && rp.ProductId == productId)
+                                            .Where(rp => rp.RelatedProductId == relatedProduct.Id && rp.ProductId == productId)
                                             .FirstOrDefaultAsync();
 
                 if (item == null)

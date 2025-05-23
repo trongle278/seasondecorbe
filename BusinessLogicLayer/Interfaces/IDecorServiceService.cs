@@ -34,7 +34,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<ServiceRelatedProductPageResult>> GetRelatedProductsAsync(ServiceRelatedProductRequest request);
         Task<BaseResponse> GetAddedProductServiceAsync(int serviceId, int accountId);
         Task<BaseResponse> AddRelatedProductAsync(int serviceId, int accountId ,int productId, int quantity);
-        Task<BaseResponse> UpdateQuantityAsync(int relatedProductId, int productId, int quantity);
-        Task<BaseResponse> RemoveRelatedProductAsync(int relatedProductId, int productId);
+        Task<BaseResponse> UpdateQuantityAsync(int serviceId, int accountId, int productId, int quantity);
+        Task<BaseResponse> RemoveRelatedProductAsync(int serviceId, int accountId, int productId);
     }
 }
