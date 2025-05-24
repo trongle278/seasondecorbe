@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using BusinessLogicLayer.Utilities.Extension;
 using BusinessLogicLayer.ModelRequest.Pagination;
+using BusinessLogicLayer.ModelResponse.Product;
 //{_clientBaseUrl}/booking/progress/{bookingCode}?is-tracked={booking.IsTracked}&status=9&quotation-code={quotation.QuotationCode}&provider={Uri.EscapeDataString(provider.BusinessName)}&avatar={Uri.EscapeDataString(provider.Avatar ?? "null")}&is-reviewed={booking.IsReviewed}
 
 namespace BusinessLogicLayer.Services
@@ -551,6 +552,9 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor) // ✅ Include theme colors
 
+                    .Include(b => b.DecorService.RelatedProducts)
+                        .ThenInclude(rp => rp.RelatedProductItems)
+
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
                     .Include(b => b.BookingForm)
@@ -668,7 +672,19 @@ namespace BusinessLogicLayer.Services
                             Id = sowf.ScopeOfWork.Id,
                             WorkType = sowf.ScopeOfWork.WorkType
                         }).ToList() ?? new List<ScopeOfWorkResponse>()
-                    }
+                    },
+
+                    RelatedProductItems = booking.DecorService.RelatedProducts?
+                    .SelectMany(rp => rp.RelatedProductItems)
+                    .Select(item => new RelatedProductItemResponse
+                    {
+                        Id = item.Id,
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        Quantity = item.Quantity,
+                        Image = item.Image,
+                        UnitPrice = item.UnitPrice
+                    }).ToList() ?? new List<RelatedProductItemResponse>()
                 };
 
                 response.Success = true;

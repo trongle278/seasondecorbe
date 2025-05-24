@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessLogicLayer.ModelResponse.Product;
 using DataAccessObject.Models;
 
 namespace BusinessLogicLayer.ModelResponse
@@ -54,6 +55,8 @@ namespace BusinessLogicLayer.ModelResponse
         public List<ThemeColorResponse> ThemeColors { get; set; } = new();
 
         public BookingFormResponse? BookingForm { get; set; }
+
+        public List<RelatedProductItemResponse> RelatedProductItems { get; set; }
     }
 
     public class BookingDetailResponse
