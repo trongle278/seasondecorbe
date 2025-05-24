@@ -134,7 +134,10 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor)
                     .Include(b => b.DecorationStyle)
-                    
+
+                    .Include(b => b.DecorService.RelatedProducts)
+                        .ThenInclude(rp => rp.RelatedProductItems)
+
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
                      .Include(b => b.BookingForm)   
@@ -245,13 +248,25 @@ namespace BusinessLogicLayer.Services
                             }).ToList() ?? new List<FormImageResponse>(),
 
                             ScopeOfWorks = booking.BookingForm.ScopeOfWorkForms?
-                        .Where(sowf => sowf.ScopeOfWork != null)
-                        .Select(sowf => new ScopeOfWorkResponse
+                            .Where(sowf => sowf.ScopeOfWork != null)
+                            .Select(sowf => new ScopeOfWorkResponse
+                            {
+                                Id = sowf.ScopeOfWork.Id,
+                                WorkType = sowf.ScopeOfWork.WorkType
+                            }).ToList() ?? new List<ScopeOfWorkResponse>()
+                        },
+
+                        RelatedProductItems = booking.DecorService.RelatedProducts?
+                        .SelectMany(rp => rp.RelatedProductItems)
+                        .Select(item => new RelatedProductItemResponse
                         {
-                            Id = sowf.ScopeOfWork.Id,
-                            WorkType = sowf.ScopeOfWork.WorkType
-                        }).ToList() ?? new List<ScopeOfWorkResponse>()
-                        }
+                            Id = item.Id,
+                            ProductId = item.ProductId,
+                            ProductName = item.ProductName,
+                            Quantity = item.Quantity,
+                            Image = item.Image,
+                            UnitPrice = item.UnitPrice
+                        }).ToList() ?? new List<RelatedProductItemResponse>()
                     };
                 }).ToList();
 
@@ -306,7 +321,10 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor)
                     .Include(b => b.DecorationStyle)
-                    
+
+                    .Include(b => b.DecorService.RelatedProducts)
+                        .ThenInclude(rp => rp.RelatedProductItems)
+
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
                     .Include(b => b.BookingForm)
@@ -427,7 +445,19 @@ namespace BusinessLogicLayer.Services
                             Id = sowf.ScopeOfWork.Id,
                             WorkType = sowf.ScopeOfWork.WorkType
                         }).ToList() ?? new List<ScopeOfWorkResponse>()
-                    }
+                    },
+
+                    RelatedProductItems = booking.DecorService.RelatedProducts?
+                    .SelectMany(rp => rp.RelatedProductItems)
+                    .Select(item => new RelatedProductItemResponse
+                    {
+                        Id = item.Id,
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        Quantity = item.Quantity,
+                        Image = item.Image,
+                        UnitPrice = item.UnitPrice
+                    }).ToList() ?? new List<RelatedProductItemResponse>()
                 }).ToList();
 
                 response.Success = true;
@@ -456,6 +486,9 @@ namespace BusinessLogicLayer.Services
                     .Where(b => b.AccountId == accountId)
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.Account) // ⭐ Join Provider
+
+                    .Include(b => b.DecorService.RelatedProducts)
+                        .ThenInclude(rp => rp.RelatedProductItems)
 
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
@@ -513,7 +546,19 @@ namespace BusinessLogicLayer.Services
                             Id = sowf.ScopeOfWork.Id,
                             WorkType = sowf.ScopeOfWork.WorkType
                         }).ToList() ?? new List<ScopeOfWorkResponse>()
-                    }
+                    },
+
+                    RelatedProductItems = booking.DecorService.RelatedProducts?
+                    .SelectMany(rp => rp.RelatedProductItems)
+                    .Select(item => new RelatedProductItemResponse
+                    {
+                        Id = item.Id,
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        Quantity = item.Quantity,
+                        Image = item.Image,
+                        UnitPrice = item.UnitPrice
+                    }).ToList() ?? new List<RelatedProductItemResponse>()
                 }).ToList();
 
                 response.Success = true;
