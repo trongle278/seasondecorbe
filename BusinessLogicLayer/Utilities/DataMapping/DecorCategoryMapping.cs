@@ -11,7 +11,7 @@ namespace BusinessLogicLayer.Utilities.DataMapping
         public static readonly Dictionary<string, List<string>> DecorToProductCategoryMap = new()
         {
             ["Living Room"] = new() { "Sofa", "Lamp", "Clock", "Table", "Couch" },
-            ["Bedroom"] = new() { "Bed", "Closet", "Vanity", "Hanger", "Chest" },
+            ["Bedroom"] = new() { "Bed", "Closet", "Vanity", "Hanger", "Chest", "Lamp" },
             ["Kitchen"] = new() { "Cabinet" },
             ["Bathroom"] = new() { "Cabinet" },
             ["Home Office"] = new() { "Desk", "Chair", "Bookshelf" },
