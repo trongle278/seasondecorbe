@@ -240,6 +240,7 @@ namespace BusinessLogicLayer.Services
                             Style = booking.BookingForm.Style,
                             ThemeColor = booking.BookingForm.ThemeColor,
                             PrimaryUser = booking.BookingForm.PrimaryUser,
+                            EstimatedBudget = booking.BookingForm.EstimatedBudget,
 
                             Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
                             {
@@ -431,6 +432,7 @@ namespace BusinessLogicLayer.Services
                         Style = booking.BookingForm.Style,
                         ThemeColor = booking.BookingForm.ThemeColor,
                         PrimaryUser = booking.BookingForm.PrimaryUser,
+                        EstimatedBudget = booking.BookingForm.EstimatedBudget,
 
                         Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
                         {
@@ -532,6 +534,7 @@ namespace BusinessLogicLayer.Services
                         Style = booking.BookingForm.Style,
                         ThemeColor = booking.BookingForm.ThemeColor,
                         PrimaryUser = booking.BookingForm.PrimaryUser,
+                        EstimatedBudget = booking.BookingForm.EstimatedBudget,
 
                         Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
                         {
@@ -703,6 +706,7 @@ namespace BusinessLogicLayer.Services
                         Style = booking.BookingForm.Style,
                         ThemeColor = booking.BookingForm.ThemeColor,
                         PrimaryUser = booking.BookingForm.PrimaryUser,
+                        EstimatedBudget = booking.BookingForm.EstimatedBudget,
 
                         Images = booking.BookingForm.FormImages?.Select(img => new FormImageResponse
                         {
@@ -853,6 +857,7 @@ namespace BusinessLogicLayer.Services
                     !string.IsNullOrWhiteSpace(request.ThemeColor) ||
                     !string.IsNullOrWhiteSpace(request.PrimaryUser) ||
                     (request.RoomSize.HasValue && request.RoomSize > 0) ||
+                    (request.EstimatedBudget.HasValue && request.EstimatedBudget > 0) ||
                     (request.Images != null && request.Images.Any()) ||
                     (request.ScopeOfWorkId != null && request.ScopeOfWorkId.Any());
 
@@ -865,6 +870,7 @@ namespace BusinessLogicLayer.Services
                         Style = request.Style,
                         ThemeColor = request.ThemeColor,
                         PrimaryUser = request.PrimaryUser,
+                        EstimatedBudget = request.EstimatedBudget,
                         ScopeOfWorkForms = new List<ScopeOfWorkForm>(),
                         FormImages = new List<FormImage>(),
                         AccountId = accountId
@@ -1977,7 +1983,9 @@ namespace BusinessLogicLayer.Services
                     (string.IsNullOrEmpty(request.ThemeColor) || form.ThemeColor.Contains(request.ThemeColor)) &&
                     (string.IsNullOrEmpty(request.PrimaryUser) || form.PrimaryUser.Contains(request.PrimaryUser)) &&
                     (!request.MinSize.HasValue || form.RoomSize >= request.MinSize.Value) &&
-                    (!request.MaxSize.HasValue || form.RoomSize <= request.MaxSize.Value);
+                    (!request.MaxSize.HasValue || form.RoomSize <= request.MaxSize.Value) &&
+                    (!request.MinBudget.HasValue || form.EstimatedBudget >= request.MinBudget.Value) &&
+                    (!request.MaxBudget.HasValue || form.EstimatedBudget <= request.MaxBudget.Value);
 
                 // Sort
                 Expression<Func<BookingForm, object>> orderByExpression = request.SortBy?.ToLower() switch
@@ -2010,6 +2018,7 @@ namespace BusinessLogicLayer.Services
                     Style = f.Style,
                     ThemeColor = f.ThemeColor,
                     PrimaryUser = f.PrimaryUser,
+                    EstimatedBudget = f.EstimatedBudget,
                     AccountId = f.AccountId,
                     ScopeOfWorks = f.ScopeOfWorkForms?
                         .Where(sow => sow.ScopeOfWork != null)
@@ -2080,7 +2089,9 @@ namespace BusinessLogicLayer.Services
                     (string.IsNullOrEmpty(request.ThemeColor) || form.ThemeColor.Contains(request.ThemeColor)) &&
                     (string.IsNullOrEmpty(request.PrimaryUser) || form.PrimaryUser.Contains(request.PrimaryUser)) &&
                     (!request.MinSize.HasValue || form.RoomSize >= request.MinSize.Value) &&
-                    (!request.MaxSize.HasValue || form.RoomSize <= request.MaxSize.Value);
+                    (!request.MaxSize.HasValue || form.RoomSize <= request.MaxSize.Value) &&
+                    (!request.MinBudget.HasValue || form.EstimatedBudget >= request.MinBudget.Value) &&
+                    (!request.MaxBudget.HasValue || form.EstimatedBudget <= request.MaxBudget.Value);
 
                 // Sort
                 Expression<Func<BookingForm, object>> orderByExpression = request.SortBy?.ToLower() switch
@@ -2113,6 +2124,7 @@ namespace BusinessLogicLayer.Services
                     Style = f.Style,
                     ThemeColor = f.ThemeColor,
                     PrimaryUser = f.PrimaryUser,
+                    EstimatedBudget = f.EstimatedBudget,
                     AccountId = f.AccountId,
                     ScopeOfWorks = f.ScopeOfWorkForms?
                         .Where(sow => sow.ScopeOfWork != null)

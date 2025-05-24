@@ -27,6 +27,7 @@ namespace BusinessLogicLayer.ModelRequest
         public string? Style { get; set; }
         public string? ThemeColor { get; set; }
         public string? PrimaryUser { get; set; }
+        public decimal? EstimatedBudget { get; set; }
         public List<int>? ScopeOfWorkId { get; set; }
         public List<IFormFile>? Images { get; set; }
     }

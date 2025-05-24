@@ -14,6 +14,8 @@ namespace BusinessLogicLayer.ModelRequest.Pagination
         public string? Style { get; set; }
         public string? ThemeColor { get; set; }
         public string? PrimaryUser { get; set; }
+        public decimal? MinBudget { get; set; }
+        public decimal? MaxBudget { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;
         public string SortBy { get; set; } = "";
