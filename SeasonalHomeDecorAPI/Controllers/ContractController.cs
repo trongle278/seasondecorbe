@@ -198,5 +198,29 @@ namespace SeasonalHomeDecorAPI.Controllers
             var response = await _contractService.TerminateContract(contractCode);
             return response.Success ? Ok(response) : BadRequest(response);
         }
+
+        [HttpPut("terminateContract/{contractCode}")]
+        public async Task<IActionResult> TriggerTerminateContract(string contractCode)
+        {
+
+            var response = await _contractService.TerminateContract(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("setTerminatableAllContract")]
+        public async Task<IActionResult> SetTerminatableAllContract()
+        {
+
+            var response = await _contractService.TriggerAllContractTerminatableAsync();
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPut("setTerminatableByContractCode/{contractCode}")]
+        public async Task<IActionResult> SetTerminatableByContractCode(string contractCode)
+        {
+
+            var response = await _contractService.SetTerminatableByContractCodeAsync(contractCode);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
 }

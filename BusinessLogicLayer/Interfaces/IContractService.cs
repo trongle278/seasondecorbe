@@ -23,5 +23,8 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> RequestCancelContractAsync(string contractCode, int cancelReasonId, string cancelReason);
         Task<BaseResponse> ApproveCancelContractAsync(string contractCode);
         Task<BaseResponse> TerminateContract(string contractCode);
+
+        Task<BaseResponse> TriggerAllContractTerminatableAsync();
+        Task<BaseResponse> SetTerminatableByContractCodeAsync(string contractCode);
     }
 }

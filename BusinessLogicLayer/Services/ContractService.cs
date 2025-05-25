@@ -130,7 +130,8 @@ namespace BusinessLogicLayer.Services
                     isContractExisted = true,
                     isSigned = false,
                     isDeposited = false,
-                    isFinalPaid = false
+                    isFinalPaid = false,
+                    isTerminatable = true,
                 };
 
                 await _unitOfWork.ContractRepository.InsertAsync(contract);
@@ -424,6 +425,7 @@ namespace BusinessLogicLayer.Services
                     IsSigned = contract.isSigned,
                     IsDeposited = contract.isDeposited,
                     IsFinalPaid = contract.isFinalPaid,
+                    IsTerminatable = contract.isTerminatable,
                     FileUrl = contract.ContractFilePath,
                     BookingCode = booking.BookingCode,
                     DepositAmount = depositAmount,
@@ -825,87 +827,6 @@ namespace BusinessLogicLayer.Services
         //test
         //public async Task<BaseResponse> TerminateContractAsync(string contractCode,TerminationType type, string reason, decimal? penaltyFee = null)
         //hủy đơn phương
-        //public async Task<BaseResponse> TerminateContract(string contractCode)
-        //{
-        //    var response = new BaseResponse();
-        //    using var transaction = await _unitOfWork.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        // 1. Lấy thông tin hợp đồng
-        //        var contract = await _unitOfWork.ContractRepository
-        //            .Queryable()
-        //            .Include(c => c.Quotation.Booking)
-        //                .ThenInclude(b => b.Account.Wallet)
-        //            .Include(c => c.Quotation.Booking.DecorService.Account.Wallet)
-        //            .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
-
-        //        if (contract?.Status != Contract.ContractStatus.Signed)
-        //        {
-        //            response.Message = "Contract not found or not signed";
-        //            return response;
-        //        }
-
-        //        var booking = contract.Quotation.Booking;
-        //        decimal penaltyAmount = booking.TotalPrice * 0.5m;
-
-        //        // 2. Kiểm tra số dư
-        //        if (booking.Account.Wallet.Balance < penaltyAmount)
-        //        {
-        //            response.Message = "Customer wallet balance insufficient for penalty";
-        //            return response;
-        //        }
-
-        //        // 3. Tạo transaction phạt
-        //        var penaltyTransaction = new PaymentTransaction
-        //        {
-        //            Amount = penaltyAmount,
-        //            TransactionDate = DateTime.Now,
-        //            TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
-        //            TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-        //            BookingId = booking.Id
-        //        };
-
-        //        await _unitOfWork.PaymentTransactionRepository.InsertAsync(penaltyTransaction);
-        //        await _unitOfWork.CommitAsync();
-
-        //        // 4. Trừ tiền khách, cộng tiền provider
-        //        booking.Account.Wallet.Balance -= penaltyAmount;
-        //        booking.DecorService.Account.Wallet.Balance += penaltyAmount;
-
-        //        // 5. Lưu lịch sử giao dịch
-        //        await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
-        //        {
-        //            WalletId = booking.Account.Wallet.Id,
-        //            PaymentTransactionId = penaltyTransaction.Id
-        //        });
-
-        //        await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
-        //        {
-        //            WalletId = booking.DecorService.Account.Wallet.Id,
-        //            PaymentTransactionId = penaltyTransaction.Id
-        //        });
-
-        //        // 6. Cập nhật trạng thái hợp đồng
-        //        contract.Status = Contract.ContractStatus.Canceled;
-        //        booking.Status = BookingStatus.Canceled;
-        //        booking.IsBooked = false;
-
-        //        await _unitOfWork.CommitAsync();
-        //        await transaction.CommitAsync();
-
-        //        response.Success = true;
-        //        response.Message = "Contract terminated successful";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        response.Message = $"Termination failed: {ex.Message}";
-        //    }
-
-        //    return response;
-        //}
-
         public async Task<BaseResponse> TerminateContract(string contractCode)
         {
             var response = new BaseResponse();
@@ -913,7 +834,7 @@ namespace BusinessLogicLayer.Services
 
             try
             {
-                // 1. Get contract information
+                // 1. Lấy thông tin hợp đồng
                 var contract = await _unitOfWork.ContractRepository
                     .Queryable()
                     .Include(c => c.Quotation.Booking)
@@ -927,39 +848,30 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                // Check if contract is signed
-                if (contract.Status != Contract.ContractStatus.Signed)
+                // Chỉ cần kiểm tra IsTerminatable, không cần kiểm tra ngày nữa
+                if (contract.isTerminatable == false)
                 {
-                    response.Message = "Only signed contracts can be terminated";
+                    response.Message = "Contract can no longer be terminated (3-day period has expired)";
                     return response;
                 }
 
-                // Check if signed date exists
-                if (!contract.SignedDate.HasValue)
+                if (contract?.Status != Contract.ContractStatus.Signed)
                 {
-                    response.Message = "Contract signing date is missing";
-                    return response;
-                }
-
-                // Check if termination is within 3 days of signing
-                var daysSinceSigning = (DateTime.Now - contract.SignedDate.Value).TotalDays;
-                if (daysSinceSigning > 3)
-                {
-                    response.Message = "Contract can only be terminated within 3 days after signing";
+                    response.Message = "Contract not found or not signed";
                     return response;
                 }
 
                 var booking = contract.Quotation.Booking;
                 decimal penaltyAmount = booking.TotalPrice * 0.5m;
 
-                // 2. Check wallet balance
+                // 2. Kiểm tra số dư
                 if (booking.Account.Wallet.Balance < penaltyAmount)
                 {
                     response.Message = "Customer wallet balance insufficient for penalty";
                     return response;
                 }
 
-                // 3. Create penalty transaction
+                // 3. Tạo transaction phạt
                 var penaltyTransaction = new PaymentTransaction
                 {
                     Amount = penaltyAmount,
@@ -972,11 +884,11 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.PaymentTransactionRepository.InsertAsync(penaltyTransaction);
                 await _unitOfWork.CommitAsync();
 
-                // 4. Deduct from customer, add to provider
+                // 4. Trừ tiền khách, cộng tiền provider
                 booking.Account.Wallet.Balance -= penaltyAmount;
                 booking.DecorService.Account.Wallet.Balance += penaltyAmount;
 
-                // 5. Save transaction history
+                // 5. Lưu lịch sử giao dịch
                 await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
                 {
                     WalletId = booking.Account.Wallet.Id,
@@ -989,7 +901,7 @@ namespace BusinessLogicLayer.Services
                     PaymentTransactionId = penaltyTransaction.Id
                 });
 
-                // 6. Update contract status
+                // 6. Cập nhật trạng thái hợp đồng
                 contract.Status = Contract.ContractStatus.Canceled;
                 booking.Status = BookingStatus.Canceled;
                 booking.IsBooked = false;
@@ -998,7 +910,7 @@ namespace BusinessLogicLayer.Services
                 await transaction.CommitAsync();
 
                 response.Success = true;
-                response.Message = "Contract terminated successfully within allowed period";
+                response.Message = "Contract terminated successful";
             }
             catch (Exception ex)
             {
@@ -1008,6 +920,109 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        //public async Task<BaseResponse> TerminateContract(string contractCode)
+        //{
+        //    var response = new BaseResponse();
+        //    using var transaction = await _unitOfWork.BeginTransactionAsync();
+
+        //    try
+        //    {
+        //        // 1. Get contract information
+        //        var contract = await _unitOfWork.ContractRepository
+        //            .Queryable()
+        //            .Include(c => c.Quotation.Booking)
+        //                .ThenInclude(b => b.Account.Wallet)
+        //            .Include(c => c.Quotation.Booking.DecorService.Account.Wallet)
+        //            .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+
+        //        if (contract == null)
+        //        {
+        //            response.Message = "Contract not found";
+        //            return response;
+        //        }
+
+        //        // Check if contract is signed
+        //        if (contract.Status != Contract.ContractStatus.Signed)
+        //        {
+        //            response.Message = "Only signed contracts can be terminated";
+        //            return response;
+        //        }
+
+        //        // Check if signed date exists
+        //        if (!contract.SignedDate.HasValue)
+        //        {
+        //            response.Message = "Contract signing date is missing";
+        //            return response;
+        //        }
+
+        //        // Check if termination is within 3 days of signing
+        //        var daysSinceSigning = (DateTime.Now - contract.SignedDate.Value).TotalDays;
+        //        if (daysSinceSigning > 3)
+        //        {
+        //            response.Message = "Contract can only be terminated within 3 days after signing";
+        //            return response;
+        //        }
+
+        //        var booking = contract.Quotation.Booking;
+        //        decimal penaltyAmount = booking.TotalPrice * 0.5m;
+
+        //        // 2. Check wallet balance
+        //        if (booking.Account.Wallet.Balance < penaltyAmount)
+        //        {
+        //            response.Message = "Customer wallet balance insufficient for penalty";
+        //            return response;
+        //        }
+
+        //        // 3. Create penalty transaction
+        //        var penaltyTransaction = new PaymentTransaction
+        //        {
+        //            Amount = penaltyAmount,
+        //            TransactionDate = DateTime.Now,
+        //            TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+        //            TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+        //            BookingId = booking.Id
+        //        };
+
+        //        await _unitOfWork.PaymentTransactionRepository.InsertAsync(penaltyTransaction);
+        //        await _unitOfWork.CommitAsync();
+
+        //        // 4. Deduct from customer, add to provider
+        //        booking.Account.Wallet.Balance -= penaltyAmount;
+        //        booking.DecorService.Account.Wallet.Balance += penaltyAmount;
+
+        //        // 5. Save transaction history
+        //        await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
+        //        {
+        //            WalletId = booking.Account.Wallet.Id,
+        //            PaymentTransactionId = penaltyTransaction.Id
+        //        });
+
+        //        await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
+        //        {
+        //            WalletId = booking.DecorService.Account.Wallet.Id,
+        //            PaymentTransactionId = penaltyTransaction.Id
+        //        });
+
+        //        // 6. Update contract status
+        //        contract.Status = Contract.ContractStatus.Canceled;
+        //        booking.Status = BookingStatus.Canceled;
+        //        booking.IsBooked = false;
+
+        //        await _unitOfWork.CommitAsync();
+        //        await transaction.CommitAsync();
+
+        //        response.Success = true;
+        //        response.Message = "Contract terminated successfully within allowed period";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await transaction.RollbackAsync();
+        //        response.Message = $"Termination failed: {ex.Message}";
+        //    }
+
+        //    return response;
+        //}
 
         //hủy 2 bên
         public async Task<BaseResponse> RequestCancelContractAsync(string contractCode, int cancelReasonId, string cancelReason)
@@ -1213,5 +1228,81 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public async Task<BaseResponse> TriggerAllContractTerminatableAsync()
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                // Lấy những hợp đồng hợp lệ để cập nhật
+                var contracts = await _unitOfWork.ContractRepository.Queryable()
+                    .Include(c => c.Quotation.Booking)
+                    .Where(c => c.Status == Contract.ContractStatus.Signed && c.isTerminatable == true)
+                    .ToListAsync();
+
+                foreach (var contract in contracts)
+                {
+                    // Điều kiện: đã ký, chưa huỷ
+                    contract.isTerminatable = false;
+                }
+
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Contract terminatable statuses updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error updating contract terminatable statuses.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
+        //test
+        public async Task<BaseResponse> SetTerminatableByContractCodeAsync(string contractCode)
+        {
+            var response = new BaseResponse();
+
+            try
+            {
+                var contract = await _unitOfWork.ContractRepository.Queryable()
+                    .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
+
+                if (contract == null)
+                {
+                    response.Success = false;
+                    response.Message = "Contract not found.";
+                    return response;
+                }
+
+                // Điều kiện cho phép kết thúc
+                if (contract.Status == Contract.ContractStatus.Signed)
+                {
+                    contract.isTerminatable = false;
+                    await _unitOfWork.CommitAsync();
+
+                    response.Success = true;
+                    response.Message = $"Contract marked as terminatable.";
+                }
+                else
+                {
+                    response.Success = false;
+                    response.Message = "Contract is not in a valid state to allow termination.";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to update contract terminatable flag.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
     }
 }

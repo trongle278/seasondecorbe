@@ -27,6 +27,8 @@ namespace DataAccessObject.Models
         public bool? isDeposited { get; set; }
         public bool? isFinalPaid { get; set; }
 
+        public bool? isTerminatable { get; set; }
+
         public enum ContractStatus
         {
             Pending,    // Chờ ký

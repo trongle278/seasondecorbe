@@ -28,6 +28,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool? IsSigned { get; set; }
         public bool? IsDeposited { get; set; }
         public bool? IsFinalPaid { get; set; }
+        public bool? IsTerminatable { get; set; }
         public string FileUrl { get; set; }
         public string BookingCode { get; set; }
         public string Note { get; set; }
