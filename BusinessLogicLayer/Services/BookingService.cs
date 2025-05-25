@@ -264,7 +264,8 @@ namespace BusinessLogicLayer.Services
                             ProductName = item.ProductName,
                             Quantity = item.Quantity,
                             Image = item.Image,
-                            UnitPrice = item.UnitPrice
+                            UnitPrice = item.UnitPrice,
+                            TotalPrice = item.UnitPrice * item.Quantity
                         }).ToList() ?? new List<ProductsDetailResponse>()
                     };
                 }).ToList();
@@ -454,7 +455,8 @@ namespace BusinessLogicLayer.Services
                         ProductName = item.ProductName,
                         Quantity = item.Quantity,
                         Image = item.Image,
-                        UnitPrice = item.UnitPrice
+                        UnitPrice = item.UnitPrice,
+                        TotalPrice = item.UnitPrice * item.Quantity
                     }).ToList() ?? new List<ProductsDetailResponse>()
                 }).ToList();
 
@@ -554,7 +556,8 @@ namespace BusinessLogicLayer.Services
                         ProductName = item.ProductName,
                         Quantity = item.Quantity,
                         Image = item.Image,
-                        UnitPrice = item.UnitPrice
+                        UnitPrice = item.UnitPrice,
+                        TotalPrice = item.UnitPrice * item.Quantity
                     }).ToList() ?? new List<ProductsDetailResponse>()
                 }).ToList();
 
@@ -724,7 +727,8 @@ namespace BusinessLogicLayer.Services
                         ProductName = item.ProductName,
                         Quantity = item.Quantity,
                         Image = item.Image,
-                        UnitPrice = item.UnitPrice
+                        UnitPrice = item.UnitPrice,
+                        TotalPrice = item.UnitPrice * item.Quantity
                     }).ToList() ?? new List<ProductsDetailResponse>()
                 };
 
