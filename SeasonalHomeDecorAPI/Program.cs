@@ -45,6 +45,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Đăng ký Zoom
 builder.Services.Configure<ZoomSettings>(builder.Configuration.GetSection("Zoom"));
+builder.Services.Configure<ZoomOAuthOptions>(builder.Configuration.GetSection("ZoomOAuth"));
 
 // Đăng ký SignalR
 builder.Services.AddSignalR(options =>
@@ -281,6 +282,7 @@ builder.Services.AddScoped<ICancelTypeService, CancelTypeService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IScopeOfWorkService, ScopeOfWorkService>();
 builder.Services.AddHttpClient<IZoomService, ZoomService>();
+builder.Services.AddHttpClient<IZoomOAuthService, ZoomOAuthService>();
 builder.Services.AddHttpContextAccessor();
 
 // 11. Build the application
