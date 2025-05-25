@@ -120,75 +120,6 @@ namespace BusinessLogicLayer.Services
 
                 var depositPercentage = Math.Min(request.DepositPercentage, 20m);
 
-                List<ProductDetail> productDetails = new();
-                //if (request.Products != null && request.Products.Any())
-                //{
-                //    // Lấy thông tin sản phẩm từ cơ sở dữ liệu
-                //    foreach (var p in request.Products)
-                //    {
-                //        var product = await _unitOfWork.ProductRepository.Queryable()
-                //            .FirstOrDefaultAsync(prod => prod.Id == p.ProductId);
-
-                //        if (product != null)
-                //        {
-                //            productDetails.Add(new ProductDetail
-                //            {
-                //                ProductId = p.ProductId,
-                //                ProductName = product.ProductName,
-                //                Quantity = p.Quantity,
-                //                UnitPrice = product.ProductPrice,
-                //                TotalPrice = p.Quantity * product.ProductPrice
-                //            });
-                //        }
-                //    }
-
-                //    totalProductCost = productDetails.Sum(p => p.Quantity * p.UnitPrice);
-                //}
-
-                if (booking.RelatedProductId.HasValue)
-                {
-                    var relatedProduct = await _unitOfWork.RelatedProductRepository.Queryable()
-                        .Where(rp => rp.Id == booking.RelatedProductId.Value)
-                        .FirstOrDefaultAsync();
-
-                    var relatedItems = await _unitOfWork.RelatedProductItemRepository.Queryable()
-                        .Where(item => item.RelatedProductId == relatedProduct.Id)
-                        .ToListAsync();
-
-                    var productIds = relatedItems.Select(i => i.ProductId).Distinct().ToList();
-                    var products = await _unitOfWork.ProductRepository.Queryable()
-                        .Include(p => p.ProductImages)
-                        .Where(p => productIds.Contains(p.Id))
-                        .ToListAsync();
-
-                    foreach (var item in relatedItems)
-                    {
-                        var product = products.FirstOrDefault(p => p.Id == item.ProductId);
-                        if (product != null)
-                        {
-                            productDetails.Add(new ProductDetail
-                            {
-                                ProductId = product.Id,
-                                ProductName = product.ProductName,
-                                Quantity = item.Quantity,
-                                UnitPrice = product.ProductPrice,
-                                TotalPrice = item.Quantity * product.ProductPrice
-                            });
-                        }
-                    }
-
-                    totalProductCost = productDetails.Sum(p => p.TotalPrice);
-
-                    // Remove RelatedProductId
-                    booking.RelatedProductId = null;
-
-                    // Remove RelatedProductItem
-                    _unitOfWork.RelatedProductItemRepository.RemoveRange(relatedItems);
-
-                    // Remove RelatedProduct
-                    _unitOfWork.RelatedProductRepository.Delete(relatedProduct.Id);
-                }
-
                 // Tạo báo giá mới hoàn toàn
                 var quotation = new Quotation
                 {
@@ -201,20 +132,28 @@ namespace BusinessLogicLayer.Services
                     Status = Quotation.QuotationStatus.Pending
                 };
 
+                await _unitOfWork.QuotationRepository.InsertAsync(quotation);
+                await _unitOfWork.CommitAsync();
+
+                var productDetails = await _unitOfWork.ProductDetailRepository.Queryable()
+                    .Where(pd => pd.BookingId == booking.Id)
+                    .ToListAsync();
+
+                if (productDetails.Any())
+                {
+                    foreach (var product in productDetails)
+                    {
+                        product.QuotationId = quotation.Id;
+
+                        _unitOfWork.ProductDetailRepository.Update(product);
+                    }
+                    totalProductCost = productDetails.Sum(p => p.TotalPrice);
+                }
+
                 if (totalProductCost.HasValue)
                 {
                     quotation.ProductCost = totalProductCost.Value;
                 }
-
-                await _unitOfWork.QuotationRepository.InsertAsync(quotation);
-                await _unitOfWork.CommitAsync();
-
-                // Gán QuotationId cho ProductDetail
-                foreach (var product in productDetails)
-                {
-                    product.QuotationId = quotation.Id;
-                }
-                await _unitOfWork.ProductDetailRepository.InsertRangeAsync(productDetails);
 
                 // Thêm chi tiết vật liệu
                 var materialDetails = request.Materials.Select(m => new MaterialDetail
@@ -667,6 +606,33 @@ namespace BusinessLogicLayer.Services
                     });
 
                     await _unitOfWork.BookingDetailRepository.InsertRangeAsync(bookingDetails);
+
+                    if (quotation.ProductCost.HasValue)
+                    {
+                        var products = await _unitOfWork.ProductDetailRepository.Queryable()
+                            .Where(pd => pd.QuotationId == quotation.Id)
+                            .Include(pd => pd.Product)
+                            .ToListAsync();
+
+                        foreach (var product in products)
+                        {
+                            if (product.Product == null)
+                            {
+                                response.Message = $"Product {product.ProductName} not found!";
+                                return response;
+                            }
+
+                            if (product.Product.Quantity < product.Quantity)
+                            {
+                                response.Message = $"Not enough quantity for product {product.Product.ProductName}!";
+                                return response;
+                            }
+
+                            product.Product.Quantity -= product.Quantity;
+
+                            _unitOfWork.ProductRepository.Update(product.Product);
+                        }
+                    }
 
                     quotation.Status = Quotation.QuotationStatus.Confirmed;
                     booking.Status = Booking.BookingStatus.Contracting;
@@ -1368,6 +1334,24 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.PaymentTransactionRepository.InsertAsync(adminRefundTransaction);
 
                 await _unitOfWork.CommitAsync(); // Lưu giao dịch vào cơ sở dữ liệu
+
+                if (quotation.ProductCost.HasValue)
+                {
+                    var productDetails = await _unitOfWork.ProductDetailRepository.Queryable()
+                        .Where(pd => pd.QuotationId == quotation.Id)
+                        .Include(pd => pd.Product)
+                        .ToListAsync();
+
+                    foreach (var productDetail in productDetails)
+                    {
+                        if (productDetail.Product != null)
+                        {
+                            productDetail.Product.Quantity += productDetail.Quantity;
+
+                            _unitOfWork.ProductRepository.Update(productDetail.Product);
+                        }
+                    }
+                }
 
                 // Cập nhật trạng thái của Booking
                 quotation.Status = QuotationStatus.Closed;

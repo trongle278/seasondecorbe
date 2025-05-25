@@ -88,5 +88,7 @@ namespace DataAccessObject.Models
 
         public int? BookingFormId { get; set; }
         public BookingForm? BookingForm { get; set; }
+
+        public virtual ICollection<ProductDetail> ProductDetails { get; set; }
     }
 }

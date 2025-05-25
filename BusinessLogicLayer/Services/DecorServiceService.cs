@@ -1758,7 +1758,7 @@ namespace BusinessLogicLayer.Services
                         ProductId = productId,
                         ProductName = product.ProductName,
                         Quantity = quantity,
-                        UnitPrice = unitPrice * quantity,
+                        UnitPrice = unitPrice,
                         Image = product.ProductImages?.FirstOrDefault()?.ImageUrl
                     };
 
@@ -1774,13 +1774,12 @@ namespace BusinessLogicLayer.Services
                     }
 
                     item.Quantity += quantity;
-                    item.UnitPrice = item.Quantity * unitPrice;
                     _unitOfWork.RelatedProductItemRepository.Update(item);
                 }
 
                 // Update related product holder
                 relatedProduct.TotalItem = relatedProduct.RelatedProductItems.Sum(i => i.Quantity);
-                relatedProduct.TotalPrice = relatedProduct.RelatedProductItems.Sum(i => i.UnitPrice);
+                relatedProduct.TotalPrice = relatedProduct.RelatedProductItems.Sum(i => i.UnitPrice * i.Quantity);
 
                 _unitOfWork.RelatedProductRepository.Update(relatedProduct);
                 await _unitOfWork.CommitAsync();
@@ -1845,19 +1844,16 @@ namespace BusinessLogicLayer.Services
                     return response;
                 }
 
-                decimal unitPrice = product.ProductPrice;
-
-                // Save old item value before update
+                // Get old item value before update
                 int oldQuantity = item.Quantity;
-                decimal oldUnitPrice = item.UnitPrice;
+                decimal oldTotalPrice = item.UnitPrice * item.Quantity;
 
                 // Update item
                 item.Quantity = quantity;
-                item.UnitPrice = quantity * product.ProductPrice;
 
                 // Update holder using old value
                 relatedProduct.TotalItem += quantity - oldQuantity;
-                relatedProduct.TotalPrice += (item.UnitPrice - oldUnitPrice);
+                relatedProduct.TotalPrice += ((item.UnitPrice * item.Quantity) - oldTotalPrice);
 
                 _unitOfWork.RelatedProductItemRepository.Update(item);
 
@@ -1905,7 +1901,7 @@ namespace BusinessLogicLayer.Services
 
                 // Update holder
                 relatedProduct.TotalItem -= item.Quantity;
-                relatedProduct.TotalPrice -= item.UnitPrice;
+                relatedProduct.TotalPrice -= (item.UnitPrice * item.Quantity);
 
                 _unitOfWork.RelatedProductItemRepository.Delete(item.Id);
                 _unitOfWork.RelatedProductRepository.Update(relatedProduct);
