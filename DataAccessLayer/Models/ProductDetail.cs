@@ -21,8 +21,11 @@ namespace DataAccessObject.Models
 
         public int ProductId { get; set; }
         public Product Product { get; set; }
+
+        public int BookingId { get; set; }
+        public Booking Booking { get; set; }
         
-        public int QuotationId { get; set; }
-        public Quotation Quotation { get; set; }
+        public int? QuotationId { get; set; }
+        public Quotation? Quotation { get; set; }
     }
 }

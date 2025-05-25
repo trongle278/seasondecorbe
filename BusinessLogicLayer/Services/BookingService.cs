@@ -135,8 +135,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(btc => btc.ThemeColor)
                     .Include(b => b.DecorationStyle)
 
-                    .Include(b => b.DecorService.RelatedProducts)
-                        .ThenInclude(rp => rp.RelatedProductItems)
+                    .Include(b => b.ProductDetails)
 
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
@@ -257,9 +256,8 @@ namespace BusinessLogicLayer.Services
                             }).ToList() ?? new List<ScopeOfWorkResponse>()
                         },
 
-                        RelatedProductItems = booking.DecorService.RelatedProducts?
-                        .SelectMany(rp => rp.RelatedProductItems)
-                        .Select(item => new RelatedProductItemResponse
+                        ProductDetails = booking.ProductDetails?
+                        .Select(item => new ProductsDetailResponse
                         {
                             Id = item.Id,
                             ProductId = item.ProductId,
@@ -267,7 +265,7 @@ namespace BusinessLogicLayer.Services
                             Quantity = item.Quantity,
                             Image = item.Image,
                             UnitPrice = item.UnitPrice
-                        }).ToList() ?? new List<RelatedProductItemResponse>()
+                        }).ToList() ?? new List<ProductsDetailResponse>()
                     };
                 }).ToList();
 
@@ -323,8 +321,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(btc => btc.ThemeColor)
                     .Include(b => b.DecorationStyle)
 
-                    .Include(b => b.DecorService.RelatedProducts)
-                        .ThenInclude(rp => rp.RelatedProductItems)
+                    .Include(b => b.ProductDetails)
 
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
@@ -449,9 +446,8 @@ namespace BusinessLogicLayer.Services
                         }).ToList() ?? new List<ScopeOfWorkResponse>()
                     },
 
-                    RelatedProductItems = booking.DecorService.RelatedProducts?
-                    .SelectMany(rp => rp.RelatedProductItems)
-                    .Select(item => new RelatedProductItemResponse
+                    ProductDetails = booking.ProductDetails?
+                    .Select(item => new ProductsDetailResponse
                     {
                         Id = item.Id,
                         ProductId = item.ProductId,
@@ -459,7 +455,7 @@ namespace BusinessLogicLayer.Services
                         Quantity = item.Quantity,
                         Image = item.Image,
                         UnitPrice = item.UnitPrice
-                    }).ToList() ?? new List<RelatedProductItemResponse>()
+                    }).ToList() ?? new List<ProductsDetailResponse>()
                 }).ToList();
 
                 response.Success = true;
@@ -489,8 +485,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.DecorService)
                         .ThenInclude(ds => ds.Account) // ⭐ Join Provider
 
-                    .Include(b => b.DecorService.RelatedProducts)
-                        .ThenInclude(rp => rp.RelatedProductItems)
+                    .Include(b => b.ProductDetails)
 
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
@@ -551,9 +546,8 @@ namespace BusinessLogicLayer.Services
                         }).ToList() ?? new List<ScopeOfWorkResponse>()
                     },
 
-                    RelatedProductItems = booking.DecorService.RelatedProducts?
-                    .SelectMany(rp => rp.RelatedProductItems)
-                    .Select(item => new RelatedProductItemResponse
+                    ProductDetails = booking.ProductDetails?
+                    .Select(item => new ProductsDetailResponse
                     {
                         Id = item.Id,
                         ProductId = item.ProductId,
@@ -561,7 +555,7 @@ namespace BusinessLogicLayer.Services
                         Quantity = item.Quantity,
                         Image = item.Image,
                         UnitPrice = item.UnitPrice
-                    }).ToList() ?? new List<RelatedProductItemResponse>()
+                    }).ToList() ?? new List<ProductsDetailResponse>()
                 }).ToList();
 
                 response.Success = true;
@@ -600,8 +594,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor) // ✅ Include theme colors
 
-                    .Include(b => b.DecorService.RelatedProducts)
-                        .ThenInclude(rp => rp.RelatedProductItems)
+                    .Include(b => b.ProductDetails)
 
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
@@ -723,9 +716,8 @@ namespace BusinessLogicLayer.Services
                         }).ToList() ?? new List<ScopeOfWorkResponse>()
                     },
 
-                    RelatedProductItems = booking.DecorService.RelatedProducts?
-                    .SelectMany(rp => rp.RelatedProductItems)
-                    .Select(item => new RelatedProductItemResponse
+                    ProductDetails = booking.ProductDetails?
+                    .Select(item => new ProductsDetailResponse
                     {
                         Id = item.Id,
                         ProductId = item.ProductId,
@@ -733,7 +725,7 @@ namespace BusinessLogicLayer.Services
                         Quantity = item.Quantity,
                         Image = item.Image,
                         UnitPrice = item.UnitPrice
-                    }).ToList() ?? new List<RelatedProductItemResponse>()
+                    }).ToList() ?? new List<ProductsDetailResponse>()
                 };
 
                 response.Success = true;
@@ -952,6 +944,56 @@ namespace BusinessLogicLayer.Services
 
                 await _unitOfWork.TimeSlotRepository.InsertAsync(timeSlot);
                 await _unitOfWork.CommitAsync();
+
+                if (relatedProductId.HasValue)
+                {
+                    var relatedItems = await _unitOfWork.RelatedProductItemRepository.Queryable()
+                        .Where(item => item.RelatedProductId == relatedProductId.Value)
+                        .ToListAsync();
+
+                    var productIds = relatedItems.Select(i => i.ProductId).Distinct().ToList();
+                    var products = await _unitOfWork.ProductRepository.Queryable()
+                        .Include(p => p.ProductImages)
+                        .Where(p => productIds.Contains(p.Id))
+                        .ToListAsync();
+
+                    List<ProductDetail> productDetails = new();
+
+                    foreach (var item in relatedItems)
+                    {
+                        var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+                        if (product != null)
+                        {
+                            productDetails.Add(new ProductDetail
+                            {
+                                BookingId = booking.Id,
+                                ProductId = product.Id,
+                                ProductName = product.ProductName,
+                                Quantity = item.Quantity,
+                                UnitPrice = product.ProductPrice,
+                                TotalPrice = item.Quantity * product.ProductPrice,
+                                Image = item.Image
+                            });
+                        }
+                    }
+
+                    if (productDetails.Any())
+                    {
+                        await _unitOfWork.ProductDetailRepository.InsertRangeAsync(productDetails);
+                    }
+
+                    // Remove RelatedProductId
+                    booking.RelatedProductId = null;
+
+                    // Remove RelatedProductItem
+                    _unitOfWork.RelatedProductItemRepository.RemoveRange(relatedItems);
+
+                    // Remove RelatedProduct
+                    _unitOfWork.RelatedProductRepository.Delete(relatedProductId.Value);
+
+                    _unitOfWork.BookingRepository.Update(booking);
+                    await _unitOfWork.CommitAsync();
+                }
 
                 //var zoomMeetingRequest = new ZoomMeetingRequest
                 //{
