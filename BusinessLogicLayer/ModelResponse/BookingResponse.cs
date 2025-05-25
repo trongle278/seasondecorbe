@@ -33,7 +33,7 @@ namespace BusinessLogicLayer.ModelResponse
         public string CancelType { get; set; }
         public string? CancelReason { get; set; }
         public BookingFormResponse? BookingForm { get; set; }
-        public List<RelatedProductItemResponse>? RelatedProductItems { get; set; }
+        public List<ProductsDetailResponse>? ProductDetails { get; set; }
     }
 
     public class BookingDetailForProviderResponse
@@ -57,7 +57,7 @@ namespace BusinessLogicLayer.ModelResponse
 
         public BookingFormResponse? BookingForm { get; set; }
 
-        public List<RelatedProductItemResponse>? RelatedProductItems { get; set; }
+        public List<ProductsDetailResponse>? ProductDetails { get; set; }
     }
 
     public class BookingDetailResponse
@@ -90,7 +90,7 @@ namespace BusinessLogicLayer.ModelResponse
         public CustomerResponse Customer { get; set; }
         //public List<BookingDetailResponse> BookingDetails { get; set; } = new List<BookingDetailResponse>();
         public BookingFormResponse? BookingForm { get; set; }
-        public List<RelatedProductItemResponse>? RelatedProductItems { get; set; }
+        public List<ProductsDetailResponse>? ProductDetails { get; set; }
     }
 
     public class CustomerResponse

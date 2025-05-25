@@ -406,6 +406,7 @@ namespace DataAccessObject.Models
                 .HasOne(pd => pd.Quotation)
                 .WithMany(q => q.ProductDetails)
                 .HasForeignKey(pd => pd.QuotationId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Support>()
@@ -504,6 +505,12 @@ namespace DataAccessObject.Models
                 .HasOne(ri => ri.Product)
                 .WithMany(p => p.RelatedProductItems)
                 .HasForeignKey(ri => ri.ProductId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ProductDetail>()
+                .HasOne(pd => pd.Booking)
+                .WithMany(b => b.ProductDetails)
+                .HasForeignKey(pd => pd.BookingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Booking>()
