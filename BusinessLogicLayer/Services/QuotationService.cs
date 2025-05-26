@@ -46,6 +46,183 @@ namespace BusinessLogicLayer.Services
         /// <summary>
         /// Tạo báo giá cho một booking
         /// </summary>
+        //public async Task<BaseResponse> CreateQuotationAsync(string bookingCode, CreateQuotationRequest request)
+        //{
+        //    var response = new BaseResponse();
+        //    try
+        //    {
+        //        var booking = await _unitOfWork.BookingRepository.Queryable()
+        //            .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
+        //        if (booking == null)
+        //        {
+        //            response.Message = "Booking not found.";
+        //            return response;
+        //        }
+
+        //        if (booking.Status != Booking.BookingStatus.Quoting)
+        //        {
+        //            response.Message = "Quotation can only be created during the Quoting phase.";
+        //            return response;
+        //        }
+
+        //        // Kiểm tra nếu đã có báo giá và không phải bị từ chối thì không cho tạo
+        //        var existingQuotation = await _unitOfWork.QuotationRepository.Queryable()
+        //            .FirstOrDefaultAsync(q => q.BookingId == booking.Id && q.Status != Quotation.QuotationStatus.Closed);
+
+        //        if (existingQuotation != null)
+        //        {
+        //            response.Message = existingQuotation.Status == Quotation.QuotationStatus.Confirmed
+        //                ? "Quotation already confirmed. Cannot create a new one."
+        //                : "Quotation already exists for this booking.";
+        //            return response;
+        //        }
+
+        //        // Validate labor task area
+        //        foreach (var task in request.ConstructionTasks)
+        //        {
+        //            if (task.Area == null || task.Area <= 0)
+        //            {
+        //                response.Message = $"Invalid area for construction task \"{task.TaskName}\". Area must be greater than 0.";
+        //                return response;
+        //            }
+
+        //            if (task.Cost <= 0)
+        //            {
+        //                response.Message = $"Invalid cost for construction task \"{task.TaskName}\". Cost must be greater than 0.";
+        //                return response;
+        //            }
+        //        }
+
+        //        // Validate materials
+        //        foreach (var material in request.Materials)
+        //        {
+        //            if (material.Quantity <= 0)
+        //            {
+        //                response.Message = $"Invalid quantity for material \"{material.MaterialName}\". Quantity must be greater than 0.";
+        //                return response;
+        //            }
+
+        //            if (material.Cost < 0)
+        //            {
+        //                response.Message = $"Invalid cost for material \"{material.MaterialName}\". Cost cannot be negative.";
+        //                return response;
+        //            }
+        //        }
+
+        //        // Tạo mã báo giá mới
+        //        var quotationCode = GenerateQuotationCode();
+
+        //        // Tính toán chi phí
+        //        decimal totalMaterialCost = request.Materials.Sum(m => m.Cost * m.Quantity);
+        //        decimal totalLaborCost = request.ConstructionTasks.Sum(c => c.Cost * (c.Area ?? 0m));
+        //        decimal? totalProductCost = null;
+
+        //        var depositPercentage = Math.Min(request.DepositPercentage, 20m);
+
+        //        // Tạo báo giá mới hoàn toàn
+        //        var quotation = new Quotation
+        //        {
+        //            BookingId = booking.Id,
+        //            QuotationCode = quotationCode,
+        //            MaterialCost = totalMaterialCost,
+        //            ConstructionCost = totalLaborCost,
+        //            DepositPercentage = depositPercentage,
+        //            CreatedAt = DateTime.Now,
+        //            Status = Quotation.QuotationStatus.Pending
+        //        };
+
+        //        await _unitOfWork.QuotationRepository.InsertAsync(quotation);
+        //        await _unitOfWork.CommitAsync();
+
+        //        var productDetails = await _unitOfWork.ProductDetailRepository.Queryable()
+        //            .Where(pd => pd.BookingId == booking.Id)
+        //            .ToListAsync();
+
+        //        if (productDetails.Any())
+        //        {
+        //            foreach (var product in productDetails)
+        //            {
+        //                product.QuotationId = quotation.Id;
+
+        //                _unitOfWork.ProductDetailRepository.Update(product);
+        //            }
+        //            totalProductCost = productDetails.Sum(p => p.TotalPrice);
+        //        }
+
+        //        if (totalProductCost.HasValue)
+        //        {
+        //            quotation.ProductCost = totalProductCost.Value;
+        //        }
+
+        //        // Thêm chi tiết vật liệu
+        //        var materialDetails = request.Materials.Select(m => new MaterialDetail
+        //        {
+        //            QuotationId = quotation.Id,
+        //            MaterialName = m.MaterialName,
+        //            Quantity = m.Quantity,                   
+        //            Cost = m.Cost,
+        //            Note = m.Note
+        //        }).ToList();
+
+        //        await _unitOfWork.MaterialDetailRepository.InsertRangeAsync(materialDetails);
+
+        //        // Thêm chi tiết công trình
+        //        var constructionDetails = request.ConstructionTasks.Select(c => new LaborDetail
+        //        {
+        //            QuotationId = quotation.Id,
+        //            TaskName = c.TaskName,
+        //            Cost = c.Cost,
+        //            Unit = c.Unit,
+        //            Area = c.Area,
+        //            Note = c.Note
+        //        }).ToList();
+
+        //        await _unitOfWork.LaborDetailRepository.InsertRangeAsync(constructionDetails);
+        //        booking.IsQuoted = true;
+        //        quotation.isQuoteExisted = true;
+        //        await _unitOfWork.CommitAsync();
+
+        //        // ========================
+        //        // ✅ Thêm thông báo cho khách hàng
+        //        // ========================
+
+        //        string quotationUrl = $"{_clientBaseUrl}/quotation/{quotation.QuotationCode}"; // URL chi tiết báo giá
+        //        string htmlQuotationCode = $"<span style='color:#5fc1f1;font-weight:bold;'>#{quotation.QuotationCode}</span>";
+
+        //        await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+        //        {
+        //            AccountId = booking.AccountId, // ID khách hàng từ booking
+        //            Title = "New Quotation",
+        //            Content = $"A quotation {htmlQuotationCode} has been generated for your order.",
+        //            Url = quotationUrl
+        //        });
+
+        //        response.Success = true;
+        //        response.Message = "Quotation created successfully.";
+        //        response.Data = new
+        //        {
+        //            Quotation = quotation,
+        //            MaterialDetails = materialDetails,
+        //            ConstructionDetails = constructionDetails,
+        //            ProductDetails = productDetails.Select(p => new
+        //            {
+        //                p.ProductId,
+        //                p.ProductName,
+        //                p.Quantity,
+        //                p.UnitPrice,
+        //                p.TotalPrice
+        //            }).ToList()
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.Success = false;
+        //        response.Message = "Failed to create quotation.";
+        //        response.Errors.Add(ex.Message);
+        //    }
+        //    return response;
+        //}
         public async Task<BaseResponse> CreateQuotationAsync(string bookingCode, CreateQuotationRequest request)
         {
             var response = new BaseResponse();
@@ -160,7 +337,7 @@ namespace BusinessLogicLayer.Services
                 {
                     QuotationId = quotation.Id,
                     MaterialName = m.MaterialName,
-                    Quantity = m.Quantity,                   
+                    Quantity = m.Quantity,
                     Cost = m.Cost,
                     Note = m.Note
                 }).ToList();
@@ -181,6 +358,17 @@ namespace BusinessLogicLayer.Services
                 await _unitOfWork.LaborDetailRepository.InsertRangeAsync(constructionDetails);
                 booking.IsQuoted = true;
                 quotation.isQuoteExisted = true;
+
+                //26/5/2025
+                if (totalProductCost.HasValue)
+                {
+                    booking.TotalPrice = totalMaterialCost + totalLaborCost + totalProductCost.Value - booking.CommitDepositAmount;
+                }
+                else
+                {
+                    booking.TotalPrice = totalMaterialCost + totalLaborCost - booking.CommitDepositAmount;
+                }
+
                 await _unitOfWork.CommitAsync();
 
                 // ========================
@@ -528,14 +716,14 @@ namespace BusinessLogicLayer.Services
 
                 // ✅ Cập nhật tổng chi phí booking
 
-                if (quotation.ProductCost.HasValue)
-                {
-                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value - booking.CommitDepositAmount;
-                }
-                else
-                {
-                    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost - booking.CommitDepositAmount;
-                }
+                //if (quotation.ProductCost.HasValue)
+                //{
+                //    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost + quotation.ProductCost.Value - booking.CommitDepositAmount;
+                //}
+                //else
+                //{
+                //    booking.TotalPrice = quotation.MaterialCost + quotation.ConstructionCost - booking.CommitDepositAmount;
+                //}
 
                 if (isConfirmed)
                 {
