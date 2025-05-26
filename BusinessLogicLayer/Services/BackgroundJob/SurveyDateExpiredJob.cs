@@ -45,6 +45,7 @@ namespace BusinessLogicLayer.Services.BackgroundJob
 
                     // Hủy đơn
                     booking.Status = BookingStatus.Canceled;
+                    booking.IsBooked = false;
                     booking.CancelReason = "Survey date expired";
 
                     // Trừ điểm provider nếu có

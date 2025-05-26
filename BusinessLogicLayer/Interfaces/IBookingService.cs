@@ -32,5 +32,8 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse> ProcessCommitDepositAsync(string bookingCode);
         Task<BaseResponse<PageResult<BookingFormResponse>>> GetBookingFormForCustomer(string bookingCode, FormFilterRequest request, int customerId);
         Task<BaseResponse<PageResult<BookingFormResponse>>> GetBooingFormForProvider(string bookingCode, FormFilterRequest request, int providerId);
+
+
+        Task<BaseResponse> ForceExpireSurveyByBookingCodeAsync(string bookingCode);
     }
 }

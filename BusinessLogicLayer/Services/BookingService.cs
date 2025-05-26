@@ -2209,6 +2209,46 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
+
+        public async Task<BaseResponse> ForceExpireSurveyByBookingCodeAsync(string bookingCode)
+        {
+            var response = new BaseResponse();
+
+            var timeSlot = await _unitOfWork.TimeSlotRepository.Queryable()
+                .Include(ts => ts.Booking)
+                    .ThenInclude(b => b.DecorService)
+                .FirstOrDefaultAsync(ts => ts.Booking.BookingCode == bookingCode &&
+                                           ts.Booking.Status == BookingStatus.Planning);
+
+            if (timeSlot == null)
+            {
+                response.Message = "No booking found or not in 'Planning' status.";
+                return response;
+            }
+
+            var booking = timeSlot.Booking;
+
+            booking.Status = BookingStatus.Canceled;
+            booking.CancelReason = "Survey date expired";
+            booking.IsBooked = false;
+
+            var providerId = booking.DecorService?.AccountId;
+            if (providerId.HasValue)
+            {
+                var provider = await _unitOfWork.AccountRepository.GetByIdAsync(providerId.Value);
+                if (provider != null)
+                {
+                    provider.Reputation = Math.Max(0, provider.Reputation - 10);
+                }
+            }
+
+            await _unitOfWork.CommitAsync();
+
+            response.Success = true;
+            response.Message = $"Booking '{bookingCode}' marked as survey expired (forced).";
+            return response;
+        }
+}
         #region
         private string GenerateBookingCode()
         {

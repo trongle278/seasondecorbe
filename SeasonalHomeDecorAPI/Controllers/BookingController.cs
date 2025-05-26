@@ -197,5 +197,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             }
             return BadRequest(result);
         }
+
+        [HttpPost("triggerExpireSurveyByBookingCode/{bookingCode}")]
+        public async Task<IActionResult> ForceExpireSurveyByBookingCode(string bookingCode)
+        {
+            var result = await _bookingService.ForceExpireSurveyByBookingCodeAsync(bookingCode);
+            return Ok(result);
+        }
     }
 }
