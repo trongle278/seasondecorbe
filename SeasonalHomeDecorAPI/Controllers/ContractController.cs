@@ -191,11 +191,18 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpPost("requestTerminationOtp/{contractCode}")]
+        public async Task<IActionResult> RequestTerminationOtp(string contractCode)
+        {
+            var result = await _contractService.RequestTerminateOtpAsync(contractCode);
+            return Ok(result);
+        }
+
         [HttpPut("terminateContract/{contractCode}")]
-        public async Task<IActionResult> TerminateContract(string contractCode)
+        public async Task<IActionResult> TerminateContract(string contractCode, string otp)
         {
 
-            var response = await _contractService.TerminateContract(contractCode);
+            var response = await _contractService.TerminateContract(contractCode, otp);
             return response.Success ? Ok(response) : BadRequest(response);
         }
 

@@ -39,6 +39,9 @@ namespace DataAccessObject.Models
         }
 
         public string? Reason { get; set; }
+
+        public string? TerminationOtp { get; set; }
+        public DateTime? TerminationOtpGeneratedAt { get; set; }
     }
 
 }

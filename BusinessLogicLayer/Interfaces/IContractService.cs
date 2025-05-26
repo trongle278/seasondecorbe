@@ -22,7 +22,9 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<ContractCancelDetailResponse>> GetRequestContractCancelDetailAsync(string contractCode);
         Task<BaseResponse> RequestCancelContractAsync(string contractCode, int cancelReasonId, string cancelReason);
         Task<BaseResponse> ApproveCancelContractAsync(string contractCode);
-        Task<BaseResponse> TerminateContract(string contractCode);
+
+        Task<BaseResponse<string>> RequestTerminateOtpAsync(string contractCode);
+        Task<BaseResponse> TerminateContract(string contractCode, string otp);
 
         Task<BaseResponse> TriggerAllContractTerminatableAsync();
         Task<BaseResponse> SetTerminatableByContractCodeAsync(string contractCode);
