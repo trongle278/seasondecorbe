@@ -19,10 +19,11 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
         public decimal? ProductCost { get; set; }
+        public decimal CommitDepositAmount { get; set; }
         public decimal DepositPercentage { get; set; }
         public string? QuotationFilePath { get; set; }
         public int Status { get; set; }
-        public decimal TotalCost => MaterialCost + ConstructionCost + (ProductCost ?? 0);
+        public decimal TotalCost => MaterialCost + ConstructionCost + (ProductCost ?? 0) - CommitDepositAmount;
         public bool IsQuoteExisted { get; set; }
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }

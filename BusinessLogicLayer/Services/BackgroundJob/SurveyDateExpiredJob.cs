@@ -36,7 +36,7 @@ namespace BusinessLogicLayer.Services.BackgroundJob
                         .ThenInclude(b => b.DecorService)
                     .Where(ts =>
                         ts.SurveyDate < DateTime.Now &&
-                        ts.Booking.Status == BookingStatus.Pending)
+                        ts.Booking.Status == BookingStatus.Planning)
                     .ToListAsync();
 
                 foreach (var timeSlot in expiredTimeSlots)

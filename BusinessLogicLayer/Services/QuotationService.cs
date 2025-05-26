@@ -1145,6 +1145,7 @@ namespace BusinessLogicLayer.Services
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
                     IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
                     CreatedAt = quotation.CreatedAt,
+                    CommitDepositAmount = quotation.Booking.CommitDepositAmount,
 
                     Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
                     {
