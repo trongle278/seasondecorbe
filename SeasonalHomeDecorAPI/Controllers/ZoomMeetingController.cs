@@ -81,6 +81,22 @@ namespace SeasonalHomeDecorAPI.Controllers
         }
 
         [Authorize]
+        [HttpGet("getProviderMeetingForCustomer")]
+        public async Task<IActionResult> GetProviderMeetingsForCustomer([FromQuery] ZoomFilterRequest request)
+        {
+            var accountId = GetUserId();
+
+            var result = await _zoomService.GetProviderMeetingsForCustomerAsync(request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [Authorize]
         [HttpPost("createMeetingRequest/{bookingCode}")]
         public async Task<IActionResult> CreateMeetingRequest(string bookingCode, [FromBody] CreateMeetingRequest request)
         {
@@ -220,36 +236,36 @@ namespace SeasonalHomeDecorAPI.Controllers
         //    return BadRequest(result);
         //}
 
-        [Authorize]
-        [HttpGet("oauth/authorize")]
-        public IActionResult Authorize()
-        {
-            var result = _zoomOAuthService.GenerateZoomAuthorizeUrl();
-            if (result.Success)
-            {
-                return Ok(result);
-            }
+        //[Authorize]
+        //[HttpGet("oauth/authorize")]
+        //public IActionResult Authorize()
+        //{
+        //    var result = _zoomOAuthService.GenerateZoomAuthorizeUrl();
+        //    if (result.Success)
+        //    {
+        //        return Ok(result);
+        //    }
 
-            return BadRequest(result);
-        }
+        //    return BadRequest(result);
+        //}
 
-        [Authorize]
-        [HttpGet("oauth/callback")]
-        public async Task<IActionResult> Callback([FromQuery] string code)
-        {
-            if (string.IsNullOrEmpty(code))
-            {
-                return BadRequest(new BaseResponse { Message = "Code is missing" });
-            }                
+        //[Authorize]
+        //[HttpGet("oauth/callback")]
+        //public async Task<IActionResult> Callback([FromQuery] string code)
+        //{
+        //    if (string.IsNullOrEmpty(code))
+        //    {
+        //        return BadRequest(new BaseResponse { Message = "Code is missing" });
+        //    }                
 
-            var result = await _zoomOAuthService.ExchangeCodeForTokenAsync(code);
+        //    var result = await _zoomOAuthService.ExchangeCodeForTokenAsync(code);
 
-            if (result.Success)
-            {
-                return Ok(result);
-            }
+        //    if (result.Success)
+        //    {
+        //        return Ok(result);
+        //    }
 
-            return BadRequest(result);
-        }
+        //    return BadRequest(result);
+        //}
     }
 }
