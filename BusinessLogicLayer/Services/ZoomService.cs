@@ -674,6 +674,64 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<PageResult<MeetingScheduleReponse>>> GetProviderMeetingsForCustomerAsync(ZoomFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<MeetingScheduleReponse>>();
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.Queryable()
+                                            .Include(b => b.DecorService)
+                                            .Where(b => b.BookingCode == request.BookingCode)
+                                            .FirstOrDefaultAsync();
+
+                var providerId = booking?.DecorService.AccountId;
+
+                Expression<Func<ZoomMeeting, bool>> filter = meeting =>
+                    meeting.Booking.DecorService.AccountId == providerId &&
+                    meeting.StartTime >= DateTime.Today &&
+                    (meeting.Status == ZoomMeeting.MeetingStatus.Scheduled || meeting.Status == ZoomMeeting.MeetingStatus.Started) &&
+                    (!request.Status.HasValue || meeting.Status == request.Status);
+
+                Expression<Func<ZoomMeeting, object>> orderByExpression = request.SortBy?.ToLower() switch
+                {
+                    "status" => meeting => meeting.Status,
+                    _ => meeting => meeting.CreateAt
+                };
+
+                Expression<Func<ZoomMeeting, object>>[] includeProperties = {
+                    m => m.Booking,
+                    m => m.Booking.DecorService
+                };
+
+                (IEnumerable<ZoomMeeting> meetings, int totalCount) = await _unitOfWork.ZoomRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderByExpression,
+                    request.Descending,
+                    includeProperties
+                );
+
+                var mappedMeetings = _mapper.Map<List<MeetingScheduleReponse>>(meetings);
+
+                response.Success = true;
+                response.Message = "Successfully retrieved all provider meetings for the customer.";
+                response.Data = new PageResult<MeetingScheduleReponse>
+                {
+                    Data = mappedMeetings,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error retrieving meetings.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
         //public async Task<BaseResponse<ZoomJoinInfoResponse>> GetZoomJoinInfo(int id)
         //{
         //    var response = new BaseResponse<ZoomJoinInfoResponse>();
