@@ -2248,7 +2248,7 @@ namespace BusinessLogicLayer.Services
             response.Message = $"Booking '{bookingCode}' marked as survey expired (forced).";
             return response;
         }
-}
+
         #region
         private string GenerateBookingCode()
         {
