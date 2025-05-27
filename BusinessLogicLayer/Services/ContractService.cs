@@ -429,6 +429,7 @@ namespace BusinessLogicLayer.Services
                     FileUrl = contract.ContractFilePath,
                     BookingCode = booking.BookingCode,
                     DepositAmount = depositAmount,
+                    TotalPrice = booking.TotalPrice,
                     Note = booking.Note,
                     SurveyDate = timeslot.SurveyDate,
                     ConstructionDate = booking.ConstructionDate,                  
@@ -983,100 +984,6 @@ namespace BusinessLogicLayer.Services
 
             return response;
         }
-
-        //public async Task<BaseResponse> TerminateContract(string contractCode)
-        //{
-        //    var response = new BaseResponse();
-        //    using var transaction = await _unitOfWork.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        // 1. Lấy thông tin hợp đồng
-        //        var contract = await _unitOfWork.ContractRepository
-        //            .Queryable()
-        //            .Include(c => c.Quotation.Booking)
-        //                .ThenInclude(b => b.Account.Wallet)
-        //            .Include(c => c.Quotation.Booking.DecorService.Account.Wallet)
-        //            .FirstOrDefaultAsync(c => c.ContractCode == contractCode);
-
-        //        if (contract == null)
-        //        {
-        //            response.Message = "Contract not found";
-        //            return response;
-        //        }
-
-        //        // Chỉ cần kiểm tra IsTerminatable, không cần kiểm tra ngày nữa
-        //        if (contract.isTerminatable == false)
-        //        {
-        //            response.Message = "Contract can no longer be terminated (3-day period has expired)";
-        //            return response;
-        //        }
-
-        //        if (contract?.Status != Contract.ContractStatus.Signed)
-        //        {
-        //            response.Message = "Contract not found or not signed";
-        //            return response;
-        //        }
-
-        //        var booking = contract.Quotation.Booking;
-        //        decimal penaltyAmount = booking.TotalPrice * 0.5m;
-
-        //        // 2. Kiểm tra số dư
-        //        if (booking.Account.Wallet.Balance < penaltyAmount)
-        //        {
-        //            response.Message = "Customer wallet balance insufficient for penalty";
-        //            return response;
-        //        }
-
-        //        // 3. Tạo transaction phạt
-        //        var penaltyTransaction = new PaymentTransaction
-        //        {
-        //            Amount = penaltyAmount,
-        //            TransactionDate = DateTime.Now,
-        //            TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
-        //            TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
-        //            BookingId = booking.Id
-        //        };
-
-        //        await _unitOfWork.PaymentTransactionRepository.InsertAsync(penaltyTransaction);
-        //        await _unitOfWork.CommitAsync();
-
-        //        // 4. Trừ tiền khách, cộng tiền provider
-        //        booking.Account.Wallet.Balance -= penaltyAmount;
-        //        booking.DecorService.Account.Wallet.Balance += penaltyAmount;
-
-        //        // 5. Lưu lịch sử giao dịch
-        //        await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
-        //        {
-        //            WalletId = booking.Account.Wallet.Id,
-        //            PaymentTransactionId = penaltyTransaction.Id
-        //        });
-
-        //        await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
-        //        {
-        //            WalletId = booking.DecorService.Account.Wallet.Id,
-        //            PaymentTransactionId = penaltyTransaction.Id
-        //        });
-
-        //        // 6. Cập nhật trạng thái hợp đồng
-        //        contract.Status = Contract.ContractStatus.Canceled;
-        //        booking.Status = BookingStatus.Canceled;
-        //        booking.IsBooked = false;
-
-        //        await _unitOfWork.CommitAsync();
-        //        await transaction.CommitAsync();
-
-        //        response.Success = true;
-        //        response.Message = "Contract terminated successful";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        response.Message = $"Termination failed: {ex.Message}";
-        //    }
-
-        //    return response;
-        //}
 
         //hủy 2 bên
         public async Task<BaseResponse> RequestCancelContractAsync(string contractCode, int cancelReasonId, string cancelReason)
