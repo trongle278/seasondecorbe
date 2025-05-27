@@ -619,7 +619,7 @@ namespace BusinessLogicLayer.Services
         <h2>3. IMPLEMENTATION TIME</h2>
         <ul>
             <li>Start Date: {quotation.Booking.ConstructionDate:dd/MM/yyyy}</li>
-            <li>Estimated Completion as per customer's request: 3 - 5 days</li>
+            <li>Estimated Completion: 4 - 5 days</li>
         </ul>
     </div>
 
