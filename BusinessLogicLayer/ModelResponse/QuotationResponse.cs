@@ -71,6 +71,7 @@ namespace BusinessLogicLayer.ModelResponse
         public int Id { get; set; }
         public string QuotationCode { get; set; }
         public string Style { get; set; }
+        public DateTime SurveyDate { get; set; }
         public decimal MaterialCost { get; set; }
         public decimal ConstructionCost { get; set; }
         public decimal? ProductCost { get; set; }

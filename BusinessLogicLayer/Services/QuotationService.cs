@@ -1019,7 +1019,9 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.LaborDetails)
                     .Include(q => q.ProductDetails)
                         .ThenInclude(pd => pd.Product)
-                    .Include(q => q.Contract);
+                    .Include(q => q.Contract)
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.TimeSlots);
 
                 // Same pagination logic as customer method
                 (IEnumerable<Quotation> quotations, int totalCount) =
@@ -1038,6 +1040,7 @@ namespace BusinessLogicLayer.Services
                     // All properties from QuotationResponse
                     Id = q.Id,
                     Style = q.Booking.DecorService.Style,
+                    SurveyDate = q.Booking.TimeSlots.FirstOrDefault().SurveyDate,
                     QuotationCode = q.QuotationCode,
                     MaterialCost = q.MaterialCost,
                     ConstructionCost = q.ConstructionCost,
@@ -1055,7 +1058,6 @@ namespace BusinessLogicLayer.Services
                         MaterialName = m.MaterialName,
                         Quantity = m.Quantity,
                         Cost = m.Cost,
-                        //Category = m.Category
                         Note = m.Note
                     }).ToList(),
 
