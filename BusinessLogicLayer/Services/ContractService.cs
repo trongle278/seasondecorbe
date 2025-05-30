@@ -456,9 +456,15 @@ namespace BusinessLogicLayer.Services
 
         #region Template
         //{quotation.Booking.ExpectedCompletion}
+        //.service-details {{
+        //    display: flex;
+        //    justify-content: space-between;
+        //    gap: 20px;
+        //}
+        //}
 
-        //{(quotation.Booking.AdditionalCost.HasValue? $"- Additional Charges: {quotation.Booking.AdditionalCost:N0} VND (based on extra requests)" : "")}
-        private string GenerateTermOfUseContent(Quotation quotation)
+//{(quotation.Booking.AdditionalCost.HasValue? $"- Additional Charges: {quotation.Booking.AdditionalCost:N0} VND (based on extra requests)" : "")}
+private string GenerateTermOfUseContent(Quotation quotation)
         {
             var customer = quotation.Booking.Account;
             var decorService = quotation.Booking.DecorService;
@@ -518,8 +524,8 @@ namespace BusinessLogicLayer.Services
             margin-bottom: 25px;
         }}
         .service-details {{
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }}
         .tasks {{
@@ -591,7 +597,7 @@ namespace BusinessLogicLayer.Services
         
         <div class='service-details'>
             <div class='tasks'>
-                <strong>Scope of Work:</strong>
+                <strong>Labor Task in the Project:</strong>
                 <div class='indent'>
                     {(quotation.LaborDetails != null && quotation.LaborDetails.Any()
                                 ? string.Join("<br>", quotation.LaborDetails.Select((t, i) =>
@@ -610,6 +616,17 @@ namespace BusinessLogicLayer.Services
                                   $"{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(m.MaterialName.ToLower())}:" +
                                   $" - Quantity: {m.Quantity}"))
                                 : "(No materials specified)")}
+                </div>
+            </div>
+
+            <div class='products'>
+                <strong>Products Used in the Project:</strong>
+                <div class='indent'>
+                    {(quotation.ProductDetails != null && quotation.ProductDetails.Any()
+                                ? string.Join("<br>", quotation.ProductDetails.Select((p, i) =>
+                                  $"{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.ProductName.ToLower())}:" +
+                                  $" - Quantity: {p.Quantity}, Unit Price: {p.UnitPrice:N0} VND, Total: {p.TotalPrice:N0} VND"))
+                                : "(No products specified)")}
                 </div>
             </div>
         </div>

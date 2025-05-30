@@ -1710,6 +1710,7 @@ namespace BusinessLogicLayer.Services
 
                 // 🔹 Cập nhật contract đã đặt cọc
                 contract.isDeposited = true;
+                contract.isTerminatable = false;
                 _unitOfWork.ContractRepository.Update(contract);
 
                 //// 🔹 Chuyển trạng thái Provider sang "Busy"
