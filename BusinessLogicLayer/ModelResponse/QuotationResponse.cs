@@ -27,6 +27,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsQuoteExisted { get; set; }
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }
+        public bool HasTerminated { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public List<MaterialDetailResponse> Materials { get; set; }
@@ -79,6 +80,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsQuoteExisted { get; set; }
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }
+        public bool HasTerminated { get; set; }
         public DateTime CreatedAt { get; set; }
         public int Status { get; set; }
         public string FilePath { get; set; }
