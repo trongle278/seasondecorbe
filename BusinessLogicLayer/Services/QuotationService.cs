@@ -933,6 +933,7 @@ namespace BusinessLogicLayer.Services
                     IsQuoteExisted = q.isQuoteExisted,
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     IsSigned = q.Contract != null && q.Contract.isSigned == true,
+                    SignedDate = q.Contract.SignedDate,
                     HasTerminated = q.Booking.HasTerminated ?? false,
 
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
@@ -1052,6 +1053,7 @@ namespace BusinessLogicLayer.Services
                     IsQuoteExisted = q.isQuoteExisted,
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     IsSigned = q.Contract != null && q.Contract.isSigned == true,
+                    SignedDate = q.Contract.SignedDate,
                     HasTerminated = q.Booking.HasTerminated ?? false,
                     FilePath = q.QuotationFilePath,
 
@@ -1148,6 +1150,7 @@ namespace BusinessLogicLayer.Services
                     IsQuoteExisted = quotation.isQuoteExisted,
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
                     IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
+                    SignedDate = quotation.Contract.SignedDate,
                     HasTerminated = quotation.Booking.HasTerminated ?? false,
                     CreatedAt = quotation.CreatedAt,
                     CommitDepositAmount = quotation.Booking.CommitDepositAmount,

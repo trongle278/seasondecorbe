@@ -84,6 +84,7 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(b => b.TimeSlots)
                     .Include(q => q.LaborDetails)//thêm data vào pdf
                     .Include(q => q.MaterialDetails)//thêm data vào pdf
+                    .Include(q => q.ProductDetails)
                     .Where(q => q.QuotationCode == quotationCode)
                     .FirstOrDefaultAsync();
 
@@ -433,7 +434,8 @@ namespace BusinessLogicLayer.Services
                     TotalPrice = booking.TotalPrice,
                     Note = booking.Note,
                     SurveyDate = timeslot.SurveyDate,
-                    ConstructionDate = booking.ConstructionDate,                  
+                    ConstructionDate = booking.ConstructionDate,
+                    SignedDate = contract.SignedDate,
 
                     CustomerName = $"{customer.LastName} {customer.FirstName}",
                     CustomerEmail = customer.Email,
@@ -525,17 +527,28 @@ private string GenerateTermOfUseContent(Quotation quotation)
             margin-bottom: 25px;
         }}
         .service-details {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }}
-        .tasks {{
-            width: 48%;
+        .service-item {{
+            background: #ffffff;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            white-space: nowrap;
+            display: inline-block;
+        }}
+        .tasks, .materials, .products {{
+            width: 100%;
             line-height: 1.8;
         }}
-        .materials {{
-            width: 48%;
-            line-height: 1.8;
+        .items-container {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
         }}
         .signature {{
             display: flex;
@@ -561,6 +574,12 @@ private string GenerateTermOfUseContent(Quotation quotation)
         }}
         .indent {{
             margin-left: 20px;
+        }}
+        .customer-note {{
+            background-color: #fffde7;
+            padding: 12px;
+            border-left: 4px solid #ffd600;
+            margin-bottom: 20px;
         }}
     </style>
 </head>
@@ -591,47 +610,46 @@ private string GenerateTermOfUseContent(Quotation quotation)
     </div>
 
     <div class='section'>
-        <h2>2. SERVICE DETAILS</h2>
-        <p>After reaching an agreement on the quotation, the two parties enter into a construction contract with the following terms:</p>
-        
-        {(string.IsNullOrWhiteSpace(quotation.Booking.Note) ? "" : $"<p><strong>Customer Note:</strong> {quotation.Booking.Note}</p>")}
-        
-        <div class='service-details'>
-            <div class='tasks'>
-                <strong>Labor Task in the Project:</strong>
-                <div class='indent'>
-                    {(quotation.LaborDetails != null && quotation.LaborDetails.Any()
-                                ? string.Join("<br>", quotation.LaborDetails.Select((t, i) =>
-                                  $"{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.TaskName.ToLower())}:" +
-                                  $"{(t.Area.HasValue ? $" Area: {t.Area} sqm" : "")}" +
-                                  $" - Unit: {t.Unit}"))
-                                : "(No work items specified)")}
-                </div>
-            </div>
-            
-            <div class='materials'>
-                <strong>Materials Used in the Project:</strong>
-                <div class='indent'>
-                    {(quotation.MaterialDetails != null && quotation.MaterialDetails.Any()
-                                ? string.Join("<br>", quotation.MaterialDetails.Select((m, i) =>
-                                  $"{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(m.MaterialName.ToLower())}:" +
-                                  $" - Quantity: {m.Quantity}"))
-                                : "(No materials specified)")}
-                </div>
-            </div>
+    <h2>2. SERVICE DETAILS</h2>
+    <p>After reaching an agreement on the quotation, the two parties enter into a construction contract with the following terms:</p>
 
-            <div class='products'>
-                <strong>Products Used in the Project:</strong>
-                <div class='indent'>
-                    {(quotation.ProductDetails != null && quotation.ProductDetails.Any()
-                                ? string.Join("<br>", quotation.ProductDetails.Select((p, i) =>
-                                  $"{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.ProductName.ToLower())}:" +
-                                  $" - Quantity: {p.Quantity}, Unit Price: {p.UnitPrice:N0} VND, Total: {p.TotalPrice:N0} VND"))
-                                : "(No products specified)")}
-                </div>
-            </div>
-        </div>
+    {(string.IsNullOrWhiteSpace(quotation.Booking.Note) ? "" : $"<div class='customer-note'><strong>Customer Note:</strong> {quotation.Booking.Note}</div>")}
+
+    <div class='tasks'>
+        <strong>Labor Tasks in the Project:</strong>
+        <ul class='indent'>
+            {(quotation.LaborDetails != null && quotation.LaborDetails.Any()
+                ? string.Join("", quotation.LaborDetails.Select((t, i) =>
+                    $"<li>{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.TaskName.ToLower())}" +
+                    $"{(t.Area.HasValue ? $" - Area: {t.Area} sqm" : "")}" +
+                    $" - Unit: {t.Unit}</li>"))
+                : "<li>(No work items specified)</li>")}
+        </ul>
     </div>
+
+    <div class='materials'>
+        <strong>Materials Used in the Project:</strong>
+        <ul class='indent'>
+            {(quotation.MaterialDetails != null && quotation.MaterialDetails.Any()
+                ? string.Join("", quotation.MaterialDetails.Select((m, i) =>
+                    $"<li>{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(m.MaterialName.ToLower())}" +
+                    $" - Quantity: {m.Quantity}</li>"))
+                : "<li>(No materials specified)</li>")}
+        </ul>
+    </div>
+
+    <div class='products'>
+        <strong>Products Used in the Project:</strong>
+        <ul class='indent'>
+            {(quotation.ProductDetails != null && quotation.ProductDetails.Any()
+                ? string.Join("", quotation.ProductDetails.Select((p, i) =>
+                    $"<li>{i + 1}. {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.ProductName.ToLower())}" +
+                    $" - Quantity: {p.Quantity}</li>"))
+                : "<li>(No products specified)</li>")}
+        </ul>
+    </div>
+</div>
+
 
     <div class='section'>
         <h2>3. IMPLEMENTATION TIME</h2>
@@ -960,7 +978,7 @@ private string GenerateTermOfUseContent(Quotation quotation)
                 //    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
                 //    BookingId = booking.Id
                 //};
-
+                    
                 // 3. Tạo transaction phạt (của khách hàng)
                 var customerPenaltyTransaction = new PaymentTransaction
                 {
@@ -971,6 +989,7 @@ private string GenerateTermOfUseContent(Quotation quotation)
                     BookingId = booking.Id
                 };
                 await _unitOfWork.PaymentTransactionRepository.InsertAsync(customerPenaltyTransaction);
+                await _unitOfWork.CommitAsync();
 
                 // 4. Tạo transaction nhận tiền (của provider)
                 var providerRevenueTransaction = new PaymentTransaction
@@ -982,7 +1001,6 @@ private string GenerateTermOfUseContent(Quotation quotation)
                     BookingId = booking.Id
                 };
                 await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerRevenueTransaction);
-
                 await _unitOfWork.CommitAsync();
 
                 // 5. Trừ tiền khách, cộng tiền provider
@@ -1014,22 +1032,31 @@ private string GenerateTermOfUseContent(Quotation quotation)
                 await _unitOfWork.CommitAsync();
                 await transaction.CommitAsync();
 
-                // ✅ Gửi email cho customer
+                // 8. Gửi email cho Customer
+                string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "ContractTerminatedTemplate.html");
+                string body = File.ReadAllText(templatePath);
+
+                string customerBody = body
+                    .Replace("{customerName}", $"{booking.Account.FirstName} {booking.Account.LastName}")
+                    .Replace("{contractCode}", contract.ContractCode)
+                    .Replace("{penaltyAmount}", penaltyAmount.ToString("C", CultureInfo.GetCultureInfo("vi-VN")));
+
                 await _emailService.SendEmailAsync(
                     booking.Account.Email,
                     "Contract Termination Confirmation",
-                    $"Dear {booking.Account.FirstName} {booking.Account.LastName},<br/><br/>" +
-                    $"Your contract with code <b>{contract.ContractCode}</b> has been terminated successfully. " +
-                    $"A penalty fee of <b>{penaltyAmount:C}</b> has been deducted from your wallet.<br/><br/>Thank you."
+                    customerBody
                 );
 
-                // ✅ Gửi email cho provider
+                // Email gửi cho Provider
+                string providerBody = body
+                    .Replace("{customerName}", $"{booking.DecorService.Account.FirstName} {booking.DecorService.Account.LastName}")
+                    .Replace("{contractCode}", contract.ContractCode)
+                    .Replace("{penaltyAmount}", penaltyAmount.ToString("C", CultureInfo.GetCultureInfo("vi-VN")));
+
                 await _emailService.SendEmailAsync(
                     booking.DecorService.Account.Email,
-                    "Contract Terminated",
-                    $"Dear {booking.DecorService.Account.FirstName} {booking.DecorService.Account.LastName},<br/><br/>" +
-                    $"The contract with code <b>{contract.ContractCode}</b> has been terminated by the customer. " +
-                    $"You have received a compensation amount of <b>{penaltyAmount:C}</b> in your wallet.<br/><br/>Please check your balance."
+                    "Contract Termination Notification",
+                    providerBody
                 );
 
                 response.Success = true;
