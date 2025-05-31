@@ -48,6 +48,7 @@ namespace DataAccessObject.Models
         public bool? IsQuoted { get; set; }
         public bool? IsTracked { get; set; }
         public bool? IsReviewed { get; set; }
+        public bool? HasTerminated { get; set; }
         public bool? CancelDisable { get; set; }
         public int? CancelTypeId { get; set; }
         public virtual CancelType CancelType { get; set; }  // Navigation property

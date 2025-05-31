@@ -421,6 +421,7 @@ namespace BusinessLogicLayer.Services
                 response.Data = new ContractFileResponse
                 {
                     ContractCode = contract.ContractCode,
+                    QuotationCode = contract.Quotation.QuotationCode,
                     Status = (int)contract.Status,
                     IsSigned = contract.isSigned,
                     IsDeposited = contract.isDeposited,
@@ -984,11 +985,31 @@ private string GenerateTermOfUseContent(Quotation quotation)
                 contract.Status = Contract.ContractStatus.Canceled;
                 contract.TerminationOtp = null;
                 contract.TerminationOtpGeneratedAt = null;
+                contract.Quotation.Status = Quotation.QuotationStatus.Closed;
                 booking.Status = BookingStatus.Canceled;
+                booking.HasTerminated = true;
                 booking.IsBooked = false;
 
                 await _unitOfWork.CommitAsync();
                 await transaction.CommitAsync();
+
+                // ✅ Gửi email cho customer
+                await _emailService.SendEmailAsync(
+                    booking.Account.Email,
+                    "Contract Termination Confirmation",
+                    $"Dear {booking.Account.FirstName} {booking.Account.LastName},<br/><br/>" +
+                    $"Your contract with code <b>{contract.ContractCode}</b> has been terminated successfully. " +
+                    $"A penalty fee of <b>{penaltyAmount:C}</b> has been deducted from your wallet.<br/><br/>Thank you."
+                );
+
+                // ✅ Gửi email cho provider
+                await _emailService.SendEmailAsync(
+                    booking.DecorService.Account.Email,
+                    "Contract Terminated",
+                    $"Dear {booking.DecorService.Account.FirstName} {booking.DecorService.Account.LastName},<br/><br/>" +
+                    $"The contract with code <b>{contract.ContractCode}</b> has been terminated by the customer. " +
+                    $"You have received a compensation amount of <b>{penaltyAmount:C}</b> in your wallet.<br/><br/>Please check your balance."
+                );
 
                 response.Success = true;
                 response.Message = "Contract terminated successful";

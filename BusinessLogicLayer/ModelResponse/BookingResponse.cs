@@ -21,6 +21,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsContractSigned { get; set; }
         public bool IsTracked { get; set; }
         public bool IsReviewed { get; set; }
+        public bool HasTerminated { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public string ServiceItems { get; set; }
@@ -84,6 +85,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool IsQuoteExisted { get; set; }
         public bool IsTracked { get; set; }
         public bool IsReviewed { get; set; }
+        public bool HasTerminated { get; set; }
         public DecorServiceDTO DecorService { get; set; }
         public List<ThemeColorResponse> ThemeColors { get; set; }
         public DesignResponse? Design { get; set; }

@@ -230,6 +230,7 @@ namespace BusinessLogicLayer.Services
                         IsContractSigned = latestQuotation?.Contract?.isSigned ?? false,
                         IsTracked = booking.IsTracked ?? false,
                         IsReviewed = booking.IsReviewed ?? false,
+                        HasTerminated = booking.HasTerminated ?? false,
 
                         BookingForm = booking.BookingForm == null ? null : new BookingFormResponse
                         {
@@ -355,6 +356,7 @@ namespace BusinessLogicLayer.Services
                     IsQuoteExisted = booking.Quotations.Any(),
                     IsTracked = booking.IsTracked ?? false,
                     IsReviewed = booking.IsReviewed ?? false,
+                    HasTerminated = booking.HasTerminated ?? false,
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO

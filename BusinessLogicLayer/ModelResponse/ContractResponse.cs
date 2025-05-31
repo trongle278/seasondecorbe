@@ -24,6 +24,7 @@ namespace BusinessLogicLayer.ModelResponse
     public class ContractFileResponse
     {
         public string ContractCode { get; set; }
+        public string QuotationCode { get; set; }
         public int Status { get; set; }
         public bool? IsSigned { get; set; }
         public bool? IsDeposited { get; set; }
