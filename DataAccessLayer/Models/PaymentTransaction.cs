@@ -30,7 +30,8 @@ namespace DataAccessObject.Models
             Refund,
             FinalPay,
             Revenue,
-            OrderPay
+            OrderPay,
+            PenaltyPay
         }
         public EnumTransactionType TransactionType { get; set; }
 

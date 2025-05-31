@@ -951,34 +951,55 @@ private string GenerateTermOfUseContent(Quotation quotation)
                     return response;
                 }
 
-                // 3. Tạo transaction phạt
-                var penaltyTransaction = new PaymentTransaction
+                //// 3. Tạo transaction phạt
+                //var penaltyTransaction = new PaymentTransaction
+                //{
+                //    Amount = penaltyAmount,
+                //    TransactionDate = DateTime.Now,
+                //    TransactionType = PaymentTransaction.EnumTransactionType.PenaltyPay,
+                //    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                //    BookingId = booking.Id
+                //};
+
+                // 3. Tạo transaction phạt (của khách hàng)
+                var customerPenaltyTransaction = new PaymentTransaction
                 {
                     Amount = penaltyAmount,
                     TransactionDate = DateTime.Now,
-                    TransactionType = PaymentTransaction.EnumTransactionType.FinalPay,
+                    TransactionType = PaymentTransaction.EnumTransactionType.PenaltyPay,
                     TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
                     BookingId = booking.Id
                 };
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(customerPenaltyTransaction);
 
-                await _unitOfWork.PaymentTransactionRepository.InsertAsync(penaltyTransaction);
+                // 4. Tạo transaction nhận tiền (của provider)
+                var providerRevenueTransaction = new PaymentTransaction
+                {
+                    Amount = penaltyAmount,
+                    TransactionDate = DateTime.Now,
+                    TransactionType = PaymentTransaction.EnumTransactionType.Revenue,
+                    TransactionStatus = PaymentTransaction.EnumTransactionStatus.Success,
+                    BookingId = booking.Id
+                };
+                await _unitOfWork.PaymentTransactionRepository.InsertAsync(providerRevenueTransaction);
+
                 await _unitOfWork.CommitAsync();
 
-                // 4. Trừ tiền khách, cộng tiền provider
+                // 5. Trừ tiền khách, cộng tiền provider
                 booking.Account.Wallet.Balance -= penaltyAmount;
                 booking.DecorService.Account.Wallet.Balance += penaltyAmount;
 
-                // 5. Lưu lịch sử giao dịch
+                // 6. Lưu lịch sử giao dịch
                 await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
                 {
                     WalletId = booking.Account.Wallet.Id,
-                    PaymentTransactionId = penaltyTransaction.Id
+                    PaymentTransactionId = customerPenaltyTransaction.Id
                 });
 
                 await _unitOfWork.WalletTransactionRepository.InsertAsync(new WalletTransaction
                 {
                     WalletId = booking.DecorService.Account.Wallet.Id,
-                    PaymentTransactionId = penaltyTransaction.Id
+                    PaymentTransactionId = providerRevenueTransaction.Id
                 });
 
                 // 6. Cập nhật trạng thái hợp đồng
