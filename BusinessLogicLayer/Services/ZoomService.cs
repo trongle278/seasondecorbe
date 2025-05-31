@@ -365,6 +365,59 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse> EndMeetingAsync(string bookingCode, int id)
+        {
+            var response = new BaseResponse();
+            try
+            {
+                var meeting = await _unitOfWork.ZoomRepository.Queryable()
+                                    .Include(z => z.Booking)
+                                    .Where(z => z.Booking.BookingCode == bookingCode && z.Id == id)
+                                    .FirstOrDefaultAsync();
+
+                if (meeting == null)
+                {
+                    response.Message = "Meeting not found!";
+                    return response;
+                }
+
+                if (!long.TryParse(meeting.MeetingNumber, out long zoomMeetingId))
+                {
+                    response.Message = "Invalid MeetingNumber format!";
+                    return response;
+                }
+
+                var accessToken = await GetAccessTokenAsync();
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var zoomApiUrl = $"{_zoomSettings.ApiBaseUrl}meetings/{zoomMeetingId}";
+                var result = await _httpClient.DeleteAsync(zoomApiUrl);
+
+                if (!result.IsSuccessStatusCode)
+                {
+                    response.Message = $"Failed to end Zoom meeting!";
+                    return response;
+                }
+
+                meeting.Status = ZoomMeeting.MeetingStatus.Ended;
+                _unitOfWork.ZoomRepository.Update(meeting);
+                await _unitOfWork.CommitAsync();
+
+                response.Success = true;
+                response.Message = "Zoom meeting ended successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Error while ending meeting!";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
         public async Task<BaseResponse> CreateMeetingScheduleAsync(string bookingCode, int providerId, List<DateTime> scheduledTime)
         {
             var response = new BaseResponse();
