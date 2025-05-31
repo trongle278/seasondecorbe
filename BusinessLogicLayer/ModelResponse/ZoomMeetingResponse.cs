@@ -9,8 +9,6 @@ namespace BusinessLogicLayer.ModelResponse
 {
     public class ZoomMeetingResponse
     {
-        public string Id { get; set; }
-
         [JsonProperty("join_url")]
         public string JoinUrl { get; set; }
 
