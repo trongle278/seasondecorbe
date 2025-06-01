@@ -104,6 +104,7 @@ namespace BusinessLogicLayer.ModelResponse
     public class QuotationDetailResponseForProvider : QuotationDetailResponse
     {
         public CustomerResponse Customer { get; set; }
+        public BookingFormResponse? BookingForm { get; set; }
     }
 
     public class QuotationResponseForProvider : QuotationResponse

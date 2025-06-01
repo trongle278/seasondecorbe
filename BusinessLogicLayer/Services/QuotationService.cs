@@ -1223,6 +1223,16 @@ namespace BusinessLogicLayer.Services
                     .Include(q => q.Booking)
                         .ThenInclude(b => b.DecorService)
                             .ThenInclude(ds => ds.DecorCategory)
+
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.BookingForm)
+                            .ThenInclude(f => f.FormImages)
+                    
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.BookingForm)
+                            .ThenInclude(f => f.ScopeOfWorkForms)
+                                .ThenInclude(swf => swf.ScopeOfWork)
+
                     .Include(q => q.Contract)
                     .FirstOrDefaultAsync(q =>
                         q.QuotationCode == quotationCode &&
@@ -1232,6 +1242,36 @@ namespace BusinessLogicLayer.Services
                 {
                     response.Message = "Quotation not found or access denied.";
                     return response;
+                }
+
+                var bookingForm = quotation.Booking?.BookingForm;
+                BookingFormResponse? bookingFormResponse = null;
+
+                if (bookingForm != null)
+                {
+                    bookingFormResponse = new BookingFormResponse
+                    {
+                        Id = bookingForm.Id,
+                        AccountId = bookingForm.AccountId,
+                        SpaceStyle = bookingForm.SpaceStyle,
+                        RoomSize = bookingForm.RoomSize,
+                        Style = bookingForm.Style,
+                        ThemeColor = bookingForm.ThemeColor,
+                        PrimaryUser = bookingForm.PrimaryUser,
+                        EstimatedBudget = bookingForm.EstimatedBudget,
+                        Images = bookingForm.FormImages?.Select(img => new FormImageResponse
+                        {
+                            Id = img.Id,
+                            ImageUrl = img.ImageUrl
+                        }).ToList(),
+                        ScopeOfWorks = bookingForm.ScopeOfWorkForms?
+                            .Where(swf => swf.ScopeOfWork != null)
+                            .Select(swf => new ScopeOfWorkResponse
+                            {
+                                Id = swf.ScopeOfWork.Id,
+                                WorkType = swf.ScopeOfWork.WorkType
+                            }).ToList()
+                    };
                 }
 
                 var result = new QuotationDetailResponseForProvider
@@ -1290,6 +1330,8 @@ namespace BusinessLogicLayer.Services
                         Avatar = quotation.Booking.Account.Avatar,
                         Slug = quotation.Booking.Account.Slug,
                     },
+
+                    BookingForm = bookingFormResponse
                 };
 
                 response.Success = true;
