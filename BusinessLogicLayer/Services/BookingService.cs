@@ -917,7 +917,8 @@ namespace BusinessLogicLayer.Services
                     CreateAt = DateTime.Now,
                     IsCommitDepositPaid = false,
                     RelatedProductId = relatedProductId,
-                    BookingFormId = bookFormId
+                    BookingFormId = bookFormId,
+                    HasTerminated = false
                 };
 
                 // Gán phong cách trang trí nếu có
