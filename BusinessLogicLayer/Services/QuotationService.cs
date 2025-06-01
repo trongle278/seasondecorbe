@@ -1150,7 +1150,7 @@ namespace BusinessLogicLayer.Services
                     IsQuoteExisted = quotation.isQuoteExisted,
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
                     IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
-                    SignedDate = quotation.Contract.SignedDate,
+                    SignedDate = quotation.Contract != null ? quotation.Contract.SignedDate : null,
                     HasTerminated = quotation.Booking.HasTerminated ?? false,
                     CreatedAt = quotation.CreatedAt,
                     CommitDepositAmount = quotation.Booking.CommitDepositAmount,
