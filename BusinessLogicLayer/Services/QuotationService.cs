@@ -1284,9 +1284,11 @@ namespace BusinessLogicLayer.Services
 
                     Customer = new CustomerResponse
                     {
-                        FullName = quotation.Booking.Account.FirstName + quotation.Booking.Account.LastName,
+                        FullName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
                         Phone = quotation.Booking.Account.Phone,
                         Email = quotation.Booking.Account.Email,
+                        Avatar = quotation.Booking.Account.Avatar,
+                        Slug = quotation.Booking.Account.Slug,
                     },
                 };
 
@@ -1840,10 +1842,19 @@ namespace BusinessLogicLayer.Services
                     Status = (int)quotation.Status,
                     CancelType = quotation.CancelType?.Type,
                     Reason = quotation.CancelReason,
-                    CustomerName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
-                    CustomerEmail = quotation.Booking.Account?.Email,
-                    CustomerAvatar = quotation.Booking.Account?.Avatar,
-                    CustomerPhone = quotation.Booking.Account?.Phone
+                    //CustomerName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
+                    //CustomerEmail = quotation.Booking.Account?.Email,
+                    //CustomerAvatar = quotation.Booking.Account?.Avatar,
+                    //CustomerPhone = quotation.Booking.Account?.Phone
+                    
+                    Customer = new CustomerResponse
+                    {
+                        FullName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
+                        Phone = quotation.Booking.Account.Phone,
+                        Email = quotation.Booking.Account.Email,
+                        Avatar = quotation.Booking.Account.Avatar,
+                        Slug = quotation.Booking.Account.Slug,
+                    }
                 };
 
                 response.Success = true;
@@ -1883,10 +1894,15 @@ namespace BusinessLogicLayer.Services
                     QuotationCode = quotation.QuotationCode,
                     Status = (int)quotation.Status,
                     Reason = quotation.CancelReason,
-                    CustomerName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
-                    CustomerEmail = quotation.Booking.Account?.Email,
-                    CustomerAvatar = quotation.Booking.Account?.Avatar,
-                    CustomerPhone = quotation.Booking.Account?.Phone
+                    
+                    Customer = new CustomerResponse
+                    {
+                        FullName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
+                        Phone = quotation.Booking.Account.Phone,
+                        Email = quotation.Booking.Account.Email,
+                        Avatar = quotation.Booking.Account.Avatar,
+                        Slug = quotation.Booking.Account.Slug,
+                    }
                 };
 
                 response.Success = true;
