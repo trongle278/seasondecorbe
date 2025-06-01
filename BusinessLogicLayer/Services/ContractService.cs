@@ -1059,6 +1059,25 @@ private string GenerateTermOfUseContent(Quotation quotation)
                     providerBody
                 );
 
+                string colorCode = $"<span style='color:#f66;font-weight:bold;'>#{contract.ContractCode}</span>";
+                string url = $"{_clientBaseUrl}/contract/detail/{contract.ContractCode}";
+
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.AccountId,
+                    Title = "Contract Terminated",
+                    Content = $"You have terminated contract {colorCode}. A penalty of {penaltyAmount.ToString("C0", CultureInfo.GetCultureInfo("vi-VN"))} has been deducted.",
+                    Url = url
+                });
+
+                await _notificationService.CreateNotificationAsync(new NotificationCreateRequest
+                {
+                    AccountId = booking.DecorService.AccountId,
+                    Title = "Contract Terminated",
+                    Content = $"Customer has terminated contract {colorCode}. You have received {penaltyAmount.ToString("C0", CultureInfo.GetCultureInfo("vi-VN"))} in your wallet.",
+                    Url = url
+                });
+
                 response.Success = true;
                 response.Message = "Contract terminated successful";
             }
