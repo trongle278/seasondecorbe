@@ -156,6 +156,26 @@ namespace SeasonalHomeDecorAPI.Controllers
             return BadRequest(result);
         }
 
+        [Authorize]
+        [HttpPut("endMeeting/{bookingCode}")]
+        public async Task<IActionResult> EndMeeting(string bookingCode, [FromQuery] int id)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomService.EndMeetingAsync(bookingCode, id);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
         //[Authorize]
         //[HttpPost("createMeetingSchedule/{bookingCode}")]
         //public async Task<IActionResult> CreateMeetingSchedule(string bookingCode, [FromBody] List<DateTime> scheduleTime)
