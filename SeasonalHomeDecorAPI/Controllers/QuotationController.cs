@@ -110,6 +110,17 @@ namespace SeasonalHomeDecorAPI.Controllers
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [HttpGet("getQuotationDetailByProvider/{quotationCode}")]
+        [Authorize]
+        public async Task<IActionResult> GetQuotationDetailByProvider(string quotationCode)
+        {
+            // Lấy customerId từ token
+            var providerId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            var response = await _quotationService.GetQuotationDetailByProviderAsync(quotationCode, providerId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
         [HttpGet("getPaginatedRelatedProduct")]
         [Authorize]
         public async Task<IActionResult> GetPaginatedRelatedProduct([FromQuery] PagingRelatedProductRequest request)

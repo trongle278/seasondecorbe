@@ -1204,6 +1204,106 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        public async Task<BaseResponse<QuotationDetailResponseForProvider>> GetQuotationDetailByProviderAsync(string quotationCode, int providerId)
+        {
+            var response = new BaseResponse<QuotationDetailResponseForProvider>();
+            try
+            {
+                var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.MaterialDetails)
+                    .Include(q => q.LaborDetails)
+                    .Include(q => q.ProductDetails)
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService)
+                            .ThenInclude(ds => ds.Account)
+
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.Account)
+
+                    .Include(q => q.Booking)
+                        .ThenInclude(b => b.DecorService)
+                            .ThenInclude(ds => ds.DecorCategory)
+                    .Include(q => q.Contract)
+                    .FirstOrDefaultAsync(q =>
+                        q.QuotationCode == quotationCode &&
+                        q.Booking.DecorService.AccountId == providerId);
+
+                if (quotation == null)
+                {
+                    response.Message = "Quotation not found or access denied.";
+                    return response;
+                }
+
+                var result = new QuotationDetailResponseForProvider
+                {
+                    Id = quotation.Id,
+                    QuotationCode = quotation.QuotationCode,
+                    DecorCategoryName = quotation.Booking.DecorService.DecorCategory.CategoryName,
+                    Style = quotation.Booking.DecorService.Style,
+                    MaterialCost = quotation.MaterialCost,
+                    ConstructionCost = quotation.ConstructionCost,
+                    ProductCost = quotation.ProductCost,
+                    DepositPercentage = quotation.DepositPercentage,
+                    QuotationFilePath = quotation.QuotationFilePath,
+                    Status = (int)quotation.Status,
+                    IsQuoteExisted = quotation.isQuoteExisted,
+                    IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
+                    IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
+                    SignedDate = quotation.Contract != null ? quotation.Contract.SignedDate : null,
+                    HasTerminated = quotation.Booking.HasTerminated ?? false,
+                    CreatedAt = quotation.CreatedAt,
+                    CommitDepositAmount = quotation.Booking.CommitDepositAmount,
+
+                    Materials = quotation.MaterialDetails.Select(m => new MaterialDetailResponse
+                    {
+                        MaterialName = m.MaterialName,
+                        Quantity = m.Quantity,
+                        Cost = m.Cost,
+                        Note = m.Note,
+                    }).ToList(),
+
+                    ConstructionTasks = quotation.LaborDetails.Select(c => new ConstructionDetailResponse
+                    {
+                        TaskName = c.TaskName,
+                        Cost = c.Cost,
+                        Unit = c.Unit,
+                        Area = c.Area,
+                        Note = c.Note
+                    }).ToList(),
+
+                    ProductDetails = quotation.ProductDetails.Select(p => new ProductsDetailResponse
+                    {
+                        Id = p.Id,
+                        ProductId = p.ProductId,
+                        ProductName = p.ProductName,
+                        Quantity = p.Quantity,
+                        UnitPrice = p.UnitPrice,
+                        TotalPrice = p.TotalPrice,
+                        Image = p.Image
+                    }).ToList(),
+
+                    Customer = new CustomerResponse
+                    {
+                        FullName = quotation.Booking.Account.FirstName + quotation.Booking.Account.LastName,
+                        Phone = quotation.Booking.Account.Phone,
+                        Email = quotation.Booking.Account.Email,
+                    },
+                };
+
+                response.Success = true;
+                response.Message = "Quotation details retrieved successfully.";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to retrieve quotation details.";
+                response.Errors.Add(ex.Message);
+            }
+
+            return response;
+        }
+
         public async Task<BaseResponse<RelatedProductPageResult>> GetPaginatedRelatedProductAsync(PagingRelatedProductRequest request)
         {
             var response = new BaseResponse<RelatedProductPageResult>();

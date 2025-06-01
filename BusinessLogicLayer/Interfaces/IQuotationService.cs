@@ -20,6 +20,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<BaseResponse<PageResult<QuotationResponseForCustomer>>> GetPaginatedQuotationsForCustomerAsync(QuotationFilterRequest request, int accountId);
         Task<BaseResponse<PageResult<QuotationResponseForProvider>>> GetPaginatedQuotationsForProviderAsync(QuotationFilterRequest request, int providerId);
         Task<BaseResponse<QuotationDetailResponseForCustomer>> GetQuotationDetailByCustomerAsync(string quotationCode, int customerId);
+        Task<BaseResponse<QuotationDetailResponseForProvider>> GetQuotationDetailByProviderAsync(string quotationCode, int providerId);
         Task<BaseResponse> ConfirmQuotationAsync(string quotationCode, bool isConfirmed);
         Task<BaseResponse> RequestChangeQuotationAsync(string quotationCode, string? changeReason);
         Task<BaseResponse> ApproveChangeQuotationAsync(string quotationCode);
