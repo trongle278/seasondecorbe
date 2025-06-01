@@ -1037,9 +1037,9 @@ private string GenerateTermOfUseContent(Quotation quotation)
                 string body = File.ReadAllText(templatePath);
 
                 string customerBody = body
-                    .Replace("{customerName}", $"{booking.Account.FirstName} {booking.Account.LastName}")
-                    .Replace("{contractCode}", contract.ContractCode)
-                    .Replace("{penaltyAmount}", penaltyAmount.ToString("C", CultureInfo.GetCultureInfo("vi-VN")));
+    .Replace("{customerName}", $"{booking.Account.FirstName} {booking.Account.LastName}")
+    .Replace("{contractCode}", $"<span style='color:#3498db; font-weight:bold;'>#{contract.ContractCode}</span>")
+    .Replace("{penaltyAmount}", $"<span style='color:#e74c3c; font-weight:bold; font-size:16px;'>{penaltyAmount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))}</span>");
 
                 await _emailService.SendEmailAsync(
                     booking.Account.Email,
@@ -1049,9 +1049,9 @@ private string GenerateTermOfUseContent(Quotation quotation)
 
                 // Email gửi cho Provider
                 string providerBody = body
-                    .Replace("{customerName}", $"{booking.DecorService.Account.FirstName} {booking.DecorService.Account.LastName}")
-                    .Replace("{contractCode}", contract.ContractCode)
-                    .Replace("{penaltyAmount}", penaltyAmount.ToString("C", CultureInfo.GetCultureInfo("vi-VN")));
+    .Replace("{customerName}", $"{booking.DecorService.Account.FirstName} {booking.DecorService.Account.LastName}")
+    .Replace("{contractCode}", $"<span style='color:#3498db; font-weight:bold;'>#{contract.ContractCode}</span>")
+    .Replace("{penaltyAmount}", $"<span style='color:#2ecc71; font-weight:bold; font-size:16px;'>{penaltyAmount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))}</span>");
 
                 await _emailService.SendEmailAsync(
                     booking.DecorService.Account.Email,

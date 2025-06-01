@@ -646,6 +646,7 @@ namespace BusinessLogicLayer.Services
             return response;
         }
 
+        //test
         public async Task<BaseResponse<PageResult<ProviderPaymentResponse>>> GetProviderPaginatedPaymentsAsync(ProviderPaymentFilterRequest request, int providerId)
         {
             var response = new BaseResponse<PageResult<ProviderPaymentResponse>>();
@@ -654,6 +655,7 @@ namespace BusinessLogicLayer.Services
                 // 🔥 Filter theo TransactionType Enum
                 Expression<Func<PaymentTransaction, bool>> filter = pt =>
                     pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
+                    pt.TransactionType != PaymentTransaction.EnumTransactionType.Revenue && //test  Bỏ Revenue ra
                     (request.TransactionType == null || pt.TransactionType == (PaymentTransaction.EnumTransactionType)(int)request.TransactionType) &&
                         (
                             (pt.Booking != null && pt.Booking.DecorService.AccountId == providerId) ||

@@ -117,6 +117,12 @@ namespace BusinessLogicLayer.ModelResponse
         public int Status { get; set; }
         public string CancelType { get; set; }
         public string Reason { get; set; }
+
+        // 🧍 Customer Info
+        public string CustomerEmail { get; set; }
+        public string CustomerName { get; set; }
+        public string CustomerAvatar { get; set; }
+        public string CustomerPhone { get; set; } 
     }
 
     public class RequestQuotationChangeDetailResponse
@@ -124,5 +130,11 @@ namespace BusinessLogicLayer.ModelResponse
         public string QuotationCode { get; set; }
         public int Status { get; set; }
         public string Reason { get; set; }
+        
+        // 🧍 Customer Info
+        public string CustomerEmail { get; set; }
+        public string CustomerName { get; set; }
+        public string CustomerAvatar { get; set; }
+        public string CustomerPhone { get; set; }
     }
 }

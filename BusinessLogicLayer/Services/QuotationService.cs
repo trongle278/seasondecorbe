@@ -1824,6 +1824,8 @@ namespace BusinessLogicLayer.Services
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
                     .Include(q => q.CancelType)
+                    .Include(q => q.Booking)
+                        .ThenInclude(q => q.Account)
                     .FirstOrDefaultAsync(q => q.QuotationCode == quotationCode && q.Status == QuotationStatus.PendingCancel);
 
                 if (quotation == null)
@@ -1837,7 +1839,11 @@ namespace BusinessLogicLayer.Services
                     QuotationCode = quotation.QuotationCode,
                     Status = (int)quotation.Status,
                     CancelType = quotation.CancelType?.Type,
-                    Reason = quotation.CancelReason
+                    Reason = quotation.CancelReason,
+                    CustomerName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
+                    CustomerEmail = quotation.Booking.Account?.Email,
+                    CustomerAvatar = quotation.Booking.Account?.Avatar,
+                    CustomerPhone = quotation.Booking.Account?.Phone
                 };
 
                 response.Success = true;
@@ -1861,6 +1867,8 @@ namespace BusinessLogicLayer.Services
             try
             {
                 var quotation = await _unitOfWork.QuotationRepository.Queryable()
+                    .Include(q => q.Booking)
+                        .ThenInclude(q => q.Account)
                     .Where(q => q.QuotationCode == quotationCode && q.Status == QuotationStatus.PendingChanged)
                     .FirstOrDefaultAsync();
 
@@ -1874,7 +1882,11 @@ namespace BusinessLogicLayer.Services
                 {
                     QuotationCode = quotation.QuotationCode,
                     Status = (int)quotation.Status,
-                    Reason = quotation.CancelReason
+                    Reason = quotation.CancelReason,
+                    CustomerName = $"{quotation.Booking.Account?.FirstName} {quotation.Booking.Account?.LastName}".Trim(),
+                    CustomerEmail = quotation.Booking.Account?.Email,
+                    CustomerAvatar = quotation.Booking.Account?.Avatar,
+                    CustomerPhone = quotation.Booking.Account?.Phone
                 };
 
                 response.Success = true;
