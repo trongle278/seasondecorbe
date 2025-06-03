@@ -237,26 +237,6 @@ namespace SeasonalHomeDecorAPI.Controllers
         //}
 
         //[Authorize]
-        //[HttpGet("join-info/{id}")]
-        //public async Task<IActionResult> GetZoomJoinInfo(int id)
-        //{
-        //    var accountId = GetUserId();
-        //    if (accountId == 0)
-        //    {
-        //        return Unauthorized(new { Message = "Unauthorized" });
-        //    }
-
-        //    var result = await _zoomService.GetZoomJoinInfo(id);
-
-        //    if (result.Success)
-        //    {
-        //        return Ok(result);
-        //    }
-
-        //    return BadRequest(result);
-        //}
-
-        //[Authorize]
         //[HttpGet("oauth/authorize")]
         //public IActionResult Authorize()
         //{
@@ -269,23 +249,84 @@ namespace SeasonalHomeDecorAPI.Controllers
         //    return BadRequest(result);
         //}
 
-        //[Authorize]
-        //[HttpGet("oauth/callback")]
-        //public async Task<IActionResult> Callback([FromQuery] string code)
-        //{
-        //    if (string.IsNullOrEmpty(code))
-        //    {
-        //        return BadRequest(new BaseResponse { Message = "Code is missing" });
-        //    }                
+        [Authorize]
+        [HttpGet("oauth/callback")]
+        public async Task<IActionResult> Callback([FromQuery] string code)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
 
-        //    var result = await _zoomOAuthService.ExchangeCodeForTokenAsync(code);
+            var result = await _zoomOAuthService.GetAccessTokenAsync(code);
 
-        //    if (result.Success)
-        //    {
-        //        return Ok(result);
-        //    }
+            if (result.Success)
+            {
+                return Ok(result);
+            }
 
-        //    return BadRequest(result);
-        //}
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPost("oauth/acceptMeetingRequest/{bookingCode}")]
+        public async Task<IActionResult> OAuthAcceptMeeting(string bookingCode, [FromQuery] int id, [FromBody] ZoomOAuthRequest request)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomOAuthService.AcceptMeetingRequestAsync(bookingCode, id, request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPut("oauth/endMeeting/{bookingCode}")]
+        public async Task<IActionResult> OAuthEndMeeting(string bookingCode, [FromQuery] int id, [FromBody] ZoomOAuthRequest request)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomOAuthService.EndMeetingAsync(bookingCode, id, request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpGet("oauth/join-info/{id}")]
+        public async Task<IActionResult> GetZoomJoinInfo(int id)
+        {
+            var accountId = GetUserId();
+            if (accountId == 0)
+            {
+                return Unauthorized(new { Message = "Unauthorized" });
+            }
+
+            var result = await _zoomOAuthService.GetZoomJoinInfo(id);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
     }
 }

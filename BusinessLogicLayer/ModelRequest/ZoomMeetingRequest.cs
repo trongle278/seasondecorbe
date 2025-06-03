@@ -18,4 +18,9 @@ namespace BusinessLogicLayer.ModelRequest
     {
         public DateTime StartTime { get; set; }
     }
+
+    public class ZoomOAuthRequest
+    {
+        public string AccessToken { get; set; }
+    }
 }
