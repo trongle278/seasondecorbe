@@ -36,6 +36,8 @@ namespace BusinessLogicLayer.ModelResponse
         public DateTime SurveyDate { get; set; }
         public DateTime? ConstructionDate { get; set; }
         public DateTime? SignedDate { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal DepositAmount { get; set; }
         public string CustomerName { get; set; }

@@ -24,6 +24,8 @@ namespace BusinessLogicLayer.ModelResponse
         public bool HasTerminated { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
         //public DateTime? EstimatedCompletion { get; set; }
@@ -43,6 +45,8 @@ namespace BusinessLogicLayer.ModelResponse
         public decimal TotalPrice { get; set; }
         public int Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public decimal DepositAmount { get; set; }
         public string CancelType { get; set; }
         public string CancelReason { get; set; }
@@ -78,6 +82,8 @@ namespace BusinessLogicLayer.ModelResponse
         public bool? CancelDisable { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public string ServiceItems { get; set; }
         public decimal Cost { get; set; }
         //public DateTime? EstimatedCompletion { get; set; }

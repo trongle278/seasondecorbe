@@ -23,6 +23,8 @@ namespace DataAccessObject.Models
         //public string ExpectedCompletion { get; set; }
         public DateTime? ConstructionDate { get; set; }
         public DateTime CreateAt { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public enum BookingStatus
         {
             Pending,            // Khi khách hàng tạo booking0

@@ -28,6 +28,8 @@ namespace BusinessLogicLayer.ModelResponse
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }
         public DateTime? SignedDate { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public bool HasTerminated { get; set; }
         public DateTime CreatedAt { get; set; }
 
@@ -82,6 +84,8 @@ namespace BusinessLogicLayer.ModelResponse
         public bool? IsContractExisted { get; set; }
         public bool IsSigned { get; set; }
         public DateTime? SignedDate { get; set; }
+        public DateTime? CancelDate { get; set; }
+        public DateTime? CompleteDate { get; set; }
         public bool HasTerminated { get; set; }
         public DateTime CreatedAt { get; set; }
         public int Status { get; set; }

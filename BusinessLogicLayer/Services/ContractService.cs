@@ -436,6 +436,8 @@ namespace BusinessLogicLayer.Services
                     SurveyDate = timeslot.SurveyDate,
                     ConstructionDate = booking.ConstructionDate,
                     SignedDate = contract.SignedDate,
+                    CancelDate = booking.CancelDate,
+                    CompleteDate = booking.CompleteDate,
 
                     CustomerName = $"{customer.LastName} {customer.FirstName}",
                     CustomerEmail = customer.Email,
@@ -585,7 +587,7 @@ private string GenerateTermOfUseContent(Quotation quotation)
 </head>
 <body>
     <div class='logo'>
-        <img src='https://i.postimg.cc/RFmTf94F/seasondecorlogo.png' alt='SeasonDecor Logo'>
+        <img src='https://i.postimg.cc/JhhtjBnv/seasondecorlogo.png' alt='SeasonDecor Logo'>
     </div>
     
     <h1>HOME DECORATION SERVICE CONTRACT</h1>
@@ -724,7 +726,7 @@ private string GenerateTermOfUseContent(Quotation quotation)
             <li>Party B is responsible for providing all necessary documentation related to the project and will be held liable if insufficient.</li>
             <li>Party A agrees not to use the documents provided by Party B for other purposes outside the scope of this contract.</li>
             <li>Both parties commit to fully implementing the terms and conditions of this contract.</li>
-            <li>After signing, Party A is not entitled to cancel the contract under any circumstances; any loss or cost arising thereafter shall be borne entirely by Party A.</li>
+            <li>After successful signing, the customer has a 3-day cooling-off period to terminate the contract. Early termination during this period will incur a penalty of 50% of the total contract value ({(quotation.Booking.TotalPrice * 0.5m):N0} VND). After this 3-day period, the contract cannot be unilaterally terminated.</li>
         </ul>
     </div>
 </body>
@@ -1028,6 +1030,7 @@ private string GenerateTermOfUseContent(Quotation quotation)
                 booking.Status = BookingStatus.Canceled;
                 booking.HasTerminated = true;
                 booking.IsBooked = false;
+                booking.CancelDate = DateTime.Now;
 
                 await _unitOfWork.CommitAsync();
                 await transaction.CommitAsync();
@@ -1207,6 +1210,7 @@ private string GenerateTermOfUseContent(Quotation quotation)
                 // Cập nhật trạng thái
                 contract.Status = Contract.ContractStatus.Canceled;
                 booking.Status = Booking.BookingStatus.Canceled;
+                booking.CancelDate = DateTime.Now;
                 booking.IsBooked = false;
 
                 await _unitOfWork.CommitAsync();

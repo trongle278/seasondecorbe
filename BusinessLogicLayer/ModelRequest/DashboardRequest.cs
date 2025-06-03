@@ -24,4 +24,12 @@ namespace BusinessLogicLayer.ModelRequest
             PenaltyPay = 7
         }
     }
+
+    public class AdminPaymentFilterRequest
+    {
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public string? SortBy { get; set; } = "TransactionDate";
+        public bool Descending { get; set; } = false;
+    }
 }

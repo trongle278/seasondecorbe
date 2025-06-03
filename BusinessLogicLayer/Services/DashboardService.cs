@@ -742,5 +742,95 @@ namespace BusinessLogicLayer.Services
             }
             return response;
         }
+
+        //test
+        public async Task<BaseResponse<PageResult<ProviderPaymentResponse>>> GetAdminPaginatedPaymentsAsync(AdminPaymentFilterRequest request)
+        {
+            var response = new BaseResponse<PageResult<ProviderPaymentResponse>>();
+            try
+            {
+                // 🔥 Admin chỉ xem TransactionType = Revenue
+                Expression<Func<PaymentTransaction, bool>> filter = pt =>
+                    pt.TransactionStatus == PaymentTransaction.EnumTransactionStatus.Success &&
+                    pt.TransactionType == PaymentTransaction.EnumTransactionType.Revenue &&
+                    pt.WalletTransactions.Any(wt => wt.Wallet.Account.RoleId == 1);
+
+                // 🔹 Order By
+                Expression<Func<PaymentTransaction, object>> orderBy = pt => pt.TransactionDate;
+
+                // 🔹 Include các bảng cần thiết
+                Func<IQueryable<PaymentTransaction>, IQueryable<PaymentTransaction>> customQuery = query => query
+                    .Include(pt => pt.WalletTransactions)
+                        .ThenInclude(wt => wt.Wallet)
+                        .ThenInclude(w => w.Account)
+                    .Include(pt => pt.Booking)
+                        .ThenInclude(b => b.DecorService)
+                            .ThenInclude(ds => ds.Account)
+                    .Include(pt => pt.Booking)
+                        .ThenInclude(b => b.Account)
+                    .Include(pt => pt.Order)
+                        .ThenInclude(o => o.Account)
+                    .Include(pt => pt.Order)
+                        .ThenInclude(o => o.OrderDetails)
+                            .ThenInclude(od => od.Product)
+                                .ThenInclude(p => p.Account);
+
+                // 🔹 Get dữ liệu
+                (IEnumerable<PaymentTransaction> transactions, int totalCount) = await _unitOfWork.PaymentTransactionRepository.GetPagedAndFilteredAsync(
+                    filter,
+                    request.PageIndex,
+                    request.PageSize,
+                    orderBy,
+                    request.Descending,
+                    null,
+                    customQuery
+                );
+
+                response.Success = true;
+                response.Data = new PageResult<ProviderPaymentResponse>
+                {
+                    Data = transactions.Select(pt =>
+                    {
+                        var order = pt.Order;
+                        var booking = pt.Booking;
+
+                        return new ProviderPaymentResponse
+                        {
+                            TransactionId = pt.Id,
+                            Amount = pt.Amount,
+                            TransactionDate = pt.TransactionDate,
+                            TransactionType = (int)pt.TransactionType,
+                            OrderId = pt.OrderId,
+                            BookingId = pt.BookingId,
+
+                            SenderName = order != null
+                                ? $"{order.Account?.LastName} {order.Account?.FirstName}".Trim()
+                                : $"{booking?.Account?.LastName} {booking?.Account?.FirstName}".Trim(),
+
+                            SenderEmail = order != null
+                                ? order.Account?.Email
+                                : booking?.Account?.Email,
+
+                            ReceiverName = order != null
+                                ? $"{order.OrderDetails.FirstOrDefault()?.Product?.Account?.LastName} {order.OrderDetails.FirstOrDefault()?.Product?.Account?.FirstName}".Trim()
+                                : $"{booking?.DecorService?.Account?.LastName} {booking?.DecorService?.Account?.FirstName}".Trim(),
+
+                            ReceiverEmail = order != null
+                                ? order.OrderDetails.FirstOrDefault()?.Product?.Account?.Email
+                                : booking?.DecorService?.Account?.Email
+                        };
+                    }).ToList(),
+                    TotalCount = totalCount
+                };
+                response.Message = "Admin revenue transactions retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = "Failed to retrieve admin revenue transactions.";
+                response.Errors.Add(ex.Message);
+            }
+            return response;
+        }
     }
 }

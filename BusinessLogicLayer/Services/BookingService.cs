@@ -170,6 +170,8 @@ namespace BusinessLogicLayer.Services
                         Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                         CancelDisable = booking.CancelDisable,
                         IsCommitDepositPaid = booking.IsCommitDepositPaid,
+                        CancelDate = booking.CancelDate,
+                        CompleteDate = booking.CompleteDate,
                         CreatedAt = booking.CreateAt,
 
                         DecorService = new DecorServiceDTO
@@ -357,6 +359,8 @@ namespace BusinessLogicLayer.Services
                     IsTracked = booking.IsTracked ?? false,
                     IsReviewed = booking.IsReviewed ?? false,
                     HasTerminated = booking.HasTerminated ?? false,
+                    CancelDate = booking.CancelDate,
+                    CompleteDate = booking.CompleteDate,
 
                     // Thông tin DecorService (không thay đổi)
                     DecorService = new DecorServiceDTO
@@ -505,6 +509,8 @@ namespace BusinessLogicLayer.Services
                     TotalPrice = booking.TotalPrice,
                     Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
+                    CancelDate = booking.CancelDate,
+                    CompleteDate = booking.CompleteDate,
 
                     // ⭐ Thông tin DecorService
                     DecorService = new DecorServiceDTO
@@ -646,6 +652,8 @@ namespace BusinessLogicLayer.Services
                     CancelType = booking.CancelType?.Type,
                     CancelReason = booking.CancelReason,
                     RejectReason = booking.RejectReason,
+                    CancelDate = booking.CancelDate,
+                    CompleteDate = booking.CompleteDate,
 
                     BookingDetails = booking.BookingDetails.Select(bd => new BookingDetailResponse
                     {
@@ -1334,6 +1342,7 @@ namespace BusinessLogicLayer.Services
 
                     booking.IsBooked = false;
                     booking.Status = newStatus.Value; // Đảm bảo cập nhật status
+                    booking.CompleteDate = DateTime.Now;
                     _unitOfWork.BookingRepository.Update(booking); // Cập nhật lại booking sau khi thay đổi IsBooked
                     break;
             }
@@ -1405,6 +1414,7 @@ namespace BusinessLogicLayer.Services
                 if (booking.Status == BookingStatus.Pending)
                 {
                     booking.Status = BookingStatus.Canceled;
+                    booking.CancelDate = DateTime.Now;
                     booking.IsBooked = false;
 
                     if (booking.DecorService != null)
@@ -1499,6 +1509,7 @@ namespace BusinessLogicLayer.Services
 
                 booking.IsBooked = false;
                 booking.Status = BookingStatus.Canceled;
+                booking.CancelDate = DateTime.Now;
                 _unitOfWork.BookingRepository.Update(booking);
                 service.Status = DecorService.DecorServiceStatus.Available;
                 

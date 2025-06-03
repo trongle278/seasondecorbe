@@ -75,5 +75,12 @@ namespace SeasonalHomeDecorAPI.Controllers
             var result = await _dashboardService.GetProviderPaginatedPaymentsAsync(request, providerId);
             return Ok(result);
         }
+
+        [HttpGet("getAdminPaginatedPaymentTransaction")]
+        public async Task<IActionResult> GetAdminPaginatedPaymentTransaction([FromQuery] AdminPaymentFilterRequest request)
+        {
+            var result = await _dashboardService.GetAdminPaginatedPaymentsAsync(request);
+            return Ok(result);
+        }
     }
 }

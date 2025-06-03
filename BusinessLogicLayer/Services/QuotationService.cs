@@ -934,6 +934,8 @@ namespace BusinessLogicLayer.Services
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     IsSigned = q.Contract != null && q.Contract.isSigned == true,
                     SignedDate = q.Contract != null ? q.Contract.SignedDate : null,
+                    CancelDate = q.Booking.CancelDate,
+                    CompleteDate = q.Booking.CompleteDate,
                     HasTerminated = q.Booking.HasTerminated ?? false,
 
                     MaterialDetails = q.MaterialDetails.Select(m => new MaterialDetailResponse
@@ -1054,6 +1056,8 @@ namespace BusinessLogicLayer.Services
                     IsContractExisted = q.Contract != null && q.Contract.isContractExisted,
                     IsSigned = q.Contract != null && q.Contract.isSigned == true,
                     SignedDate = q.Contract != null ? q.Contract.SignedDate : null,
+                    CancelDate = q.Booking.CancelDate,
+                    CompleteDate = q.Booking.CompleteDate,
                     HasTerminated = q.Booking.HasTerminated ?? false,
                     FilePath = q.QuotationFilePath,
 
@@ -1151,6 +1155,8 @@ namespace BusinessLogicLayer.Services
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
                     IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
                     SignedDate = quotation.Contract != null ? quotation.Contract.SignedDate : null,
+                    CancelDate = quotation.Booking.CancelDate,
+                    CompleteDate = quotation.Booking.CompleteDate,
                     HasTerminated = quotation.Booking.HasTerminated ?? false,
                     CreatedAt = quotation.CreatedAt,
                     CommitDepositAmount = quotation.Booking.CommitDepositAmount,
@@ -1290,6 +1296,8 @@ namespace BusinessLogicLayer.Services
                     IsContractExisted = quotation.Contract != null && quotation.Contract.isContractExisted,
                     IsSigned = quotation.Contract != null && quotation.Contract.isSigned == true,
                     SignedDate = quotation.Contract != null ? quotation.Contract.SignedDate : null,
+                    CancelDate = quotation.Booking.CancelDate,
+                    CompleteDate = quotation.Booking.CompleteDate,
                     HasTerminated = quotation.Booking.HasTerminated ?? false,
                     CreatedAt = quotation.CreatedAt,
                     CommitDepositAmount = quotation.Booking.CommitDepositAmount,
@@ -1701,6 +1709,7 @@ namespace BusinessLogicLayer.Services
 
                 booking.Status = Booking.BookingStatus.Canceled;
                 booking.IsBooked = false;
+                booking.CancelDate = DateTime.Now;
                 _unitOfWork.BookingRepository.Update(booking);
 
                 await _unitOfWork.CommitAsync();
