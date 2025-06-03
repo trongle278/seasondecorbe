@@ -57,6 +57,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.Address)
                     .Include(b => b.CancelType)
                     .Include(b => b.Account)
+                    .Include(b => b.TimeSlots)
                     .Where(b => b.BookingCode == bookingCode
                                 && b.Status == BookingStatus.PendingCancel
                                 && b.DecorService.AccountId == providerId)
@@ -131,6 +132,8 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.Address)
                     .Include(b => b.Quotations) // 🔥 Lấy thêm Quotations để check isQuoteExisted
                         .ThenInclude(q => q.Contract) // 🔥 Lấy thêm Contract để check isContractExisted
+
+                    .Include(b => b.TimeSlots)
 
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor)
@@ -322,6 +325,7 @@ namespace BusinessLogicLayer.Services
                     .Include(b => b.BookingDetails) // Booking details
                     .Include(b => b.Quotations)
                     .Include(b => b.Address)
+                    .Include(b => b.TimeSlots)
 
                     .Include(b => b.BookingThemeColors)
                         .ThenInclude(btc => btc.ThemeColor)
@@ -497,6 +501,8 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(ds => ds.Account) // ⭐ Join Provider
 
                     .Include(b => b.ProductDetails)
+
+                    .Include(b => b.TimeSlots)
 
                     .Include(b => b.BookingForm)
                         .ThenInclude(bf => bf.FormImages)
