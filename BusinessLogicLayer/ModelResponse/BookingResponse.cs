@@ -24,6 +24,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool HasTerminated { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime SurveyDate { get; set; }
         public DateTime? CancelDate { get; set; }
         public DateTime? CompleteDate { get; set; }
         public string ServiceItems { get; set; }
@@ -82,6 +83,7 @@ namespace BusinessLogicLayer.ModelResponse
         public bool? CancelDisable { get; set; }
         public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime SurveyDate { get; set; }
         public DateTime? CancelDate { get; set; }
         public DateTime? CompleteDate { get; set; }
         public string ServiceItems { get; set; }

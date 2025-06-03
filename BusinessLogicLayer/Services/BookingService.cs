@@ -80,6 +80,7 @@ namespace BusinessLogicLayer.Services
                     Avatar =booking.Account.Avatar,
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                     CreatedAt = booking.CreateAt,
+                    SurveyDate = booking.TimeSlots.FirstOrDefault().SurveyDate,
 
                     CancelTypeId = booking.CancelType.Id,
                     CancelTypeName = booking.CancelType.Type,
@@ -170,6 +171,7 @@ namespace BusinessLogicLayer.Services
                         Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
                         CancelDisable = booking.CancelDisable,
                         IsCommitDepositPaid = booking.IsCommitDepositPaid,
+                        SurveyDate = booking.TimeSlots.FirstOrDefault().SurveyDate,
                         CancelDate = booking.CancelDate,
                         CompleteDate = booking.CompleteDate,
                         CreatedAt = booking.CreateAt,
@@ -359,6 +361,7 @@ namespace BusinessLogicLayer.Services
                     IsTracked = booking.IsTracked ?? false,
                     IsReviewed = booking.IsReviewed ?? false,
                     HasTerminated = booking.HasTerminated ?? false,
+                    SurveyDate = booking.TimeSlots.FirstOrDefault().SurveyDate,
                     CancelDate = booking.CancelDate,
                     CompleteDate = booking.CompleteDate,
 
@@ -509,6 +512,7 @@ namespace BusinessLogicLayer.Services
                     TotalPrice = booking.TotalPrice,
                     Status = (int)booking.Status,
                     CreatedAt = booking.CreateAt,
+                    SurveyDate = booking.TimeSlots.FirstOrDefault().SurveyDate,
                     CancelDate = booking.CancelDate,
                     CompleteDate = booking.CompleteDate,
 
@@ -662,6 +666,7 @@ namespace BusinessLogicLayer.Services
                         Cost = bd.Cost,
                         //EstimatedCompletion = bd.EstimatedCompletion,
                     }).ToList(),
+
                     SurveyDate = booking.TimeSlots.FirstOrDefault()?.SurveyDate,
                     Address = $"{booking.Address.Detail}, {booking.Address.Street}, {booking.Address.Ward}, {booking.Address.District}, {booking.Address.Province}",
 
