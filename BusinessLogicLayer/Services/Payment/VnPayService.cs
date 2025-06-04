@@ -73,14 +73,14 @@ namespace KCP.Service.Service.Pay
             if (isMobile)
             {
                 // URL for mobile return handling
-                vnp_Returnurl = $"https://390e-2402-800-629d-b1d3-ed99-6ae6-a020-27b1.ngrok-free.app/api/Payment/mobileReturn?customerId={vnPayRequest.CustomerId}";
-                //vnp_Returnurl = $"https://seasondecor.azurewebsites.net/api/Payment/mobileReturn?customerId={vnPayRequest.CustomerId}";
+                //vnp_Returnurl = $"https://390e-2402-800-629d-b1d3-ed99-6ae6-a020-27b1.ngrok-free.app/api/Payment/mobileReturn?customerId={vnPayRequest.CustomerId}";
+                vnp_Returnurl = $"https://seasondecor.azurewebsites.net/api/Payment/mobileReturn?customerId={vnPayRequest.CustomerId}";
             }
             else
             {
                 // URL for web return handling
-                vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}";
-                //vnp_Returnurl = $"https://seasondecor.azurewebsites.net/api/Payment/return?customerId={vnPayRequest.CustomerId}";
+                //vnp_Returnurl = $"http://localhost:5297/api/Payment/return?customerId={vnPayRequest.CustomerId}";
+                vnp_Returnurl = $"https://seasondecor.azurewebsites.net/api/Payment/return?customerId={vnPayRequest.CustomerId}";
             }
 
             string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"; // URL thanh toan cua VNPAY 
