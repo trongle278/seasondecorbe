@@ -313,6 +313,8 @@ using (var scope = app.Services.CreateScope())
     await scheduler.TriggerJob(new JobKey("DecorServiceStatusUpdateJob"));
     await scheduler.TriggerJob(new JobKey("BookingCancelDisableJob"));
     await scheduler.TriggerJob(new JobKey("AutoCancelExpiredContractsJob"));
+    await scheduler.TriggerJob(new JobKey("ZoomMeetingStatusUpdateJob"));
+    await scheduler.TriggerJob(new JobKey("ProductStatusUpdateJob"));
     //await scheduler.TriggerJob(new JobKey("ContractTerminationExpiryJob"));
 }
 
