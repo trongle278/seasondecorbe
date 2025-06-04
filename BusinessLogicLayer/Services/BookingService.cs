@@ -706,7 +706,7 @@ namespace BusinessLogicLayer.Services
                         Avatar = booking.Account.Avatar
                     },
 
-                    DesignName = booking.DecorationStyle.Name,
+                    DesignName = booking.DecorationStyle?.Name,
                     ThemeColors = booking.BookingThemeColors?
                     .Select(tc => new ThemeColorResponse
                     {
