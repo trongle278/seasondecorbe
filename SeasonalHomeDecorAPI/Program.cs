@@ -58,14 +58,14 @@ builder.Services.AddSignalR(options =>
 // Đăng ký Quartz
 builder.Services.AddQuartz(q =>
 {
-    var jobKey = new JobKey("AccountCleanupJob");
-    q.AddJob<AccountCleanupJob>(opts => opts.WithIdentity(jobKey));
-    q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("AccountCleanupJobTrigger")
-        .WithSimpleSchedule(x => x
-            .WithIntervalInHours(1) // Chạy mỗi 1 giờ
-            .RepeatForever()));
+    //var jobKey = new JobKey("AccountCleanupJob");
+    //q.AddJob<AccountCleanupJob>(opts => opts.WithIdentity(jobKey));
+    //q.AddTrigger(opts => opts
+    //    .ForJob(jobKey)
+    //    .WithIdentity("AccountCleanupJobTrigger")
+    //    .WithSimpleSchedule(x => x
+    //        .WithIntervalInHours(1) // Chạy mỗi 1 giờ
+    //        .RepeatForever()));
 
     var surveyJobKey = new JobKey("SurveyDateExpiredJob");
     q.AddJob<BookingCancelDisableJob>(opts => opts.WithIdentity(surveyJobKey));
@@ -121,14 +121,14 @@ builder.Services.AddQuartz(q =>
             .WithIntervalInMinutes(5)
             .RepeatForever()));
 
-    var contractTerminationExpiryJobKey = new JobKey("ContractTerminationExpiryJob");
-    q.AddJob<ContractTerminationExpiryJob>(opts => opts.WithIdentity(contractTerminationExpiryJobKey));
-    q.AddTrigger(opts => opts
-        .ForJob(contractTerminationExpiryJobKey)
-        .WithIdentity("ContractTerminationExpiryJobTrigger")
-        .WithSimpleSchedule(x => x
-            .WithIntervalInMinutes(5)
-            .RepeatForever()));
+    //var contractTerminationExpiryJobKey = new JobKey("ContractTerminationExpiryJob");
+    //q.AddJob<ContractTerminationExpiryJob>(opts => opts.WithIdentity(contractTerminationExpiryJobKey));
+    //q.AddTrigger(opts => opts
+    //    .ForJob(contractTerminationExpiryJobKey)
+    //    .WithIdentity("ContractTerminationExpiryJobTrigger")
+    //    .WithSimpleSchedule(x => x
+    //        .WithIntervalInMinutes(5)
+    //        .RepeatForever()));
 }); 
 
 // Đăng ký dịch vụ Quartz background
@@ -308,12 +308,12 @@ using (var scope = app.Services.CreateScope())
 {
     var schedulerFactory = scope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
     var scheduler = await schedulerFactory.GetScheduler();
-    await scheduler.TriggerJob(new JobKey("AccountCleanupJob"));
+    //await scheduler.TriggerJob(new JobKey("AccountCleanupJob"));
     await scheduler.TriggerJob(new JobKey("SurveyDateExpiredJob"));
     await scheduler.TriggerJob(new JobKey("DecorServiceStatusUpdateJob"));
     await scheduler.TriggerJob(new JobKey("BookingCancelDisableJob"));
     await scheduler.TriggerJob(new JobKey("AutoCancelExpiredContractsJob"));
-    await scheduler.TriggerJob(new JobKey("ContractTerminationExpiryJob"));
+    //await scheduler.TriggerJob(new JobKey("ContractTerminationExpiryJob"));
 }
 
 // 12. Configure the HTTP request pipeline
