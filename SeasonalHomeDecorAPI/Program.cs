@@ -91,7 +91,7 @@ builder.Services.AddQuartz(q =>
         .ForJob(cancelDisableJobKey)
         .WithIdentity("BookingCancelDisableJobTrigger")
         .WithSimpleSchedule(x => x
-            .WithIntervalInSeconds(10)
+            .WithIntervalInMinutes(5)
             .RepeatForever()));
 
     var zoomMeetingStatusUpdateJobKey = new JobKey("ZoomMeetingStatusUpdateJob");
@@ -127,7 +127,7 @@ builder.Services.AddQuartz(q =>
         .ForJob(contractTerminationExpiryJobKey)
         .WithIdentity("ContractTerminationExpiryJobTrigger")
         .WithSimpleSchedule(x => x
-            .WithIntervalInSeconds(10)
+            .WithIntervalInMinutes(5)
             .RepeatForever()));
 }); 
 
