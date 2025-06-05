@@ -69,6 +69,9 @@ namespace BusinessLogicLayer.Services
                         .ThenInclude(dss => dss.DecorationStyle)
                     .Include(ds => ds.DecorServiceOfferings)
                         .ThenInclude(dso => dso.Offering)
+
+                    .AsSplitQuery()
+                    .AsNoTracking()
                     .FirstOrDefaultAsync();
 
                 if (decorService == null)
@@ -418,7 +421,9 @@ namespace BusinessLogicLayer.Services
 
                 // Include Entities
                 Func<IQueryable<DecorService>, IQueryable<DecorService>> customQuery = query =>
-                    query.Include(ds => ds.DecorImages)
+                    query.AsSplitQuery()
+                         .AsNoTracking()
+                         .Include(ds => ds.DecorImages)
                          .Include(ds => ds.DecorCategory)
                          .Include(ds => ds.FavoriteServices)
                          .Include(ds => ds.DecorServiceSeasons)
